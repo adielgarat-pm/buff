@@ -68,6 +68,7 @@ export function useTaskStore() {
   const [timetable, setTimetable] = useState<Timetable>(createDefaultTimetable);
   const [rewards, setRewards] = useState<Reward[]>(DEFAULT_REWARDS);
   const [dailyGoal, setDailyGoal] = useState(DAILY_GOAL);
+  const [appTitle, setAppTitle] = useState('Daily Quests');
   const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>(DEFAULT_STORE_REWARDS);
@@ -84,6 +85,7 @@ export function useTaskStore() {
     const storedLessonReminders = localStorage.getItem('lessonRemindersEnabled');
     const storedVault = localStorage.getItem('creditVault');
     const storedStoreRewards = localStorage.getItem('storeRewards');
+    const storedAppTitle = localStorage.getItem('appTitle');
 
     const baseTasks = storedTasks ? JSON.parse(storedTasks) : DEFAULT_TASKS;
     
@@ -133,6 +135,10 @@ export function useTaskStore() {
 
     if (storedStoreRewards) {
       setStoreRewards(JSON.parse(storedStoreRewards));
+    }
+
+    if (storedAppTitle) {
+      setAppTitle(storedAppTitle);
     }
   }, []);
 
@@ -244,6 +250,11 @@ export function useTaskStore() {
     localStorage.setItem('dailyGoal', goal.toString());
   }, []);
 
+  const updateAppTitle = useCallback((title: string) => {
+    setAppTitle(title);
+    localStorage.setItem('appTitle', title);
+  }, []);
+
   const toggleLesson = useCallback((lessonId: string) => {
     setLessons(prev => prev.map(lesson =>
       lesson.id === lessonId
@@ -325,6 +336,7 @@ export function useTaskStore() {
     todaySchedule,
     rewards,
     dailyGoal,
+    appTitle,
     earnedCredits,
     totalPossibleCredits,
     progressPercent,
@@ -338,6 +350,7 @@ export function useTaskStore() {
     addTask,
     deleteTask,
     updateDailyGoal,
+    updateAppTitle,
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
