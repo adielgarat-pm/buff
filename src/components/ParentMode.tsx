@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -298,6 +298,11 @@ interface TaskEditRowProps {
 
 function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: TaskEditRowProps) {
   const [editedTask, setEditedTask] = useState(task);
+
+  // Sync local state when task prop changes
+  useEffect(() => {
+    setEditedTask(task);
+  }, [task]);
 
   if (isEditing) {
     return (
