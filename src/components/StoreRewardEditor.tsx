@@ -83,7 +83,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
         if (!nextOpen) onClose();
       }}
     >
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden bg-card border-border">
+      <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
             <Gift className="w-5 h-5 text-primary" />
@@ -94,7 +94,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className="flex-1 min-h-0 pr-4">
           <div className="space-y-4">
             {/* Add Button */}
             {!showAddForm && (
@@ -230,7 +230,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end pt-4 border-t border-border">
+        <div className="flex-shrink-0 flex justify-end pt-4 border-t border-border">
           <Button onClick={handleSave} className="bg-primary text-primary-foreground">
             <Save className="w-4 h-4 mr-2" />
             Save Changes
