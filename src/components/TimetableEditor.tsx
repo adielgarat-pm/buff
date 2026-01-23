@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
+import { useEffect, useState } from 'react';
+import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -18,20 +18,28 @@ const DEFAULT_PERIOD_TIMES = [
   '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00'
 ];
 
-export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableEditorProps) {
-  const [localTimetable, setLocalTimetable] = useState<Timetable>(() => {
-    // Initialize with existing or defaults
-    const initial: Timetable = {};
-    WEEK_DAYS.forEach(day => {
-      initial[day] = timetable[day] || DEFAULT_PERIOD_TIMES.map((time, i) => ({
-        subject: '',
-        startTime: time,
-      }));
-    });
-    return initial;
+const buildInitialTimetable = (timetable: Timetable): Timetable => {
+  const initial: Timetable = {};
+  WEEK_DAYS.forEach(day => {
+    initial[day] = timetable[day] || DEFAULT_PERIOD_TIMES.map((time) => ({
+      subject: '',
+      startTime: time,
+    }));
   });
+  return initial;
+};
+
+export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableEditorProps) {
+  const [localTimetable, setLocalTimetable] = useState<Timetable>(() => buildInitialTimetable(timetable));
 
   const [selectedDay, setSelectedDay] = useState<string>('sunday');
+
+  // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
+  useEffect(() => {
+    if (!open) return;
+    setLocalTimetable(buildInitialTimetable(timetable));
+    setSelectedDay('sunday');
+  }, [open, timetable]);
 
   const handleSubjectChange = (periodIndex: number, subject: string) => {
     setLocalTimetable(prev => ({
@@ -72,7 +80,12 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+    >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">Weekly Timetable</DialogTitle>

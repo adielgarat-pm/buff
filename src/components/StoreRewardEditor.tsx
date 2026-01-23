@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { StoreReward } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -38,6 +38,14 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
     price: 500,
   });
 
+  // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
+  useEffect(() => {
+    if (!open) return;
+    setLocalRewards(rewards);
+    setShowAddForm(false);
+    setNewReward({ title: '', icon: '🎁', price: 500 });
+  }, [open, rewards]);
+
   const handleAddReward = () => {
     if (newReward.title.trim()) {
       const reward: StoreReward = {
@@ -69,7 +77,12 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+    >
       <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
@@ -181,7 +194,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
                     />
                   </div>
                   {reward.claimed && (
-                    <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                       Claimed
                     </span>
                   )}
