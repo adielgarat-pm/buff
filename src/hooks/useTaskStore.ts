@@ -2,26 +2,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { Task, DailyProgress, Reward } from '@/types/task';
 
 const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
-  { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 15 },
-  { id: '2', title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 10 },
-  { id: '3', title: 'Brush Teeth (AM)', time: '09:00', category: 'hygiene', credits: 5 },
-  { id: '4', title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
-  { id: '5', title: 'Lunch', time: '12:30', category: 'nutrition', credits: 10 },
-  { id: '6', title: 'Homework Session', time: '16:00', category: 'school', credits: 25 },
-  { id: '7', title: 'Evening Meds', time: '18:00', category: 'medication', credits: 15 },
-  { id: '8', title: 'Dinner', time: '19:00', category: 'nutrition', credits: 10 },
-  { id: '9', title: 'Shower', time: '21:00', category: 'hygiene', credits: 10 },
-  { id: '10', title: 'Brush Teeth (PM)', time: '21:30', category: 'hygiene', credits: 5 },
+  { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
+  { id: '2', title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
+  { id: '3', title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
+  { id: '4', title: 'Homework Check', time: '14:00', category: 'school', credits: 15 },
+  { id: '5', title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
+  { id: '6', title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
+  { id: '7', title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
 ];
 
 const DEFAULT_REWARDS: Reward[] = [
   { id: 'r1', title: '30 min Gaming', requiredCredits: 50, icon: '🎮' },
-  { id: 'r2', title: 'Extra Screen Time', requiredCredits: 75, icon: '📱' },
-  { id: 'r3', title: 'Choose Dinner', requiredCredits: 100, icon: '🍕' },
-  { id: 'r4', title: 'Weekend Activity', requiredCredits: 110, icon: '🎯' },
+  { id: 'r2', title: 'Extra Screen Time', requiredCredits: 100, icon: '📱' },
+  { id: 'r3', title: 'Choose Dinner', requiredCredits: 125, icon: '🍕' },
+  { id: 'r4', title: 'Weekend Activity', requiredCredits: 150, icon: '🎯' },
 ];
 
-const DAILY_GOAL = 110;
+const DAILY_GOAL = 150;
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
