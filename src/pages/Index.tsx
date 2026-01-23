@@ -6,10 +6,12 @@ import { RewardsSection } from '@/components/RewardsSection';
 import { ParentMode } from '@/components/ParentMode';
 import { PhaseNavigation } from '@/components/PhaseNavigation';
 import { PhaseView } from '@/components/PhaseView';
-import { Phase, getCurrentPhase, getPhaseForTime, PHASES } from '@/types/phase';
+import { RewardsStore } from '@/components/RewardsStore';
+import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
 const Index = () => {
   const [parentModeOpen, setParentModeOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
   const currentPhase = getCurrentPhase();
   
@@ -23,6 +25,8 @@ const Index = () => {
     earnedCredits,
     progressPercent,
     lessonRemindersEnabled,
+    totalBalance,
+    storeRewards,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -32,6 +36,8 @@ const Index = () => {
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
+    redeemStoreReward,
+    updateStoreRewards,
     lessons,
   } = useTaskStore();
 
@@ -119,13 +125,29 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [todaySchedule, lessonRemindersEnabled]);
 
+  // Show Rewards Store
+  if (storeOpen) {
+    return (
+      <RewardsStore
+        totalBalance={totalBalance}
+        storeRewards={storeRewards}
+        onRedeem={redeemStoreReward}
+        onClose={() => setStoreOpen(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Subtle gradient glow */}
       <div className="fixed inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/3 to-transparent pointer-events-none" />
       
       <div className="relative max-w-lg mx-auto px-4 pb-8">
-        <Header onOpenSettings={() => setParentModeOpen(true)} />
+        <Header 
+          onOpenSettings={() => setParentModeOpen(true)} 
+          onOpenStore={() => setStoreOpen(true)}
+          totalBalance={totalBalance}
+        />
         
         <div className="space-y-6">
           {/* Phase Navigation */}
@@ -172,12 +194,14 @@ const Index = () => {
           dailyGoal={dailyGoal}
           timetable={timetable}
           lessonRemindersEnabled={lessonRemindersEnabled}
+          storeRewards={storeRewards}
           onUpdateTask={updateTask}
           onAddTask={addTask}
           onDeleteTask={deleteTask}
           onUpdateGoal={updateDailyGoal}
           onUpdateTimetable={updateTimetable}
           onToggleLessonReminders={toggleLessonReminders}
+          onUpdateStoreRewards={updateStoreRewards}
         />
       </div>
     </div>
