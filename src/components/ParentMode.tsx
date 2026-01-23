@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Task, TaskCategory, Timetable } from '@/types/task';
+import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift } from 'lucide-react';
 import { TimetableEditor } from './TimetableEditor';
+import { StoreRewardEditor } from './StoreRewardEditor';
 
 interface ParentModeProps {
   open: boolean;
@@ -16,12 +17,14 @@ interface ParentModeProps {
   dailyGoal: number;
   timetable: Timetable;
   lessonRemindersEnabled: boolean;
+  storeRewards: StoreReward[];
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
   onDeleteTask: (id: string) => void;
   onUpdateGoal: (goal: number) => void;
   onUpdateTimetable: (timetable: Timetable) => void;
   onToggleLessonReminders: (enabled: boolean) => void;
+  onUpdateStoreRewards: (rewards: StoreReward[]) => void;
 }
 
 const categoryOptions: { value: TaskCategory; label: string; icon: typeof Pill }[] = [
@@ -38,16 +41,19 @@ export function ParentMode({
   dailyGoal,
   timetable,
   lessonRemindersEnabled,
+  storeRewards,
   onUpdateTask,
   onAddTask,
   onDeleteTask,
   onUpdateGoal,
   onUpdateTimetable,
   onToggleLessonReminders,
+  onUpdateStoreRewards,
 }: ParentModeProps) {
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [timetableEditorOpen, setTimetableEditorOpen] = useState(false);
+  const [storeEditorOpen, setStoreEditorOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
@@ -137,6 +143,28 @@ export function ParentMode({
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Get notified 5 minutes before each lesson starts.
+            </p>
+          </div>
+
+          {/* Rewards Store Section */}
+          <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-foreground font-semibold">Rewards Store</Label>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setStoreEditorOpen(true)}
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                <Gift className="w-4 h-4 mr-2" />
+                Edit Rewards
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Add big rewards that can be redeemed with accumulated credits.
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {storeRewards.filter(r => !r.claimed).length} rewards available • {storeRewards.filter(r => r.claimed).length} claimed
             </p>
           </div>
 
@@ -245,6 +273,14 @@ export function ParentMode({
           onClose={() => setTimetableEditorOpen(false)}
           timetable={timetable}
           onSave={onUpdateTimetable}
+        />
+
+        {/* Store Reward Editor Dialog */}
+        <StoreRewardEditor
+          open={storeEditorOpen}
+          onClose={() => setStoreEditorOpen(false)}
+          rewards={storeRewards}
+          onSave={onUpdateStoreRewards}
         />
       </DialogContent>
     </Dialog>

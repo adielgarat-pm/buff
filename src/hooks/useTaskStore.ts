@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, DailyProgress, Reward, Lesson, Timetable, WEEK_DAYS, PeriodInfo, WeekDay } from '@/types/task';
+import { Task, DailyProgress, Reward, Lesson, Timetable, WEEK_DAYS, PeriodInfo, WeekDay, StoreReward, VaultData } from '@/types/task';
 
 const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
   { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
@@ -44,6 +44,12 @@ const DEFAULT_REWARDS: Reward[] = [
   { id: 'r4', title: 'Weekend Activity', requiredCredits: 150, icon: '🎯' },
 ];
 
+const DEFAULT_STORE_REWARDS: StoreReward[] = [
+  { id: 'store1', title: 'New Gaming Mouse', icon: '🖱️', price: 2000, claimed: false },
+  { id: 'store2', title: 'Movie Night Out', icon: '🎬', price: 1000, claimed: false },
+  { id: 'store3', title: 'New Game', icon: '🎮', price: 3000, claimed: false },
+];
+
 const DAILY_GOAL = 150;
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
@@ -63,8 +69,11 @@ export function useTaskStore() {
   const [rewards, setRewards] = useState<Reward[]>(DEFAULT_REWARDS);
   const [dailyGoal, setDailyGoal] = useState(DAILY_GOAL);
   const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [storeRewards, setStoreRewards] = useState<StoreReward[]>(DEFAULT_STORE_REWARDS);
+  const [lastVaultDate, setLastVaultDate] = useState<string>('');
 
-  // Initialize tasks, lessons, and timetable from localStorage or defaults
+  // Initialize tasks, lessons, timetable, and vault from localStorage or defaults
   useEffect(() => {
     const todayKey = getTodayKey();
     const storedProgress = localStorage.getItem(`progress_${todayKey}`);
@@ -73,6 +82,8 @@ export function useTaskStore() {
     const storedGoal = localStorage.getItem('dailyGoal');
     const storedTimetable = localStorage.getItem('timetable');
     const storedLessonReminders = localStorage.getItem('lessonRemindersEnabled');
+    const storedVault = localStorage.getItem('creditVault');
+    const storedStoreRewards = localStorage.getItem('storeRewards');
 
     const baseTasks = storedTasks ? JSON.parse(storedTasks) : DEFAULT_TASKS;
     
@@ -112,22 +123,70 @@ export function useTaskStore() {
     if (storedLessonReminders !== null) {
       setLessonRemindersEnabled(JSON.parse(storedLessonReminders));
     }
+
+    // Load vault data
+    if (storedVault) {
+      const vault: VaultData = JSON.parse(storedVault);
+      setTotalBalance(vault.totalBalance);
+      setLastVaultDate(vault.lastUpdatedDate);
+    }
+
+    if (storedStoreRewards) {
+      setStoreRewards(JSON.parse(storedStoreRewards));
+    }
   }, []);
 
-  // Save progress whenever tasks or lessons change
+  // Save progress and update vault whenever tasks or lessons change
   useEffect(() => {
     if (tasks.length === 0) return;
     
     const todayKey = getTodayKey();
     const taskCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
     const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
+    const todayEarned = taskCredits + lessonCredits;
+    
     const progress: DailyProgress = {
       date: todayKey,
-      earnedCredits: taskCredits + lessonCredits,
+      earnedCredits: todayEarned,
       completedTasks: tasks.filter(t => t.completed).map(t => t.id),
       completedLessons: lessons.filter(l => l.completed).map(l => l.id),
     };
     localStorage.setItem(`progress_${todayKey}`, JSON.stringify(progress));
+
+    // Update vault balance - add today's credits if not already added
+    if (lastVaultDate !== todayKey) {
+      // New day, add the full earned credits
+      const newBalance = totalBalance + todayEarned;
+      setTotalBalance(newBalance);
+      setLastVaultDate(todayKey);
+      const vault: VaultData = {
+        totalBalance: newBalance,
+        lastUpdatedDate: todayKey,
+        storeRewards,
+      };
+      localStorage.setItem('creditVault', JSON.stringify(vault));
+    } else {
+      // Same day, recalculate based on current tasks
+      // Get yesterday's vault balance (before today's credits)
+      const storedVault = localStorage.getItem('creditVault');
+      if (storedVault) {
+        const prevVault: VaultData = JSON.parse(storedVault);
+        const prevProgress = localStorage.getItem(`progress_${todayKey}`);
+        const prevEarned = prevProgress ? JSON.parse(prevProgress).earnedCredits : 0;
+        
+        // Only update if credits changed
+        if (prevEarned !== todayEarned) {
+          const baseBalance = prevVault.totalBalance - prevEarned + todayEarned;
+          setTotalBalance(baseBalance);
+          const vault: VaultData = {
+            totalBalance: baseBalance,
+            lastUpdatedDate: todayKey,
+            storeRewards,
+          };
+          localStorage.setItem('creditVault', JSON.stringify(vault));
+        }
+      }
+    }
   }, [tasks, lessons]);
 
   const completeTask = useCallback((taskId: string) => {
@@ -203,6 +262,39 @@ export function useTaskStore() {
     localStorage.setItem('lessonRemindersEnabled', JSON.stringify(enabled));
   }, []);
 
+  const redeemStoreReward = useCallback((rewardId: string) => {
+    const reward = storeRewards.find(r => r.id === rewardId);
+    if (!reward || reward.claimed || totalBalance < reward.price) return;
+
+    const newBalance = totalBalance - reward.price;
+    const updatedRewards = storeRewards.map(r =>
+      r.id === rewardId ? { ...r, claimed: true, claimedAt: new Date().toISOString() } : r
+    );
+
+    setTotalBalance(newBalance);
+    setStoreRewards(updatedRewards);
+
+    const vault: VaultData = {
+      totalBalance: newBalance,
+      lastUpdatedDate: lastVaultDate,
+      storeRewards: updatedRewards,
+    };
+    localStorage.setItem('creditVault', JSON.stringify(vault));
+    localStorage.setItem('storeRewards', JSON.stringify(updatedRewards));
+  }, [storeRewards, totalBalance, lastVaultDate]);
+
+  const updateStoreRewards = useCallback((rewards: StoreReward[]) => {
+    setStoreRewards(rewards);
+    localStorage.setItem('storeRewards', JSON.stringify(rewards));
+    
+    const vault: VaultData = {
+      totalBalance,
+      lastUpdatedDate: lastVaultDate,
+      storeRewards: rewards,
+    };
+    localStorage.setItem('creditVault', JSON.stringify(vault));
+  }, [totalBalance, lastVaultDate]);
+
   // Get today's schedule from timetable
   const todayWeekDay = getTodayWeekDay();
   const todaySchedule: PeriodInfo[] = todayWeekDay ? (timetable[todayWeekDay] || []) : [];
@@ -238,6 +330,8 @@ export function useTaskStore() {
     progressPercent,
     unlockedRewards,
     lessonRemindersEnabled,
+    totalBalance,
+    storeRewards,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -247,5 +341,7 @@ export function useTaskStore() {
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
+    redeemStoreReward,
+    updateStoreRewards,
   };
 }

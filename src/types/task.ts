@@ -45,9 +45,24 @@ export interface Reward {
   icon: string;
 }
 
+export interface StoreReward {
+  id: string;
+  title: string;
+  icon: string;
+  price: number;
+  claimed: boolean;
+  claimedAt?: string;
+}
+
 export interface DailyProgress {
   date: string; // YYYY-MM-DD
   earnedCredits: number;
   completedTasks: string[]; // task IDs
   completedLessons: string[]; // lesson IDs
+}
+
+export interface VaultData {
+  totalBalance: number;
+  lastUpdatedDate: string;
+  storeRewards: StoreReward[];
 }
