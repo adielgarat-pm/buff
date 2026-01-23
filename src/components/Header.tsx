@@ -1,14 +1,15 @@
-import { Settings, Vault } from 'lucide-react';
+import { Settings, Vault, CalendarDays } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   onOpenSettings: () => void;
   onOpenStore: () => void;
+  onOpenWeeklySummary?: () => void;
   totalBalance: number;
 }
 
-export function Header({ onOpenSettings, onOpenStore, totalBalance }: HeaderProps) {
+export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, totalBalance }: HeaderProps) {
   const today = new Date();
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -23,6 +24,18 @@ export function Header({ onOpenSettings, onOpenStore, totalBalance }: HeaderProp
       </div>
       
       <div className="flex items-center gap-2">
+        {/* Weekly Summary Button */}
+        {onOpenWeeklySummary && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full hover:bg-primary/10"
+            onClick={onOpenWeeklySummary}
+          >
+            <CalendarDays className="w-5 h-5 text-muted-foreground" />
+          </Button>
+        )}
+        
         {/* Credit Vault Button */}
         <Button
           variant="ghost"
