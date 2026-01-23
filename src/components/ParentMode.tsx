@@ -1,22 +1,27 @@
 import { useState } from 'react';
-import { Task, TaskCategory } from '@/types/task';
+import { Task, TaskCategory, Timetable } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell } from 'lucide-react';
+import { TimetableEditor } from './TimetableEditor';
 
 interface ParentModeProps {
   open: boolean;
   onClose: () => void;
   tasks: Task[];
   dailyGoal: number;
+  timetable: Timetable;
+  lessonRemindersEnabled: boolean;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
   onDeleteTask: (id: string) => void;
   onUpdateGoal: (goal: number) => void;
+  onUpdateTimetable: (timetable: Timetable) => void;
+  onToggleLessonReminders: (enabled: boolean) => void;
 }
 
 const categoryOptions: { value: TaskCategory; label: string; icon: typeof Pill }[] = [
@@ -31,13 +36,18 @@ export function ParentMode({
   onClose,
   tasks,
   dailyGoal,
+  timetable,
+  lessonRemindersEnabled,
   onUpdateTask,
   onAddTask,
   onDeleteTask,
   onUpdateGoal,
+  onUpdateTimetable,
+  onToggleLessonReminders,
 }: ParentModeProps) {
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [timetableEditorOpen, setTimetableEditorOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
@@ -94,6 +104,40 @@ export function ParentMode({
                 Save
               </Button>
             </div>
+          </div>
+
+          {/* Timetable Section */}
+          <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-foreground font-semibold">Weekly Timetable</Label>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setTimetableEditorOpen(true)}
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Edit Timetable
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Set up your weekly school schedule with subjects and times.
+            </p>
+            
+            {/* Lesson Reminders Toggle */}
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-muted-foreground" />
+                <Label className="text-foreground text-sm">Lesson Reminders</Label>
+              </div>
+              <Switch
+                checked={lessonRemindersEnabled}
+                onCheckedChange={onToggleLessonReminders}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Get notified 5 minutes before each lesson starts.
+            </p>
           </div>
 
           {/* Task List */}
@@ -194,6 +238,14 @@ export function ParentMode({
             </div>
           </div>
         </div>
+
+        {/* Timetable Editor Dialog */}
+        <TimetableEditor
+          open={timetableEditorOpen}
+          onClose={() => setTimetableEditorOpen(false)}
+          timetable={timetable}
+          onSave={onUpdateTimetable}
+        />
       </DialogContent>
     </Dialog>
   );

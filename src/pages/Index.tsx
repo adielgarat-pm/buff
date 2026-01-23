@@ -7,16 +7,20 @@ import { TaskList } from '@/components/TaskList';
 import { RewardsSection } from '@/components/RewardsSection';
 import { ParentMode } from '@/components/ParentMode';
 import { SchoolDaySection } from '@/components/SchoolDaySection';
+import { DailySchedule } from '@/components/DailySchedule';
 
 const Index = () => {
   const [parentModeOpen, setParentModeOpen] = useState(false);
   const {
     tasks,
-    lessons,
+    todayLessons,
+    timetable,
+    todaySchedule,
     rewards,
     dailyGoal,
     earnedCredits,
     progressPercent,
+    lessonRemindersEnabled,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -24,6 +28,8 @@ const Index = () => {
     deleteTask,
     updateDailyGoal,
     toggleLesson,
+    updateTimetable,
+    toggleLessonReminders,
   } = useTaskStore();
 
   // Request notification permission on mount
@@ -60,6 +66,37 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [tasks]);
 
+  // Set up lesson reminders (5 minutes before)
+  useEffect(() => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!lessonRemindersEnabled || todaySchedule.length === 0) return;
+
+    const checkLessonReminders = () => {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      todaySchedule.forEach((period, index) => {
+        if (!period.subject) return;
+        
+        const [hours, mins] = period.startTime.split(':').map(Number);
+        const lessonMinutes = hours * 60 + mins;
+        const reminderMinutes = lessonMinutes - 5;
+
+        if (currentMinutes === reminderMinutes) {
+          new Notification(`Next: ${period.subject}`, {
+            body: `Period ${index + 1} starts in 5 minutes!`,
+            icon: '/favicon.ico',
+          });
+        }
+      });
+    };
+
+    const interval = setInterval(checkLessonReminders, 60000);
+    checkLessonReminders();
+
+    return () => clearInterval(interval);
+  }, [todaySchedule, lessonRemindersEnabled]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Gradient glow at top */}
@@ -79,9 +116,13 @@ const Index = () => {
           {/* Category Stats */}
           <StatsRow tasks={tasks} />
 
-          {/* School Day Section */}
+          {/* Daily Schedule */}
+          <DailySchedule timetable={timetable} />
+
+          {/* School Day Checkboxes */}
           <SchoolDaySection
-            lessons={lessons}
+            lessons={todayLessons}
+            todaySchedule={todaySchedule}
             onToggleLesson={toggleLesson}
           />
 
@@ -105,10 +146,14 @@ const Index = () => {
           onClose={() => setParentModeOpen(false)}
           tasks={tasks}
           dailyGoal={dailyGoal}
+          timetable={timetable}
+          lessonRemindersEnabled={lessonRemindersEnabled}
           onUpdateTask={updateTask}
           onAddTask={addTask}
           onDeleteTask={deleteTask}
           onUpdateGoal={updateDailyGoal}
+          onUpdateTimetable={updateTimetable}
+          onToggleLessonReminders={toggleLessonReminders}
         />
       </div>
     </div>

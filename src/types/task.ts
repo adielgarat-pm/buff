@@ -1,5 +1,26 @@
 export type TaskCategory = 'medication' | 'hygiene' | 'nutrition' | 'school';
 
+export type WeekDay = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday';
+
+export const WEEK_DAYS: WeekDay[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
+
+export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
+  sunday: 'Sun',
+  monday: 'Mon',
+  tuesday: 'Tue',
+  wednesday: 'Wed',
+  thursday: 'Thu',
+};
+
+export interface PeriodInfo {
+  subject: string;
+  startTime: string; // HH:MM format
+}
+
+export interface Timetable {
+  [day: string]: PeriodInfo[]; // 8 periods per day
+}
+
 export interface Task {
   id: string;
   title: string;
