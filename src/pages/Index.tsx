@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTaskStore } from '@/hooks/useTaskStore';
 import { Header } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
-import { StatsRow } from '@/components/StatsRow';
-import { TaskList } from '@/components/TaskList';
 import { RewardsSection } from '@/components/RewardsSection';
 import { ParentMode } from '@/components/ParentMode';
-import { SchoolDaySection } from '@/components/SchoolDaySection';
-import { DailySchedule } from '@/components/DailySchedule';
+import { PhaseNavigation } from '@/components/PhaseNavigation';
+import { PhaseView } from '@/components/PhaseView';
+import { Phase, getCurrentPhase, getPhaseForTime, PHASES } from '@/types/phase';
 
 const Index = () => {
   const [parentModeOpen, setParentModeOpen] = useState(false);
+  const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
+  const currentPhase = getCurrentPhase();
+  
   const {
     tasks,
     todayLessons,
@@ -30,7 +32,30 @@ const Index = () => {
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
+    lessons,
   } = useTaskStore();
+
+  // Calculate phase stats
+  const phaseStats = useMemo(() => {
+    const stats: Record<Phase, { completed: number; total: number }> = {
+      morning: { completed: 0, total: 0 },
+      school: { completed: 0, total: 0 },
+      afternoon: { completed: 0, total: 0 },
+      evening: { completed: 0, total: 0 },
+    };
+
+    tasks.forEach(task => {
+      const phase = getPhaseForTime(task.time);
+      stats[phase].total++;
+      if (task.completed) stats[phase].completed++;
+    });
+
+    // Add lessons to school phase
+    stats.school.total += lessons.length;
+    stats.school.completed += lessons.filter(l => l.completed).length;
+
+    return stats;
+  }, [tasks, lessons]);
 
   // Request notification permission on mount
   useEffect(() => {
@@ -57,10 +82,7 @@ const Index = () => {
       });
     };
 
-    // Check every minute
     const interval = setInterval(checkReminders, 60000);
-    
-    // Check immediately on load
     checkReminders();
 
     return () => clearInterval(interval);
@@ -99,45 +121,47 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Gradient glow at top */}
-      <div className="fixed inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+      {/* Subtle gradient glow */}
+      <div className="fixed inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/3 to-transparent pointer-events-none" />
       
       <div className="relative max-w-lg mx-auto px-4 pb-8">
         <Header onOpenSettings={() => setParentModeOpen(true)} />
         
         <div className="space-y-6">
-          {/* Progress Section */}
+          {/* Phase Navigation */}
+          <PhaseNavigation
+            activePhase={activePhase}
+            currentPhase={currentPhase}
+            onPhaseChange={setActivePhase}
+            phaseStats={phaseStats}
+          />
+
+          {/* Daily Progress Bar */}
           <ProgressBar
             earned={earnedCredits}
             goal={dailyGoal}
             percent={progressPercent}
           />
 
-          {/* Category Stats */}
-          <StatsRow tasks={tasks} />
-
-          {/* Daily Schedule */}
-          <DailySchedule timetable={timetable} />
-
-          {/* School Day Checkboxes */}
-          <SchoolDaySection
+          {/* Phase Content */}
+          <PhaseView
+            phase={activePhase}
+            tasks={tasks}
             lessons={todayLessons}
+            timetable={timetable}
             todaySchedule={todaySchedule}
+            onCompleteTask={completeTask}
+            onUncompleteTask={uncompleteTask}
             onToggleLesson={toggleLesson}
           />
 
-          {/* Rewards */}
-          <RewardsSection
-            rewards={rewards}
-            earnedCredits={earnedCredits}
-          />
-
-          {/* Task List */}
-          <TaskList
-            tasks={tasks}
-            onComplete={completeTask}
-            onUncomplete={uncompleteTask}
-          />
+          {/* Rewards Section - Only show when relevant */}
+          {earnedCredits > 0 && (
+            <RewardsSection
+              rewards={rewards}
+              earnedCredits={earnedCredits}
+            />
+          )}
         </div>
 
         {/* Parent Mode Dialog */}
