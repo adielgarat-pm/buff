@@ -12,6 +12,13 @@ export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
   thursday: 'Thu',
 };
 
+export const CATEGORY_LABELS: Record<TaskCategory, string> = {
+  medication: 'Medication',
+  hygiene: 'Hygiene',
+  nutrition: 'Nutrition',
+  school: 'School',
+};
+
 export interface PeriodInfo {
   subject: string;
   startTime: string; // HH:MM format
@@ -65,4 +72,13 @@ export interface VaultData {
   totalBalance: number;
   lastUpdatedDate: string;
   storeRewards: StoreReward[];
+}
+
+export interface WeeklySummaryData {
+  weekStartDate: string;
+  weekEndDate: string;
+  totalCreditsEarned: number;
+  redeemedRewards: StoreReward[];
+  tasksByCategory: Record<TaskCategory, number>;
+  dailyCredits: { day: string; credits: number }[];
 }

@@ -7,12 +7,23 @@ import { ParentMode } from '@/components/ParentMode';
 import { PhaseNavigation } from '@/components/PhaseNavigation';
 import { PhaseView } from '@/components/PhaseView';
 import { RewardsStore } from '@/components/RewardsStore';
+import { WeeklySummary } from '@/components/WeeklySummary';
+import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
 const Index = () => {
   const [parentModeOpen, setParentModeOpen] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
+  const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
+  const [weeklySummaryDismissed, setWeeklySummaryDismissed] = useState(() => {
+    const dismissed = localStorage.getItem('weeklySummaryDismissed');
+    if (dismissed) {
+      const { date } = JSON.parse(dismissed);
+      return date === new Date().toISOString().split('T')[0];
+    }
+    return false;
+  });
   const currentPhase = getCurrentPhase();
   
   const {
@@ -40,6 +51,17 @@ const Index = () => {
     updateStoreRewards,
     lessons,
   } = useTaskStore();
+
+  // Weekly summary data
+  const weeklySummaryData = useWeeklySummary(tasks, storeRewards);
+  const showWeeklySummary = isSaturday() && !weeklySummaryDismissed;
+
+  const handleDismissWeeklySummary = () => {
+    setWeeklySummaryDismissed(true);
+    localStorage.setItem('weeklySummaryDismissed', JSON.stringify({
+      date: new Date().toISOString().split('T')[0]
+    }));
+  };
 
   // Calculate phase stats
   const phaseStats = useMemo(() => {
@@ -125,6 +147,21 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [todaySchedule, lessonRemindersEnabled]);
 
+  // Show Weekly Summary on Saturday (auto) or manually opened
+  if (showWeeklySummary || weeklySummaryOpen) {
+    return (
+      <WeeklySummary 
+        data={weeklySummaryData} 
+        onClose={() => {
+          setWeeklySummaryOpen(false);
+          if (isSaturday()) {
+            handleDismissWeeklySummary();
+          }
+        }} 
+      />
+    );
+  }
+
   // Show Rewards Store
   if (storeOpen) {
     return (
@@ -146,6 +183,7 @@ const Index = () => {
         <Header 
           onOpenSettings={() => setParentModeOpen(true)} 
           onOpenStore={() => setStoreOpen(true)}
+          onOpenWeeklySummary={() => setWeeklySummaryOpen(true)}
           totalBalance={totalBalance}
         />
         
