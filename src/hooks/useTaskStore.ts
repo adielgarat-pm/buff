@@ -5,11 +5,17 @@ const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
   { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
   { id: '2', title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
   { id: '3', title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
-  { id: '4', title: 'Homework Check', time: '14:00', category: 'school', credits: 15 },
+  { id: '4', title: 'Homework Check', time: '14:00', category: 'school', credits: 15, hideOnWeekend: true },
   { id: '5', title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
   { id: '6', title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
   { id: '7', title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
 ];
+
+// Weekend is Friday (5) and Saturday (6)
+const isWeekend = (): boolean => {
+  const day = new Date().getDay();
+  return day === 5 || day === 6; // Friday = 5, Saturday = 6
+};
 
 const DEFAULT_LESSONS: Omit<Lesson, 'completed'>[] = [
   { id: 'lesson1', label: 'P1', credits: 10 },
@@ -321,15 +327,20 @@ export function useTaskStore() {
     };
   });
 
-  const taskCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
-  const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
+  // Filter tasks based on weekend visibility
+  const visibleTasks = isWeekend() 
+    ? tasks.filter(t => !t.hideOnWeekend) 
+    : tasks;
+
+  const taskCredits = visibleTasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
+  const lessonCredits = isWeekend() ? 0 : lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   const earnedCredits = taskCredits + lessonCredits;
-  const totalPossibleCredits = tasks.reduce((sum, t) => sum + t.credits, 0) + lessons.reduce((sum, l) => sum + l.credits, 0);
+  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isWeekend() ? 0 : lessons.reduce((sum, l) => sum + l.credits, 0));
   const progressPercent = dailyGoal > 0 ? Math.min((earnedCredits / dailyGoal) * 100, 100) : 0;
   const unlockedRewards = rewards.filter(r => earnedCredits >= r.requiredCredits);
 
   return {
-    tasks,
+    tasks: visibleTasks,
     lessons,
     todayLessons,
     timetable,

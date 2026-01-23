@@ -36,6 +36,7 @@ export interface Task {
   credits: number;
   completed: boolean;
   completedAt?: Date;
+  hideOnWeekend?: boolean; // Hide this task on Friday/Saturday
 }
 
 export interface Lesson {
