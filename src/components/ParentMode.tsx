@@ -62,6 +62,14 @@ export function ParentMode({
   });
   const [localGoal, setLocalGoal] = useState(dailyGoal);
 
+  // ParentMode stays mounted (controlled dialog), so sync editable fields when it opens.
+  useEffect(() => {
+    if (!open) return;
+    setLocalGoal(dailyGoal);
+    setEditingTask(null);
+    setShowAddForm(false);
+  }, [open, dailyGoal]);
+
   const handleSaveTask = (task: Task) => {
     onUpdateTask(task.id, task);
     setEditingTask(null);
@@ -80,7 +88,12 @@ export function ParentMode({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+    >
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">Parent Mode</DialogTitle>
