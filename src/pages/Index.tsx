@@ -36,6 +36,7 @@ const Index = () => {
     todaySchedule,
     rewards,
     dailyGoal,
+    appTitle,
     earnedCredits,
     progressPercent,
     lessonRemindersEnabled,
@@ -47,6 +48,7 @@ const Index = () => {
     addTask,
     deleteTask,
     updateDailyGoal,
+    updateAppTitle,
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
@@ -160,6 +162,7 @@ const Index = () => {
           onOpenStore={() => setStoreOpen(true)}
           onOpenWeeklySummary={() => setWeeklySummaryOpen(true)}
           totalBalance={totalBalance}
+          appTitle={appTitle}
         />
         
         <div className="space-y-6">
@@ -205,6 +208,7 @@ const Index = () => {
           onClose={() => setParentModeOpen(false)}
           tasks={tasks}
           dailyGoal={dailyGoal}
+          appTitle={appTitle}
           timetable={timetable}
           lessonRemindersEnabled={lessonRemindersEnabled}
           storeRewards={storeRewards}
@@ -212,6 +216,7 @@ const Index = () => {
           onAddTask={addTask}
           onDeleteTask={deleteTask}
           onUpdateGoal={updateDailyGoal}
+          onUpdateAppTitle={updateAppTitle}
           onUpdateTimetable={updateTimetable}
           onToggleLessonReminders={toggleLessonReminders}
           onUpdateStoreRewards={updateStoreRewards}

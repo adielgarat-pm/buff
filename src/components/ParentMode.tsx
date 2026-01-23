@@ -15,6 +15,7 @@ interface ParentModeProps {
   onClose: () => void;
   tasks: Task[];
   dailyGoal: number;
+  appTitle: string;
   timetable: Timetable;
   lessonRemindersEnabled: boolean;
   storeRewards: StoreReward[];
@@ -22,6 +23,7 @@ interface ParentModeProps {
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
   onDeleteTask: (id: string) => void;
   onUpdateGoal: (goal: number) => void;
+  onUpdateAppTitle: (title: string) => void;
   onUpdateTimetable: (timetable: Timetable) => void;
   onToggleLessonReminders: (enabled: boolean) => void;
   onUpdateStoreRewards: (rewards: StoreReward[]) => void;
@@ -39,6 +41,7 @@ export function ParentMode({
   onClose,
   tasks,
   dailyGoal,
+  appTitle,
   timetable,
   lessonRemindersEnabled,
   storeRewards,
@@ -46,6 +49,7 @@ export function ParentMode({
   onAddTask,
   onDeleteTask,
   onUpdateGoal,
+  onUpdateAppTitle,
   onUpdateTimetable,
   onToggleLessonReminders,
   onUpdateStoreRewards,
@@ -61,14 +65,16 @@ export function ParentMode({
     credits: 10,
   });
   const [localGoal, setLocalGoal] = useState(dailyGoal);
+  const [localTitle, setLocalTitle] = useState(appTitle);
 
   // ParentMode stays mounted (controlled dialog), so sync editable fields when it opens.
   useEffect(() => {
     if (!open) return;
     setLocalGoal(dailyGoal);
+    setLocalTitle(appTitle);
     setEditingTask(null);
     setShowAddForm(false);
-  }, [open, dailyGoal]);
+  }, [open, dailyGoal, appTitle]);
 
   const handleSaveTask = (task: Task) => {
     onUpdateTask(task.id, task);
@@ -87,6 +93,10 @@ export function ParentMode({
     onUpdateGoal(localGoal);
   };
 
+  const handleSaveTitle = () => {
+    onUpdateAppTitle(localTitle);
+  };
+
   return (
     <Dialog
       open={open}
@@ -103,6 +113,28 @@ export function ParentMode({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* App Title Setting */}
+          <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+            <Label className="text-foreground font-semibold mb-3 block">App Title</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                type="text"
+                value={localTitle}
+                onChange={(e) => setLocalTitle(e.target.value)}
+                placeholder="Daily Quests"
+                className="flex-1 bg-background border-border text-foreground"
+              />
+              <Button
+                size="sm"
+                onClick={handleSaveTitle}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+            </div>
+          </div>
+
           {/* Daily Goal Setting */}
           <div className="p-4 rounded-xl bg-secondary/50 border border-border">
             <Label className="text-foreground font-semibold mb-3 block">Daily Credit Goal</Label>

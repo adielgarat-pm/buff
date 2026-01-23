@@ -7,9 +7,10 @@ interface HeaderProps {
   onOpenStore: () => void;
   onOpenWeeklySummary?: () => void;
   totalBalance: number;
+  appTitle: string;
 }
 
-export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, totalBalance }: HeaderProps) {
+export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, totalBalance, appTitle }: HeaderProps) {
   const today = new Date();
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -17,7 +18,7 @@ export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, total
   return (
     <header className="flex items-center justify-between py-6">
       <div>
-        <h1 className="text-2xl font-bold text-gradient">Daily Quests</h1>
+        <h1 className="text-2xl font-bold text-gradient">{appTitle || 'Daily Quests'}</h1>
         <p className="text-muted-foreground">
           {dayName}, {dateStr}
         </p>
