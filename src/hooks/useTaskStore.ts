@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, DailyProgress, Reward, Lesson } from '@/types/task';
+import { Task, DailyProgress, Reward, Lesson, Timetable, WEEK_DAYS, PeriodInfo, WeekDay } from '@/types/task';
 
 const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
   { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
@@ -22,6 +22,21 @@ const DEFAULT_LESSONS: Omit<Lesson, 'completed'>[] = [
   { id: 'lesson8', label: 'P8', credits: 10 },
 ];
 
+const DEFAULT_PERIOD_TIMES = [
+  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00'
+];
+
+const createDefaultTimetable = (): Timetable => {
+  const timetable: Timetable = {};
+  WEEK_DAYS.forEach(day => {
+    timetable[day] = DEFAULT_PERIOD_TIMES.map(time => ({
+      subject: '',
+      startTime: time,
+    }));
+  });
+  return timetable;
+};
+
 const DEFAULT_REWARDS: Reward[] = [
   { id: 'r1', title: '30 min Gaming', requiredCredits: 50, icon: '🎮' },
   { id: 'r2', title: 'Extra Screen Time', requiredCredits: 100, icon: '📱' },
@@ -33,19 +48,31 @@ const DAILY_GOAL = 150;
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
+const getTodayWeekDay = (): WeekDay | null => {
+  const dayIndex = new Date().getDay();
+  if (dayIndex >= 0 && dayIndex <= 4) {
+    return WEEK_DAYS[dayIndex];
+  }
+  return null;
+};
+
 export function useTaskStore() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [timetable, setTimetable] = useState<Timetable>(createDefaultTimetable);
   const [rewards, setRewards] = useState<Reward[]>(DEFAULT_REWARDS);
   const [dailyGoal, setDailyGoal] = useState(DAILY_GOAL);
+  const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
 
-  // Initialize tasks and lessons from localStorage or defaults
+  // Initialize tasks, lessons, and timetable from localStorage or defaults
   useEffect(() => {
     const todayKey = getTodayKey();
     const storedProgress = localStorage.getItem(`progress_${todayKey}`);
     const storedTasks = localStorage.getItem('customTasks');
     const storedRewards = localStorage.getItem('customRewards');
     const storedGoal = localStorage.getItem('dailyGoal');
+    const storedTimetable = localStorage.getItem('timetable');
+    const storedLessonReminders = localStorage.getItem('lessonRemindersEnabled');
 
     const baseTasks = storedTasks ? JSON.parse(storedTasks) : DEFAULT_TASKS;
     
@@ -76,6 +103,14 @@ export function useTaskStore() {
 
     if (storedGoal) {
       setDailyGoal(parseInt(storedGoal, 10));
+    }
+
+    if (storedTimetable) {
+      setTimetable(JSON.parse(storedTimetable));
+    }
+
+    if (storedLessonReminders !== null) {
+      setLessonRemindersEnabled(JSON.parse(storedLessonReminders));
     }
   }, []);
 
@@ -158,6 +193,31 @@ export function useTaskStore() {
     ));
   }, []);
 
+  const updateTimetable = useCallback((newTimetable: Timetable) => {
+    setTimetable(newTimetable);
+    localStorage.setItem('timetable', JSON.stringify(newTimetable));
+  }, []);
+
+  const toggleLessonReminders = useCallback((enabled: boolean) => {
+    setLessonRemindersEnabled(enabled);
+    localStorage.setItem('lessonRemindersEnabled', JSON.stringify(enabled));
+  }, []);
+
+  // Get today's schedule from timetable
+  const todayWeekDay = getTodayWeekDay();
+  const todaySchedule: PeriodInfo[] = todayWeekDay ? (timetable[todayWeekDay] || []) : [];
+
+  // Create dynamic lessons based on today's timetable
+  const todayLessons = lessons.map((lesson, index) => {
+    const periodInfo = todaySchedule[index];
+    const subject = periodInfo?.subject || '';
+    return {
+      ...lesson,
+      label: subject || `P${index + 1}`,
+      displayLabel: subject ? `${subject}` : `Period ${index + 1}`,
+    };
+  });
+
   const taskCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
   const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   const earnedCredits = taskCredits + lessonCredits;
@@ -168,12 +228,16 @@ export function useTaskStore() {
   return {
     tasks,
     lessons,
+    todayLessons,
+    timetable,
+    todaySchedule,
     rewards,
     dailyGoal,
     earnedCredits,
     totalPossibleCredits,
     progressPercent,
     unlockedRewards,
+    lessonRemindersEnabled,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -181,5 +245,7 @@ export function useTaskStore() {
     deleteTask,
     updateDailyGoal,
     toggleLesson,
+    updateTimetable,
+    toggleLessonReminders,
   };
 }

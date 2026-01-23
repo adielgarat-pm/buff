@@ -1,16 +1,40 @@
-import { Lesson } from '@/types/task';
+import { Lesson, PeriodInfo } from '@/types/task';
 import { Checkbox } from './ui/checkbox';
 import { BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SchoolDaySectionProps {
-  lessons: Lesson[];
+  lessons: (Lesson & { displayLabel?: string })[];
+  todaySchedule: PeriodInfo[];
   onToggleLesson: (lessonId: string) => void;
 }
 
-export function SchoolDaySection({ lessons, onToggleLesson }: SchoolDaySectionProps) {
+export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson }: SchoolDaySectionProps) {
   const completedCount = lessons.filter(l => l.completed).length;
   const totalCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
+  
+  // Check if it's a school day (has any subjects)
+  const hasSubjects = todaySchedule.some(p => p.subject);
+  const isWeekend = new Date().getDay() > 4; // Friday = 5, Saturday = 6
+
+  if (isWeekend) {
+    return (
+      <div className="p-4 rounded-2xl bg-card border border-border">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="p-2 rounded-lg bg-secondary">
+            <BookOpen className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">School Day</h3>
+            <p className="text-xs text-muted-foreground">Weekend - No school</p>
+          </div>
+        </div>
+        <div className="text-center py-4 text-muted-foreground">
+          <p>🎉 Enjoy your weekend!</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 rounded-2xl bg-card border border-border">
@@ -22,35 +46,45 @@ export function SchoolDaySection({ lessons, onToggleLesson }: SchoolDaySectionPr
           <div>
             <h3 className="font-semibold text-foreground">School Day</h3>
             <p className="text-xs text-muted-foreground">
-              {completedCount}/8 lessons • {totalCredits} credits earned
+              {completedCount}/{lessons.length} lessons • {totalCredits} credits earned
             </p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-4 gap-2">
-        {lessons.map((lesson) => (
-          <button
-            key={lesson.id}
-            onClick={() => onToggleLesson(lesson.id)}
-            className={cn(
-              "relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200",
-              lesson.completed
-                ? "bg-primary/20 border-primary text-primary"
-                : "bg-secondary/50 border-border text-muted-foreground hover:border-primary/50 hover:bg-secondary"
-            )}
-          >
-            <Checkbox
-              checked={lesson.completed}
+        {lessons.map((lesson, index) => {
+          const periodInfo = todaySchedule[index];
+          const subject = periodInfo?.subject;
+          const hasSubject = !!subject;
+          
+          return (
+            <button
+              key={lesson.id}
+              onClick={() => onToggleLesson(lesson.id)}
               className={cn(
-                "mb-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
-                lesson.completed && "animate-check-bounce"
+                "relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200",
+                lesson.completed
+                  ? "bg-primary/20 border-primary text-primary"
+                  : hasSubject
+                    ? "bg-secondary/50 border-border text-foreground hover:border-primary/50 hover:bg-secondary"
+                    : "bg-secondary/30 border-border/50 text-muted-foreground"
               )}
-            />
-            <span className="text-xs font-medium">{lesson.label}</span>
-            <span className="text-[10px] opacity-70">+{lesson.credits}</span>
-          </button>
-        ))}
+            >
+              <Checkbox
+                checked={lesson.completed}
+                className={cn(
+                  "mb-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                  lesson.completed && "animate-check-bounce"
+                )}
+              />
+              <span className="text-xs font-medium text-center leading-tight line-clamp-2 min-h-[2rem] flex items-center">
+                {subject || `P${index + 1}`}
+              </span>
+              <span className="text-[10px] opacity-70">+{lesson.credits}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
