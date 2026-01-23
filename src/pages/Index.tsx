@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTaskStore } from '@/hooks/useTaskStore';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Header } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
 import { RewardsSection } from '@/components/RewardsSection';
@@ -9,6 +10,7 @@ import { PhaseView } from '@/components/PhaseView';
 import { RewardsStore } from '@/components/RewardsStore';
 import { WeeklySummary } from '@/components/WeeklySummary';
 import { InstallPWA } from '@/components/InstallPWA';
+import { NotificationPrompt } from '@/components/NotificationPrompt';
 import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
@@ -53,6 +55,14 @@ const Index = () => {
     lessons,
   } = useTaskStore();
 
+  // Notification system
+  const {
+    permission,
+    requestPermission,
+    scheduleTaskNotifications,
+    scheduleLessonNotifications,
+  } = useNotifications();
+
   // Weekly summary data
   const weeklySummaryData = useWeeklySummary(tasks, storeRewards);
   const showWeeklySummary = isSaturday() && !weeklySummaryDismissed;
@@ -86,67 +96,31 @@ const Index = () => {
     return stats;
   }, [tasks, lessons]);
 
-  // Request notification permission on mount
+  // Schedule notifications when tasks change or permission is granted
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+    if (permission === 'granted' && tasks.length > 0) {
+      scheduleTaskNotifications(tasks);
     }
-  }, []);
+  }, [permission, tasks, scheduleTaskNotifications]);
 
-  // Set up task reminders
+  // Schedule lesson notifications
   useEffect(() => {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (permission === 'granted' && lessonRemindersEnabled && todaySchedule.length > 0) {
+      scheduleLessonNotifications(todaySchedule, lessonRemindersEnabled);
+    }
+  }, [permission, todaySchedule, lessonRemindersEnabled, scheduleLessonNotifications]);
 
-    const checkReminders = () => {
-      const now = new Date();
-      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-      tasks.forEach(task => {
-        if (!task.completed && task.time === currentTime) {
-          new Notification(`Time for: ${task.title}`, {
-            body: `Complete this task to earn ${task.credits} credits!`,
-            icon: '/favicon.ico',
-          });
-        }
-      });
+  // Listen for task completion from service worker
+  useEffect(() => {
+    const handleSwCompleteTask = (event: CustomEvent<{ taskId: string }>) => {
+      completeTask(event.detail.taskId);
     };
 
-    const interval = setInterval(checkReminders, 60000);
-    checkReminders();
-
-    return () => clearInterval(interval);
-  }, [tasks]);
-
-  // Set up lesson reminders (5 minutes before)
-  useEffect(() => {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    if (!lessonRemindersEnabled || todaySchedule.length === 0) return;
-
-    const checkLessonReminders = () => {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-      todaySchedule.forEach((period, index) => {
-        if (!period.subject) return;
-        
-        const [hours, mins] = period.startTime.split(':').map(Number);
-        const lessonMinutes = hours * 60 + mins;
-        const reminderMinutes = lessonMinutes - 5;
-
-        if (currentMinutes === reminderMinutes) {
-          new Notification(`Next: ${period.subject}`, {
-            body: `Period ${index + 1} starts in 5 minutes!`,
-            icon: '/favicon.ico',
-          });
-        }
-      });
+    window.addEventListener('sw-complete-task', handleSwCompleteTask as EventListener);
+    return () => {
+      window.removeEventListener('sw-complete-task', handleSwCompleteTask as EventListener);
     };
-
-    const interval = setInterval(checkLessonReminders, 60000);
-    checkLessonReminders();
-
-    return () => clearInterval(interval);
-  }, [todaySchedule, lessonRemindersEnabled]);
+  }, [completeTask]);
 
   // Show Weekly Summary on Saturday (auto) or manually opened
   if (showWeeklySummary || weeklySummaryOpen) {
@@ -246,6 +220,12 @@ const Index = () => {
         {/* PWA Install Banner */}
         <InstallPWA />
       </div>
+
+      {/* Notification Permission Prompt */}
+      <NotificationPrompt
+        permission={permission}
+        onRequestPermission={requestPermission}
+      />
     </div>
   );
 };
