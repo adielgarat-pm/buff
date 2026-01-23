@@ -8,6 +8,7 @@ import { PhaseNavigation } from '@/components/PhaseNavigation';
 import { PhaseView } from '@/components/PhaseView';
 import { RewardsStore } from '@/components/RewardsStore';
 import { WeeklySummary } from '@/components/WeeklySummary';
+import { InstallPWA } from '@/components/InstallPWA';
 import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
@@ -241,6 +242,9 @@ const Index = () => {
           onToggleLessonReminders={toggleLessonReminders}
           onUpdateStoreRewards={updateStoreRewards}
         />
+
+        {/* PWA Install Banner */}
+        <InstallPWA />
       </div>
     </div>
   );
