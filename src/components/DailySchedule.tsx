@@ -9,11 +9,11 @@ interface DailyScheduleProps {
 function getTodayWeekDay(): WeekDay | null {
   const dayIndex = new Date().getDay();
   // 0 = Sunday, 1 = Monday, etc.
-  // We only support Sun-Thu (0-4)
+  // School days are Sun-Thu (0-4), Weekend is Fri-Sat (5-6)
   if (dayIndex >= 0 && dayIndex <= 4) {
     return WEEK_DAYS[dayIndex];
   }
-  return null; // Friday or Saturday
+  return null; // Friday (5) or Saturday (6) = weekend
 }
 
 export function DailySchedule({ timetable }: DailyScheduleProps) {

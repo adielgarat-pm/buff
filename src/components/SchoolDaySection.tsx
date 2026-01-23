@@ -15,7 +15,9 @@ export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson }: Sch
   
   // Check if it's a school day (has any subjects)
   const hasSubjects = todaySchedule.some(p => p.subject);
-  const isWeekend = new Date().getDay() > 4; // Friday = 5, Saturday = 6
+  // Weekend is Friday (5) and Saturday (6)
+  const day = new Date().getDay();
+  const isWeekend = day === 5 || day === 6;
 
   if (isWeekend) {
     return (
