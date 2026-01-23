@@ -183,6 +183,25 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
                   </Button>
                 </div>
                 
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-2 block">Icon</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {ICON_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.icon}
+                        onClick={() => handleUpdateReward(reward.id, { icon: opt.icon })}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all ${
+                          reward.icon === opt.icon
+                            ? 'bg-primary text-primary-foreground ring-2 ring-primary'
+                            : 'bg-secondary hover:bg-secondary/80'
+                        }`}
+                      >
+                        {opt.icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <Label className="text-xs text-muted-foreground">Price</Label>
