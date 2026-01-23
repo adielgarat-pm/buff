@@ -10,6 +10,13 @@ export interface Task {
   completedAt?: Date;
 }
 
+export interface Lesson {
+  id: string;
+  label: string;
+  credits: number;
+  completed: boolean;
+}
+
 export interface Reward {
   id: string;
   title: string;
@@ -21,4 +28,5 @@ export interface DailyProgress {
   date: string; // YYYY-MM-DD
   earnedCredits: number;
   completedTasks: string[]; // task IDs
+  completedLessons: string[]; // lesson IDs
 }

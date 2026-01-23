@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, DailyProgress, Reward } from '@/types/task';
+import { Task, DailyProgress, Reward, Lesson } from '@/types/task';
 
 const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
   { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
@@ -9,6 +9,17 @@ const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
   { id: '5', title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
   { id: '6', title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
   { id: '7', title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
+];
+
+const DEFAULT_LESSONS: Omit<Lesson, 'completed'>[] = [
+  { id: 'lesson1', label: 'P1', credits: 10 },
+  { id: 'lesson2', label: 'P2', credits: 10 },
+  { id: 'lesson3', label: 'P3', credits: 10 },
+  { id: 'lesson4', label: 'P4', credits: 10 },
+  { id: 'lesson5', label: 'P5', credits: 10 },
+  { id: 'lesson6', label: 'P6', credits: 10 },
+  { id: 'lesson7', label: 'P7', credits: 10 },
+  { id: 'lesson8', label: 'P8', credits: 10 },
 ];
 
 const DEFAULT_REWARDS: Reward[] = [
@@ -24,10 +35,11 @@ const getTodayKey = () => new Date().toISOString().split('T')[0];
 
 export function useTaskStore() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [rewards, setRewards] = useState<Reward[]>(DEFAULT_REWARDS);
   const [dailyGoal, setDailyGoal] = useState(DAILY_GOAL);
 
-  // Initialize tasks from localStorage or defaults
+  // Initialize tasks and lessons from localStorage or defaults
   useEffect(() => {
     const todayKey = getTodayKey();
     const storedProgress = localStorage.getItem(`progress_${todayKey}`);
@@ -43,9 +55,17 @@ export function useTaskStore() {
         ...task,
         completed: progress.completedTasks.includes(task.id),
       })));
+      setLessons(DEFAULT_LESSONS.map((lesson) => ({
+        ...lesson,
+        completed: progress.completedLessons?.includes(lesson.id) || false,
+      })));
     } else {
       setTasks(baseTasks.map((task: Omit<Task, 'completed' | 'completedAt'>) => ({
         ...task,
+        completed: false,
+      })));
+      setLessons(DEFAULT_LESSONS.map((lesson) => ({
+        ...lesson,
         completed: false,
       })));
     }
@@ -59,18 +79,21 @@ export function useTaskStore() {
     }
   }, []);
 
-  // Save progress whenever tasks change
+  // Save progress whenever tasks or lessons change
   useEffect(() => {
     if (tasks.length === 0) return;
     
     const todayKey = getTodayKey();
+    const taskCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
+    const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
     const progress: DailyProgress = {
       date: todayKey,
-      earnedCredits: tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0),
+      earnedCredits: taskCredits + lessonCredits,
       completedTasks: tasks.filter(t => t.completed).map(t => t.id),
+      completedLessons: lessons.filter(l => l.completed).map(l => l.id),
     };
     localStorage.setItem(`progress_${todayKey}`, JSON.stringify(progress));
-  }, [tasks]);
+  }, [tasks, lessons]);
 
   const completeTask = useCallback((taskId: string) => {
     setTasks(prev => prev.map(task => 
@@ -127,13 +150,24 @@ export function useTaskStore() {
     localStorage.setItem('dailyGoal', goal.toString());
   }, []);
 
-  const earnedCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
-  const totalPossibleCredits = tasks.reduce((sum, t) => sum + t.credits, 0);
+  const toggleLesson = useCallback((lessonId: string) => {
+    setLessons(prev => prev.map(lesson =>
+      lesson.id === lessonId
+        ? { ...lesson, completed: !lesson.completed }
+        : lesson
+    ));
+  }, []);
+
+  const taskCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
+  const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
+  const earnedCredits = taskCredits + lessonCredits;
+  const totalPossibleCredits = tasks.reduce((sum, t) => sum + t.credits, 0) + lessons.reduce((sum, l) => sum + l.credits, 0);
   const progressPercent = dailyGoal > 0 ? Math.min((earnedCredits / dailyGoal) * 100, 100) : 0;
   const unlockedRewards = rewards.filter(r => earnedCredits >= r.requiredCredits);
 
   return {
     tasks,
+    lessons,
     rewards,
     dailyGoal,
     earnedCredits,
@@ -146,5 +180,6 @@ export function useTaskStore() {
     addTask,
     deleteTask,
     updateDailyGoal,
+    toggleLesson,
   };
 }

@@ -6,11 +6,13 @@ import { StatsRow } from '@/components/StatsRow';
 import { TaskList } from '@/components/TaskList';
 import { RewardsSection } from '@/components/RewardsSection';
 import { ParentMode } from '@/components/ParentMode';
+import { SchoolDaySection } from '@/components/SchoolDaySection';
 
 const Index = () => {
   const [parentModeOpen, setParentModeOpen] = useState(false);
   const {
     tasks,
+    lessons,
     rewards,
     dailyGoal,
     earnedCredits,
@@ -21,6 +23,7 @@ const Index = () => {
     addTask,
     deleteTask,
     updateDailyGoal,
+    toggleLesson,
   } = useTaskStore();
 
   // Request notification permission on mount
@@ -75,6 +78,12 @@ const Index = () => {
 
           {/* Category Stats */}
           <StatsRow tasks={tasks} />
+
+          {/* School Day Section */}
+          <SchoolDaySection
+            lessons={lessons}
+            onToggleLesson={toggleLesson}
+          />
 
           {/* Rewards */}
           <RewardsSection
