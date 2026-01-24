@@ -9,85 +9,85 @@
 @layer base {
   :root {
     /* BUFF Brand Colors - Gamer/Tech Aesthetic */
-    /* Deep Dark Background */
-    --background: 240 10% 6%;
-    --foreground: 0 0% 98%;
+    /* Pure Black Background */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    /* Card backgrounds - slightly lighter */
-    --card: 240 10% 9%;
-    --card-foreground: 0 0% 98%;
+    /* Card backgrounds - very dark */
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 240 10% 9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Neon Green - Primary (success/completed) */
-    --primary: 142 76% 50%;
-    --primary-foreground: 0 0% 5%;
+    /* Neon Green - Primary (success/completed) - #39FF14 */
+    --primary: 112 100% 54%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 240 8% 14%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 8% 18%;
-    --muted-foreground: 240 5% 55%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
 
-    /* Vibrant Purple - Accent (rewards/bonuses) */
-    --accent: 270 95% 65%;
+    /* Electric Purple - Accent (rewards/bonuses) - #8B5CF6 */
+    --accent: 262 83% 66%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Neon Green - Success states */
-    --success: 142 76% 50%;
-    --success-foreground: 0 0% 5%;
+    --success: 112 100% 54%;
+    --success-foreground: 0 0% 0%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 10%;
+    --warning-foreground: 0 0% 0%;
 
-    /* Neon Green for buffs */
-    --buff: 142 76% 50%;
-    --buff-foreground: 0 0% 5%;
+    /* Neon Green for buffs - #39FF14 */
+    --buff: 112 100% 54%;
+    --buff-foreground: 0 0% 0%;
 
-    /* Vibrant Purple for rewards */
-    --reward: 270 95% 65%;
+    /* Electric Purple for rewards - #8B5CF6 */
+    --reward: 262 83% 66%;
     --reward-foreground: 0 0% 100%;
 
-    --border: 240 8% 18%;
-    --input: 240 8% 18%;
-    --ring: 142 76% 50%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 112 100% 54%;
 
     --radius: 1rem;
 
     /* Category colors */
     --medication: 280 85% 60%;
     --hygiene: 200 95% 55%;
-    --nutrition: 142 76% 50%;
+    --nutrition: 112 100% 54%;
     --school: 38 92% 50%;
 
     /* BUFF Gradients - Gamer Aesthetic */
-    --gradient-primary: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
-    --gradient-success: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
-    --gradient-xp: linear-gradient(90deg, hsl(142, 76%, 40%), hsl(142, 76%, 50%), hsl(142, 76%, 55%));
-    --gradient-card: linear-gradient(180deg, hsl(240, 10%, 10%), hsl(240, 10%, 7%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(142, 76%, 50%, 0.15), transparent 50%);
-    --gradient-buff: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
-    --gradient-reward: linear-gradient(135deg, hsl(270, 95%, 65%), hsl(280, 90%, 55%));
+    --gradient-primary: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
+    --gradient-success: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
+    --gradient-xp: linear-gradient(90deg, hsl(112, 100%, 44%), hsl(112, 100%, 54%), hsl(112, 100%, 60%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 7%), hsl(0, 0%, 3%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(112, 100%, 54%, 0.15), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
+    --gradient-reward: linear-gradient(135deg, hsl(262, 83%, 66%), hsl(272, 80%, 55%));
 
     /* BUFF Shadows - Neon Glow */
-    --shadow-glow: 0 0 20px hsl(142, 76%, 50%, 0.4);
-    --shadow-buff-glow: 0 0 30px hsl(142, 76%, 50%, 0.6), 0 0 60px hsl(142, 76%, 50%, 0.3), 0 0 90px hsl(142, 76%, 50%, 0.15);
-    --shadow-buff-glow-intense: 0 0 40px hsl(142, 76%, 50%, 0.8), 0 0 80px hsl(142, 76%, 50%, 0.5), 0 0 120px hsl(142, 76%, 50%, 0.25);
-    --shadow-reward-glow: 0 0 20px hsl(270, 95%, 65%, 0.5), 0 0 40px hsl(270, 95%, 65%, 0.3);
-    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.6);
+    --shadow-glow: 0 0 20px hsl(112, 100%, 54%, 0.4);
+    --shadow-buff-glow: 0 0 30px hsl(112, 100%, 54%, 0.6), 0 0 60px hsl(112, 100%, 54%, 0.3), 0 0 90px hsl(112, 100%, 54%, 0.15);
+    --shadow-buff-glow-intense: 0 0 40px hsl(112, 100%, 54%, 0.8), 0 0 80px hsl(112, 100%, 54%, 0.5), 0 0 120px hsl(112, 100%, 54%, 0.25);
+    --shadow-reward-glow: 0 0 20px hsl(262, 83%, 66%, 0.5), 0 0 40px hsl(262, 83%, 66%, 0.3);
+    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.8);
 
-    --sidebar-background: 240 10% 7%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 76% 50%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 240 8% 14%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 8% 18%;
-    --sidebar-ring: 142 76% 50%;
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 112 100% 54%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 112 100% 54%;
   }
 }
 
@@ -96,34 +96,51 @@
     @apply border-border;
   }
 
+  /* RTL by default for Hebrew */
+  html {
+    direction: rtl;
+    text-align: right;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', 'Heebo', sans-serif;
+    font-family: 'Heebo', system-ui, -apple-system, sans-serif;
     line-height: 1.7;
+    color: hsl(0, 0%, 100%);
+    background-color: hsl(0, 0%, 0%);
   }
 
-  /* RTL Hebrew font */
-  [dir="rtl"] body {
-    font-family: 'Heebo', 'Inter', sans-serif;
+  /* LTR fallback */
+  [dir="ltr"] body {
+    font-family: 'Inter', 'Heebo', system-ui, -apple-system, sans-serif;
   }
 
-  /* BUFF Heading Styles - Bold modern font */
+  /* BUFF Heading Styles - Bold for Hebrew */
   h1, h2, h3, .buff-heading {
+    font-family: 'Heebo', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  /* English headings use Orbitron */
+  [dir="ltr"] h1, [dir="ltr"] h2, [dir="ltr"] h3, [dir="ltr"] .buff-heading {
     font-family: 'Orbitron', 'Heebo', sans-serif;
     font-weight: 700;
     letter-spacing: 0.05em;
   }
 
-  /* Hebrew headings use Heebo Black */
-  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .buff-heading {
-    font-family: 'Heebo', sans-serif;
-    font-weight: 900;
-    letter-spacing: 0.02em;
-  }
-
   /* Improved line spacing for ADHD readability */
   p, .task-description {
     line-height: 1.8;
+  }
+
+  /* RTL-aware text alignment */
+  .text-start {
+    text-align: right;
+  }
+
+  [dir="ltr"] .text-start {
+    text-align: left;
   }
 }
 
@@ -187,10 +204,10 @@
     border-radius: inherit;
   }
 
-  /* BUFF Active Glow Effect */
+  /* BUFF Active Glow Effect - Neon Green */
   .buff-active-glow {
-    box-shadow: 0 0 15px hsl(84, 100%, 59%, 0.4), 0 0 30px hsl(84, 100%, 59%, 0.2);
-    border-color: hsl(84, 100%, 59%, 0.5);
+    box-shadow: 0 0 15px hsl(112, 100%, 54%, 0.4), 0 0 30px hsl(112, 100%, 54%, 0.2);
+    border-color: hsl(112, 100%, 54%, 0.5);
   }
 
   /* Safe area for all edges on iOS */
@@ -300,7 +317,7 @@ body.modal-open {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(239, 84%, 67%, 0.5);
+  background: hsl(262, 83%, 66%, 0.5);
 }
 
 /* Hide scrollbar for horizontal scroll areas */
@@ -313,32 +330,32 @@ body.modal-open {
   scrollbar-width: none;
 }
 
-/* Animations */
+/* Animations - Neon Green (#39FF14) */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px hsl(239, 84%, 67%, 0.3);
+    box-shadow: 0 0 20px hsl(262, 83%, 66%, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px hsl(239, 84%, 67%, 0.5);
+    box-shadow: 0 0 40px hsl(262, 83%, 66%, 0.5);
   }
 }
 
 @keyframes buff-pulse {
   0%, 100% {
-    box-shadow: 0 0 15px hsl(84, 100%, 59%, 0.4);
+    box-shadow: 0 0 15px hsl(112, 100%, 54%, 0.4);
   }
   50% {
-    box-shadow: 0 0 30px hsl(84, 100%, 59%, 0.6);
+    box-shadow: 0 0 30px hsl(112, 100%, 54%, 0.6);
   }
 }
 
 @keyframes cta-glow-pulse {
   0%, 100% {
-    box-shadow: 0 0 30px hsl(84, 100%, 59%, 0.6), 0 0 60px hsl(84, 100%, 59%, 0.3), 0 0 90px hsl(84, 100%, 59%, 0.15);
+    box-shadow: 0 0 30px hsl(112, 100%, 54%, 0.6), 0 0 60px hsl(112, 100%, 54%, 0.3), 0 0 90px hsl(112, 100%, 54%, 0.15);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 50px hsl(84, 100%, 59%, 0.8), 0 0 100px hsl(84, 100%, 59%, 0.5), 0 0 150px hsl(84, 100%, 59%, 0.25);
+    box-shadow: 0 0 50px hsl(112, 100%, 54%, 0.8), 0 0 100px hsl(112, 100%, 54%, 0.5), 0 0 150px hsl(112, 100%, 54%, 0.25);
     transform: scale(1.02);
   }
 }
@@ -420,11 +437,11 @@ body.modal-open {
 
 @keyframes buff-lightning {
   0%, 100% {
-    filter: drop-shadow(0 0 8px hsl(84, 100%, 59%));
+    filter: drop-shadow(0 0 8px hsl(112, 100%, 54%));
     transform: scale(1);
   }
   50% {
-    filter: drop-shadow(0 0 20px hsl(84, 100%, 59%));
+    filter: drop-shadow(0 0 20px hsl(112, 100%, 54%));
     transform: scale(1.1);
   }
 }
