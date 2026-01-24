@@ -232,6 +232,7 @@ export function useChildData(childId: string | null) {
         icon: t.icon || undefined,
         completed: completedTaskIds.has(t.id),
         assignedTo: t.assigned_to || undefined,
+        strategyId: t.strategy_id || undefined,
       }));
 
       setTasks(mappedTasks);
@@ -282,6 +283,7 @@ export function useChildData(childId: string | null) {
         credits: task.credits,
         description: task.description,
         icon: task.icon,
+        strategy_id: task.strategyId || null,
       })
       .select()
       .single();
@@ -296,6 +298,7 @@ export function useChildData(childId: string | null) {
         description: data.description || undefined,
         completed: false,
         assignedTo: data.assigned_to || undefined,
+        strategyId: data.strategy_id || undefined,
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId, childId]);
@@ -316,6 +319,7 @@ export function useChildData(childId: string | null) {
         credits: updates.credits,
         description: updates.description,
         icon: updates.icon,
+        strategy_id: updates.strategyId || null,
       })
       .eq('id', taskId);
   }, [familyId]);
