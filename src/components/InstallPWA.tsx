@@ -80,7 +80,7 @@ export function InstallPWA() {
       <div className="fixed bottom-0 inset-x-0 z-50 p-4 bg-card border-t border-border animate-in slide-in-from-bottom">
         <div className="max-w-lg mx-auto">
           <div className="flex items-start justify-between mb-3">
-            <h3 className="font-semibold text-foreground">Install Daily Quests</h3>
+            <h3 className="font-semibold text-foreground">Install BUFF</h3>
             <Button variant="ghost" size="icon" onClick={handleDismiss} className="h-8 w-8">
               <X className="w-4 h-4" />
             </Button>
@@ -112,7 +112,7 @@ export function InstallPWA() {
             <Download className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="font-medium text-foreground text-sm">Install Daily Quests</p>
+            <p className="font-medium text-foreground text-sm">Install BUFF</p>
             <p className="text-xs text-muted-foreground">Add to home screen for quick access</p>
           </div>
         </div>

@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "BUFF",
         short_name: "BUFF",
-        description: "Level up your daily routine",
+        description: "Buff your routine, unlock your potential",
         theme_color: "#8b5cf6",
         background_color: "#0a0a0b",
         display: "standalone",

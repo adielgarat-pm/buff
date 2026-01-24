@@ -1,5 +1,5 @@
-// Service Worker for Push Notifications
-const CACHE_NAME = 'daily-quests-v1';
+// Service Worker for BUFF Push Notifications
+const CACHE_NAME = 'buff-v2';
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -35,7 +35,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Daily Quests', options)
+    self.registration.showNotification(data.title || 'BUFF', options)
   );
 });
 

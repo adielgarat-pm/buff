@@ -51,7 +51,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const [timetable, setTimetable] = useState<Timetable>({});
   const [rewards] = useState<Reward[]>(DEFAULT_REWARDS);
   const [dailyGoal, setDailyGoal] = useState(100);
-  const [appTitle, setAppTitle] = useState('Daily Quests');
+  const [appTitle, setAppTitle] = useState('BUFF');
   const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
   const [fridayEnabled, setFridayEnabled] = useState(false);
   const [totalBalance, setTotalBalance] = useState(0);
