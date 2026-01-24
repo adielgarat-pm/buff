@@ -13,18 +13,18 @@ export interface Strategy {
 
 export const STRATEGY_CATEGORIES: Record<StrategyCategory, { label: string; labelHe: string; color: string }> = {
   'environmental': { 
-    label: 'Environmental', 
-    labelHe: 'סביבתי',
+    label: 'Environment Buff', 
+    labelHe: 'באף סביבה',
     color: 'text-green-500' 
   },
   'task-based': { 
-    label: 'Task-based', 
-    labelHe: 'מבוסס משימה',
+    label: 'Focus Buff', 
+    labelHe: 'באף מיקוד',
     color: 'text-blue-500' 
   },
   'self-regulation': { 
-    label: 'Self-regulation', 
-    labelHe: 'ויסות עצמי',
+    label: 'Energy Buff', 
+    labelHe: 'באף אנרגיה',
     color: 'text-purple-500' 
   },
 };
