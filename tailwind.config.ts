@@ -55,6 +55,10 @@ export default {
           DEFAULT: "hsl(var(--buff))",
           foreground: "hsl(var(--buff-foreground))",
         },
+        reward: {
+          DEFAULT: "hsl(var(--reward))",
+          foreground: "hsl(var(--reward-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

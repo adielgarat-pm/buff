@@ -8,80 +8,86 @@
 
 @layer base {
   :root {
-    /* BUFF Brand Colors */
-    /* Deep Slate #1A1A1A - main background */
-    --background: 0 0% 10%;
+    /* BUFF Brand Colors - Gamer/Tech Aesthetic */
+    /* Deep Dark Background */
+    --background: 240 10% 6%;
     --foreground: 0 0% 98%;
 
-    /* Card backgrounds - slightly lighter slate */
-    --card: 0 0% 13%;
+    /* Card backgrounds - slightly lighter */
+    --card: 240 10% 9%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 13%;
+    --popover: 240 10% 9%;
     --popover-foreground: 0 0% 98%;
 
-    /* Electric Indigo #6366F1 - primary brand color */
-    --primary: 239 84% 67%;
-    --primary-foreground: 0 0% 100%;
+    /* Neon Green - Primary (success/completed) */
+    --primary: 142 76% 50%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 0 0% 16%;
+    --secondary: 240 8% 14%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 240 8% 18%;
+    --muted-foreground: 240 5% 55%;
 
-    /* Accent - Electric Indigo variant */
-    --accent: 239 84% 67%;
+    /* Vibrant Purple - Accent (rewards/bonuses) */
+    --accent: 270 95% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Volt Green #ADFF2F - success states */
-    --success: 84 100% 59%;
-    --success-foreground: 0 0% 10%;
+    /* Neon Green - Success states */
+    --success: 142 76% 50%;
+    --success-foreground: 0 0% 5%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
 
-    /* Volt Green for buffs */
-    --buff: 84 100% 59%;
-    --buff-foreground: 0 0% 10%;
+    /* Neon Green for buffs */
+    --buff: 142 76% 50%;
+    --buff-foreground: 0 0% 5%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 239 84% 67%;
+    /* Vibrant Purple for rewards */
+    --reward: 270 95% 65%;
+    --reward-foreground: 0 0% 100%;
+
+    --border: 240 8% 18%;
+    --input: 240 8% 18%;
+    --ring: 142 76% 50%;
 
     --radius: 1rem;
 
     /* Category colors */
     --medication: 280 85% 60%;
-    --hygiene: 239 84% 67%;
-    --nutrition: 84 100% 59%;
+    --hygiene: 200 95% 55%;
+    --nutrition: 142 76% 50%;
     --school: 38 92% 50%;
 
-    /* BUFF Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(239, 84%, 67%), hsl(280, 85%, 60%));
-    --gradient-success: linear-gradient(135deg, hsl(84, 100%, 59%), hsl(84, 100%, 45%));
-    --gradient-xp: linear-gradient(90deg, hsl(84, 100%, 45%), hsl(84, 100%, 59%), hsl(84, 100%, 65%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 14%), hsl(0, 0%, 11%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(239, 84%, 67%, 0.15), transparent 50%);
-    --gradient-buff: linear-gradient(135deg, hsl(84, 100%, 59%), hsl(84, 100%, 45%));
+    /* BUFF Gradients - Gamer Aesthetic */
+    --gradient-primary: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
+    --gradient-success: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
+    --gradient-xp: linear-gradient(90deg, hsl(142, 76%, 40%), hsl(142, 76%, 50%), hsl(142, 76%, 55%));
+    --gradient-card: linear-gradient(180deg, hsl(240, 10%, 10%), hsl(240, 10%, 7%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(142, 76%, 50%, 0.15), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(142, 76%, 50%), hsl(142, 76%, 40%));
+    --gradient-reward: linear-gradient(135deg, hsl(270, 95%, 65%), hsl(280, 90%, 55%));
 
-    /* BUFF Shadows */
-    --shadow-glow: 0 0 20px hsl(239, 84%, 67%, 0.4);
-    --shadow-buff-glow: 0 0 30px hsl(84, 100%, 59%, 0.6), 0 0 60px hsl(84, 100%, 59%, 0.3), 0 0 90px hsl(84, 100%, 59%, 0.15);
-    --shadow-buff-glow-intense: 0 0 40px hsl(84, 100%, 59%, 0.8), 0 0 80px hsl(84, 100%, 59%, 0.5), 0 0 120px hsl(84, 100%, 59%, 0.25);
-    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.5);
+    /* BUFF Shadows - Neon Glow */
+    --shadow-glow: 0 0 20px hsl(142, 76%, 50%, 0.4);
+    --shadow-buff-glow: 0 0 30px hsl(142, 76%, 50%, 0.6), 0 0 60px hsl(142, 76%, 50%, 0.3), 0 0 90px hsl(142, 76%, 50%, 0.15);
+    --shadow-buff-glow-intense: 0 0 40px hsl(142, 76%, 50%, 0.8), 0 0 80px hsl(142, 76%, 50%, 0.5), 0 0 120px hsl(142, 76%, 50%, 0.25);
+    --shadow-reward-glow: 0 0 20px hsl(270, 95%, 65%, 0.5), 0 0 40px hsl(270, 95%, 65%, 0.3);
+    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.6);
 
-    --sidebar-background: 0 0% 11%;
+    --sidebar-background: 240 10% 7%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 239 84% 67%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
+    --sidebar-primary: 142 76% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 240 8% 14%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-border: 240 8% 18%;
+    --sidebar-ring: 142 76% 50%;
   }
 }
 
@@ -187,9 +193,34 @@
     border-color: hsl(84, 100%, 59%, 0.5);
   }
 
-  /* Safe area for bottom navigation on iOS */
+  /* Safe area for all edges on iOS */
   .safe-area-pb {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+  }
+
+  .safe-area-pt {
+    padding-top: max(env(safe-area-inset-top, 0px), 20px);
+  }
+
+  .safe-area-px {
+    padding-left: max(env(safe-area-inset-left, 0px), 20px);
+    padding-right: max(env(safe-area-inset-right, 0px), 20px);
+  }
+
+  .safe-area-all {
+    padding-top: max(env(safe-area-inset-top, 0px), 20px);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+    padding-left: max(env(safe-area-inset-left, 0px), 20px);
+    padding-right: max(env(safe-area-inset-right, 0px), 20px);
+  }
+
+  /* Reward/Purple gradient utilities */
+  .bg-gradient-reward {
+    background-image: var(--gradient-reward);
+  }
+
+  .shadow-reward-glow {
+    box-shadow: var(--shadow-reward-glow);
   }
 
   /* Mobile-first touch-friendly sizing */

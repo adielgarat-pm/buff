@@ -150,6 +150,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.tasks': 'משימות',
     'nav.timetable': 'מערכת',
     'nav.store': 'חנות',
+    'nav.settings': 'הגדרות',
     
     // Focus Fuel
     'fuel.charging': 'רמת מיקוד: נטען...',
@@ -325,6 +326,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.tasks': 'Tasks',
     'nav.timetable': 'Timetable',
     'nav.store': 'Store',
+    'nav.settings': 'Settings',
     
     // Focus Fuel
     'fuel.charging': 'Focus Level: Charging...',
