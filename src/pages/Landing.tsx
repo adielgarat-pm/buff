@@ -15,7 +15,7 @@ function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
         className={`${logoSize} object-contain`}
       />
       {size !== 'large' && (
-        <span className="font-display text-2xl font-black tracking-wider text-primary">
+        <span className="font-display text-2xl font-bold tracking-wide text-primary">
           BUFF
         </span>
       )}
