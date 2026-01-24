@@ -76,26 +76,22 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
+          model: "google/gemini-2.5-flash",
           messages: [
             {
               role: "system",
-              content: `You are an expert at reading school timetables and schedules from images.
-Extract all subjects, classes, or tasks visible in the timetable.
-For each item, identify:
-- title: The subject or task name
-- time: The start time in HH:MM format (24-hour)
-- day: The day of week in lowercase (sunday, monday, tuesday, wednesday, thursday, friday, saturday)
-
-Return ONLY a valid JSON array of objects with these exact fields. No markdown, no explanation.
-Example: [{"title":"Math","time":"08:00","day":"sunday"},{"title":"English","time":"09:00","day":"sunday"}]`
+              content: `You extract school timetables from images into JSON.
+Output ONLY a JSON array, no markdown code blocks, no explanation.
+Each item: {"title":"Subject","time":"HH:MM","day":"dayname"}
+Days must be lowercase: sunday, monday, tuesday, wednesday, thursday, friday, saturday
+Keep responses concise - just the essential subjects.`
             },
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: "Please analyze this school timetable image and extract all the subjects with their times and days. Return as JSON array."
+                  text: "Extract subjects from this timetable as JSON array. Be concise."
                 },
                 {
                   type: "image_url",
@@ -106,7 +102,7 @@ Example: [{"title":"Math","time":"08:00","day":"sunday"},{"title":"English","tim
               ]
             }
           ],
-          max_tokens: 4000,
+          max_tokens: 8000,
         }),
       });
 
@@ -130,16 +126,28 @@ Example: [{"title":"Math","time":"08:00","day":"sunday"},{"title":"English","tim
 
       const aiResponse = await response.json();
       const content = aiResponse.choices?.[0]?.message?.content || "[]";
+      console.log("AI response length:", content.length);
       
       // Extract JSON from response (handle markdown code blocks)
-      let jsonStr = content;
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      let jsonStr = content.trim();
+      
+      // Remove markdown code blocks if present
+      const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) {
         jsonStr = jsonMatch[1].trim();
       }
       
+      // Try to find JSON array in the response
+      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        jsonStr = arrayMatch[0];
+      }
+      
       try {
         const aiParsedItems = JSON.parse(jsonStr);
+        if (!Array.isArray(aiParsedItems)) {
+          throw new Error("Response is not an array");
+        }
         parsedTasks = aiParsedItems.map((item: any) => ({
           title: item.title || 'Untitled',
           time: item.time || '09:00',
@@ -147,9 +155,12 @@ Example: [{"title":"Math","time":"08:00","day":"sunday"},{"title":"English","tim
           category: guessCategory(item.title || ''),
           credits: guessCredits(item.title || ''),
         }));
+        console.log("Successfully parsed", parsedTasks.length, "tasks");
       } catch (parseError) {
-        console.error("Failed to parse AI response:", content);
-        throw new Error("Failed to parse schedule from image. Please try a clearer image.");
+        console.error("JSON parse error:", parseError);
+        console.error("Raw content (first 500 chars):", content.substring(0, 500));
+        console.error("Attempted to parse:", jsonStr.substring(0, 500));
+        throw new Error("Could not extract schedule. The image may be unclear or the format unrecognized. Please try a different image.");
       }
     }
 
