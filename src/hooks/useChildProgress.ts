@@ -459,6 +459,36 @@ export function useChildData(childId: string | null) {
       .eq('id', childId);
   }, [childId]);
 
+  // Update child's credit balance
+  const updateTotalBalance = useCallback(async (balance: number) => {
+    if (!familyId || !childId) return;
+
+    setTotalBalance(balance);
+
+    // Check if child has a vault
+    const { data: existingVault } = await supabase
+      .from('credit_vault')
+      .select('id')
+      .eq('family_id', familyId)
+      .eq('child_id', childId)
+      .maybeSingle();
+
+    if (existingVault) {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: balance })
+        .eq('id', existingVault.id);
+    } else {
+      await supabase
+        .from('credit_vault')
+        .insert({ 
+          family_id: familyId, 
+          child_id: childId, 
+          total_balance: balance 
+        });
+    }
+  }, [familyId, childId]);
+
   return {
     tasks,
     timetable,
@@ -473,6 +503,7 @@ export function useChildData(childId: string | null) {
     updateTimetable,
     updateStoreRewards,
     updateDailyGoal,
+    updateTotalBalance,
     toggleSchoolQuestEnabled,
     initializeChildData,
     refetch: fetchChildData,
