@@ -48,6 +48,7 @@ const Index = () => {
     lessonRemindersEnabled,
     totalBalance,
     storeRewards,
+    buffsActivatedToday,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -60,6 +61,7 @@ const Index = () => {
     toggleLessonReminders,
     redeemStoreReward,
     updateStoreRewards,
+    activateBuff,
     lessons,
   } = useSyncedTaskStore();
 
@@ -173,12 +175,13 @@ const Index = () => {
               phaseStats={phaseStats}
             />
 
-            {/* Daily Progress Bar */}
+            {/* Focus Fuel Meter */}
             <ProgressBar
               earned={earnedCredits}
               goal={dailyGoal}
               percent={progressPercent}
               totalBalance={totalBalance}
+              buffsActivated={buffsActivatedToday}
             />
 
             {/* Phase Content */}
@@ -191,6 +194,7 @@ const Index = () => {
               onCompleteTask={completeTask}
               onUncompleteTask={uncompleteTask}
               onToggleLesson={toggleLesson}
+              onBuffActivated={activateBuff}
             />
           </div>
         );

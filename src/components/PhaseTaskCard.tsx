@@ -12,6 +12,7 @@ interface PhaseTaskCardProps {
   task: Task;
   onComplete: (id: string) => void;
   onUncomplete: (id: string) => void;
+  onBuffActivated?: () => void;
 }
 
 const categoryIcons = {
@@ -53,7 +54,7 @@ const getRandomStrategy = (strategyId?: string | null) => {
   return STRATEGIES[Math.floor(Math.random() * STRATEGIES.length)];
 };
 
-export function PhaseTaskCard({ task, onComplete, onUncomplete }: PhaseTaskCardProps) {
+export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated }: PhaseTaskCardProps) {
   const { language } = useLanguage();
   const [showBuffModal, setShowBuffModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -96,6 +97,9 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete }: PhaseTaskCardP
   const handleBuffClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowBuffModal(true);
+    
+    // Track buff activation
+    onBuffActivated?.();
     
     // Haptic feedback
     if (navigator.vibrate) {

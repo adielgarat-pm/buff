@@ -19,6 +19,7 @@ interface PhaseViewProps {
   onCompleteTask: (id: string) => void;
   onUncompleteTask: (id: string) => void;
   onToggleLesson: (id: string) => void;
+  onBuffActivated?: () => void;
 }
 
 export function PhaseView({
@@ -30,6 +31,7 @@ export function PhaseView({
   onCompleteTask,
   onUncompleteTask,
   onToggleLesson,
+  onBuffActivated,
 }: PhaseViewProps) {
   const { language, t } = useLanguage();
   const [focusMode, setFocusMode] = useState(false);
@@ -142,6 +144,7 @@ export function PhaseView({
               task={task}
               onComplete={onCompleteTask}
               onUncomplete={onUncompleteTask}
+              onBuffActivated={onBuffActivated}
             />
           ))}
         </div>
