@@ -461,31 +461,54 @@ export function useChildData(childId: string | null) {
 
   // Update child's credit balance
   const updateTotalBalance = useCallback(async (balance: number) => {
-    if (!familyId || !childId) return;
+    if (!familyId || !childId) {
+      console.error('updateTotalBalance: Missing familyId or childId', { familyId, childId });
+      throw new Error('Missing familyId or childId');
+    }
 
+    console.log('updateTotalBalance: Updating balance', { familyId, childId, balance });
     setTotalBalance(balance);
 
     // Check if child has a vault
-    const { data: existingVault } = await supabase
+    const { data: existingVault, error: selectError } = await supabase
       .from('credit_vault')
       .select('id')
       .eq('family_id', familyId)
       .eq('child_id', childId)
       .maybeSingle();
 
+    if (selectError) {
+      console.error('updateTotalBalance: Error checking vault', selectError);
+      throw selectError;
+    }
+
     if (existingVault) {
-      await supabase
+      console.log('updateTotalBalance: Updating existing vault', existingVault.id);
+      const { error: updateError } = await supabase
         .from('credit_vault')
         .update({ total_balance: balance })
         .eq('id', existingVault.id);
+      
+      if (updateError) {
+        console.error('updateTotalBalance: Error updating vault', updateError);
+        throw updateError;
+      }
+      console.log('updateTotalBalance: Successfully updated vault');
     } else {
-      await supabase
+      console.log('updateTotalBalance: Creating new vault');
+      const { error: insertError } = await supabase
         .from('credit_vault')
         .insert({ 
           family_id: familyId, 
           child_id: childId, 
           total_balance: balance 
         });
+      
+      if (insertError) {
+        console.error('updateTotalBalance: Error creating vault', insertError);
+        throw insertError;
+      }
+      console.log('updateTotalBalance: Successfully created vault');
     }
   }, [familyId, childId]);
 

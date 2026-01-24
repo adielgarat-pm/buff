@@ -310,13 +310,16 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
       toast.error('יתרה לא יכולה להיות שלילית');
       return;
     }
+    console.log('handleSaveBalance: Starting save', { localBalance, childId });
     setSavingBalance(true);
     try {
       await updateTotalBalance(localBalance);
+      console.log('handleSaveBalance: Save successful');
       toast.success('היתרה עודכנה בהצלחה!');
       setEditingBalance(false);
     } catch (error) {
-      toast.error('שגיאה בעדכון היתרה');
+      console.error('handleSaveBalance: Error saving', error);
+      toast.error('שגיאה בעדכון היתרה: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSavingBalance(false);
     }
