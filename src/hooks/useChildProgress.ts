@@ -435,28 +435,30 @@ export function useChildData(childId: string | null) {
     await fetchChildData();
   }, [familyId, childId, fetchChildData]);
 
-  // Update child's daily goal
+  // Update child's daily goal (via secure RPC)
   const updateDailyGoal = useCallback(async (goal: number) => {
-    if (!childId) return;
+    if (!childId) throw new Error('Missing childId');
 
     setDailyGoal(goal);
 
-    await supabase
-      .from('profiles')
-      .update({ daily_goal: goal })
-      .eq('id', childId);
+    const { error } = await supabase.rpc('update_child_profile_settings', {
+      p_child_id: childId,
+      p_daily_goal: goal,
+    });
+    if (error) throw error;
   }, [childId]);
 
-  // Toggle school quest module for child
+  // Toggle school quest module for child (via secure RPC)
   const toggleSchoolQuestEnabled = useCallback(async (enabled: boolean) => {
-    if (!childId) return;
+    if (!childId) throw new Error('Missing childId');
 
     setSchoolQuestEnabled(enabled);
 
-    await supabase
-      .from('profiles')
-      .update({ school_quest_enabled: enabled })
-      .eq('id', childId);
+    const { error } = await supabase.rpc('update_child_profile_settings', {
+      p_child_id: childId,
+      p_school_quest_enabled: enabled,
+    });
+    if (error) throw error;
   }, [childId]);
 
   // Update child's credit balance
