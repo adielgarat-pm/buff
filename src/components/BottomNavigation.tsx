@@ -1,15 +1,16 @@
-import { CheckSquare, Calendar, Gift } from 'lucide-react';
+import { CheckSquare, Calendar, Gift, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export type NavTab = 'tasks' | 'timetable' | 'store';
+export type NavTab = 'tasks' | 'timetable' | 'store' | 'settings';
 
 interface BottomNavigationProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
+  isParent?: boolean;
 }
 
-export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
+export function BottomNavigation({ activeTab, onTabChange, isParent = false }: BottomNavigationProps) {
   const { t } = useLanguage();
 
   const NAV_ITEMS = [
@@ -17,6 +18,11 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
     { id: 'timetable' as const, labelKey: 'nav.timetable', icon: Calendar },
     { id: 'store' as const, labelKey: 'nav.store', icon: Gift },
   ];
+
+  // Add settings tab only for parents
+  const allItems = isParent 
+    ? [...NAV_ITEMS, { id: 'settings' as const, labelKey: 'nav.settings', icon: Settings }]
+    : NAV_ITEMS;
 
   const handleTabChange = (tab: NavTab) => {
     // Haptic feedback
@@ -30,7 +36,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/98 backdrop-blur-lg border-t border-border/50 safe-area-pb">
       <div className="max-w-lg mx-auto px-2">
         <div className="flex items-center justify-around py-1">
-          {NAV_ITEMS.map((item) => {
+          {allItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
             
@@ -39,7 +45,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 key={item.id}
                 onClick={() => handleTabChange(item.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 min-w-[72px] min-h-[56px] py-2 px-4 rounded-2xl",
+                  "flex flex-col items-center justify-center gap-0.5 min-w-[60px] min-h-[56px] py-2 px-3 rounded-2xl",
                   "transition-all duration-200 touch-feedback",
                   "active:scale-95",
                   isActive 
@@ -48,16 +54,16 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                 )}
               >
                 <div className={cn(
-                  "flex items-center justify-center w-12 h-8 rounded-xl transition-all duration-200",
+                  "flex items-center justify-center w-11 h-8 rounded-xl transition-all duration-200",
                   isActive && "bg-primary/20 shadow-glow"
                 )}>
                   <Icon className={cn(
-                    "w-6 h-6 transition-transform duration-200",
+                    "w-5 h-5 transition-transform duration-200",
                     isActive && "scale-110"
                   )} />
                 </div>
                 <span className={cn(
-                  "text-[11px] font-semibold tracking-wide",
+                  "text-[10px] font-semibold tracking-wide",
                   isActive && "text-primary"
                 )}>
                   {t(item.labelKey)}

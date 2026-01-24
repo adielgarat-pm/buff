@@ -1,4 +1,4 @@
-import { Settings, Vault, CalendarDays, LogOut, User, Globe } from 'lucide-react';
+import { Vault, CalendarDays, LogOut, User, Globe } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -10,11 +10,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from './ui/dropdown-menu';
-import buffLogo from '@/assets/buff-logo.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HeaderProps {
-  onOpenSettings?: () => void;
   onOpenStore: () => void;
   onOpenWeeklySummary?: () => void;
   totalBalance: number;
@@ -23,24 +21,28 @@ interface HeaderProps {
   userName?: string;
 }
 
-// BUFF Logo Component with image
-function BuffLogo() {
+// FunCtion Logo Component with stylized text
+function FunCtionLogo() {
   return (
     <div className="flex items-center gap-2">
-      <img 
-        src={buffLogo} 
-        alt="BUFF Logo" 
-        className="h-10 w-10 object-contain"
-      />
-      <span className="font-display text-2xl font-bold tracking-wide text-primary">
-        BUFF
-      </span>
+      <div className="relative">
+        {/* Logo icon - stylized "F" with energy burst */}
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-glow">
+          <span className="font-display text-xl font-black text-primary-foreground">F</span>
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <span className="font-display text-xl font-bold tracking-tight">
+          <span className="text-primary">Fun</span>
+          <span className="text-buff">C</span>
+          <span className="text-foreground">tion</span>
+        </span>
+      </div>
     </div>
   );
 }
 
 export function Header({ 
-  onOpenSettings, 
   onOpenStore, 
   onOpenWeeklySummary, 
   totalBalance, 
@@ -57,7 +59,7 @@ export function Header({
   return (
     <header className="flex items-center justify-between py-4 sm:py-6">
       <div className="min-w-0">
-        <BuffLogo />
+        <FunCtionLogo />
         <p className="text-muted-foreground text-sm mt-1 truncate">
           {dayName}, {dateStr}
         </p>
@@ -97,7 +99,7 @@ export function Header({
               size="icon"
               className="rounded-xl w-10 h-10 touch-target active:bg-secondary"
             >
-              <Settings className="w-5 h-5 text-muted-foreground" />
+              <User className="w-5 h-5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52 rounded-xl">
@@ -133,15 +135,9 @@ export function Header({
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             
-            {onOpenSettings && (
-              <DropdownMenuItem onClick={onOpenSettings} className="rounded-xl">
-                <Settings className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                {t('settings.parentSettings')}
-              </DropdownMenuItem>
-            )}
             {onSignOut && (
               <>
-                {onOpenSettings && <DropdownMenuSeparator />}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onSignOut} className="text-destructive rounded-xl">
                   <LogOut className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                   {t('settings.signOut')}

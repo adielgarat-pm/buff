@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Orbitron', 'sans-serif'],
+        sans: ['Inter', 'Heebo', 'sans-serif'],
+        display: ['Outfit', 'Heebo', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
