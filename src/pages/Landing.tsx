@@ -1,28 +1,25 @@
 import { Link } from 'react-router-dom';
 import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import buffLogo from '@/assets/buff-logo.png';
 
 // BUFF Logo Component
 function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
-  const textSize = size === 'large' ? 'text-5xl' : 'text-2xl';
-  const iconSize = size === 'large' ? 'w-5 h-5' : 'w-3 h-3';
+  const logoSize = size === 'large' ? 'h-20 w-20' : 'h-10 w-10';
   
   return (
-    <span className={`flex items-center font-display font-black tracking-wider ${textSize}`}>
-      <span className="text-primary">B</span>
-      <span className="relative inline-flex items-center justify-center">
-        <span className="text-primary">U</span>
-        <Zap 
-          className={`absolute text-buff fill-buff ${iconSize}`}
-          style={{ 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -45%)',
-          }} 
-        />
-      </span>
-      <span className="text-primary">FF</span>
-    </span>
+    <div className="flex items-center gap-2">
+      <img 
+        src={buffLogo} 
+        alt="BUFF Logo" 
+        className={`${logoSize} object-contain`}
+      />
+      {size !== 'large' && (
+        <span className="font-display text-2xl font-black tracking-wider text-primary">
+          BUFF
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -188,13 +185,20 @@ export default function Landing() {
             <span className="text-sm text-primary font-medium">Based on the Cog-Fun Model</span>
           </div>
           
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-wide mb-6">
-            <BuffLogo size="large" />
-            <span className="block mt-4 text-foreground">
-              The Executive Function
-            </span>
+          <div className="flex flex-col items-center mb-6">
+            <img 
+              src={buffLogo} 
+              alt="BUFF Logo" 
+              className="h-32 w-32 object-contain mb-4"
+            />
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-wide">
+              <span className="text-primary">BUFF</span>
+            </h1>
+          </div>
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+            <span className="text-foreground">The Executive Function </span>
             <span className="text-gradient">Power-up</span>
-          </h1>
+          </h2>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Master your daily routine with research-based <span className="text-buff font-semibold">Cog-Fun strategies</span> designed for the ADHD brain.
