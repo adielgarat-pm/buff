@@ -51,6 +51,7 @@ export type Database = {
       }
       credit_vault: {
         Row: {
+          child_id: string | null
           family_id: string
           id: string
           last_updated_date: string | null
@@ -58,6 +59,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          child_id?: string | null
           family_id: string
           id?: string
           last_updated_date?: string | null
@@ -65,6 +67,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          child_id?: string | null
           family_id?: string
           id?: string
           last_updated_date?: string | null
@@ -72,6 +75,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "credit_vault_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "credit_vault_family_id_fkey"
             columns: ["family_id"]
@@ -83,6 +93,7 @@ export type Database = {
       }
       daily_progress: {
         Row: {
+          child_id: string | null
           completed: boolean
           completed_at: string | null
           created_at: string
@@ -92,6 +103,7 @@ export type Database = {
           task_id: string
         }
         Insert: {
+          child_id?: string | null
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -101,6 +113,7 @@ export type Database = {
           task_id: string
         }
         Update: {
+          child_id?: string | null
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -110,6 +123,13 @@ export type Database = {
           task_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "daily_progress_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "daily_progress_family_id_fkey"
             columns: ["family_id"]
@@ -146,6 +166,7 @@ export type Database = {
       }
       lesson_progress: {
         Row: {
+          child_id: string | null
           completed: boolean
           completed_at: string | null
           created_at: string
@@ -156,6 +177,7 @@ export type Database = {
           lesson_key: string
         }
         Insert: {
+          child_id?: string | null
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -166,6 +188,7 @@ export type Database = {
           lesson_key: string
         }
         Update: {
+          child_id?: string | null
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -176,6 +199,13 @@ export type Database = {
           lesson_key?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lesson_progress_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lesson_progress_family_id_fkey"
             columns: ["family_id"]
@@ -225,6 +255,7 @@ export type Database = {
       }
       store_rewards: {
         Row: {
+          assigned_to: string | null
           claimed: boolean
           claimed_at: string | null
           created_at: string
@@ -235,6 +266,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          assigned_to?: string | null
           claimed?: boolean
           claimed_at?: string | null
           created_at?: string
@@ -245,6 +277,7 @@ export type Database = {
           title: string
         }
         Update: {
+          assigned_to?: string | null
           claimed?: boolean
           claimed_at?: string | null
           created_at?: string
@@ -256,6 +289,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "store_rewards_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "store_rewards_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
@@ -266,6 +306,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          assigned_to: string | null
           category: string
           created_at: string
           credits: number
@@ -277,6 +318,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          assigned_to?: string | null
           category: string
           created_at?: string
           credits?: number
@@ -288,6 +330,7 @@ export type Database = {
           title: string
         }
         Update: {
+          assigned_to?: string | null
           category?: string
           created_at?: string
           credits?: number
@@ -300,6 +343,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
@@ -310,24 +360,34 @@ export type Database = {
       }
       timetables: {
         Row: {
+          assigned_to: string | null
           data: Json
           family_id: string
           id: string
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           data?: Json
           family_id: string
           id?: string
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           data?: Json
           family_id?: string
           id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "timetables_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "timetables_family_id_fkey"
             columns: ["family_id"]
