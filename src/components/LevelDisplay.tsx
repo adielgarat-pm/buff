@@ -1,4 +1,4 @@
-import { Star, Trophy } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -40,7 +40,7 @@ export function getLevelInfo(totalXP: number) {
 }
 
 export function LevelDisplay({ totalXP, className }: LevelDisplayProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { currentLevel, nextLevel, levelIndex, progressToNext, xpToNext } = getLevelInfo(totalXP);
   
   const levelName = language === 'he' ? currentLevel.nameHe : currentLevel.name;
@@ -62,7 +62,7 @@ export function LevelDisplay({ totalXP, className }: LevelDisplayProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            {language === 'he' ? 'רמה' : 'Level'} {levelIndex}
+            {t('progress.level')} {levelIndex}
           </span>
           <span className="text-foreground font-bold">{levelName}</span>
         </div>
@@ -77,7 +77,7 @@ export function LevelDisplay({ totalXP, className }: LevelDisplayProps) {
               />
             </div>
             <span className="text-xs text-muted-foreground">
-              {xpToNext} XP
+              {xpToNext} {t('common.xp')}
             </span>
           </div>
         )}
@@ -85,7 +85,7 @@ export function LevelDisplay({ totalXP, className }: LevelDisplayProps) {
         {isMaxLevel && (
           <div className="flex items-center gap-1 text-buff text-xs">
             <Trophy className="w-3 h-3" />
-            <span>{language === 'he' ? 'רמה מקסימלית!' : 'Max Level!'}</span>
+            <span>{t('progress.maxLevel')}</span>
           </div>
         )}
       </div>
