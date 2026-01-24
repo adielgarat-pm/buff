@@ -34,7 +34,7 @@ export function Header({
   return (
     <header className="flex items-center justify-between py-6">
       <div>
-        <h1 className="text-2xl font-bold text-gradient">{appTitle || 'Daily Quests'}</h1>
+        <h1 className="text-2xl font-black tracking-tight text-gradient">{appTitle || 'BUFF'}</h1>
         <p className="text-muted-foreground">
           {dayName}, {dateStr}
         </p>

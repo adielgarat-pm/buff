@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Lightbulb, TrendingUp } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp } from 'lucide-react';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
@@ -687,8 +687,8 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-                  <Lightbulb className="w-3 h-3" />
-                  Strategy Booster (Cog-Fun)
+                  <Zap className="w-3 h-3 text-yellow-500" />
+                  Daily Buff
                 </Label>
                 <Select
                   value={newTask.strategyId}
@@ -906,15 +906,16 @@ function ParentInsightsDashboard({ childId, childName }: ParentInsightsDashboard
 
   return (
     <div className="space-y-6">
-      {/* Coach's Intro */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/30">
+      {/* BUFF Parent Insights Header */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-primary/20">
-            <TrendingUp className="w-5 h-5 text-primary" />
+          <div className="p-2 rounded-lg bg-yellow-500/20">
+            <Zap className="w-5 h-5 text-yellow-500" />
           </div>
           <div>
-            <p className="font-semibold text-foreground text-sm mb-1">
-              📊 תובנות עבור {childName}
+            <p className="font-black text-foreground text-lg tracking-tight mb-1 flex items-center gap-2">
+              BUFF Parent Insights
+              <span className="text-sm font-normal text-muted-foreground">• {childName}</span>
             </p>
             <p className="text-sm text-muted-foreground" dir="rtl">
               ניתוח מבוסס על 7 הימים האחרונים. התובנות מתמקדות ב"איך לעזור" ולא ב"מה השתבש".
@@ -1002,8 +1003,8 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
         </div>
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-            <Lightbulb className="w-3 h-3" />
-            Strategy Booster
+            <Zap className="w-3 h-3 text-yellow-500" />
+            Daily Buff
           </Label>
           <Select
             value={editedTask.strategyId || ''}
@@ -1053,8 +1054,8 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
         <div className="flex items-center gap-2">
           <p className="font-medium text-foreground text-sm">{task.title}</p>
           {strategy && (
-            <span className="text-xs bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1">
-              <Lightbulb className="w-3 h-3" />
+            <span className="text-xs bg-yellow-500/20 text-yellow-500 px-1.5 py-0.5 rounded flex items-center gap-1">
+              <Zap className="w-3 h-3" />
               {strategy.icon}
             </span>
           )}
