@@ -79,13 +79,27 @@ export function useChildProgress() {
           .eq('date', todayKey)
           .or(`child_id.is.null,child_id.eq.${child.id}`);
 
-        // Fetch credit vault for this specific child
-        const { data: vaultData } = await supabase
+        // Fetch credit vault - try child-specific first, then family vault
+        let vaultBalance = 0;
+        const { data: childVaultData } = await supabase
           .from('credit_vault')
           .select('*')
           .eq('family_id', familyId)
           .eq('child_id', child.id)
           .maybeSingle();
+
+        if (childVaultData) {
+          vaultBalance = childVaultData.total_balance || 0;
+        } else {
+          // Fall back to family vault
+          const { data: familyVaultData } = await supabase
+            .from('credit_vault')
+            .select('*')
+            .eq('family_id', familyId)
+            .is('child_id', null)
+            .maybeSingle();
+          vaultBalance = familyVaultData?.total_balance || 0;
+        }
 
         const completedTaskIds = new Set(
           progressData?.filter(p => p.completed).map(p => p.task_id) || []
@@ -97,7 +111,8 @@ export function useChildProgress() {
           ?.filter(t => completedTaskIds.has(t.id))
           .reduce((sum, t) => sum + t.credits, 0) || 0;
 
-        const lessonsTotal = lessonProgressData?.length || 0;
+        // Fixed 8 lessons per school day
+        const lessonsTotal = 8;
         const lessonsCompleted = lessonProgressData?.filter(l => l.completed).length || 0;
         const lessonCredits = lessonProgressData
           ?.filter(l => l.completed)
@@ -112,7 +127,7 @@ export function useChildProgress() {
           tasksTotal,
           lessonsCompleted,
           lessonsTotal,
-          totalBalance: vaultData?.total_balance || 0,
+          totalBalance: vaultBalance,
         };
       });
 
