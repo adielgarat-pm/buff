@@ -4,7 +4,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
-import { ParentMode } from '@/components/ParentMode';
+import { ParentDashboard } from '@/components/ParentDashboard';
 import { PhaseNavigation } from '@/components/PhaseNavigation';
 import { PhaseView } from '@/components/PhaseView';
 import { RewardsStore } from '@/components/RewardsStore';
@@ -20,7 +20,6 @@ import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const { profile, familyId, signOut } = useAuth();
-  const [parentModeOpen, setParentModeOpen] = useState(false);
   const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
   const [activeTab, setActiveTab] = useState<NavTab>('tasks');
@@ -219,10 +218,63 @@ const Index = () => {
           />
         );
       
+      case 'settings':
+        return (
+          <ParentDashboard
+            tasks={tasks}
+            dailyGoal={dailyGoal}
+            appTitle={appTitle}
+            timetable={timetable}
+            lessonRemindersEnabled={lessonRemindersEnabled}
+            fridayEnabled={fridayEnabled}
+            storeRewards={storeRewards}
+            onUpdateTask={updateTask}
+            onAddTask={addTask}
+            onDeleteTask={deleteTask}
+            onUpdateGoal={updateDailyGoal}
+            onUpdateAppTitle={updateAppTitle}
+            onUpdateTimetable={updateTimetable}
+            onToggleLessonReminders={toggleLessonReminders}
+            onToggleFridayEnabled={toggleFridayEnabled}
+            onUpdateStoreRewards={updateStoreRewards}
+            onBack={() => setActiveTab('tasks')}
+          />
+        );
+      
       default:
         return null;
     }
   };
+
+  // Settings view is full-screen for parents
+  if (activeTab === 'settings' && isParent) {
+    return (
+      <div className="min-h-screen bg-background no-horizontal-scroll">
+        <div className="tab-content">
+          <ParentDashboard
+            tasks={tasks}
+            dailyGoal={dailyGoal}
+            appTitle={appTitle}
+            timetable={timetable}
+            lessonRemindersEnabled={lessonRemindersEnabled}
+            fridayEnabled={fridayEnabled}
+            storeRewards={storeRewards}
+            onUpdateTask={updateTask}
+            onAddTask={addTask}
+            onDeleteTask={deleteTask}
+            onUpdateGoal={updateDailyGoal}
+            onUpdateAppTitle={updateAppTitle}
+            onUpdateTimetable={updateTimetable}
+            onToggleLessonReminders={toggleLessonReminders}
+            onToggleFridayEnabled={toggleFridayEnabled}
+            onUpdateStoreRewards={updateStoreRewards}
+            onBack={() => setActiveTab('tasks')}
+          />
+        </div>
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} showSettings={isParent} />
+      </div>
+    );
+  }
 
   // Store view is full-screen, so handle it separately
   if (activeTab === 'store') {
@@ -236,7 +288,7 @@ const Index = () => {
             onClose={() => setActiveTab('tasks')}
           />
         </div>
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} showSettings={isParent} />
       </div>
     );
   }
@@ -246,9 +298,8 @@ const Index = () => {
       {/* Subtle gradient glow */}
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
       
-      <div className="relative max-w-lg mx-auto px-4 pb-8">
+      <div className="relative max-w-lg mx-auto safe-area-px pb-8">
         <Header 
-          onOpenSettings={isParent ? () => setParentModeOpen(true) : undefined}
           onOpenStore={() => setActiveTab('store')}
           onOpenWeeklySummary={() => setWeeklySummaryOpen(true)}
           totalBalance={totalBalance}
@@ -262,37 +313,13 @@ const Index = () => {
         </div>
 
         {/* Family Code Display for Parents */}
-        {isParent && familyId && (
+        {isParent && familyId && activeTab === 'tasks' && (
           <FamilyCodeDisplay familyId={familyId} />
         )}
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Parent Mode Dialog (only for parents) */}
-      {isParent && (
-        <ParentMode
-          open={parentModeOpen}
-          onClose={() => setParentModeOpen(false)}
-          tasks={tasks}
-          dailyGoal={dailyGoal}
-          appTitle={appTitle}
-          timetable={timetable}
-          lessonRemindersEnabled={lessonRemindersEnabled}
-          fridayEnabled={fridayEnabled}
-          storeRewards={storeRewards}
-          onUpdateTask={updateTask}
-          onAddTask={addTask}
-          onDeleteTask={deleteTask}
-          onUpdateGoal={updateDailyGoal}
-          onUpdateAppTitle={updateAppTitle}
-          onUpdateTimetable={updateTimetable}
-          onToggleLessonReminders={toggleLessonReminders}
-          onToggleFridayEnabled={toggleFridayEnabled}
-          onUpdateStoreRewards={updateStoreRewards}
-        />
-      )}
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} showSettings={isParent} />
 
       {/* PWA Install Banner */}
       <InstallPWA />

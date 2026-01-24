@@ -14,7 +14,6 @@ import buffLogo from '@/assets/buff-logo.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HeaderProps {
-  onOpenSettings?: () => void;
   onOpenStore: () => void;
   onOpenWeeklySummary?: () => void;
   totalBalance: number;
@@ -40,7 +39,6 @@ function BuffLogo() {
 }
 
 export function Header({ 
-  onOpenSettings, 
   onOpenStore, 
   onOpenWeeklySummary, 
   totalBalance, 
@@ -133,15 +131,9 @@ export function Header({
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             
-            {onOpenSettings && (
-              <DropdownMenuItem onClick={onOpenSettings} className="rounded-xl">
-                <Settings className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                {t('settings.parentSettings')}
-              </DropdownMenuItem>
-            )}
             {onSignOut && (
               <>
-                {onOpenSettings && <DropdownMenuSeparator />}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onSignOut} className="text-destructive rounded-xl">
                   <LogOut className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                   {t('settings.signOut')}
