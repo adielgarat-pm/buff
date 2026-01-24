@@ -1,16 +1,32 @@
-import { Settings, Vault, CalendarDays } from 'lucide-react';
+import { Settings, Vault, CalendarDays, LogOut, User } from 'lucide-react';
 import { Button } from './ui/button';
-import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface HeaderProps {
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
   onOpenStore: () => void;
   onOpenWeeklySummary?: () => void;
   totalBalance: number;
   appTitle: string;
+  onSignOut?: () => void;
+  userName?: string;
 }
 
-export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, totalBalance, appTitle }: HeaderProps) {
+export function Header({ 
+  onOpenSettings, 
+  onOpenStore, 
+  onOpenWeeklySummary, 
+  totalBalance, 
+  appTitle,
+  onSignOut,
+  userName,
+}: HeaderProps) {
   const today = new Date();
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -50,15 +66,44 @@ export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, total
           </span>
         </Button>
         
-        {/* Settings Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full hover:bg-secondary"
-          onClick={onOpenSettings}
-        >
-          <Settings className="w-5 h-5 text-muted-foreground" />
-        </Button>
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-secondary"
+            >
+              <Settings className="w-5 h-5 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {userName && (
+              <>
+                <div className="px-2 py-1.5 text-sm text-muted-foreground flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  {userName}
+                </div>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            {onOpenSettings && (
+              <DropdownMenuItem onClick={onOpenSettings}>
+                <Settings className="w-4 h-4 mr-2" />
+                Parent Settings
+              </DropdownMenuItem>
+            )}
+            {onSignOut && (
+              <>
+                {onOpenSettings && <DropdownMenuSeparator />}
+                <DropdownMenuItem onClick={onSignOut} className="text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

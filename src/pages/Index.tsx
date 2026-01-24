@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useTaskStore } from '@/hooks/useTaskStore';
+import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ParentMode } from '@/components/ParentMode';
@@ -10,13 +11,15 @@ import { RewardsStore } from '@/components/RewardsStore';
 import { WeeklySummary } from '@/components/WeeklySummary';
 import { InstallPWA } from '@/components/InstallPWA';
 import { NotificationPrompt } from '@/components/NotificationPrompt';
-import { DailySchedule } from '@/components/DailySchedule';
 import { WeeklyTimetable } from '@/components/WeeklyTimetable';
 import { BottomNavigation, NavTab } from '@/components/BottomNavigation';
 import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
+import { FamilyCodeDisplay } from '@/components/FamilyCodeDisplay';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
+  const { profile, familyId, signOut } = useAuth();
   const [parentModeOpen, setParentModeOpen] = useState(false);
   const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
@@ -32,6 +35,7 @@ const Index = () => {
   const currentPhase = getCurrentPhase();
   
   const {
+    loading,
     tasks,
     todayLessons,
     timetable,
@@ -57,7 +61,7 @@ const Index = () => {
     redeemStoreReward,
     updateStoreRewards,
     lessons,
-  } = useTaskStore();
+  } = useSyncedTaskStore();
 
   // Notification system
   const {
@@ -126,6 +130,18 @@ const Index = () => {
     };
   }, [completeTask]);
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Loading your quests...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show Weekly Summary on Saturday (auto) or manually opened
   if (showWeeklySummary || weeklySummaryOpen) {
     return (
@@ -140,6 +156,8 @@ const Index = () => {
       />
     );
   }
+
+  const isParent = profile?.role === 'parent';
 
   // Render content based on active tab
   const renderTabContent = () => {
@@ -220,38 +238,47 @@ const Index = () => {
       
       <div className="relative max-w-lg mx-auto px-4 pb-8">
         <Header 
-          onOpenSettings={() => setParentModeOpen(true)} 
+          onOpenSettings={isParent ? () => setParentModeOpen(true) : undefined}
           onOpenStore={() => setActiveTab('store')}
           onOpenWeeklySummary={() => setWeeklySummaryOpen(true)}
           totalBalance={totalBalance}
           appTitle={appTitle}
+          onSignOut={signOut}
+          userName={profile?.display_name}
         />
         
         {renderTabContent()}
+
+        {/* Family Code Display for Parents */}
+        {isParent && familyId && (
+          <FamilyCodeDisplay familyId={familyId} />
+        )}
       </div>
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Parent Mode Dialog */}
-      <ParentMode
-        open={parentModeOpen}
-        onClose={() => setParentModeOpen(false)}
-        tasks={tasks}
-        dailyGoal={dailyGoal}
-        appTitle={appTitle}
-        timetable={timetable}
-        lessonRemindersEnabled={lessonRemindersEnabled}
-        storeRewards={storeRewards}
-        onUpdateTask={updateTask}
-        onAddTask={addTask}
-        onDeleteTask={deleteTask}
-        onUpdateGoal={updateDailyGoal}
-        onUpdateAppTitle={updateAppTitle}
-        onUpdateTimetable={updateTimetable}
-        onToggleLessonReminders={toggleLessonReminders}
-        onUpdateStoreRewards={updateStoreRewards}
-      />
+      {/* Parent Mode Dialog (only for parents) */}
+      {isParent && (
+        <ParentMode
+          open={parentModeOpen}
+          onClose={() => setParentModeOpen(false)}
+          tasks={tasks}
+          dailyGoal={dailyGoal}
+          appTitle={appTitle}
+          timetable={timetable}
+          lessonRemindersEnabled={lessonRemindersEnabled}
+          storeRewards={storeRewards}
+          onUpdateTask={updateTask}
+          onAddTask={addTask}
+          onDeleteTask={deleteTask}
+          onUpdateGoal={updateDailyGoal}
+          onUpdateAppTitle={updateAppTitle}
+          onUpdateTimetable={updateTimetable}
+          onToggleLessonReminders={toggleLessonReminders}
+          onUpdateStoreRewards={updateStoreRewards}
+        />
+      )}
 
       {/* PWA Install Banner */}
       <InstallPWA />
