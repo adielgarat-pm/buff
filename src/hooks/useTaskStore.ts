@@ -141,7 +141,16 @@ export function useTaskStore() {
       setLastVaultDate(vault.lastUpdatedDate);
     }
 
-    if (storedStoreRewards) {
+    // Force update to new default rewards if version changed
+    const REWARDS_VERSION = 'v2';
+    const storedRewardsVersion = localStorage.getItem('storeRewardsVersion');
+    
+    if (storedRewardsVersion !== REWARDS_VERSION) {
+      // Reset to new defaults
+      setStoreRewards(DEFAULT_STORE_REWARDS);
+      localStorage.setItem('storeRewards', JSON.stringify(DEFAULT_STORE_REWARDS));
+      localStorage.setItem('storeRewardsVersion', REWARDS_VERSION);
+    } else if (storedStoreRewards) {
       setStoreRewards(JSON.parse(storedStoreRewards));
     }
 
