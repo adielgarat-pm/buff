@@ -462,11 +462,9 @@ export function useChildData(childId: string | null) {
   // Update child's credit balance
   const updateTotalBalance = useCallback(async (balance: number) => {
     if (!familyId || !childId) {
-      console.error('updateTotalBalance: Missing familyId or childId', { familyId, childId });
       throw new Error('Missing familyId or childId');
     }
 
-    console.log('updateTotalBalance: Updating balance', { familyId, childId, balance });
     setTotalBalance(balance);
 
     // Check if child has a vault
@@ -477,25 +475,16 @@ export function useChildData(childId: string | null) {
       .eq('child_id', childId)
       .maybeSingle();
 
-    if (selectError) {
-      console.error('updateTotalBalance: Error checking vault', selectError);
-      throw selectError;
-    }
+    if (selectError) throw selectError;
 
     if (existingVault) {
-      console.log('updateTotalBalance: Updating existing vault', existingVault.id);
       const { error: updateError } = await supabase
         .from('credit_vault')
         .update({ total_balance: balance })
         .eq('id', existingVault.id);
       
-      if (updateError) {
-        console.error('updateTotalBalance: Error updating vault', updateError);
-        throw updateError;
-      }
-      console.log('updateTotalBalance: Successfully updated vault');
+      if (updateError) throw updateError;
     } else {
-      console.log('updateTotalBalance: Creating new vault');
       const { error: insertError } = await supabase
         .from('credit_vault')
         .insert({ 
@@ -504,11 +493,7 @@ export function useChildData(childId: string | null) {
           total_balance: balance 
         });
       
-      if (insertError) {
-        console.error('updateTotalBalance: Error creating vault', insertError);
-        throw insertError;
-      }
-      console.log('updateTotalBalance: Successfully created vault');
+      if (insertError) throw insertError;
     }
   }, [familyId, childId]);
 
