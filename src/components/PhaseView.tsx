@@ -20,6 +20,7 @@ interface PhaseViewProps {
   onUncompleteTask: (id: string) => void;
   onToggleLesson: (id: string) => void;
   onBuffActivated?: () => void;
+  fridayEnabled?: boolean;
 }
 
 export function PhaseView({
@@ -32,6 +33,7 @@ export function PhaseView({
   onUncompleteTask,
   onToggleLesson,
   onBuffActivated,
+  fridayEnabled = false,
 }: PhaseViewProps) {
   const { language, t } = useLanguage();
   const [focusMode, setFocusMode] = useState(false);
@@ -109,11 +111,12 @@ export function PhaseView({
       {/* School-specific content */}
       {isSchoolPhase && !focusMode && (
         <div className="space-y-4">
-          <DailySchedule timetable={timetable} />
+          <DailySchedule timetable={timetable} fridayEnabled={fridayEnabled} />
           <SchoolDaySection
             lessons={lessons}
             todaySchedule={todaySchedule}
             onToggleLesson={onToggleLesson}
+            fridayEnabled={fridayEnabled}
           />
         </div>
       )}

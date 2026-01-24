@@ -7,17 +7,18 @@ interface SchoolDaySectionProps {
   lessons: (Lesson & { displayLabel?: string })[];
   todaySchedule: PeriodInfo[];
   onToggleLesson: (lessonId: string) => void;
+  fridayEnabled?: boolean;
 }
 
-export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson }: SchoolDaySectionProps) {
+export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson, fridayEnabled = false }: SchoolDaySectionProps) {
   const completedCount = lessons.filter(l => l.completed).length;
   const totalCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   
   // Check if it's a school day (has any subjects)
   const hasSubjects = todaySchedule.some(p => p.subject);
-  // Weekend is Friday (5) and Saturday (6)
+  // Weekend: Friday (5) is weekend only if fridayEnabled is false, Saturday (6) is always weekend
   const day = new Date().getDay();
-  const isWeekend = day === 5 || day === 6;
+  const isWeekend = day === 6 || (day === 5 && !fridayEnabled);
 
   if (isWeekend) {
     return (

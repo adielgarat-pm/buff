@@ -4,20 +4,24 @@ import { cn } from '@/lib/utils';
 
 interface DailyScheduleProps {
   timetable: Record<string, PeriodInfo[]>;
+  fridayEnabled?: boolean;
 }
 
-function getTodayWeekDay(): WeekDay | null {
+function getTodayWeekDay(fridayEnabled: boolean = false): WeekDay | null {
   const dayIndex = new Date().getDay();
   // 0 = Sunday, 1 = Monday, etc.
-  // School days are Sun-Thu (0-4), Weekend is Fri-Sat (5-6)
+  // School days are Sun-Thu (0-4), Friday (5) only if enabled
   if (dayIndex >= 0 && dayIndex <= 4) {
     return WEEK_DAYS[dayIndex];
   }
-  return null; // Friday (5) or Saturday (6) = weekend
+  if (dayIndex === 5 && fridayEnabled) {
+    return 'friday';
+  }
+  return null; // Saturday (6) is always weekend
 }
 
-export function DailySchedule({ timetable }: DailyScheduleProps) {
-  const todayKey = getTodayWeekDay();
+export function DailySchedule({ timetable, fridayEnabled = false }: DailyScheduleProps) {
+  const todayKey = getTodayWeekDay(fridayEnabled);
   
   if (!todayKey) {
     return (

@@ -197,6 +197,7 @@ const Index = () => {
               onUncompleteTask={uncompleteTask}
               onToggleLesson={toggleLesson}
               onBuffActivated={activateBuff}
+              fridayEnabled={fridayEnabled}
             />
           </div>
         );
