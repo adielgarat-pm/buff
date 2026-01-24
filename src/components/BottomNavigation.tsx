@@ -18,10 +18,18 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
     { id: 'store' as const, labelKey: 'nav.store', icon: Gift },
   ];
 
+  const handleTabChange = (tab: NavTab) => {
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    onTabChange(tab);
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border safe-area-pb">
-      <div className="max-w-lg mx-auto px-4">
-        <div className="flex items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/98 backdrop-blur-lg border-t border-border/50 safe-area-pb">
+      <div className="max-w-lg mx-auto px-2">
+        <div className="flex items-center justify-around py-1">
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -29,22 +37,27 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
             return (
               <button
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all duration-200",
+                  "flex flex-col items-center justify-center gap-0.5 min-w-[72px] min-h-[56px] py-2 px-4 rounded-2xl",
+                  "transition-all duration-200 touch-feedback",
+                  "active:scale-95",
                   isActive 
                     ? "text-primary" 
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground active:text-foreground"
                 )}
               >
                 <div className={cn(
-                  "p-2 rounded-xl transition-all",
-                  isActive && "bg-primary/20"
+                  "flex items-center justify-center w-12 h-8 rounded-xl transition-all duration-200",
+                  isActive && "bg-primary/20 shadow-glow"
                 )}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className={cn(
+                    "w-6 h-6 transition-transform duration-200",
+                    isActive && "scale-110"
+                  )} />
                 </div>
                 <span className={cn(
-                  "text-xs font-medium",
+                  "text-[11px] font-semibold tracking-wide",
                   isActive && "text-primary"
                 )}>
                   {t(item.labelKey)}

@@ -55,21 +55,21 @@ export function Header({
   const dateStr = today.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 
   return (
-    <header className="flex items-center justify-between py-6">
-      <div>
+    <header className="flex items-center justify-between py-4 sm:py-6">
+      <div className="min-w-0">
         <BuffLogo />
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground text-sm mt-1 truncate">
           {dayName}, {dateStr}
         </p>
       </div>
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
         {/* Weekly Summary Button */}
         {onOpenWeeklySummary && (
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-2xl hover:bg-primary/10"
+            className="rounded-xl w-10 h-10 touch-target active:bg-primary/10"
             onClick={onOpenWeeklySummary}
           >
             <CalendarDays className="w-5 h-5 text-muted-foreground" />
@@ -80,11 +80,11 @@ export function Header({
         <Button
           variant="ghost"
           size="sm"
-          className="rounded-2xl hover:bg-primary/10 gap-2 px-3"
+          className="rounded-xl active:bg-primary/10 gap-1.5 px-3 h-10 touch-target"
           onClick={onOpenStore}
         >
           <Vault className="w-4 h-4 text-buff" />
-          <span className="text-sm font-semibold text-foreground">
+          <span className="text-sm font-bold text-foreground">
             {totalBalance.toLocaleString()}
           </span>
         </Button>
@@ -95,12 +95,12 @@ export function Header({
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-2xl hover:bg-secondary"
+              className="rounded-xl w-10 h-10 touch-target active:bg-secondary"
             >
               <Settings className="w-5 h-5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 rounded-2xl">
+          <DropdownMenuContent align="end" className="w-52 rounded-xl">
             {userName && (
               <>
                 <div className="px-2 py-1.5 text-sm text-muted-foreground flex items-center gap-2">
