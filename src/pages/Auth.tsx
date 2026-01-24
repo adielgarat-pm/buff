@@ -105,7 +105,7 @@ export default function Auth() {
               alt="BUFF Logo" 
               className="h-20 w-20 object-contain"
             />
-            <CardTitle className="text-3xl font-display font-black tracking-wider text-primary">
+            <CardTitle className="text-3xl font-display font-bold tracking-wide text-primary">
               BUFF
             </CardTitle>
           </div>
