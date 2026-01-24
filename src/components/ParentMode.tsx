@@ -728,14 +728,14 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
                   Daily Buff
                 </Label>
                 <Select
-                  value={newTask.strategyId}
-                  onValueChange={(value) => setNewTask({ ...newTask, strategyId: value })}
+                  value={newTask.strategyId || 'none'}
+                  onValueChange={(value) => setNewTask({ ...newTask, strategyId: value === 'none' ? undefined : value })}
                 >
                   <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue placeholder="None (optional)" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border max-h-60">
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {(['environmental', 'task-based', 'self-regulation'] as StrategyCategory[]).map((category) => (
                       <div key={category}>
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary/50">
@@ -1044,14 +1044,14 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
             Daily Buff
           </Label>
           <Select
-            value={editedTask.strategyId || ''}
-            onValueChange={(value) => setEditedTask({ ...editedTask, strategyId: value || undefined })}
+            value={editedTask.strategyId || 'none'}
+            onValueChange={(value) => setEditedTask({ ...editedTask, strategyId: value === 'none' ? undefined : value })}
           >
             <SelectTrigger className="bg-background border-border text-foreground">
               <SelectValue placeholder="None" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border max-h-60">
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               {(['environmental', 'task-based', 'self-regulation'] as StrategyCategory[]).map((category) => (
                 <div key={category}>
                   <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary/50">
