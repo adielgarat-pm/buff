@@ -9,13 +9,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Lightbulb } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Lightbulb, TrendingUp } from 'lucide-react';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
 import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
 import { cn } from '@/lib/utils';
 import { STRATEGIES, STRATEGY_CATEGORIES, getStrategyById, StrategyCategory } from '@/data/cogFunStrategies';
+import { useParentInsights } from '@/hooks/useParentInsights';
+import { InsightCardDisplay } from './InsightCardDisplay';
+import { PhaseCompletionChart } from './PhaseCompletionChart';
 
 interface ParentModeProps {
   open: boolean;
@@ -594,7 +597,11 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
 
       {/* Tabs for different configurations */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="insights" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Insights
+          </TabsTrigger>
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             Tasks
@@ -608,6 +615,11 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
             Rewards
           </TabsTrigger>
         </TabsList>
+
+        {/* Insights Tab */}
+        <TabsContent value="insights" className="mt-4 space-y-4">
+          <ParentInsightsDashboard childId={child.id} childName={child.displayName} />
+        </TabsContent>
 
         {/* Tasks Tab */}
         <TabsContent value="tasks" className="mt-4 space-y-4">
@@ -871,6 +883,78 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
           />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Parent Insights Dashboard Component
+interface ParentInsightsDashboardProps {
+  childId: string;
+  childName: string;
+}
+
+function ParentInsightsDashboard({ childId, childName }: ParentInsightsDashboardProps) {
+  const { insights, phaseInsights, loading } = useParentInsights(childId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <p className="text-muted-foreground">Analyzing patterns...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Coach's Intro */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/30">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-primary/20">
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground text-sm mb-1">
+              📊 תובנות עבור {childName}
+            </p>
+            <p className="text-sm text-muted-foreground" dir="rtl">
+              ניתוח מבוסס על 7 הימים האחרונים. התובנות מתמקדות ב"איך לעזור" ולא ב"מה השתבש".
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Phase Completion Overview */}
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-3">שיעורי השלמה לפי שלב</h3>
+        <PhaseCompletionChart phaseInsights={phaseInsights} />
+      </div>
+
+      {/* Insight Cards */}
+      {insights.length > 0 ? (
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-3">תובנות והמלצות</h3>
+          <div className="space-y-3">
+            {insights.map(insight => (
+              <InsightCardDisplay key={insight.id} insight={insight} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center">
+          <p className="text-4xl mb-2">🌟</p>
+          <p className="font-semibold text-emerald-500">הכל נראה מצוין!</p>
+          <p className="text-sm text-muted-foreground mt-1" dir="rtl">
+            אין אתגרים משמעותיים שזוהו. המשיכו בעבודה הטובה!
+          </p>
+        </div>
+      )}
+
+      {/* Coaching Reminder */}
+      <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+        <p className="text-xs text-muted-foreground text-center" dir="rtl">
+          💡 זכרו: כל אתגר הוא הזדמנות למצוא יחד אסטרטגיה חדשה. לחצו על כרטיס לקבלת הצעות מעשיות.
+        </p>
+      </div>
     </div>
   );
 }
