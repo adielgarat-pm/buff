@@ -1,6 +1,6 @@
 import { InsightCard } from '@/hooks/useParentInsights';
 import { cn } from '@/lib/utils';
-import { Lightbulb, TrendingUp, AlertCircle, Sparkles, ChevronRight } from 'lucide-react';
+import { Zap, TrendingUp, AlertCircle, Sparkles, ChevronRight } from 'lucide-react';
 import { STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
 import { useState } from 'react';
 
@@ -20,11 +20,11 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
       Icon: TrendingUp,
     },
     suggestion: {
-      bgClass: 'bg-gradient-to-br from-amber-500/10 to-orange-500/10',
-      borderClass: 'border-amber-500/30',
-      iconBg: 'bg-amber-500/20',
-      iconColor: 'text-amber-500',
-      Icon: Lightbulb,
+      bgClass: 'bg-gradient-to-br from-yellow-500/10 to-orange-500/10',
+      borderClass: 'border-yellow-500/30',
+      iconBg: 'bg-yellow-500/20',
+      iconColor: 'text-yellow-500',
+      Icon: Zap,
     },
     attention: {
       bgClass: 'bg-gradient-to-br from-rose-500/10 to-pink-500/10',

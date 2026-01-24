@@ -99,9 +99,12 @@ export default function Auth() {
           <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-2">
             <Sparkles className="w-8 h-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Daily Quests
+          <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            BUFF
           </CardTitle>
+          <CardDescription className="text-sm italic text-muted-foreground">
+            Your Executive Function Power-up
+          </CardDescription>
           <CardDescription>
             Sign in to sync your progress across devices
           </CardDescription>

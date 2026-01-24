@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types/task';
-import { Pill, Droplets, Apple, BookOpen, Check, Sparkles, Cookie, Lightbulb, X } from 'lucide-react';
+import { Pill, Droplets, Apple, BookOpen, Check, Sparkles, Cookie, Zap, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStrategyById, STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
 
@@ -28,11 +28,12 @@ const getTaskIcon = (task: Task) => {
 export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [showStrategyTip, setShowStrategyTip] = useState(false);
+  const [showBuffTip, setShowBuffTip] = useState(false);
+  const [showBuffActivated, setShowBuffActivated] = useState(false);
   
   const config = categoryConfig[task.category];
   const Icon = getTaskIcon(task);
-  const strategy = task.strategyId ? getStrategyById(task.strategyId) : null;
+  const buff = task.strategyId ? getStrategyById(task.strategyId) : null;
 
   const handleClick = () => {
     if (task.completed) {
@@ -103,22 +104,26 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
             )}>
               {task.title}
             </h3>
-            {/* Strategy Lightbulb Icon */}
-            {strategy && !task.completed && (
+            {/* Daily Buff Power-up Icon */}
+            {buff && !task.completed && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowStrategyTip(!showStrategyTip);
+                  if (!showBuffTip) {
+                    setShowBuffActivated(true);
+                    setTimeout(() => setShowBuffActivated(false), 1500);
+                  }
+                  setShowBuffTip(!showBuffTip);
                 }}
                 className={cn(
                   'p-1 rounded-full transition-all hover:scale-110',
-                  showStrategyTip 
-                    ? 'bg-amber-500/20 text-amber-500' 
-                    : 'bg-amber-500/10 text-amber-400 animate-pulse'
+                  showBuffTip 
+                    ? 'bg-yellow-500/20 text-yellow-500' 
+                    : 'bg-yellow-500/10 text-yellow-400 animate-pulse'
                 )}
-                aria-label="Show strategy tip"
+                aria-label="Activate daily buff"
               >
-                <Lightbulb className="w-4 h-4" />
+                <Zap className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -151,34 +156,46 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
         </div>
       </div>
 
-      {/* Strategy Tip Popup */}
-      {strategy && showStrategyTip && (
+      {/* Buff Activated Message */}
+      {showBuffActivated && (
+        <div className="mt-3 p-2 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/40 animate-slide-up text-center">
+          <p className="font-bold text-yellow-500 text-sm flex items-center justify-center gap-2">
+            <Zap className="w-4 h-4" />
+            Buff Activated!
+            <Zap className="w-4 h-4" />
+          </p>
+        </div>
+      )}
+
+      {/* Daily Buff Tip Popup */}
+      {buff && showBuffTip && !showBuffActivated && (
         <div 
-          className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-slide-up"
+          className="mt-3 p-3 rounded-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 animate-slide-up"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-start gap-3">
-            <span className="text-2xl">{strategy.icon}</span>
+            <span className="text-2xl">{buff.icon}</span>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-amber-500 text-sm">
-                  {strategy.title}
+                <p className="font-semibold text-yellow-500 text-sm">
+                  {buff.title}
                 </p>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowStrategyTip(false);
+                    setShowBuffTip(false);
                   }}
-                  className="p-1 rounded-full hover:bg-amber-500/20 text-amber-400"
+                  className="p-1 rounded-full hover:bg-yellow-500/20 text-yellow-400"
                 >
                   <X className="w-3 h-3" />
                 </button>
               </div>
               <p className="text-sm text-foreground/80 mt-1">
-                {strategy.tip}
+                {buff.tip}
               </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                💡 {STRATEGY_CATEGORIES[strategy.category].label} Strategy
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                <Zap className="w-3 h-3 text-yellow-500" />
+                {STRATEGY_CATEGORIES[buff.category].label} Buff
               </p>
             </div>
           </div>
