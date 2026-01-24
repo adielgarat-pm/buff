@@ -88,7 +88,7 @@ export type Database = {
           {
             foreignKeyName: "credit_vault_family_id_fkey"
             columns: ["family_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "families"
             referencedColumns: ["id"]
           },
@@ -403,7 +403,7 @@ export type Database = {
           {
             foreignKeyName: "timetables_family_id_fkey"
             columns: ["family_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "families"
             referencedColumns: ["id"]
           },

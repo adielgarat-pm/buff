@@ -188,36 +188,36 @@ export function useChildData(childId: string | null) {
     }
 
     try {
-      // Fetch tasks for this child
+      // Fetch tasks ONLY assigned to this child (strict isolation - no shared tasks)
       const { data: tasksData } = await supabase
         .from('tasks')
         .select('*')
         .eq('family_id', familyId)
-        .or(`assigned_to.is.null,assigned_to.eq.${childId}`)
+        .eq('assigned_to', childId)
         .order('time');
 
-      // Fetch today's progress
+      // Fetch today's progress ONLY for this specific child
       const { data: progressData } = await supabase
         .from('daily_progress')
         .select('*')
         .eq('family_id', familyId)
         .eq('date', todayKey)
-        .or(`child_id.is.null,child_id.eq.${childId}`);
+        .eq('child_id', childId);
 
-      // Fetch timetable for this child
+      // Fetch timetable ONLY for this child
       const { data: timetableData } = await supabase
         .from('timetables')
         .select('*')
         .eq('family_id', familyId)
-        .or(`assigned_to.is.null,assigned_to.eq.${childId}`)
+        .eq('assigned_to', childId)
         .maybeSingle();
 
-      // Fetch store rewards for this child
+      // Fetch store rewards ONLY for this child
       const { data: rewardsData } = await supabase
         .from('store_rewards')
         .select('*')
         .eq('family_id', familyId)
-        .or(`assigned_to.is.null,assigned_to.eq.${childId}`);
+        .eq('assigned_to', childId);
 
       // Fetch credit vault for this specific child
       const { data: vaultData } = await supabase
