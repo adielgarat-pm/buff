@@ -7,6 +7,7 @@ import { ParentSettings } from './ParentSettings';
 import { ParentReports } from './ParentReports';
 import { ChildView } from './ChildView';
 import { ViewAsChildBanner } from './ViewAsChildBanner';
+import { ChildPickerDialog } from './ChildPickerDialog';
 import { InstallPWA } from './InstallPWA';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { Loader2 } from 'lucide-react';
@@ -18,6 +19,7 @@ export function ParentView() {
   const [activeTab, setActiveTab] = useState<ParentNavTab>('overview');
   const [viewingAsChildId, setViewingAsChildId] = useState<string | null>(null);
   const [selectedChildIdForSettings, setSelectedChildIdForSettings] = useState<string | null>(null);
+  const [childPickerOpen, setChildPickerOpen] = useState(false);
 
   const {
     loading,
@@ -122,10 +124,17 @@ export function ParentView() {
           if (children.length === 1) {
             setViewingAsChildId(children[0].id);
           } else if (children.length > 1) {
-            // For multiple children, view first child (could add a picker later)
-            setViewingAsChildId(children[0].id);
+            setChildPickerOpen(true);
           }
         } : undefined}
+      />
+
+      {/* Child Picker Dialog */}
+      <ChildPickerDialog
+        open={childPickerOpen}
+        onClose={() => setChildPickerOpen(false)}
+        children={children.map(c => ({ id: c.id, displayName: c.displayName }))}
+        onSelectChild={(childId) => setViewingAsChildId(childId)}
       />
 
       {/* PWA Install Banner */}
