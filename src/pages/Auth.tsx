@@ -38,7 +38,7 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
-      toast.error('Please fill in all fields');
+      toast.error('אנא מלא את כל השדות');
       return;
     }
 
@@ -48,12 +48,12 @@ export default function Auth() {
 
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        toast.error('Invalid email or password');
+        toast.error('אימייל או סיסמה שגויים');
       } else {
         toast.error(error.message);
       }
     } else {
-      toast.success('Welcome back!');
+      toast.success('ברוך שובך!');
       navigate('/dashboard');
     }
   };
@@ -61,17 +61,17 @@ export default function Auth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupEmail || !signupPassword || !displayName) {
-      toast.error('Please fill in all fields');
+      toast.error('אנא מלא את כל השדות');
       return;
     }
 
     if (signupPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error('הסיסמה חייבת להכיל לפחות 6 תווים');
       return;
     }
 
     if (role === 'child' && !familyCode) {
-      toast.error('Please enter the family code from your parent');
+      toast.error('אנא הזן את קוד המשפחה מההורה');
       return;
     }
 
@@ -81,12 +81,14 @@ export default function Auth() {
 
     if (error) {
       if (error.message.includes('already registered')) {
-        toast.error('This email is already registered');
+        toast.error('אימייל זה כבר רשום במערכת');
+      } else if (error.message.includes('Invalid family code')) {
+        toast.error('קוד משפחה לא תקין');
       } else {
         toast.error(error.message);
       }
     } else {
-      toast.success('Account created! Welcome to the family!');
+      toast.success('החשבון נוצר בהצלחה! ברוך הבא למשפחה!');
       navigate('/dashboard');
     }
   };
@@ -110,24 +112,24 @@ export default function Auth() {
             </CardTitle>
           </div>
           <CardDescription className="text-sm italic text-buff font-medium">
-            Your Executive Function Power-up
+            כוח-העל לתפקודים הניהוליים
           </CardDescription>
           <CardDescription className="leading-relaxed">
-            Sign in to sync your progress across devices
+            התחבר כדי לסנכרן את ההתקדמות שלך
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 rounded-2xl">
-              <TabsTrigger value="login" className="rounded-xl">Login</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-xl">Sign Up</TabsTrigger>
+              <TabsTrigger value="login" className="rounded-xl">התחברות</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-xl">הרשמה</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">אימייל</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -135,10 +137,11 @@ export default function Auth() {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     disabled={loading}
+                    dir="ltr"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <Label htmlFor="login-password">סיסמה</Label>
                   <Input
                     id="login-password"
                     type="password"
@@ -146,18 +149,19 @@ export default function Auth() {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     disabled={loading}
+                    dir="ltr"
                   />
                 </div>
                 <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Signing in...
+                      מתחבר...
                     </>
                   ) : (
                     <>
                       <Zap className="w-4 h-4 mr-2" />
-                      Power Up
+                      התחבר
                     </>
                   )}
                 </Button>
@@ -167,18 +171,18 @@ export default function Auth() {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="display-name">Display Name</Label>
+                  <Label htmlFor="display-name">שם תצוגה</Label>
                   <Input
                     id="display-name"
                     type="text"
-                    placeholder="Your name"
+                    placeholder="השם שלך"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email">אימייל</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -186,10 +190,11 @@ export default function Auth() {
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     disabled={loading}
+                    dir="ltr"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">סיסמה</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -197,10 +202,11 @@ export default function Auth() {
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     disabled={loading}
+                    dir="ltr"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>I am a...</Label>
+                  <Label>אני...</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       type="button"
@@ -209,8 +215,8 @@ export default function Auth() {
                       onClick={() => setRole('parent')}
                       disabled={loading}
                     >
-                      <Users className="w-4 h-4 mr-2" />
-                      Parent
+                      <Users className="w-4 h-4 ml-2" />
+                      הורה
                     </Button>
                     <Button
                       type="button"
@@ -219,25 +225,26 @@ export default function Auth() {
                       onClick={() => setRole('child')}
                       disabled={loading}
                     >
-                      <User className="w-4 h-4 mr-2" />
-                      Child
+                      <User className="w-4 h-4 ml-2" />
+                      נער/ה
                     </Button>
                   </div>
                 </div>
 
                 {role === 'child' && (
                   <div className="space-y-2">
-                    <Label htmlFor="family-code">Family Code</Label>
+                    <Label htmlFor="family-code">קוד משפחה</Label>
                     <Input
                       id="family-code"
                       type="text"
-                      placeholder="Paste the code from your parent"
+                      placeholder="הדבק כאן את הקוד מההורה"
                       value={familyCode}
                       onChange={(e) => setFamilyCode(e.target.value)}
                       disabled={loading}
+                      dir="ltr"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Ask your parent for the family code to join their family.
+                      בקש מההורה שלך את קוד המשפחה כדי להצטרף.
                     </p>
                   </div>
                 )}
@@ -245,13 +252,13 @@ export default function Auth() {
                 <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating account...
+                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                      יוצר חשבון...
                     </>
                   ) : (
                     <>
-                      <Zap className="w-4 h-4 mr-2" />
-                      Create Account
+                      <Zap className="w-4 h-4 ml-2" />
+                      צור חשבון
                     </>
                   )}
                 </Button>
