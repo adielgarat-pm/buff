@@ -43,6 +43,9 @@ const translations: Record<Language, Record<string, string>> = {
     'auth.invalidFamilyCode': 'קוד משפחה לא תקין',
     'auth.welcomeBack': 'ברוך שובך!',
     'auth.accountCreated': 'החשבון נוצר בהצלחה! ברוך הבא למשפחה!',
+    'auth.orContinueWith': 'או המשך עם',
+    'auth.continueWithGoogle': 'המשך עם גוגל',
+    'auth.googleSetupRequired': 'כדי להשתמש בגוגל, יש להגדיר קודם פרטי משתמש',
     
     // Navigation
     'nav.features': 'תכונות',
@@ -219,6 +222,9 @@ const translations: Record<Language, Record<string, string>> = {
     'auth.invalidFamilyCode': 'Invalid family code format',
     'auth.welcomeBack': 'Welcome back!',
     'auth.accountCreated': 'Account created! Welcome to the family!',
+    'auth.orContinueWith': 'or continue with',
+    'auth.continueWithGoogle': 'Continue with Google',
+    'auth.googleSetupRequired': 'To use Google login, please set up your user details first',
     
     // Navigation
     'nav.features': 'Features',

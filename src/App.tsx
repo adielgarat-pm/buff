@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -52,6 +53,9 @@ const AppRoutes = () => (
     
     {/* Auth page */}
     <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+    
+    {/* OAuth Callback */}
+    <Route path="/auth/callback" element={<AuthCallback />} />
     
     {/* Protected dashboard - the main app */}
     <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />

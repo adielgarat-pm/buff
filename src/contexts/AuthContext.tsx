@@ -19,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, displayName: string, role: 'parent' | 'child', familyCode?: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -108,6 +109,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
+    return { error };
+  };
+
   const signUp = async (
     email: string,
     password: string,
@@ -192,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const familyId = profile?.family_id ?? null;
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, familyId, familyShortCode, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, familyId, familyShortCode, loading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
