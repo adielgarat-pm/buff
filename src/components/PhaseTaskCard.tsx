@@ -128,29 +128,14 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
           wasJustCompleted && "animate-quest-complete bg-gradient-to-r from-buff/20 via-primary/20 to-buff/20"
         )}
       >
-        <div className="flex items-start gap-3 sm:gap-4">
-          {/* Checkbox Button - Touch-friendly 44x44 */}
-          <button
-            onClick={handleComplete}
-            className={cn(
-              "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 touch-target",
-              "active:scale-90",
-              task.completed
-                ? "bg-buff border-buff"
-                : "border-muted-foreground/50 active:border-buff active:bg-buff/10"
-            )}
-          >
-            {task.completed && (
-              <Check className="w-6 h-6 text-buff-foreground animate-check-bounce" />
-            )}
-          </button>
-
-          {/* Content */}
+        {/* RTL: flex-row-reverse to put checkbox on right side */}
+        <div className="flex items-start gap-3 sm:gap-4 flex-row-reverse">
+          {/* Content - comes first in RTL flow */}
           <div className="flex-1 min-w-0 py-0.5">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <h3 className={cn(
-                  "text-base sm:text-lg font-semibold transition-all leading-tight",
+                  "text-base sm:text-lg font-semibold transition-all leading-tight text-start",
                   task.completed 
                     ? "text-muted-foreground line-through" 
                     : "text-foreground"
@@ -159,24 +144,38 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
                 </h3>
                 
                 {task.description && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed text-start">
                     {task.description}
                   </p>
                 )}
               </div>
               
-              {/* Credits - moved to top right */}
+              {/* Credits */}
               <div className={cn(
-                "text-right flex-shrink-0",
+                "flex-shrink-0",
                 task.completed ? "text-buff" : "text-muted-foreground"
               )}>
                 <span className="text-lg sm:text-xl font-bold">+{task.credits}</span>
-                <p className="text-[10px] sm:text-xs uppercase tracking-wider">XP</p>
+                <p className="text-[10px] sm:text-xs uppercase tracking-wider text-center">XP</p>
               </div>
             </div>
             
             {/* Bottom row: metadata + buff button */}
-            <div className="flex items-center justify-between mt-3 gap-2">
+            <div className="flex items-center justify-between mt-3 gap-2 flex-row-reverse">
+              {/* Buff Button - Touch-friendly */}
+              {!task.completed && (
+                <button
+                  onClick={handleBuffClick}
+                  className={cn(
+                    "buff-button-glow p-3 rounded-xl bg-buff/20 border border-buff/50 transition-all touch-target",
+                    "active:scale-90 active:bg-buff/30"
+                  )}
+                  title={language === 'he' ? 'הפעל באף' : 'Activate Buff'}
+                >
+                  <Zap className="w-5 h-5 text-buff animate-buff-lightning" />
+                </button>
+              )}
+
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Clock className="w-3.5 h-3.5" />
@@ -191,24 +190,27 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
                   <span className="capitalize font-medium">{categoryLabel}</span>
                 </div>
               </div>
-
-              {/* Buff Button - Touch-friendly */}
-              {!task.completed && (
-                <button
-                  onClick={handleBuffClick}
-                  className={cn(
-                    "buff-button-glow p-3 rounded-xl bg-buff/20 border border-buff/50 transition-all touch-target",
-                    "active:scale-90 active:bg-buff/30"
-                  )}
-                  title={language === 'he' ? 'הפעל באף' : 'Activate Buff'}
-                >
-                  <Zap className="w-5 h-5 text-buff animate-buff-lightning" />
-                </button>
-              )}
             </div>
           </div>
+
+          {/* Checkbox Button - On right side in RTL */}
+          <button
+            onClick={handleComplete}
+            className={cn(
+              "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 touch-target",
+              "active:scale-90",
+              task.completed
+                ? "bg-buff border-buff"
+                : "border-muted-foreground/50 active:border-buff active:bg-buff/10"
+            )}
+          >
+            {task.completed && (
+              <Check className="w-6 h-6 text-buff-foreground animate-check-bounce" />
+            )}
+          </button>
         </div>
       </div>
+
 
       {/* Buff Activation Modal */}
       {showBuffModal && (
