@@ -20,7 +20,7 @@ export function useCleanDayBonus() {
       // Check if bonus was already awarded today
       const localStorageKey = `cleanDayBonus_${childId}_${todayKey}`;
       if (localStorage.getItem(localStorageKey)) {
-        toast.error(`בונוס היום הנקי כבר ניתן ל${childName} היום!`);
+        toast.error(`בונוס יום מוצלח כבר ניתן ל${childName} היום!`);
         setAwarding(null);
         return false;
       }
@@ -67,7 +67,7 @@ export function useCleanDayBonus() {
       // Mark bonus as awarded today (local storage for simple tracking)
       localStorage.setItem(localStorageKey, 'true');
 
-      toast.success(`🌟 ${childName} קיבל/ה בונוס יום נקי! +${bonusCredits} קרדיטים`);
+      toast.success(`🌟 ${childName} קיבל/ה בונוס יום מוצלח! +${bonusCredits} קרדיטים`);
       setAwarding(null);
       return true;
     } catch (error) {

@@ -159,12 +159,12 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                       ) : bonusAwarded ? (
                         <>
                           <Check className="w-4 h-4 mr-2" />
-                          בונוס יום נקי ניתן ✓
+                          בונוס יום מוצלח ניתן ✓
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          🌟 בונוס יום נקי (+20)
+                          🌟 יום מוצלח במיוחד! (+20)
                         </>
                       )}
                     </Button>
