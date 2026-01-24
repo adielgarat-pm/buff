@@ -227,22 +227,24 @@ const Index = () => {
   // Store view is full-screen, so handle it separately
   if (activeTab === 'store') {
     return (
-      <div className="min-h-screen bg-background pb-24">
-        <RewardsStore
-          totalBalance={totalBalance}
-          storeRewards={storeRewards}
-          onRedeem={redeemStoreReward}
-          onClose={() => setActiveTab('tasks')}
-        />
+      <div className="min-h-screen bg-background pb-24 no-horizontal-scroll">
+        <div className="tab-content">
+          <RewardsStore
+            totalBalance={totalBalance}
+            storeRewards={storeRewards}
+            onRedeem={redeemStoreReward}
+            onClose={() => setActiveTab('tasks')}
+          />
+        </div>
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 no-horizontal-scroll">
       {/* Subtle gradient glow */}
-      <div className="fixed inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/3 to-transparent pointer-events-none" />
+      <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
       
       <div className="relative max-w-lg mx-auto px-4 pb-8">
         <Header 
@@ -255,7 +257,9 @@ const Index = () => {
           userName={profile?.display_name}
         />
         
-        {renderTabContent()}
+        <div className="tab-content">
+          {renderTabContent()}
+        </div>
 
         {/* Family Code Display for Parents */}
         {isParent && familyId && (

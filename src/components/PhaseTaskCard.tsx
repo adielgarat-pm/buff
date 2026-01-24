@@ -120,89 +120,92 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
       <div
         ref={cardRef}
         className={cn(
-          "quest-card w-full p-5 rounded-2xl border transition-all duration-300",
-          "hover:scale-[1.02] active:scale-[0.98]",
+          "quest-card w-full p-4 sm:p-5 rounded-2xl border transition-all duration-200",
+          "active:scale-[0.98] touch-feedback",
           task.completed
             ? "bg-buff/10 border-buff/30"
-            : "bg-card border-border hover:border-primary/50",
+            : "bg-card border-border active:border-primary/50",
           wasJustCompleted && "animate-quest-complete bg-gradient-to-r from-buff/20 via-primary/20 to-buff/20"
         )}
       >
-        <div className="flex items-start gap-4">
-          {/* Checkbox Button */}
+        <div className="flex items-start gap-3 sm:gap-4">
+          {/* Checkbox Button - Touch-friendly 44x44 */}
           <button
             onClick={handleComplete}
             className={cn(
-              "relative w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0",
+              "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 touch-target",
+              "active:scale-90",
               task.completed
                 ? "bg-buff border-buff"
-                : "border-muted-foreground/50 hover:border-buff hover:bg-buff/10"
+                : "border-muted-foreground/50 active:border-buff active:bg-buff/10"
             )}
           >
             {task.completed && (
-              <Check className="w-5 h-5 text-buff-foreground animate-check-bounce" />
+              <Check className="w-6 h-6 text-buff-foreground animate-check-bounce" />
             )}
           </button>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className={cn(
-                "text-lg font-semibold transition-all",
-                task.completed 
-                  ? "text-muted-foreground line-through" 
-                  : "text-foreground"
-              )}>
-                {task.title}
-              </h3>
-            </div>
-            
-            {task.description && (
-              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                {task.description}
-              </p>
-            )}
-            
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{task.time}</span>
+          <div className="flex-1 min-w-0 py-0.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className={cn(
+                  "text-base sm:text-lg font-semibold transition-all leading-tight",
+                  task.completed 
+                    ? "text-muted-foreground line-through" 
+                    : "text-foreground"
+                )}>
+                  {task.title}
+                </h3>
+                
+                {task.description && (
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                    {task.description}
+                  </p>
+                )}
               </div>
               
+              {/* Credits - moved to top right */}
               <div className={cn(
-                "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs",
-                colorClasses
+                "text-right flex-shrink-0",
+                task.completed ? "text-buff" : "text-muted-foreground"
               )}>
-                <Icon className="w-3 h-3" />
-                <span className="capitalize">{categoryLabel}</span>
+                <span className="text-lg sm:text-xl font-bold">+{task.credits}</span>
+                <p className="text-[10px] sm:text-xs uppercase tracking-wider">XP</p>
               </div>
             </div>
-          </div>
+            
+            {/* Bottom row: metadata + buff button */}
+            <div className="flex items-center justify-between mt-3 gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-sm">{task.time}</span>
+                </div>
+                
+                <div className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs",
+                  colorClasses
+                )}>
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="capitalize font-medium">{categoryLabel}</span>
+                </div>
+              </div>
 
-          {/* Right side: Buff button + Credits */}
-          <div className="flex flex-col items-end gap-2">
-            {/* Credits */}
-            <div className={cn(
-              "text-right",
-              task.completed ? "text-buff" : "text-muted-foreground"
-            )}>
-              <span className="text-xl font-bold">+{task.credits}</span>
-              <p className="text-xs">XP</p>
+              {/* Buff Button - Touch-friendly */}
+              {!task.completed && (
+                <button
+                  onClick={handleBuffClick}
+                  className={cn(
+                    "buff-button-glow p-3 rounded-xl bg-buff/20 border border-buff/50 transition-all touch-target",
+                    "active:scale-90 active:bg-buff/30"
+                  )}
+                  title={language === 'he' ? 'הפעל באף' : 'Activate Buff'}
+                >
+                  <Zap className="w-5 h-5 text-buff animate-buff-lightning" />
+                </button>
+              )}
             </div>
-
-            {/* Buff Button - Lightning Bolt */}
-            {!task.completed && (
-              <button
-                onClick={handleBuffClick}
-                className={cn(
-                  "buff-button-glow p-2.5 rounded-xl bg-buff/20 border border-buff/50 transition-all",
-                  "hover:bg-buff/30 hover:scale-110 active:scale-95"
-                )}
-                title={language === 'he' ? 'הפעל באף' : 'Activate Buff'}
-              >
-                <Zap className="w-5 h-5 text-buff animate-buff-lightning" />
-              </button>
-            )}
           </div>
         </div>
       </div>

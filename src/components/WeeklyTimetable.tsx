@@ -103,9 +103,9 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   };
 
   return (
-    <div className="space-y-4">
-      {/* Day Selector */}
-      <div className="flex gap-1 p-1 bg-secondary/50 rounded-xl">
+    <div className="space-y-4 tab-content">
+      {/* Day Selector - Touch-friendly horizontal scroll */}
+      <div className="flex gap-1.5 p-1.5 bg-secondary/50 rounded-2xl overflow-x-auto no-scrollbar">
         {displayDays.map((day) => {
           const isActive = selectedDay === day;
           const isTodayDay = isToday(day);
@@ -117,25 +117,26 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
               key={day}
               onClick={() => setSelectedDay(day)}
               className={cn(
-                "relative flex-1 py-3 px-2 rounded-lg transition-all duration-200",
+                "relative flex-1 min-w-[60px] py-3 px-2 rounded-xl transition-all duration-200",
+                "touch-feedback active:scale-95",
                 isActive
                   ? "bg-card shadow-md"
-                  : "hover:bg-secondary/80",
+                  : "active:bg-secondary/80",
                 isTodayDay && !isActive && "ring-1 ring-primary/30"
               )}
             >
               {isTodayDay && (
-                <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
+                <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary" />
               )}
               <div className="text-center">
                 <span className={cn(
-                  "text-sm font-medium block",
+                  "text-sm font-semibold block",
                   isActive ? "text-foreground" : "text-muted-foreground"
                 )}>
                   {WEEK_DAY_LABELS[day]}
                 </span>
                 <span className={cn(
-                  "text-xs",
+                  "text-[11px] font-medium",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}>
                   {lessonCount} lessons
@@ -149,9 +150,9 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
       {/* Schedule for Selected Day */}
       <div className="rounded-2xl bg-card border border-border overflow-hidden">
         <div className="p-4 border-b border-border bg-secondary/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-primary/20">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/20">
                 <BookOpen className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -166,7 +167,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 variant="outline"
                 size="sm"
                 onClick={handleAddPeriod}
-                className="gap-1.5"
+                className="gap-1.5 h-10 px-3 touch-target rounded-xl"
               >
                 + Add
               </Button>
@@ -174,10 +175,10 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 variant="outline"
                 size="sm"
                 onClick={() => setEditorOpen(true)}
-                className="gap-1.5"
+                className="gap-1.5 h-10 px-3 touch-target rounded-xl"
               >
                 <Settings2 className="w-4 h-4" />
-                Edit All
+                <span className="hidden sm:inline">Edit All</span>
               </Button>
             </div>
           </div>
@@ -264,32 +265,32 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 <div
                   key={index}
                   onClick={() => handleStartEdit(selectedDay, index, period)}
-                  className="flex items-center gap-4 p-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
+                  className="flex items-center gap-3 sm:gap-4 p-4 active:bg-secondary/50 transition-colors cursor-pointer group touch-feedback"
                 >
                   {/* Period Number */}
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-semibold text-primary">
                       {index + 1}
                     </span>
                   </div>
 
                   {/* Time */}
-                  <div className="flex items-center gap-1.5 text-muted-foreground w-16">
+                  <div className="flex items-center gap-1.5 text-muted-foreground w-14 sm:w-16 flex-shrink-0">
                     <Clock className="w-3.5 h-3.5" />
                     <span className="text-sm font-medium">{period.startTime}</span>
                   </div>
 
                   {/* Subject */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <span className={cn(
-                      "font-medium",
+                      "font-medium block truncate",
                       period.subject ? "text-foreground" : "text-muted-foreground italic"
                     )}>
-                      {period.subject || 'Click to add subject...'}
+                      {period.subject || 'Tap to add subject...'}
                     </span>
                   </div>
 
-                  {/* Delete button (visible on hover) */}
+                  {/* Delete button - always visible on mobile for touch */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -297,9 +298,9 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                       e.stopPropagation();
                       handleDeletePeriod(index);
                     }}
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity"
+                    className="h-10 w-10 text-destructive/70 active:text-destructive touch-target flex-shrink-0"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </Button>
                 </div>
               );

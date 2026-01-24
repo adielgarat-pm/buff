@@ -33,9 +33,9 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
   const BackIcon = isRTL ? ChevronRight : ChevronLeft;
 
   return (
-    <div className="bg-background">
+    <div className="bg-background min-h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/98 backdrop-blur-lg border-b border-border/50">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             {showBackButton && onClose && (
@@ -43,9 +43,9 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="text-muted-foreground"
+                className="text-muted-foreground w-11 h-11 touch-target"
               >
-                <BackIcon className="w-5 h-5" />
+                <BackIcon className="w-6 h-6" />
               </Button>
             )}
             <div className="flex-1">
@@ -56,9 +56,9 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-lg mx-auto px-4 py-5 space-y-5 tab-content">
         {/* Credit Vault */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-primary/20">
               <Vault className="w-8 h-8 text-primary" />
@@ -67,7 +67,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
               <p className="text-sm text-muted-foreground">{t('store.totalBalance')}</p>
               <p className="text-3xl font-bold text-foreground">
                 {totalBalance.toLocaleString()}
-                <span className="text-lg font-normal text-muted-foreground mx-1">{t('store.credits')}</span>
+                <span className="text-base font-normal text-muted-foreground mx-1">{t('store.credits')}</span>
               </p>
             </div>
           </div>
@@ -90,17 +90,17 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                 <div
                   key={reward.id}
                   className={cn(
-                    "p-5 rounded-2xl border transition-all duration-300",
+                    "p-4 sm:p-5 rounded-2xl border transition-all duration-200",
                     canAfford 
-                      ? "bg-card border-primary/50 hover:border-primary" 
+                      ? "bg-card border-primary/50 active:border-primary" 
                       : "bg-card/50 border-border"
                   )}
                 >
-                  <div className="flex items-start gap-4">
-                    <span className="text-4xl">{reward.icon}</span>
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <span className="text-3xl sm:text-4xl">{reward.icon}</span>
                     
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground mb-1">{reward.title}</h3>
+                      <h3 className="font-semibold text-foreground mb-1 text-base">{reward.title}</h3>
                       
                       <div className="flex items-center gap-2 mb-3">
                         <span className={cn(
@@ -113,40 +113,41 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                       </div>
                       
                       {/* Progress Bar */}
-                      <div className="space-y-1">
-                        <Progress value={progress} className="h-2" />
+                      <div className="space-y-1.5">
+                        <Progress value={progress} className="h-2.5" />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{totalBalance.toLocaleString()} / {reward.price.toLocaleString()}</span>
                           <span>{Math.round(progress)}%</span>
                         </div>
                       </div>
                     </div>
-                    
-                    <Button
-                      onClick={() => handleRedeem(reward)}
-                      disabled={!canAfford || isRedeeming}
-                      className={cn(
-                        "transition-all",
-                        canAfford 
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                          : "bg-secondary text-muted-foreground"
-                      )}
-                    >
-                      {isRedeeming ? (
-                        <Sparkles className="w-4 h-4 animate-spin" />
-                      ) : canAfford ? (
-                        <>
-                          <Gift className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
-                          {t('store.claim')}
-                        </>
-                      ) : (
-                        <>
-                          <Lock className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
-                          {t('store.locked')}
-                        </>
-                      )}
-                    </Button>
                   </div>
+                  
+                  {/* Claim button - full width on mobile for easy tapping */}
+                  <Button
+                    onClick={() => handleRedeem(reward)}
+                    disabled={!canAfford || isRedeeming}
+                    className={cn(
+                      "w-full mt-4 h-12 text-base font-semibold rounded-xl transition-all touch-target",
+                      canAfford 
+                        ? "bg-primary text-primary-foreground active:bg-primary/90" 
+                        : "bg-secondary text-muted-foreground"
+                    )}
+                  >
+                    {isRedeeming ? (
+                      <Sparkles className="w-5 h-5 animate-spin" />
+                    ) : canAfford ? (
+                      <>
+                        <Gift className={cn("w-5 h-5", isRTL ? "ml-2" : "mr-2")} />
+                        {t('store.claim')}
+                      </>
+                    ) : (
+                      <>
+                        <Lock className={cn("w-5 h-5", isRTL ? "ml-2" : "mr-2")} />
+                        {t('store.locked')}
+                      </>
+                    )}
+                  </Button>
                 </div>
               );
             })}
@@ -167,7 +168,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                 className="p-4 rounded-2xl bg-green-500/10 border border-green-500/30"
               >
                 <div className="flex items-center gap-4">
-                  <span className="text-3xl opacity-75">{reward.icon}</span>
+                  <span className="text-2xl sm:text-3xl opacity-75">{reward.icon}</span>
                   
                   <div className="flex-1">
                     <h3 className="font-medium text-foreground">{reward.title}</h3>
@@ -176,7 +177,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-1 text-green-400">
+                  <div className="flex items-center gap-1.5 text-green-400">
                     <Check className="w-5 h-5" />
                     <span className="text-sm font-medium">{t('store.claimed')}</span>
                   </div>
@@ -188,7 +189,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
 
         {/* Empty State */}
         {storeRewards.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-16">
             <Gift className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
             <h3 className="text-lg font-medium text-foreground mb-2">{t('store.noRewards')}</h3>
             <p className="text-muted-foreground">
