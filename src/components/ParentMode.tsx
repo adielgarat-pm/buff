@@ -9,12 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Lightbulb } from 'lucide-react';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
 import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
 import { cn } from '@/lib/utils';
+import { STRATEGIES, STRATEGY_CATEGORIES, getStrategyById, StrategyCategory } from '@/data/cogFunStrategies';
 
 interface ParentModeProps {
   open: boolean;
@@ -537,6 +538,7 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
     time: '12:00',
     category: 'nutrition' as TaskCategory,
     credits: 10,
+    strategyId: '' as string,
   });
 
   // Initialize child data on mount
@@ -546,8 +548,12 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
 
   const handleAddTask = () => {
     if (newTask.title.trim()) {
-      addTask(newTask);
-      setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10 });
+      const taskToAdd = {
+        ...newTask,
+        strategyId: newTask.strategyId || undefined,
+      };
+      addTask(taskToAdd);
+      setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10, strategyId: '' });
       setShowAddForm(false);
     }
   };
@@ -663,6 +669,38 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+                  <Lightbulb className="w-3 h-3" />
+                  Strategy Booster (Cog-Fun)
+                </Label>
+                <Select
+                  value={newTask.strategyId}
+                  onValueChange={(value) => setNewTask({ ...newTask, strategyId: value })}
+                >
+                  <SelectTrigger className="bg-background border-border text-foreground">
+                    <SelectValue placeholder="None (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border max-h-60">
+                    <SelectItem value="">None</SelectItem>
+                    {(['environmental', 'task-based', 'self-regulation'] as StrategyCategory[]).map((category) => (
+                      <div key={category}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary/50">
+                          {STRATEGY_CATEGORIES[category].label}
+                        </div>
+                        {STRATEGIES.filter(s => s.category === category).map((strategy) => (
+                          <SelectItem key={strategy.id} value={strategy.id}>
+                            <span className="flex items-center gap-2">
+                              <span>{strategy.icon}</span>
+                              <span>{strategy.title}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
@@ -832,6 +870,7 @@ interface TaskEditRowProps {
 
 function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: TaskEditRowProps) {
   const [editedTask, setEditedTask] = useState(task);
+  const strategy = task.strategyId ? getStrategyById(task.strategyId) : null;
 
   useEffect(() => {
     setEditedTask(task);
@@ -860,6 +899,38 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
             placeholder="Credits"
           />
         </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
+            <Lightbulb className="w-3 h-3" />
+            Strategy Booster
+          </Label>
+          <Select
+            value={editedTask.strategyId || ''}
+            onValueChange={(value) => setEditedTask({ ...editedTask, strategyId: value || undefined })}
+          >
+            <SelectTrigger className="bg-background border-border text-foreground">
+              <SelectValue placeholder="None" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border max-h-60">
+              <SelectItem value="">None</SelectItem>
+              {(['environmental', 'task-based', 'self-regulation'] as StrategyCategory[]).map((category) => (
+                <div key={category}>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary/50">
+                    {STRATEGY_CATEGORIES[category].label}
+                  </div>
+                  {STRATEGIES.filter(s => s.category === category).map((strat) => (
+                    <SelectItem key={strat.id} value={strat.id}>
+                      <span className="flex items-center gap-2">
+                        <span>{strat.icon}</span>
+                        <span>{strat.title}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </div>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex gap-2 justify-end">
           <Button size="sm" variant="ghost" onClick={onCancel} className="text-muted-foreground">
             <X className="w-4 h-4" />
@@ -878,7 +949,15 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
       onClick={onEdit}
     >
       <div className="flex-1">
-        <p className="font-medium text-foreground text-sm">{task.title}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-foreground text-sm">{task.title}</p>
+          {strategy && (
+            <span className="text-xs bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded flex items-center gap-1">
+              <Lightbulb className="w-3 h-3" />
+              {strategy.icon}
+            </span>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground">{task.time} • {task.credits} credits</p>
       </div>
       <Button

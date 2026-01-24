@@ -151,6 +151,7 @@ export function useSyncedTaskStore() {
         icon: t.icon || undefined,
         completed: completedTaskIds.has(t.id),
         assignedTo: t.assigned_to || undefined,
+        strategyId: t.strategy_id || undefined,
       }));
 
       setTasks(mappedTasks);
@@ -472,6 +473,7 @@ export function useSyncedTaskStore() {
         credits: updates.credits,
         description: updates.description,
         icon: updates.icon,
+        strategy_id: updates.strategyId || null,
       })
       .eq('id', taskId);
   }, [familyId]);
@@ -490,6 +492,7 @@ export function useSyncedTaskStore() {
         credits: task.credits,
         description: task.description,
         icon: task.icon,
+        strategy_id: task.strategyId || null,
       })
       .select()
       .single();
@@ -503,6 +506,7 @@ export function useSyncedTaskStore() {
         credits: data.credits,
         description: data.description || undefined,
         completed: false,
+        strategyId: data.strategy_id || undefined,
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId]);

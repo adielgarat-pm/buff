@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types/task';
-import { Pill, Droplets, Apple, BookOpen, Check, Sparkles, Cookie } from 'lucide-react';
+import { Pill, Droplets, Apple, BookOpen, Check, Sparkles, Cookie, Lightbulb, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getStrategyById, STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
 
 interface TaskCardProps {
   task: Task;
@@ -27,9 +28,11 @@ const getTaskIcon = (task: Task) => {
 export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showStrategyTip, setShowStrategyTip] = useState(false);
   
   const config = categoryConfig[task.category];
   const Icon = getTaskIcon(task);
+  const strategy = task.strategyId ? getStrategyById(task.strategyId) : null;
 
   const handleClick = () => {
     if (task.completed) {
@@ -93,12 +96,32 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
 
         {/* Task Info */}
         <div className="flex-1 min-w-0">
-          <h3 className={cn(
-            'font-semibold text-foreground transition-all',
-            task.completed && 'line-through text-muted-foreground'
-          )}>
-            {task.title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className={cn(
+              'font-semibold text-foreground transition-all',
+              task.completed && 'line-through text-muted-foreground'
+            )}>
+              {task.title}
+            </h3>
+            {/* Strategy Lightbulb Icon */}
+            {strategy && !task.completed && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowStrategyTip(!showStrategyTip);
+                }}
+                className={cn(
+                  'p-1 rounded-full transition-all hover:scale-110',
+                  showStrategyTip 
+                    ? 'bg-amber-500/20 text-amber-500' 
+                    : 'bg-amber-500/10 text-amber-400 animate-pulse'
+                )}
+                aria-label="Show strategy tip"
+              >
+                <Lightbulb className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">{task.time}</p>
         </div>
 
@@ -127,6 +150,40 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
           )}
         </div>
       </div>
+
+      {/* Strategy Tip Popup */}
+      {strategy && showStrategyTip && (
+        <div 
+          className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-slide-up"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">{strategy.icon}</span>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-amber-500 text-sm">
+                  {strategy.title}
+                </p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowStrategyTip(false);
+                  }}
+                  className="p-1 rounded-full hover:bg-amber-500/20 text-amber-400"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              <p className="text-sm text-foreground/80 mt-1">
+                {strategy.tip}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                💡 {STRATEGY_CATEGORIES[strategy.category].label} Strategy
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
