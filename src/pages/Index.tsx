@@ -179,7 +179,7 @@ const Index = () => {
       case 'timetable':
         return (
           <div className="space-y-6">
-            <WeeklyTimetable timetable={timetable} />
+            <WeeklyTimetable timetable={timetable} onUpdateTimetable={updateTimetable} />
           </div>
         );
       

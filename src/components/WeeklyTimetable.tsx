@@ -1,13 +1,17 @@
 import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS, WeekDay } from '@/types/task';
-import { Clock, BookOpen } from 'lucide-react';
+import { Clock, BookOpen, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { Button } from './ui/button';
+import { TimetableEditor } from './TimetableEditor';
 
 interface WeeklyTimetableProps {
   timetable: Timetable;
+  onUpdateTimetable: (timetable: Timetable) => void;
 }
 
-export function WeeklyTimetable({ timetable }: WeeklyTimetableProps) {
+export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetableProps) {
+  const [editorOpen, setEditorOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<WeekDay>(() => {
     const dayIndex = new Date().getDay();
     // Default to today if it's a school day, otherwise Sunday
@@ -69,16 +73,27 @@ export function WeeklyTimetable({ timetable }: WeeklyTimetableProps) {
       {/* Schedule for Selected Day */}
       <div className="rounded-2xl bg-card border border-border overflow-hidden">
         <div className="p-4 border-b border-border bg-secondary/30">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/20">
-              <BookOpen className="w-5 h-5 text-primary" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground capitalize">{selectedDay}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {selectedSchedule.filter(p => p.subject).length} lessons scheduled
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground capitalize">{selectedDay}</h3>
-              <p className="text-xs text-muted-foreground">
-                {selectedSchedule.filter(p => p.subject).length} lessons scheduled
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditorOpen(true)}
+              className="gap-1.5"
+            >
+              <Settings2 className="w-4 h-4" />
+              Edit
+            </Button>
           </div>
         </div>
 
@@ -171,6 +186,14 @@ export function WeeklyTimetable({ timetable }: WeeklyTimetableProps) {
           </table>
         </div>
       </div>
+
+      {/* Timetable Editor Dialog */}
+      <TimetableEditor
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        timetable={timetable}
+        onSave={onUpdateTimetable}
+      />
     </div>
   );
 }
