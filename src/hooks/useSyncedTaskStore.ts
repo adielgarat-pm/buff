@@ -252,7 +252,12 @@ export function useSyncedTaskStore() {
       }
 
       if (timetableData?.data) {
-        setTimetable(timetableData.data as unknown as Timetable);
+        const loadedTimetable = timetableData.data as unknown as Timetable;
+        // Ensure friday exists in timetable
+        if (!loadedTimetable.friday) {
+          loadedTimetable.friday = [];
+        }
+        setTimetable(loadedTimetable);
       }
 
       if (settingsData) {
