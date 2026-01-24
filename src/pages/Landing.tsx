@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target } from 'lucide-react';
+import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // BUFF Logo Component
 function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
@@ -135,6 +136,8 @@ function MobileMockup() {
 }
 
 export default function Landing() {
+  const { language, setLanguage, t, isRTL } = useLanguage();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -145,26 +148,36 @@ export default function Landing() {
             
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-                Features
+                {t('nav.features')}
               </a>
               <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-                How It Works
+                {t('nav.howItWorks')}
               </a>
               <a href="#for-parents" className="text-muted-foreground hover:text-foreground transition-colors">
-                For Parents
+                {t('nav.forParents')}
               </a>
             </div>
             
             <div className="flex items-center gap-3">
+              {/* Language Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
+                className="rounded-2xl"
+              >
+                <Globe className="w-4 h-4" />
+              </Button>
+              
               <Link to="/auth">
                 <Button variant="ghost" className="rounded-2xl">
-                  Log In
+                  {t('nav.login')}
                 </Button>
               </Link>
               <Link to="/auth">
                 <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button">
-                  Get Started
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                  {t('nav.getStarted')}
+                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
                 </Button>
               </Link>
             </div>
@@ -182,7 +195,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Based on the Cog-Fun Model</span>
+            <span className="text-sm text-primary font-medium">{t('landing.basedOnCogFun')}</span>
           </div>
           
           <div className="flex flex-col items-center mb-6">
@@ -196,24 +209,24 @@ export default function Landing() {
             </h1>
           </div>
           <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-            <span className="text-foreground">The Executive Function </span>
-            <span className="text-gradient">Power-up</span>
+            <span className="text-foreground">{t('landing.executiveFunction')} </span>
+            <span className="text-gradient">{t('landing.powerUp')}</span>
           </h2>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Master your daily routine with research-based <span className="text-buff font-semibold">Cog-Fun strategies</span> designed for the ADHD brain.
+            {t('landing.heroDescription')}
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
               <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 cta-buff-button animate-cta-glow">
-                <Zap className="w-5 h-5 mr-2 fill-current" />
-                Try BUFF for Free
+                <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
+                {t('landing.tryFree')}
               </Button>
             </Link>
             <a href="#features">
               <Button size="lg" variant="outline" className="rounded-2xl text-lg px-8 py-6">
-                See How It Works
+                {t('landing.seeHow')}
               </Button>
             </a>
           </div>
@@ -225,31 +238,31 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-4">
-              Unlock Your <span className="text-gradient">Daily Buffs</span>
+              {t('landing.unlockBuffs')}
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              Cognitive power-ups that transform overwhelming tasks into achievable victories.
+              {t('landing.unlockDescription')}
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
             <FeatureCard
               icon={Zap}
-              title="Activate Daily Buffs"
-              description="Use cognitive strategies to break through task paralysis and conquer 'Mountain' assignments one step at a time."
-              gradient="bg-gradient-to-r from-buff to-green-400"
+              title={t('landing.activateBuffs')}
+              description={t('landing.activateDescription')}
+              gradient="bg-gradient-to-r from-buff to-success"
             />
             <FeatureCard
               icon={Users}
-              title="Family Sync"
-              description="Collaborative goal setting where the parent is the coach and the teen is the hero of their own journey."
-              gradient="bg-gradient-to-r from-primary to-purple-500"
+              title={t('landing.familySync')}
+              description={t('landing.familySyncDescription')}
+              gradient="bg-gradient-to-r from-primary to-accent"
             />
             <FeatureCard
               icon={BarChart3}
-              title="Smart Insights"
-              description="A data-driven dashboard that helps parents identify patterns and offer the right support at the right time."
-              gradient="bg-gradient-to-r from-blue-500 to-primary"
+              title={t('landing.smartInsights')}
+              description={t('landing.smartInsightsDescription')}
+              gradient="bg-gradient-to-r from-primary to-primary"
             />
           </div>
         </div>
@@ -263,10 +276,10 @@ export default function Landing() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-6">
-                Power-ups for the <span className="text-buff">ADHD Brain</span>
+                {t('landing.powerUpsFor')}
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                BUFF uses the research-backed Cog-Fun model to provide personalized cognitive strategies exactly when your teen needs them most.
+                {t('landing.powerUpsDescription')}
               </p>
               
               <div className="space-y-4">
@@ -275,8 +288,8 @@ export default function Landing() {
                     <Shield className="w-5 h-5 text-buff" />
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-1">Environment Buffs</h4>
-                    <p className="text-sm text-muted-foreground">Optimize your space for focus and reduce sensory distractions.</p>
+                    <h4 className="font-semibold mb-1">{t('landing.environmentBuffs')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('landing.environmentDescription')}</p>
                   </div>
                 </div>
                 
@@ -285,18 +298,18 @@ export default function Landing() {
                     <Target className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-1">Focus Buffs</h4>
-                    <p className="text-sm text-muted-foreground">Break down overwhelming tasks into micro-achievements.</p>
+                    <h4 className="font-semibold mb-1">{t('landing.focusBuffs')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('landing.focusDescription')}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                    <Brain className="w-5 h-5 text-purple-500" />
+                  <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Brain className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-1">Energy Buffs</h4>
-                    <p className="text-sm text-muted-foreground">Self-regulation techniques to manage energy and emotions.</p>
+                    <h4 className="font-semibold mb-1">{t('landing.energyBuffs')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('landing.energyDescription')}</p>
                   </div>
                 </div>
               </div>
@@ -313,27 +326,27 @@ export default function Landing() {
       <section id="for-parents" className="py-20 px-4 bg-card/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-6">
-            For Parents: Be the <span className="text-primary">Coach</span>, Not the Boss
+            {t('landing.forParentsTitle')}
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-            BUFF empowers parents with insights and strategies to support their teen's executive function development without micromanaging. Collaboration over control.
+            {t('landing.forParentsDescription')}
           </p>
           
-          <div className="grid sm:grid-cols-3 gap-6 text-left">
+          <div className={`grid sm:grid-cols-3 gap-6 ${isRTL ? 'text-right' : 'text-left'}`}>
             <div className="bg-background rounded-2xl p-6 border border-border">
               <div className="text-3xl mb-4">📊</div>
-              <h4 className="font-semibold mb-2">Pattern Recognition</h4>
-              <p className="text-sm text-muted-foreground">Identify when and where struggles happen to offer targeted support.</p>
+              <h4 className="font-semibold mb-2">{t('landing.patternRecognition')}</h4>
+              <p className="text-sm text-muted-foreground">{t('landing.patternDescription')}</p>
             </div>
             <div className="bg-background rounded-2xl p-6 border border-border">
               <div className="text-3xl mb-4">💡</div>
-              <h4 className="font-semibold mb-2">Coaching Tips</h4>
-              <p className="text-sm text-muted-foreground">Receive research-based suggestions for supporting your teen.</p>
+              <h4 className="font-semibold mb-2">{t('landing.coachingTips')}</h4>
+              <p className="text-sm text-muted-foreground">{t('landing.coachingDescription')}</p>
             </div>
             <div className="bg-background rounded-2xl p-6 border border-border">
               <div className="text-3xl mb-4">🤝</div>
-              <h4 className="font-semibold mb-2">Collaborative Goals</h4>
-              <p className="text-sm text-muted-foreground">Set rewards and milestones together as a team.</p>
+              <h4 className="font-semibold mb-2">{t('landing.collaborativeGoals')}</h4>
+              <p className="text-sm text-muted-foreground">{t('landing.collaborativeDescription')}</p>
             </div>
           </div>
         </div>
@@ -345,15 +358,15 @@ export default function Landing() {
         
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-6">
-            Ready to Power Up?
+            {t('landing.readyToPowerUp')}
           </h2>
           <p className="text-muted-foreground mb-10 leading-relaxed">
-            Join families who are transforming daily routines into achievable victories.
+            {t('landing.joinFamilies')}
           </p>
           <Link to="/auth">
             <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 cta-buff-button animate-cta-glow">
-              <Zap className="w-5 h-5 mr-2 fill-current" />
-              Start Your Free Trial
+              <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
+              {t('landing.startFreeTrial')}
             </Button>
           </Link>
         </div>
@@ -366,21 +379,21 @@ export default function Landing() {
             <div className="flex items-center gap-4">
               <BuffLogo />
               <span className="text-sm text-muted-foreground">
-                Executive Function Power-up
+                {t('app.tagline')}
               </span>
             </div>
             
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-              <a href="#for-parents" className="hover:text-foreground transition-colors">For Parents</a>
-              <Link to="/auth" className="hover:text-foreground transition-colors">Get Started</Link>
+              <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
+              <a href="#for-parents" className="hover:text-foreground transition-colors">{t('nav.forParents')}</a>
+              <Link to="/auth" className="hover:text-foreground transition-colors">{t('nav.getStarted')}</Link>
             </div>
           </div>
           
           <div className="mt-8 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
               <Brain className="w-4 h-4" />
-              Based on the <span className="text-primary font-medium">Cog-Fun Model</span> — Research-backed cognitive strategies
+              {t('landing.researchBacked')}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
               © {new Date().getFullYear()} BUFF. All rights reserved.
