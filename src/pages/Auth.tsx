@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, Sparkles, Users, User } from 'lucide-react';
+import { Loader2, Zap, Users, User } from 'lucide-react';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -92,29 +92,42 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10 pointer-events-none" />
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/10 via-background to-buff/5 pointer-events-none" />
 
-      <Card className="w-full max-w-md relative z-10 border-border/50 shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-2">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center mb-2 shadow-glow">
+            <Zap className="w-8 h-8 text-white fill-white" />
           </div>
-          <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            BUFF
+          {/* BUFF Logo with lightning in U */}
+          <CardTitle className="text-3xl font-display font-black tracking-wider">
+            <span className="text-primary">B</span>
+            <span className="relative inline-flex items-center justify-center">
+              <span className="text-primary">U</span>
+              <Zap 
+                className="absolute w-3 h-3 text-buff fill-buff" 
+                style={{ 
+                  top: '50%', 
+                  left: '50%', 
+                  transform: 'translate(-50%, -45%)',
+                }} 
+              />
+            </span>
+            <span className="text-primary">FF</span>
           </CardTitle>
-          <CardDescription className="text-sm italic text-muted-foreground">
+          <CardDescription className="text-sm italic text-buff font-medium">
             Your Executive Function Power-up
           </CardDescription>
-          <CardDescription>
+          <CardDescription className="leading-relaxed">
             Sign in to sync your progress across devices
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 rounded-2xl">
+              <TabsTrigger value="login" className="rounded-xl">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-xl">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
@@ -141,14 +154,17 @@ export default function Auth() {
                     disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Signing in...
                     </>
                   ) : (
-                    'Sign In'
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      Power Up
+                    </>
                   )}
                 </Button>
               </form>
@@ -195,7 +211,7 @@ export default function Auth() {
                     <Button
                       type="button"
                       variant={role === 'parent' ? 'default' : 'outline'}
-                      className="w-full"
+                      className="w-full rounded-2xl"
                       onClick={() => setRole('parent')}
                       disabled={loading}
                     >
@@ -205,7 +221,7 @@ export default function Auth() {
                     <Button
                       type="button"
                       variant={role === 'child' ? 'default' : 'outline'}
-                      className="w-full"
+                      className="w-full rounded-2xl"
                       onClick={() => setRole('child')}
                       disabled={loading}
                     >
@@ -232,14 +248,17 @@ export default function Auth() {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Creating account...
                     </>
                   ) : (
-                    'Create Account'
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      Create Account
+                    </>
                   )}
                 </Button>
               </form>
