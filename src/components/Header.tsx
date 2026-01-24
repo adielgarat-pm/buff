@@ -25,11 +25,11 @@ interface HeaderProps {
 // BUFF Logo Component with image
 function BuffLogo() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <img 
         src={buffLogo} 
         alt="BUFF Logo" 
-        className="h-10 w-10 object-contain"
+        className="h-14 w-14 object-contain"
       />
       <span className="font-display text-2xl font-bold tracking-wide text-primary">
         BUFF
