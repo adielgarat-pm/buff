@@ -94,7 +94,14 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                           <User className="w-7 h-7 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
+                            {progress && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                                יעד: {progress.dailyGoal}
+                              </span>
+                            )}
+                          </div>
                           {progress && (
                             <p className="text-sm text-muted-foreground">
                               💰 {progress.totalBalance.toLocaleString()} קרדיטים נצברו
