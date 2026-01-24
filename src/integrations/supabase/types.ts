@@ -154,16 +154,19 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          short_code: string
         }
         Insert: {
           created_at?: string
           id?: string
           name?: string
+          short_code: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          short_code?: string
         }
         Relationships: []
       }
@@ -411,6 +414,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_family_short_code: { Args: never; Returns: string }
       get_my_family_id: { Args: never; Returns: string }
     }
     Enums: {

@@ -2,102 +2,110 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Users, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FamilyCodeDisplayProps {
-  familyId: string;
+  shortCode: string;
 }
 
-export function FamilyCodeDisplay({ familyId }: FamilyCodeDisplayProps) {
+export function FamilyCodeDisplay({ shortCode }: FamilyCodeDisplayProps) {
   const [copied, setCopied] = useState(false);
+  const { language } = useLanguage();
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(familyId);
+      await navigator.clipboard.writeText(shortCode);
       setCopied(true);
-      toast.success('Family code copied!');
+      toast.success(language === 'he' ? 'הקוד הועתק!' : 'Code copied!');
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy');
+      toast.error(language === 'he' ? 'שגיאה בהעתקה' : 'Failed to copy');
     }
   };
 
   const handleShare = async () => {
-    // Use the published app URL, not the preview URL
     const appUrl = 'https://buff.lovable.app';
-    const shareText = `🎮 הצטרף/י למשפחה שלנו ב-Daily Quests!
+    const shareText = language === 'he' 
+      ? `🎮 הצטרף/י למשפחה שלנו ב-BUFF!
 
 📱 איך להצטרף:
 1. היכנס/י לאפליקציה: ${appUrl}
-2. לחץ/י על "Sign Up"
-3. מלא/י שם, אימייל וסיסמה
-4. בחר/י "Child" (ילד)
-5. הדבק/י את קוד המשפחה הזה:
+2. לחץ/י על "הרשמה"
+3. בחר/י "נער/ה"
+4. הזן/י את קוד המשפחה:
 
-🔑 ${familyId}
+🔑 ${shortCode}
 
-6. לחץ/י על "Create Account"
+נתראה באפליקציה! ✨`
+      : `🎮 Join our family on BUFF!
 
-זהו! ✨ נתראה באפליקציה!`;
+📱 How to join:
+1. Go to: ${appUrl}
+2. Click "Sign Up"
+3. Choose "Teen"
+4. Enter the family code:
 
-    // Try native share first (works on mobile)
+🔑 ${shortCode}
+
+See you in the app! ✨`;
+
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'הצטרף ל-Daily Quests',
+          title: language === 'he' ? 'הצטרף ל-BUFF' : 'Join BUFF',
           text: shareText,
         });
-        toast.success('Shared successfully!');
+        toast.success(language === 'he' ? 'נשלח בהצלחה!' : 'Shared successfully!');
         return;
       } catch (err) {
-        // User cancelled or share failed, fall back to clipboard
         if ((err as Error).name === 'AbortError') return;
       }
     }
 
-    // Fallback: copy to clipboard
     try {
       await navigator.clipboard.writeText(shareText);
-      toast.success('Message copied! Send it to your child via WhatsApp or SMS');
+      toast.success(language === 'he' ? 'ההודעה הועתקה! שלח לילד דרך וואטסאפ' : 'Message copied! Send via WhatsApp');
     } catch {
-      toast.error('Failed to share');
+      toast.error(language === 'he' ? 'שגיאה בשיתוף' : 'Failed to share');
     }
   };
 
   return (
-    <div className="mt-6 p-4 rounded-xl bg-secondary/50 border border-border">
-      <div className="flex items-center gap-2 mb-2">
-        <Users className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium text-foreground">Family Code</span>
+    <div className="p-3 rounded-xl bg-secondary/50 border border-border">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Users className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-foreground">
+            {language === 'he' ? 'קוד משפחה' : 'Family Code'}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <code className="px-3 py-1.5 rounded-lg bg-background border border-border text-lg font-mono font-bold text-primary tracking-widest">
+            {shortCode}
+          </code>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleCopy}
+            className="h-8 w-8 p-0"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-primary" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleShare}
+            className="h-8 w-8 p-0"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">
-        Share this code with your child so they can join your family and sync their progress.
-      </p>
-      <div className="flex items-center gap-2">
-        <code className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-xs font-mono text-foreground truncate">
-          {familyId}
-        </code>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCopy}
-          className="shrink-0"
-        >
-          {copied ? (
-            <Check className="w-4 h-4 text-primary" />
-          ) : (
-            <Copy className="w-4 h-4" />
-          )}
-        </Button>
-      </div>
-      <Button
-        size="sm"
-        variant="default"
-        onClick={handleShare}
-        className="w-full mt-3"
-      >
-        <Send className="w-4 h-4 mr-2" />
-        Send to Child
-      </Button>
     </div>
   );
 }

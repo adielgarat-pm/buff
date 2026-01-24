@@ -19,7 +19,7 @@ import { FamilyCodeDisplay } from '@/components/FamilyCodeDisplay';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
-  const { profile, familyId, signOut } = useAuth();
+  const { profile, familyId, familyShortCode, signOut } = useAuth();
   const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
   const [activeTab, setActiveTab] = useState<NavTab>('tasks');
@@ -312,10 +312,7 @@ const Index = () => {
           {renderTabContent()}
         </div>
 
-        {/* Family Code Display for Parents */}
-        {isParent && familyId && activeTab === 'tasks' && (
-          <FamilyCodeDisplay familyId={familyId} />
-        )}
+        {/* Family Code Display for Parents - Now only in Settings tab */}
       </div>
 
       {/* Bottom Navigation */}

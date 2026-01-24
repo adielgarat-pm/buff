@@ -67,7 +67,7 @@ export function ParentDashboard({
   onUpdateStoreRewards,
   onBack,
 }: ParentDashboardProps) {
-  const { familyId } = useAuth();
+  const { familyId, familyShortCode } = useAuth();
   const { members, children, loading: membersLoading } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   
@@ -101,11 +101,6 @@ export function ParentDashboard({
           </p>
         </div>
 
-        {/* Family Code */}
-        {familyId && (
-          <FamilyCodeDisplay familyId={familyId} />
-        )}
-
         {/* General Settings Card */}
         <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
           <div className="flex items-center gap-3">
@@ -113,14 +108,19 @@ export function ParentDashboard({
               <Settings className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="font-semibold text-foreground">General Settings</h2>
-              <p className="text-xs text-muted-foreground">App-wide configuration</p>
+              <h2 className="font-semibold text-foreground">הגדרות משפחה</h2>
+              <p className="text-xs text-muted-foreground">הגדרות כלליות וקוד משפחה</p>
             </div>
           </div>
 
+          {/* Family Code - Compact inside settings */}
+          {familyShortCode && (
+            <FamilyCodeDisplay shortCode={familyShortCode} />
+          )}
+
           {/* App Title */}
           <div className="space-y-2">
-            <Label className="text-sm text-muted-foreground">App Title</Label>
+            <Label className="text-sm text-muted-foreground">שם האפליקציה</Label>
             <div className="flex gap-2">
               <Input
                 type="text"
@@ -141,7 +141,7 @@ export function ParentDashboard({
 
           {/* Daily Goal */}
           <div className="space-y-2">
-            <Label className="text-sm text-muted-foreground">Default Daily Goal</Label>
+            <Label className="text-sm text-muted-foreground">יעד יומי ברירת מחדל</Label>
             <div className="flex gap-2 items-center">
               <Input
                 type="number"
@@ -149,11 +149,11 @@ export function ParentDashboard({
                 onChange={(e) => setLocalGoal(parseInt(e.target.value) || 0)}
                 className="w-24 bg-secondary border-border"
               />
-              <span className="text-sm text-muted-foreground">credits</span>
+              <span className="text-sm text-muted-foreground">קרדיטים</span>
               <Button
                 size="sm"
                 onClick={handleSaveGoal}
-                className="ml-auto bg-primary text-primary-foreground touch-target"
+                className="mr-auto bg-primary text-primary-foreground touch-target"
               >
                 <Save className="w-4 h-4" />
               </Button>
@@ -165,7 +165,7 @@ export function ParentDashboard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">Lesson Reminders</span>
+                <span className="text-sm text-foreground">תזכורות שיעורים</span>
               </div>
               <Switch
                 checked={lessonRemindersEnabled}
@@ -176,7 +176,7 @@ export function ParentDashboard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">Friday School Day</span>
+                <span className="text-sm text-foreground">יום שישי יום לימודים</span>
               </div>
               <Switch
                 checked={fridayEnabled}
