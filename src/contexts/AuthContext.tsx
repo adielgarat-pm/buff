@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,6 +15,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   familyId: string | null;
+  familyShortCode: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, displayName: string, role: 'parent' | 'child', familyCode?: string) => Promise<{ error: Error | null }>;
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [familyShortCode, setFamilyShortCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -43,6 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data as Profile | null;
   };
 
+  const fetchFamilyShortCode = useCallback(async (familyId: string) => {
+    const { data, error } = await supabase
+      .from('families')
+      .select('short_code')
+      .eq('id', familyId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching family short code:', error);
+      return null;
+    }
+    return data?.short_code ?? null;
+  }, []);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -52,31 +68,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id).then(setProfile);
+          setTimeout(async () => {
+            const p = await fetchProfile(session.user.id);
+            setProfile(p);
+            if (p?.family_id) {
+              const code = await fetchFamilyShortCode(p.family_id);
+              setFamilyShortCode(code);
+            }
           }, 0);
         } else {
           setProfile(null);
+          setFamilyShortCode(null);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id).then((p) => {
-          setProfile(p);
-          setLoading(false);
-        });
+        const p = await fetchProfile(session.user.id);
+        setProfile(p);
+        if (p?.family_id) {
+          const code = await fetchFamilyShortCode(p.family_id);
+          setFamilyShortCode(code);
+        }
+        setLoading(false);
       } else {
         setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchFamilyShortCode]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -103,23 +128,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let familyId: string | null = null;
 
-    // If joining existing family (child with family code)
+    // If joining existing family (child with family code - now 6-char short code)
     if (familyCode && role === 'child') {
-      // familyCode is the family ID - validate it's a valid UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(familyCode)) {
-        // Trust the family code directly since RLS may prevent verification
-        familyId = familyCode;
+      const trimmedCode = familyCode.trim().toUpperCase();
+      
+      // Validate it's a 6-character alphanumeric code
+      const shortCodeRegex = /^[A-Z0-9]{6}$/;
+      if (shortCodeRegex.test(trimmedCode)) {
+        // Look up family by short_code
+        const { data: family, error: lookupError } = await supabase
+          .from('families')
+          .select('id')
+          .eq('short_code', trimmedCode)
+          .single();
+
+        if (lookupError || !family) {
+          return { error: new Error('קוד משפחה לא נמצא') };
+        }
+        familyId = family.id;
       } else {
-        return { error: new Error('Invalid family code format') };
+        return { error: new Error('קוד משפחה חייב להכיל 6 תווים') };
       }
     }
 
-    // If parent or no valid family code, create new family
+    // If parent, create new family (short_code is auto-generated by trigger)
     if (!familyId && role === 'parent') {
       const { data: newFamily, error: familyError } = await supabase
         .from('families')
-        .insert({ name: `${displayName}'s Family` })
+        .insert({ name: `${displayName}'s Family` } as any)
         .select()
         .single();
 
@@ -150,12 +186,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setFamilyShortCode(null);
   };
 
   const familyId = profile?.family_id ?? null;
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, familyId, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, familyId, familyShortCode, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
