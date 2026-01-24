@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload } from 'lucide-react';
+import { ScheduleImporter } from './ScheduleImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
@@ -534,6 +535,7 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
   const [activeTab, setActiveTab] = useState('tasks');
   const [timetableEditorOpen, setTimetableEditorOpen] = useState(false);
   const [storeEditorOpen, setStoreEditorOpen] = useState(false);
+  const [scheduleImporterOpen, setScheduleImporterOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -558,6 +560,19 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
       addTask(taskToAdd);
       setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10, strategyId: '' });
       setShowAddForm(false);
+    }
+  };
+
+  const handleImportTasks = async (importedTasks: Array<{
+    title: string;
+    time: string;
+    category: TaskCategory;
+    credits: number;
+    strategyId?: string;
+  }>) => {
+    // Add all imported tasks
+    for (const task of importedTasks) {
+      await addTask(task);
     }
   };
 
@@ -627,19 +642,41 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
             <p className="text-sm text-muted-foreground">
               {tasks.length} tasks configured
             </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowAddForm(true)}
-              className="border-primary text-primary hover:bg-primary/10"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Task
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setScheduleImporterOpen(true)}
+                className="border-buff text-buff hover:bg-buff/10"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Import Schedule
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddForm(true)}
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Task
+              </Button>
+            </div>
           </div>
 
+          {/* Schedule Importer Dialog */}
+          {scheduleImporterOpen && (
+            <div className="p-4 rounded-xl bg-card border border-border">
+              <ScheduleImporter
+                onImport={handleImportTasks}
+                onClose={() => setScheduleImporterOpen(false)}
+                childName={child.displayName}
+              />
+            </div>
+          )}
+
           {/* Add Task Form */}
-          {showAddForm && (
+          {showAddForm && !scheduleImporterOpen && (
             <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 space-y-3">
               <Input
                 placeholder="Task title"
