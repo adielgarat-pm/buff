@@ -133,10 +133,37 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Rewards Store
     'store.title': 'חנות פרסים',
+    'store.subtitle': 'מימוש הקרדיטים שצברת',
     'store.balance': 'יתרה',
+    'store.totalBalance': 'סה״כ יתרה',
     'store.claim': 'מימוש',
     'store.claimed': 'מומש',
+    'store.locked': 'נעול',
     'store.notEnough': 'אין מספיק קרדיטים',
+    'store.availableRewards': 'פרסים זמינים',
+    'store.claimedRewards': 'פרסים שמומשו',
+    'store.noRewards': 'אין פרסים עדיין',
+    'store.askParent': 'בקש מההורה להוסיף פרסים מגניבים!',
+    'store.credits': 'קרדיטים',
+    
+    // Navigation tabs
+    'nav.tasks': 'משימות',
+    'nav.timetable': 'מערכת',
+    'nav.store': 'חנות',
+    
+    // Progress
+    'progress.dailyXP': 'XP יומי',
+    'progress.levelComplete': 'הרמה הושלמה! 🎉',
+    'progress.keepGoing': 'המשך להתחזק!',
+    'progress.level': 'רמה',
+    'progress.maxLevel': 'רמה מקסימלית!',
+    
+    // Focus Mode
+    'focus.active': '🎯 מצב מיקוד פעיל',
+    'focus.completeFirst': 'סיים את המשימה הזו לפני שתמשיך הלאה',
+    'focus.allComplete': 'כל המשימות הושלמו!',
+    'focus.greatWork': 'עבודה מצוינת! אתה יכול לעבור לשלב הבא.',
+    'focus.remaining': 'משימות נותרו',
     
     // Common
     'common.loading': 'טוען...',
@@ -148,6 +175,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.add': 'הוסף',
     'common.close': 'סגור',
     'common.credits': 'קרדיטים',
+    'common.xp': 'XP',
     'tasks': 'משימות',
     'noTasksForPhase': 'אין משימות לשלב הזה',
   },
@@ -271,10 +299,37 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Rewards Store
     'store.title': 'Rewards Store',
+    'store.subtitle': 'Redeem your earned credits',
     'store.balance': 'Balance',
-    'store.claim': 'Claim',
+    'store.totalBalance': 'Total Balance',
+    'store.claim': 'Redeem',
     'store.claimed': 'Claimed',
+    'store.locked': 'Locked',
     'store.notEnough': 'Not enough credits',
+    'store.availableRewards': 'Available Rewards',
+    'store.claimedRewards': 'Claimed Rewards',
+    'store.noRewards': 'No Rewards Yet',
+    'store.askParent': 'Ask your parent to add some awesome rewards!',
+    'store.credits': 'credits',
+    
+    // Navigation tabs
+    'nav.tasks': 'Tasks',
+    'nav.timetable': 'Timetable',
+    'nav.store': 'Store',
+    
+    // Progress
+    'progress.dailyXP': 'Daily XP',
+    'progress.levelComplete': 'Level Complete! 🎉',
+    'progress.keepGoing': 'Keep powering up!',
+    'progress.level': 'Level',
+    'progress.maxLevel': 'Max Level!',
+    
+    // Focus Mode
+    'focus.active': '🎯 Focus Mode Active',
+    'focus.completeFirst': 'Complete this task before moving on',
+    'focus.allComplete': 'All Tasks Complete!',
+    'focus.greatWork': 'Great work! You can move to the next phase.',
+    'focus.remaining': 'tasks remaining',
     
     // Common
     'common.loading': 'Loading...',
@@ -286,6 +341,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.add': 'Add',
     'common.close': 'Close',
     'common.credits': 'Credits',
+    'common.xp': 'XP',
     'tasks': 'Tasks',
     'noTasksForPhase': 'No tasks for this phase',
   },

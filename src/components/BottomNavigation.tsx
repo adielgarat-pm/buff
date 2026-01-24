@@ -1,5 +1,6 @@
 import { CheckSquare, Calendar, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export type NavTab = 'tasks' | 'timetable' | 'store';
 
@@ -8,13 +9,15 @@ interface BottomNavigationProps {
   onTabChange: (tab: NavTab) => void;
 }
 
-const NAV_ITEMS = [
-  { id: 'tasks' as const, label: 'Tasks', icon: CheckSquare },
-  { id: 'timetable' as const, label: 'Timetable', icon: Calendar },
-  { id: 'store' as const, label: 'Store', icon: Gift },
-];
-
 export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
+  const { t } = useLanguage();
+
+  const NAV_ITEMS = [
+    { id: 'tasks' as const, labelKey: 'nav.tasks', icon: CheckSquare },
+    { id: 'timetable' as const, labelKey: 'nav.timetable', icon: Calendar },
+    { id: 'store' as const, labelKey: 'nav.store', icon: Gift },
+  ];
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border safe-area-pb">
       <div className="max-w-lg mx-auto px-4">
@@ -44,7 +47,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   "text-xs font-medium",
                   isActive && "text-primary"
                 )}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </button>
             );

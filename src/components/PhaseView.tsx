@@ -72,6 +72,7 @@ export function PhaseView({
     : totalCredits;
 
   const phaseLabel = language === 'he' ? phaseConfig.labelHe : phaseConfig.label;
+  const remainingCount = phaseTasks.length - completedTasks.length;
 
   // Determine which tasks to show
   const displayTasks = focusMode && nextTask ? [nextTask] : phaseTasks;
@@ -83,10 +84,7 @@ export function PhaseView({
         <div className="flex items-center gap-2 text-muted-foreground">
           <Target className="w-4 h-4" />
           <span className="text-sm">
-            {language === 'he' 
-              ? `${phaseTasks.length - completedTasks.length} משימות נותרו`
-              : `${phaseTasks.length - completedTasks.length} tasks remaining`
-            }
+            {remainingCount} {t('focus.remaining')}
           </span>
         </div>
         <FocusModeToggle 
@@ -122,13 +120,10 @@ export function PhaseView({
       {focusMode && nextTask && (
         <div className="bg-buff/10 border border-buff/30 rounded-2xl p-4 text-center">
           <p className="text-buff font-bold mb-1">
-            {language === 'he' ? '🎯 מצב מיקוד פעיל' : '🎯 Focus Mode Active'}
+            {t('focus.active')}
           </p>
           <p className="text-sm text-muted-foreground">
-            {language === 'he' 
-              ? 'סיים את המשימה הזו לפני שתמשיך הלאה'
-              : 'Complete this task before moving on'
-            }
+            {t('focus.completeFirst')}
           </p>
         </div>
       )}
@@ -165,13 +160,10 @@ export function PhaseView({
         <div className="text-center py-12 bg-buff/10 rounded-2xl border border-buff/30">
           <span className="text-6xl mb-4 block">🎉</span>
           <h3 className="text-xl font-bold text-buff mb-2">
-            {language === 'he' ? 'כל המשימות הושלמו!' : 'All Tasks Complete!'}
+            {t('focus.allComplete')}
           </h3>
           <p className="text-muted-foreground">
-            {language === 'he' 
-              ? 'עבודה מצוינת! אתה יכול לעבור לשלב הבא.'
-              : 'Great work! You can move to the next phase.'
-            }
+            {t('focus.greatWork')}
           </p>
         </div>
       )}

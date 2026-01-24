@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 /* BUFF Brand Fonts - Bold modern sans-serif for headings */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+/* Heebo for Hebrew - modern geometric sans-serif */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Heebo:wght@400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
@@ -91,15 +92,27 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', 'Heebo', sans-serif;
     line-height: 1.7;
+  }
+
+  /* RTL Hebrew font */
+  [dir="rtl"] body {
+    font-family: 'Heebo', 'Inter', sans-serif;
   }
 
   /* BUFF Heading Styles - Bold modern font */
   h1, h2, h3, .buff-heading {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Heebo', sans-serif;
     font-weight: 700;
     letter-spacing: 0.05em;
+  }
+
+  /* Hebrew headings use Heebo Black */
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .buff-heading {
+    font-family: 'Heebo', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.02em;
   }
 
   /* Improved line spacing for ADHD readability */

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { StoreReward } from '@/types/task';
 import { Button } from './ui/button';
-import { Vault, Gift, Check, Lock, ChevronLeft, Sparkles } from 'lucide-react';
+import { Vault, Gift, Check, Lock, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RewardsStoreProps {
   totalBalance: number;
@@ -14,6 +15,7 @@ interface RewardsStoreProps {
 }
 
 export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, showBackButton = false }: RewardsStoreProps) {
+  const { t, isRTL } = useLanguage();
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
@@ -28,6 +30,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
 
   const availableRewards = storeRewards.filter(r => !r.claimed);
   const claimedRewards = storeRewards.filter(r => r.claimed);
+  const BackIcon = isRTL ? ChevronRight : ChevronLeft;
 
   return (
     <div className="bg-background">
@@ -42,12 +45,12 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                 onClick={onClose}
                 className="text-muted-foreground"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <BackIcon className="w-5 h-5" />
               </Button>
             )}
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-foreground">Rewards Store</h1>
-              <p className="text-sm text-muted-foreground">Redeem your earned credits</p>
+              <h1 className="text-xl font-bold text-foreground">{t('store.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('store.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -61,10 +64,10 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
               <Vault className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Balance</p>
+              <p className="text-sm text-muted-foreground">{t('store.totalBalance')}</p>
               <p className="text-3xl font-bold text-foreground">
                 {totalBalance.toLocaleString()}
-                <span className="text-lg font-normal text-muted-foreground ml-1">credits</span>
+                <span className="text-lg font-normal text-muted-foreground mx-1">{t('store.credits')}</span>
               </p>
             </div>
           </div>
@@ -75,7 +78,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
               <Gift className="w-4 h-4" />
-              Available Rewards
+              {t('store.availableRewards')}
             </h2>
             
             {availableRewards.map((reward) => {
@@ -106,7 +109,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                         )}>
                           {reward.price.toLocaleString()}
                         </span>
-                        <span className="text-sm text-muted-foreground">credits</span>
+                        <span className="text-sm text-muted-foreground">{t('store.credits')}</span>
                       </div>
                       
                       {/* Progress Bar */}
@@ -133,13 +136,13 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                         <Sparkles className="w-4 h-4 animate-spin" />
                       ) : canAfford ? (
                         <>
-                          <Gift className="w-4 h-4 mr-2" />
-                          Redeem
+                          <Gift className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
+                          {t('store.claim')}
                         </>
                       ) : (
                         <>
-                          <Lock className="w-4 h-4 mr-2" />
-                          Locked
+                          <Lock className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
+                          {t('store.locked')}
                         </>
                       )}
                     </Button>
@@ -155,7 +158,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
               <Check className="w-4 h-4" />
-              Claimed Rewards
+              {t('store.claimedRewards')}
             </h2>
             
             {claimedRewards.map((reward) => (
@@ -169,13 +172,13 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
                   <div className="flex-1">
                     <h3 className="font-medium text-foreground">{reward.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {reward.price.toLocaleString()} credits
+                      {reward.price.toLocaleString()} {t('store.credits')}
                     </p>
                   </div>
                   
                   <div className="flex items-center gap-1 text-green-400">
                     <Check className="w-5 h-5" />
-                    <span className="text-sm font-medium">Claimed</span>
+                    <span className="text-sm font-medium">{t('store.claimed')}</span>
                   </div>
                 </div>
               </div>
@@ -187,9 +190,9 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
         {storeRewards.length === 0 && (
           <div className="text-center py-12">
             <Gift className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No Rewards Yet</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">{t('store.noRewards')}</h3>
             <p className="text-muted-foreground">
-              Ask your parent to add some awesome rewards!
+              {t('store.askParent')}
             </p>
           </div>
         )}

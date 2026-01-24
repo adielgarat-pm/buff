@@ -11,7 +11,7 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ earned, goal, percent, totalBalance = 0 }: ProgressBarProps) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const isComplete = percent >= 100;
 
   return (
@@ -40,13 +40,10 @@ export function ProgressBar({ earned, goal, percent, totalBalance = 0 }: Progres
           </div>
           <div>
             <h2 className="font-display font-bold text-foreground tracking-wide">
-              {language === 'he' ? 'XP יומי' : 'Daily XP'}
+              {t('progress.dailyXP')}
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {isComplete 
-                ? (language === 'he' ? 'הרמה הושלמה! 🎉' : 'Level Complete! 🎉')
-                : (language === 'he' ? 'המשך להתחזק!' : 'Keep powering up!')
-              }
+              {isComplete ? t('progress.levelComplete') : t('progress.keepGoing')}
             </p>
           </div>
         </div>
@@ -58,7 +55,9 @@ export function ProgressBar({ earned, goal, percent, totalBalance = 0 }: Progres
             {earned}
           </span>
           <span className="text-muted-foreground text-lg">/{goal}</span>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">XP</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+            {t('common.xp')}
+          </p>
         </div>
       </div>
 
@@ -110,7 +109,7 @@ export function ProgressBar({ earned, goal, percent, totalBalance = 0 }: Progres
       <div className="flex justify-between items-center mt-3">
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Star className="w-3 h-3" />
-          <span>0 XP</span>
+          <span>0 {t('common.xp')}</span>
         </div>
         <div className={cn(
           'px-3 py-1 rounded-full text-sm font-bold',
@@ -122,7 +121,7 @@ export function ProgressBar({ earned, goal, percent, totalBalance = 0 }: Progres
         </div>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Star className="w-3 h-3" />
-          <span>{goal} XP</span>
+          <span>{goal} {t('common.xp')}</span>
         </div>
       </div>
     </div>
