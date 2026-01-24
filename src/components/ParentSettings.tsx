@@ -310,10 +310,15 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           <Input
             type="number"
             value={dailyGoal}
-            onChange={(e) => updateDailyGoal(parseInt(e.target.value) || 100)}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              if (!isNaN(val) && val >= 10 && val <= 1000) {
+                updateDailyGoal(val);
+              }
+            }}
             className="w-20 h-8 bg-background border-border text-center text-sm"
             min={10}
-            max={500}
+            max={1000}
             dir="ltr"
           />
           <span className="text-xs text-muted-foreground">קרדיטים</span>
