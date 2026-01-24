@@ -1,8 +1,10 @@
 export type TaskCategory = 'medication' | 'hygiene' | 'nutrition' | 'school';
 
-export type WeekDay = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday';
+export type WeekDay = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday';
 
 export const WEEK_DAYS: WeekDay[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'];
+
+export const WEEK_DAYS_WITH_FRIDAY: WeekDay[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
 export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
   sunday: 'Sun',
@@ -10,6 +12,7 @@ export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
   tuesday: 'Tue',
   wednesday: 'Wed',
   thursday: 'Thu',
+  friday: 'Fri',
 };
 
 export const CATEGORY_LABELS: Record<TaskCategory, string> = {

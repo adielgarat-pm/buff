@@ -1,7 +1,7 @@
-import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS, WeekDay, PeriodInfo } from '@/types/task';
+import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WeekDay, PeriodInfo } from '@/types/task';
 import { Clock, BookOpen, Settings2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { TimetableEditor } from './TimetableEditor';
@@ -9,15 +9,23 @@ import { TimetableEditor } from './TimetableEditor';
 interface WeeklyTimetableProps {
   timetable: Timetable;
   onUpdateTimetable: (timetable: Timetable) => void;
+  fridayEnabled?: boolean;
 }
 
-export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetableProps) {
+export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = false }: WeeklyTimetableProps) {
   const [editorOpen, setEditorOpen] = useState(false);
+  
+  // Determine which days to show
+  const displayDays = useMemo(() => fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS, [fridayEnabled]);
+  
   const [selectedDay, setSelectedDay] = useState<WeekDay>(() => {
     const dayIndex = new Date().getDay();
     // Default to today if it's a school day, otherwise Sunday
     if (dayIndex >= 0 && dayIndex <= 4) {
       return WEEK_DAYS[dayIndex];
+    }
+    if (dayIndex === 5 && fridayEnabled) {
+      return 'friday';
     }
     return 'sunday';
   });
@@ -28,7 +36,10 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
   const [editingTime, setEditingTime] = useState('');
 
   const todayIndex = new Date().getDay();
-  const isToday = (day: WeekDay) => WEEK_DAYS.indexOf(day) === todayIndex;
+  const isToday = (day: WeekDay) => {
+    const dayIdx = displayDays.indexOf(day);
+    return dayIdx === todayIndex;
+  };
 
   const selectedSchedule = timetable[selectedDay] || [];
 
@@ -95,7 +106,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
     <div className="space-y-4">
       {/* Day Selector */}
       <div className="flex gap-1 p-1 bg-secondary/50 rounded-xl">
-        {WEEK_DAYS.map((day) => {
+        {displayDays.map((day) => {
           const isActive = selectedDay === day;
           const isTodayDay = isToday(day);
           const daySchedule = timetable[day] || [];
@@ -305,7 +316,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
             <thead>
               <tr>
                 <th className="text-left py-2 px-1 text-muted-foreground font-medium w-12">Time</th>
-                {WEEK_DAYS.map(day => (
+                {displayDays.map(day => (
                   <th 
                     key={day} 
                     className={cn(
@@ -320,10 +331,10 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
             </thead>
             <tbody>
               {/* Get all unique times across all days */}
-              {getAllUniqueTimes(timetable).map((time, idx) => (
+              {getAllUniqueTimes(timetable, displayDays).map((time, idx) => (
                 <tr key={idx} className="border-t border-border/50">
                   <td className="py-2 px-1 text-muted-foreground font-medium">{time}</td>
-                  {WEEK_DAYS.map(day => {
+                  {displayDays.map(day => {
                     const period = (timetable[day] || []).find(p => p.startTime === time);
                     return (
                       <td 
@@ -368,9 +379,9 @@ function incrementTime(time: string, minutes: number): string {
 }
 
 // Helper to get all unique times across the week
-function getAllUniqueTimes(timetable: Timetable): string[] {
+function getAllUniqueTimes(timetable: Timetable, days: WeekDay[]): string[] {
   const times = new Set<string>();
-  WEEK_DAYS.forEach(day => {
+  days.forEach(day => {
     (timetable[day] || []).forEach(period => {
       if (period.subject) {
         times.add(period.startTime);

@@ -29,6 +29,7 @@ interface ParentModeProps {
   appTitle: string;
   timetable: Timetable;
   lessonRemindersEnabled: boolean;
+  fridayEnabled: boolean;
   storeRewards: StoreReward[];
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
@@ -37,6 +38,7 @@ interface ParentModeProps {
   onUpdateAppTitle: (title: string) => void;
   onUpdateTimetable: (timetable: Timetable) => void;
   onToggleLessonReminders: (enabled: boolean) => void;
+  onToggleFridayEnabled: (enabled: boolean) => void;
   onUpdateStoreRewards: (rewards: StoreReward[]) => void;
 }
 
@@ -57,6 +59,7 @@ export function ParentMode({
   appTitle,
   timetable,
   lessonRemindersEnabled,
+  fridayEnabled,
   storeRewards,
   onUpdateTask,
   onAddTask,
@@ -65,6 +68,7 @@ export function ParentMode({
   onUpdateAppTitle,
   onUpdateTimetable,
   onToggleLessonReminders,
+  onToggleFridayEnabled,
   onUpdateStoreRewards,
 }: ParentModeProps) {
   const { members, children, loading: membersLoading } = useFamilyMembers();
@@ -283,6 +287,8 @@ export function ParentMode({
                     handleSaveGoal={handleSaveGoal}
                     lessonRemindersEnabled={lessonRemindersEnabled}
                     onToggleLessonReminders={onToggleLessonReminders}
+                    fridayEnabled={fridayEnabled}
+                    onToggleFridayEnabled={onToggleFridayEnabled}
                   />
                 )}
 
@@ -420,6 +426,8 @@ interface GeneralSettingsProps {
   handleSaveGoal: () => void;
   lessonRemindersEnabled: boolean;
   onToggleLessonReminders: (enabled: boolean) => void;
+  fridayEnabled: boolean;
+  onToggleFridayEnabled: (enabled: boolean) => void;
 }
 
 function GeneralSettings({
@@ -431,6 +439,8 @@ function GeneralSettings({
   handleSaveGoal,
   lessonRemindersEnabled,
   onToggleLessonReminders,
+  fridayEnabled,
+  onToggleFridayEnabled,
 }: GeneralSettingsProps) {
   return (
     <div className="space-y-6">
@@ -500,6 +510,23 @@ function GeneralSettings({
         </div>
         <p className="text-sm text-muted-foreground mt-2">
           Get notified 5 minutes before each lesson starts.
+        </p>
+      </div>
+
+      {/* Friday School Day Toggle */}
+      <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <Label className="text-foreground font-semibold">Friday School Day</Label>
+          </div>
+          <Switch
+            checked={fridayEnabled}
+            onCheckedChange={onToggleFridayEnabled}
+          />
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">
+          Enable Friday as a school day (for short Friday schedules).
         </p>
       </div>
     </div>
