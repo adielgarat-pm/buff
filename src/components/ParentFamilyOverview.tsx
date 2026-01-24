@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { User, Users, Zap, ChevronRight, Eye, Settings as SettingsIcon, Sparkles, Loader2, Check } from 'lucide-react';
+import { User, Users, Zap, ChevronRight, Eye, Settings as SettingsIcon, Sparkles, Loader2, Check, Pencil, X } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildProgress } from '@/hooks/useChildProgress';
 import { useCleanDayBonus } from '@/hooks/useCleanDayBonus';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ParentFamilyOverviewProps {
   onSelectChild: (childId: string) => void;
@@ -19,8 +22,47 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
   const { children, loading: membersLoading } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
+  
+  const [editingGoalFor, setEditingGoalFor] = useState<string | null>(null);
+  const [editGoalValue, setEditGoalValue] = useState<number>(100);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   const loading = membersLoading || progressLoading;
+
+  const handleStartEditGoal = (childId: string, currentGoal: number) => {
+    setEditingGoalFor(childId);
+    setEditGoalValue(currentGoal);
+  };
+
+  const handleSaveGoal = async (childId: string) => {
+    if (editGoalValue < 10 || editGoalValue > 1000) {
+      toast.error('יעד חייב להיות בין 10 ל-1000');
+      return;
+    }
+
+    setSavingGoal(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ daily_goal: editGoalValue })
+        .eq('id', childId);
+
+      if (error) throw error;
+
+      toast.success('היעד עודכן בהצלחה!');
+      setEditingGoalFor(null);
+      refetch();
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      toast.error('שגיאה בעדכון היעד');
+    } finally {
+      setSavingGoal(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingGoalFor(null);
+  };
 
   const handleAwardBonus = async (childId: string, childName: string) => {
     const success = await awardCleanDayBonus(childId, childName);
@@ -96,10 +138,43 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
-                            {progress && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                            {progress && editingGoalFor !== child.id && (
+                              <button
+                                onClick={() => handleStartEditGoal(child.id, progress.dailyGoal)}
+                                className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium hover:bg-primary/30 transition-colors"
+                              >
                                 יעד: {progress.dailyGoal}
-                              </span>
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            )}
+                            {editingGoalFor === child.id && (
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  type="number"
+                                  value={editGoalValue}
+                                  onChange={(e) => setEditGoalValue(Number(e.target.value))}
+                                  className="w-20 h-7 text-xs px-2"
+                                  min={10}
+                                  max={1000}
+                                  dir="ltr"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="h-7 px-2"
+                                  onClick={() => handleSaveGoal(child.id)}
+                                  disabled={savingGoal}
+                                >
+                                  {savingGoal ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2"
+                                  onClick={handleCancelEdit}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
                             )}
                           </div>
                           {progress && (
