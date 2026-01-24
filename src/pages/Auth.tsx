@@ -29,7 +29,7 @@ export default function Auth() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/app');
     }
   }, [user, navigate]);
 
@@ -52,7 +52,7 @@ export default function Auth() {
       }
     } else {
       toast.success('Welcome back!');
-      navigate('/');
+      navigate('/app');
     }
   };
 
@@ -85,7 +85,7 @@ export default function Auth() {
       }
     } else {
       toast.success('Account created! Welcome to the family!');
-      navigate('/');
+      navigate('/app');
     }
   };
 
