@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTaskStore } from '@/hooks/useTaskStore';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Header } from '@/components/Header';
@@ -11,9 +11,6 @@ import { RewardsStore } from '@/components/RewardsStore';
 import { WeeklySummary } from '@/components/WeeklySummary';
 import { InstallPWA } from '@/components/InstallPWA';
 import { NotificationPrompt } from '@/components/NotificationPrompt';
-import { GoalCelebration } from '@/components/GoalCelebration';
-import { LevelUpNotification } from '@/components/LevelUpNotification';
-import { DailySummary } from '@/components/DailySummary';
 import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
@@ -21,14 +18,7 @@ const Index = () => {
   const [parentModeOpen, setParentModeOpen] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
   const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
-  const [dailySummaryOpen, setDailySummaryOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
-  const [showGoalCelebration, setShowGoalCelebration] = useState(false);
-  const [showLevelUp, setShowLevelUp] = useState(false);
-  const [levelUpReward, setLevelUpReward] = useState<{ title: string; icon: string } | null>(null);
-  const previousGoalReached = useRef(false);
-  const previousRedeemedCount = useRef(0);
-  
   const [weeklySummaryDismissed, setWeeklySummaryDismissed] = useState(() => {
     const dismissed = localStorage.getItem('weeklySummaryDismissed');
     if (dismissed) {
@@ -37,15 +27,6 @@ const Index = () => {
     }
     return false;
   });
-  const [goalCelebrationDismissed, setGoalCelebrationDismissed] = useState(() => {
-    const dismissed = localStorage.getItem('goalCelebrationDismissed');
-    if (dismissed) {
-      const { date } = JSON.parse(dismissed);
-      return date === new Date().toISOString().split('T')[0];
-    }
-    return false;
-  });
-  
   const currentPhase = getCurrentPhase();
   
   const {
@@ -61,7 +42,6 @@ const Index = () => {
     lessonRemindersEnabled,
     totalBalance,
     storeRewards,
-    respectfulLearningBonus,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -74,8 +54,6 @@ const Index = () => {
     toggleLessonReminders,
     redeemStoreReward,
     updateStoreRewards,
-    toggleRespectfulLearningBonus,
-    updateLessonNote,
     lessons,
   } = useTaskStore();
 
@@ -90,36 +68,6 @@ const Index = () => {
   // Weekly summary data
   const weeklySummaryData = useWeeklySummary(tasks, storeRewards);
   const showWeeklySummary = isSaturday() && !weeklySummaryDismissed;
-
-  // Check for goal reached celebration
-  const goalReached = earnedCredits >= dailyGoal;
-  useEffect(() => {
-    if (goalReached && !previousGoalReached.current && !goalCelebrationDismissed) {
-      setShowGoalCelebration(true);
-    }
-    previousGoalReached.current = goalReached;
-  }, [goalReached, goalCelebrationDismissed]);
-
-  // Check for reward redemption (Level Up)
-  const claimedRewards = storeRewards.filter(r => r.claimed);
-  useEffect(() => {
-    if (claimedRewards.length > previousRedeemedCount.current) {
-      const newlyRedeemed = claimedRewards[claimedRewards.length - 1];
-      if (newlyRedeemed) {
-        setLevelUpReward({ title: newlyRedeemed.title, icon: newlyRedeemed.icon });
-        setShowLevelUp(true);
-      }
-    }
-    previousRedeemedCount.current = claimedRewards.length;
-  }, [claimedRewards]);
-
-  const handleDismissGoalCelebration = () => {
-    setShowGoalCelebration(false);
-    setGoalCelebrationDismissed(true);
-    localStorage.setItem('goalCelebrationDismissed', JSON.stringify({
-      date: new Date().toISOString().split('T')[0]
-    }));
-  };
 
   const handleDismissWeeklySummary = () => {
     setWeeklySummaryDismissed(true);
@@ -176,47 +124,6 @@ const Index = () => {
     };
   }, [completeTask]);
 
-  // Show Goal Celebration
-  if (showGoalCelebration) {
-    return (
-      <GoalCelebration
-        isVisible={true}
-        earnedCredits={earnedCredits}
-        goal={dailyGoal}
-        onClose={handleDismissGoalCelebration}
-      />
-    );
-  }
-
-  // Show Level Up Notification
-  if (showLevelUp && levelUpReward) {
-    return (
-      <LevelUpNotification
-        isVisible={true}
-        rewardTitle={levelUpReward.title}
-        rewardIcon={levelUpReward.icon}
-        onClose={() => {
-          setShowLevelUp(false);
-          setLevelUpReward(null);
-        }}
-      />
-    );
-  }
-
-  // Show Daily Summary
-  if (dailySummaryOpen) {
-    return (
-      <DailySummary
-        tasks={tasks}
-        lessons={lessons}
-        earnedCredits={earnedCredits}
-        dailyGoal={dailyGoal}
-        respectfulLearningBonus={respectfulLearningBonus}
-        onClose={() => setDailySummaryOpen(false)}
-      />
-    );
-  }
-
   // Show Weekly Summary on Saturday (auto) or manually opened
   if (showWeeklySummary || weeklySummaryOpen) {
     return (
@@ -254,7 +161,6 @@ const Index = () => {
           onOpenSettings={() => setParentModeOpen(true)} 
           onOpenStore={() => setStoreOpen(true)}
           onOpenWeeklySummary={() => setWeeklySummaryOpen(true)}
-          onOpenDailySummary={() => setDailySummaryOpen(true)}
           totalBalance={totalBalance}
           appTitle={appTitle}
         />
@@ -282,12 +188,9 @@ const Index = () => {
             lessons={todayLessons}
             timetable={timetable}
             todaySchedule={todaySchedule}
-            respectfulLearningBonus={respectfulLearningBonus}
             onCompleteTask={completeTask}
             onUncompleteTask={uncompleteTask}
             onToggleLesson={toggleLesson}
-            onToggleRespectfulLearningBonus={toggleRespectfulLearningBonus}
-            onUpdateLessonNote={updateLessonNote}
           />
 
           {/* Rewards Section - Only show when relevant */}

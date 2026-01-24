@@ -79,8 +79,6 @@ export function useTaskStore() {
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>(DEFAULT_STORE_REWARDS);
   const [lastVaultDate, setLastVaultDate] = useState<string>('');
-  const [respectfulLearningBonus, setRespectfulLearningBonus] = useState(false);
-  const [lessonNotes, setLessonNotes] = useState<Record<string, string>>({});
 
   // Initialize tasks, lessons, timetable, and vault from localStorage or defaults
   useEffect(() => {
@@ -106,10 +104,7 @@ export function useTaskStore() {
       setLessons(DEFAULT_LESSONS.map((lesson) => ({
         ...lesson,
         completed: progress.completedLessons?.includes(lesson.id) || false,
-        note: progress.lessonNotes?.[lesson.id] || undefined,
       })));
-      setRespectfulLearningBonus(progress.respectfulLearningBonus || false);
-      setLessonNotes(progress.lessonNotes || {});
     } else {
       setTasks(baseTasks.map((task: Omit<Task, 'completed' | 'completedAt'>) => ({
         ...task,
@@ -119,8 +114,6 @@ export function useTaskStore() {
         ...lesson,
         completed: false,
       })));
-      setRespectfulLearningBonus(false);
-      setLessonNotes({});
     }
 
     if (storedRewards) {
@@ -162,16 +155,13 @@ export function useTaskStore() {
     const todayKey = getTodayKey();
     const taskCredits = tasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
     const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
-    const bonusCredits = respectfulLearningBonus ? 20 : 0;
-    const todayEarned = taskCredits + lessonCredits + bonusCredits;
+    const todayEarned = taskCredits + lessonCredits;
     
     const progress: DailyProgress = {
       date: todayKey,
       earnedCredits: todayEarned,
       completedTasks: tasks.filter(t => t.completed).map(t => t.id),
       completedLessons: lessons.filter(l => l.completed).map(l => l.id),
-      respectfulLearningBonus,
-      lessonNotes,
     };
     localStorage.setItem(`progress_${todayKey}`, JSON.stringify(progress));
 
@@ -209,7 +199,7 @@ export function useTaskStore() {
         }
       }
     }
-  }, [tasks, lessons, respectfulLearningBonus, lessonNotes]);
+  }, [tasks, lessons]);
 
   const completeTask = useCallback((taskId: string) => {
     setTasks(prev => prev.map(task => 
@@ -279,22 +269,6 @@ export function useTaskStore() {
     ));
   }, []);
 
-  const toggleRespectfulLearningBonus = useCallback(() => {
-    setRespectfulLearningBonus(prev => !prev);
-  }, []);
-
-  const updateLessonNote = useCallback((lessonId: string, note: string) => {
-    setLessonNotes(prev => ({
-      ...prev,
-      [lessonId]: note,
-    }));
-    setLessons(prev => prev.map(lesson =>
-      lesson.id === lessonId
-        ? { ...lesson, note }
-        : lesson
-    ));
-  }, []);
-
   const updateTimetable = useCallback((newTimetable: Timetable) => {
     setTimetable(newTimetable);
     localStorage.setItem('timetable', JSON.stringify(newTimetable));
@@ -360,9 +334,8 @@ export function useTaskStore() {
 
   const taskCredits = visibleTasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
   const lessonCredits = isWeekend() ? 0 : lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
-  const bonusCredits = respectfulLearningBonus && !isWeekend() ? 20 : 0;
-  const earnedCredits = taskCredits + lessonCredits + bonusCredits;
-  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isWeekend() ? 0 : lessons.reduce((sum, l) => sum + l.credits, 0)) + (isWeekend() ? 0 : 20);
+  const earnedCredits = taskCredits + lessonCredits;
+  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isWeekend() ? 0 : lessons.reduce((sum, l) => sum + l.credits, 0));
   const progressPercent = dailyGoal > 0 ? Math.min((earnedCredits / dailyGoal) * 100, 100) : 0;
   const unlockedRewards = rewards.filter(r => earnedCredits >= r.requiredCredits);
 
@@ -382,8 +355,6 @@ export function useTaskStore() {
     lessonRemindersEnabled,
     totalBalance,
     storeRewards,
-    respectfulLearningBonus,
-    lessonNotes,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -396,7 +367,5 @@ export function useTaskStore() {
     toggleLessonReminders,
     redeemStoreReward,
     updateStoreRewards,
-    toggleRespectfulLearningBonus,
-    updateLessonNote,
   };
 }

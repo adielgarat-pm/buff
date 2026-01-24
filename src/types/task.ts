@@ -44,7 +44,6 @@ export interface Lesson {
   label: string;
   credits: number;
   completed: boolean;
-  note?: string; // Optional reflection note for incomplete lessons
 }
 
 export interface Reward {
@@ -68,8 +67,6 @@ export interface DailyProgress {
   earnedCredits: number;
   completedTasks: string[]; // task IDs
   completedLessons: string[]; // lesson IDs
-  respectfulLearningBonus?: boolean; // +20 bonus for no behavioral issues
-  lessonNotes?: Record<string, string>; // lesson ID -> reflection note
 }
 
 export interface VaultData {

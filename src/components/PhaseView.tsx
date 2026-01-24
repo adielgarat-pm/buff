@@ -4,7 +4,6 @@ import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
 import { SchoolDaySection } from './SchoolDaySection';
 import { DailySchedule } from './DailySchedule';
-import { RespectfulLearningBonus } from './RespectfulLearningBonus';
 import { Timetable } from '@/types/task';
 
 interface PhaseViewProps {
@@ -13,12 +12,9 @@ interface PhaseViewProps {
   lessons: (Lesson & { displayLabel?: string })[];
   timetable: Timetable;
   todaySchedule: PeriodInfo[];
-  respectfulLearningBonus: boolean;
   onCompleteTask: (id: string) => void;
   onUncompleteTask: (id: string) => void;
   onToggleLesson: (id: string) => void;
-  onToggleRespectfulLearningBonus: () => void;
-  onUpdateLessonNote: (lessonId: string, note: string) => void;
 }
 
 export function PhaseView({
@@ -27,12 +23,9 @@ export function PhaseView({
   lessons,
   timetable,
   todaySchedule,
-  respectfulLearningBonus,
   onCompleteTask,
   onUncompleteTask,
   onToggleLesson,
-  onToggleRespectfulLearningBonus,
-  onUpdateLessonNote,
 }: PhaseViewProps) {
   const phaseConfig = getPhaseConfig(phase);
   
@@ -54,14 +47,11 @@ export function PhaseView({
   const phaseCompleted = isSchoolPhase 
     ? completedTasks.length + completedLessons.length 
     : completedTasks.length;
-  
-  // Include bonus credits in school phase
-  const bonusCredits = isSchoolPhase && respectfulLearningBonus ? 20 : 0;
   const phaseEarnedCredits = isSchoolPhase 
-    ? earnedCredits + lessonCredits + bonusCredits
+    ? earnedCredits + lessonCredits 
     : earnedCredits;
   const phaseTotalCredits = isSchoolPhase 
-    ? totalCredits + totalLessonCredits + 20 // +20 for potential bonus
+    ? totalCredits + totalLessonCredits 
     : totalCredits;
 
   return (
@@ -85,12 +75,6 @@ export function PhaseView({
             lessons={lessons}
             todaySchedule={todaySchedule}
             onToggleLesson={onToggleLesson}
-            onUpdateLessonNote={onUpdateLessonNote}
-          />
-          {/* Respectful Learning Bonus - only show on school days */}
-          <RespectfulLearningBonus
-            isActive={respectfulLearningBonus}
-            onToggle={onToggleRespectfulLearningBonus}
           />
         </div>
       )}
