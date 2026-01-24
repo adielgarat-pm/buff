@@ -1,4 +1,4 @@
-import { Settings, Vault, CalendarDays, LogOut, User, Zap } from 'lucide-react';
+import { Settings, Vault, CalendarDays, LogOut, User } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import buffLogo from '@/assets/buff-logo.png';
 
 interface HeaderProps {
   onOpenSettings?: () => void;
@@ -18,24 +19,19 @@ interface HeaderProps {
   userName?: string;
 }
 
-// BUFF Logo Component with lightning bolt in the 'U'
+// BUFF Logo Component with image
 function BuffLogo() {
   return (
-    <span className="flex items-center font-display text-2xl font-black tracking-wider">
-      <span className="text-primary">B</span>
-      <span className="relative inline-flex items-center justify-center">
-        <span className="text-primary">U</span>
-        <Zap 
-          className="absolute w-3 h-3 text-buff fill-buff" 
-          style={{ 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -45%)',
-          }} 
-        />
+    <div className="flex items-center gap-2">
+      <img 
+        src={buffLogo} 
+        alt="BUFF Logo" 
+        className="h-10 w-10 object-contain"
+      />
+      <span className="font-display text-2xl font-black tracking-wider text-primary">
+        BUFF
       </span>
-      <span className="text-primary">FF</span>
-    </span>
+    </div>
   );
 }
 
