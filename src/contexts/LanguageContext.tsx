@@ -151,7 +151,16 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.timetable': 'מערכת',
     'nav.store': 'חנות',
     
-    // Progress
+    // Focus Fuel
+    'fuel.charging': 'רמת מיקוד: נטען...',
+    'fuel.halfway': 'חצי דרך! מצוין!',
+    'fuel.almostFull': 'כמעט שם! המשך כך!',
+    'fuel.full': 'טעון במלואו! זמן להפסקה?',
+    'fuel.skillBadge': 'תג כישורים',
+    'fuel.buffs': 'באפים',
+    'fuel.dailyReset': 'המד מתאפס כל בוקר - כל יום הוא התחלה חדשה!',
+    
+    // Progress (legacy)
     'progress.dailyXP': 'XP יומי',
     'progress.levelComplete': 'הרמה הושלמה! 🎉',
     'progress.keepGoing': 'המשך להתחזק!',
@@ -317,7 +326,16 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.timetable': 'Timetable',
     'nav.store': 'Store',
     
-    // Progress
+    // Focus Fuel
+    'fuel.charging': 'Focus Level: Charging...',
+    'fuel.halfway': 'Halfway there! Excellent!',
+    'fuel.almostFull': 'Almost there! Keep going!',
+    'fuel.full': 'Fully Charged! Time for a break?',
+    'fuel.skillBadge': 'Skill Badge',
+    'fuel.buffs': 'Buffs',
+    'fuel.dailyReset': 'Meter resets every morning - every day is a fresh start!',
+    
+    // Progress (legacy)
     'progress.dailyXP': 'Daily XP',
     'progress.levelComplete': 'Level Complete! 🎉',
     'progress.keepGoing': 'Keep powering up!',

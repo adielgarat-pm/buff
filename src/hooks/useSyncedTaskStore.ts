@@ -49,6 +49,19 @@ export function useSyncedTaskStore() {
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buffsActivatedToday, setBuffsActivatedToday] = useState(() => {
+    const saved = localStorage.getItem(`buffs_${getTodayKey()}`);
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  // Function to track buff activation
+  const activateBuff = useCallback(() => {
+    setBuffsActivatedToday(prev => {
+      const newCount = prev + 1;
+      localStorage.setItem(`buffs_${getTodayKey()}`, String(newCount));
+      return newCount;
+    });
+  }, []);
 
   const todayKey = getTodayKey();
   const isParent = profile?.role === 'parent';
@@ -676,6 +689,7 @@ export function useSyncedTaskStore() {
     lessonRemindersEnabled,
     totalBalance,
     storeRewards,
+    buffsActivatedToday,
     completeTask,
     uncompleteTask,
     updateTask,
@@ -688,5 +702,6 @@ export function useSyncedTaskStore() {
     toggleLessonReminders,
     redeemStoreReward,
     updateStoreRewards,
+    activateBuff,
   };
 }
