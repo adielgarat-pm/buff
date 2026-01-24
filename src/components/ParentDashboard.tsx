@@ -190,7 +190,7 @@ export function ParentDashboard({
         {/* Children Section */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-accent" />
+            <Sparkles className="w-4 h-4 text-primary" />
             <h2 className="font-semibold text-foreground">Children</h2>
           </div>
 
@@ -226,8 +226,8 @@ export function ParentDashboard({
                   >
                     <AccordionTrigger className="px-5 py-4 hover:no-underline touch-target">
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                          <User className="w-6 h-6 text-accent" />
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                          <User className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1 text-left">
                           <p className="font-semibold text-foreground">{child.displayName}</p>
