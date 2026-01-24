@@ -1,5 +1,6 @@
 import { Phase, PHASES, getPhaseConfig } from '@/types/phase';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PhaseNavigationProps {
   activePhase: Phase;
@@ -14,6 +15,8 @@ export function PhaseNavigation({
   onPhaseChange,
   phaseStats 
 }: PhaseNavigationProps) {
+  const { language } = useLanguage();
+  
   return (
     <div className="flex gap-1 p-1 bg-secondary/50 rounded-2xl backdrop-blur-sm">
       {PHASES.map((phase) => {
@@ -21,6 +24,7 @@ export function PhaseNavigation({
         const isCurrent = currentPhase === phase.id;
         const stats = phaseStats[phase.id];
         const isComplete = stats.total > 0 && stats.completed === stats.total;
+        const label = language === 'he' ? phase.shortLabelHe : phase.shortLabel;
         
         return (
           <button
@@ -47,7 +51,7 @@ export function PhaseNavigation({
               "text-xs font-medium transition-colors",
               isActive ? "text-foreground" : "text-muted-foreground"
             )}>
-              {phase.shortLabel}
+              {label}
             </span>
             
             {/* Stats */}
