@@ -22,7 +22,8 @@ export function FamilyCodeDisplay({ familyId }: FamilyCodeDisplayProps) {
   };
 
   const handleShare = async () => {
-    const appUrl = window.location.origin;
+    // Use the published app URL, not the preview URL
+    const appUrl = 'https://buff.lovable.app';
     const shareText = `🎮 הצטרף/י למשפחה שלנו ב-Daily Quests!
 
 📱 איך להצטרף:
