@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Bell, Calendar, Save, User, BookOpen, Gift, Upload, ChevronRight, ArrowRight, GraduationCap, Lightbulb } from 'lucide-react';
+import { Settings, Bell, Calendar, Save, User, BookOpen, Gift, Upload, ChevronRight, ArrowRight, GraduationCap, Lightbulb, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -244,6 +244,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     timetable,
     storeRewards,
     dailyGoal,
+    totalBalance,
     schoolQuestEnabled,
     loading,
     addTask,
@@ -252,6 +253,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     updateTimetable,
     updateStoreRewards,
     updateDailyGoal,
+    updateTotalBalance,
     toggleSchoolQuestEnabled,
     initializeChildData,
   } = useChildData(childId);
@@ -261,6 +263,14 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   const [storeEditorOpen, setStoreEditorOpen] = useState(false);
   const [scheduleImporterOpen, setScheduleImporterOpen] = useState(false);
   const [showSchoolQuestTip, setShowSchoolQuestTip] = useState(false);
+  
+  const [editingBalance, setEditingBalance] = useState(false);
+  const [localBalance, setLocalBalance] = useState(totalBalance);
+  const [savingBalance, setSavingBalance] = useState(false);
+
+  useEffect(() => {
+    setLocalBalance(totalBalance);
+  }, [totalBalance]);
 
   useEffect(() => {
     initializeChildData();
@@ -295,6 +305,23 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     }
   };
 
+  const handleSaveBalance = async () => {
+    if (localBalance < 0) {
+      toast.error('יתרה לא יכולה להיות שלילית');
+      return;
+    }
+    setSavingBalance(true);
+    try {
+      await updateTotalBalance(localBalance);
+      toast.success('היתרה עודכנה בהצלחה!');
+      setEditingBalance(false);
+    } catch (error) {
+      toast.error('שגיאה בעדכון היתרה');
+    } finally {
+      setSavingBalance(false);
+    }
+  };
+
   const sections = [
     { id: 'tasks' as const, label: 'משימות', icon: BookOpen },
     { id: 'schedule' as const, label: 'מערכת', icon: Calendar },
@@ -303,6 +330,55 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
 
   return (
     <div className="space-y-4">
+      {/* Credit Balance */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">💰</span>
+          <span className="text-sm font-medium text-foreground">יתרת קרדיטים</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {editingBalance ? (
+            <>
+              <Input
+                type="number"
+                value={localBalance}
+                onChange={(e) => setLocalBalance(Number(e.target.value))}
+                className="w-24 h-8 bg-background border-border text-center text-sm"
+                min={0}
+                dir="ltr"
+              />
+              <Button 
+                size="sm" 
+                className="h-8 px-3"
+                onClick={handleSaveBalance}
+                disabled={savingBalance}
+              >
+                {savingBalance ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                className="h-8 px-2"
+                onClick={() => {
+                  setEditingBalance(false);
+                  setLocalBalance(totalBalance);
+                }}
+              >
+                ×
+              </Button>
+            </>
+          ) : (
+            <button
+              onClick={() => setEditingBalance(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background border border-border hover:bg-secondary transition-colors"
+            >
+              <span className="font-bold text-primary">{totalBalance.toLocaleString()}</span>
+              <Pencil className="w-3 h-3 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Daily Goal */}
       <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
         <span className="text-sm text-foreground">יעד יומי</span>
