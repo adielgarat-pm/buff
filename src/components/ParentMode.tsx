@@ -797,6 +797,23 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
 
         {/* Rewards Tab */}
         <TabsContent value="rewards" className="mt-4">
+          {/* Coach's Tip Box */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/20">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-600 dark:text-amber-400 text-sm mb-1">
+                  💡 טיפ מהמאמן
+                </p>
+                <p className="text-sm text-foreground/80 leading-relaxed" dir="rtl">
+                  שקיפות ושיתוף: זכרו, אתם המאמנים ולא הבוסים. כשמגדירים פרס, עשו זאת בשיחה עם הילד ושאלו: "מה יעזור לך להשיג את הפרס הזה?". זה הזמן למצוא יחד את האסטרטגיה המנצחת.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="p-4 rounded-xl bg-secondary/50 border border-border">
             <div className="flex items-center justify-between mb-3">
               <div>
