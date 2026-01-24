@@ -401,14 +401,14 @@ export function ScheduleImporter({ onImport, onClose, childName }: ScheduleImpor
                       <div className="flex items-center gap-2">
                         <Zap className="w-4 h-4 text-buff" />
                         <Select
-                          value={task.strategyId || ''}
-                          onValueChange={(val) => updateTask(task.id, { strategyId: val || undefined })}
+                          value={task.strategyId || 'none'}
+                          onValueChange={(val) => updateTask(task.id, { strategyId: val === 'none' ? undefined : val })}
                         >
                           <SelectTrigger className="text-sm">
                             <SelectValue placeholder="Daily Buff (optional)" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">No Buff</SelectItem>
+                            <SelectItem value="none">No Buff</SelectItem>
                             {STRATEGIES.map(strategy => (
                               <SelectItem key={strategy.id} value={strategy.id}>
                                 {strategy.icon} {strategy.title}
