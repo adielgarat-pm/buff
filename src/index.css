@@ -277,6 +277,55 @@
   }
 }
 
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(300px) rotate(720deg) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes xp-fly {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -150%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -300%) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes buff-lightning {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px hsl(84, 100%, 59%));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px hsl(84, 100%, 59%));
+    transform: scale(1.1);
+  }
+}
+
+@keyframes quest-complete {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -336,4 +385,57 @@
 
 .animate-progress-fill {
   animation: progress-fill 1s ease-out forwards;
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall 1.2s ease-out forwards;
+}
+
+.animate-xp-fly {
+  animation: xp-fly 0.8s ease-out forwards;
+}
+
+.animate-buff-lightning {
+  animation: buff-lightning 1.5s ease-in-out infinite;
+}
+
+.animate-quest-complete {
+  background-size: 200% 200%;
+  animation: quest-complete 2s ease infinite;
+}
+
+/* Quest Card Styles */
+.quest-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.quest-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, hsl(84, 100%, 59%, 0.05) 50%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.quest-card:hover::before {
+  opacity: 1;
+}
+
+/* Buff Button Glow */
+.buff-button-glow {
+  position: relative;
+}
+
+.buff-button-glow::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: hsl(84, 100%, 59%);
+  border-radius: inherit;
+  opacity: 0.3;
+  filter: blur(8px);
+  z-index: -1;
+  animation: buff-pulse 2s ease-in-out infinite;
 }
