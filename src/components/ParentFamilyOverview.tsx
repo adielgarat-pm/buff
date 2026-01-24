@@ -147,7 +147,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                       className={cn(
                         "w-full touch-target transition-all",
                         bonusAwarded
-                          ? "border-accent text-accent bg-transparent"
+                          ? "border-accent/50 text-muted-foreground bg-transparent"
                           : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                       )}
                     >
