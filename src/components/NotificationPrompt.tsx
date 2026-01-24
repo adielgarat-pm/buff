@@ -67,10 +67,10 @@ export function NotificationPrompt({ permission, onRequestPermission }: Notifica
           </div>
           
           <h2 className="text-xl font-bold text-center text-foreground">
-            Never Miss a Quest!
+            Never Miss a Buff!
           </h2>
           <p className="mt-2 text-center text-muted-foreground text-sm">
-            Get reminders for tasks, medications, and lessons — even when the app is closed.
+            Get Buff Alerts for quests, medications, and lessons — even when the app is closed.
           </p>
         </div>
 

@@ -15,7 +15,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const translations: Record<Language, Record<string, string>> = {
   he: {
     // General
-    'app.tagline': 'כוח-העל לתפקודים הניהוליים',
+    'app.tagline': 'באף את השגרה, שחרר את הפוטנציאל',
     'app.syncProgress': 'התחבר כדי לסנכרן את ההתקדמות שלך',
     
     // Auth
@@ -196,7 +196,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   en: {
     // General
-    'app.tagline': 'Your Executive Function Power-up',
+    'app.tagline': 'Buff your routine, unlock your potential',
     'app.syncProgress': 'Sign in to sync your progress across devices',
     
     // Auth

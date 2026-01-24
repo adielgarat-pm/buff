@@ -221,6 +221,45 @@ export type Database = {
           },
         ]
       }
+      lesson_reflections: {
+        Row: {
+          child_id: string
+          created_at: string
+          date: string
+          difficulty_rating: number | null
+          family_id: string
+          id: string
+          lesson_key: string
+          reflection: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          date: string
+          difficulty_rating?: number | null
+          family_id: string
+          id?: string
+          lesson_key: string
+          reflection?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          date?: string
+          difficulty_rating?: number | null
+          family_id?: string
+          id?: string
+          lesson_key?: string
+          reflection?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

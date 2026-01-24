@@ -56,6 +56,10 @@ export default {
           DEFAULT: "hsl(var(--buff))",
           foreground: "hsl(var(--buff-foreground))",
         },
+        streak: {
+          DEFAULT: "hsl(var(--streak))",
+          foreground: "hsl(var(--streak-foreground))",
+        },
         reward: {
           DEFAULT: "hsl(var(--reward))",
           foreground: "hsl(var(--reward-foreground))",

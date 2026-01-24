@@ -48,6 +48,10 @@
     --buff: 112 100% 54%;
     --buff-foreground: 0 0% 0%;
 
+    /* Orange for streaks - #F97316 */
+    --streak: 24 95% 53%;
+    --streak-foreground: 0 0% 0%;
+
     /* Electric Purple for rewards - #8B5CF6 */
     --reward: 262 83% 66%;
     --reward-foreground: 0 0% 100%;

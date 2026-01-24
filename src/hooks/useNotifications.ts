@@ -144,15 +144,15 @@ export function useNotifications() {
       if (taskTime > today) {
         scheduleNotification(
           task.id,
-          `Time for: ${task.title}`,
-          `Complete this task to earn ${task.credits} credits! 🌟`,
+          `⚡ Buff Time: ${task.title}`,
+          `Complete this quest to earn ${task.credits} Buff Points! 🎮`,
           taskTime
         );
       }
     });
   }, [permission, scheduleNotification]);
 
-  // Schedule lesson notifications (5 minutes before)
+  // Schedule lesson notifications (5 minutes before) - Smart Buff Alerts
   const scheduleLessonNotifications = useCallback((
     schedule: PeriodInfo[],
     enabled: boolean
@@ -168,14 +168,14 @@ export function useNotifications() {
       const lessonTime = new Date(today);
       lessonTime.setHours(hours, minutes, 0, 0);
       
-      // Notify 5 minutes before
+      // Notify 5 minutes before - Smart Buff Alert
       const notifyTime = new Date(lessonTime.getTime() - 5 * 60 * 1000);
 
       if (notifyTime > today) {
         scheduleNotification(
           `lesson_${index}`,
-          `${period.subject} starts in 5 minutes!`,
-          `Get ready for your next class 📚`,
+          `🎯 Your ${period.subject} quest starts in 5 minutes!`,
+          `Get ready to Buff up! 🏆`,
           notifyTime
         );
       }
