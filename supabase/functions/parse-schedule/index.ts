@@ -59,14 +59,80 @@ serve(async (req) => {
     let parsedTasks: ParsedTask[] = [];
 
     if (fileType === 'excel' && excelData) {
-      // Parse Excel data (already parsed on client side)
-      parsedTasks = excelData.map((row: any) => ({
-        title: row.title || row.subject || row.task || 'Untitled Task',
-        time: row.time || row.startTime || '09:00',
-        day: row.day || row.weekday || 'sunday',
-        category: guessCategory(row.title || row.subject || ''),
-        credits: guessCredits(row.title || row.subject || ''),
-      }));
+      // Use AI to intelligently parse the Excel data structure
+      console.log("Received Excel data:", JSON.stringify(excelData).substring(0, 1000));
+      
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: `You parse school timetable data from spreadsheets into a JSON array.
+The input data can have various formats:
+- Rows might represent time slots with columns for each day
+- Or rows might represent days with columns for time slots
+- Column headers might be in Hebrew (ראשון=Sunday, שני=Monday, שלישי=Tuesday, רביעי=Wednesday, חמישי=Thursday, שישי=Friday)
+- Time might be in the first column or row headers
+
+Output ONLY a valid JSON array, no markdown, no explanation.
+Each item must have: {"title":"Subject Name","time":"HH:MM","day":"dayname"}
+Days MUST be lowercase English: sunday, monday, tuesday, wednesday, thursday, friday
+Time MUST be in 24-hour format HH:MM (e.g., "08:00", "14:30")
+Skip empty cells. Be thorough - extract ALL lessons.`
+            },
+            {
+              role: "user",
+              content: `Parse this timetable data into JSON array format:\n${JSON.stringify(excelData, null, 2)}`
+            }
+          ],
+          max_tokens: 8000,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error for Excel:", response.status, errorText);
+        throw new Error(`AI processing error: ${response.status}`);
+      }
+
+      const aiResponse = await response.json();
+      const content = aiResponse.choices?.[0]?.message?.content || "[]";
+      console.log("AI Excel parsing response:", content.substring(0, 500));
+      
+      // Extract JSON from response
+      let jsonStr = content.trim();
+      const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) {
+        jsonStr = jsonMatch[1].trim();
+      }
+      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        jsonStr = arrayMatch[0];
+      }
+      
+      try {
+        const aiParsedItems = JSON.parse(jsonStr);
+        if (!Array.isArray(aiParsedItems)) {
+          throw new Error("Response is not an array");
+        }
+        parsedTasks = aiParsedItems.map((item: any) => ({
+          title: item.title || 'Untitled',
+          time: item.time || '09:00',
+          day: (item.day || 'sunday').toLowerCase(),
+          category: guessCategory(item.title || ''),
+          credits: guessCredits(item.title || ''),
+        }));
+        console.log("Successfully parsed", parsedTasks.length, "tasks from Excel");
+      } catch (parseError) {
+        console.error("Excel JSON parse error:", parseError);
+        throw new Error("Could not parse Excel data. Please ensure the file contains a valid timetable.");
+      }
     } else if (fileType === 'image' && imageBase64) {
       // Use AI to parse timetable image
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
