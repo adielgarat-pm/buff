@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, Zap, Users, User } from 'lucide-react';
+import { Loader2, Zap, Users, User, Globe } from 'lucide-react';
 import buffLogo from '@/assets/buff-logo.png';
 
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
+  const { language, setLanguage, t, isRTL } = useLanguage();
   const [loading, setLoading] = useState(false);
 
   // Login form
@@ -28,7 +29,6 @@ export default function Auth() {
   const [familyCode, setFamilyCode] = useState('');
 
   // Redirect if already logged in - handled by PublicRoute wrapper
-  // This is a fallback for any edge cases
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
@@ -38,7 +38,7 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
-      toast.error('אנא מלא את כל השדות');
+      toast.error(t('auth.fillAllFields'));
       return;
     }
 
@@ -48,12 +48,12 @@ export default function Auth() {
 
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        toast.error('אימייל או סיסמה שגויים');
+        toast.error(t('auth.invalidCredentials'));
       } else {
         toast.error(error.message);
       }
     } else {
-      toast.success('ברוך שובך!');
+      toast.success(t('auth.welcomeBack'));
       navigate('/dashboard');
     }
   };
@@ -61,17 +61,17 @@ export default function Auth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupEmail || !signupPassword || !displayName) {
-      toast.error('אנא מלא את כל השדות');
+      toast.error(t('auth.fillAllFields'));
       return;
     }
 
     if (signupPassword.length < 6) {
-      toast.error('הסיסמה חייבת להכיל לפחות 6 תווים');
+      toast.error(t('auth.passwordMinLength'));
       return;
     }
 
     if (role === 'child' && !familyCode) {
-      toast.error('אנא הזן את קוד המשפחה מההורה');
+      toast.error(t('auth.enterFamilyCode'));
       return;
     }
 
@@ -81,14 +81,14 @@ export default function Auth() {
 
     if (error) {
       if (error.message.includes('already registered')) {
-        toast.error('אימייל זה כבר רשום במערכת');
+        toast.error(t('auth.emailExists'));
       } else if (error.message.includes('Invalid family code')) {
-        toast.error('קוד משפחה לא תקין');
+        toast.error(t('auth.invalidFamilyCode'));
       } else {
         toast.error(error.message);
       }
     } else {
-      toast.success('החשבון נוצר בהצלחה! ברוך הבא למשפחה!');
+      toast.success(t('auth.accountCreated'));
       navigate('/dashboard');
     }
   };
@@ -97,6 +97,19 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/10 via-background to-buff/5 pointer-events-none" />
+
+      {/* Language Toggle */}
+      <div className="fixed top-4 left-4 z-20">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
+          className="rounded-2xl gap-2"
+        >
+          <Globe className="w-4 h-4" />
+          {language === 'he' ? 'EN' : 'עב'}
+        </Button>
+      </div>
 
       <Card className="w-full max-w-md relative z-10 border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="text-center space-y-2">
@@ -112,24 +125,24 @@ export default function Auth() {
             </CardTitle>
           </div>
           <CardDescription className="text-sm italic text-buff font-medium">
-            כוח-העל לתפקודים הניהוליים
+            {t('app.tagline')}
           </CardDescription>
           <CardDescription className="leading-relaxed">
-            התחבר כדי לסנכרן את ההתקדמות שלך
+            {t('app.syncProgress')}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 rounded-2xl">
-              <TabsTrigger value="login" className="rounded-xl">התחברות</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-xl">הרשמה</TabsTrigger>
+              <TabsTrigger value="login" className="rounded-xl">{t('auth.login')}</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-xl">{t('auth.signup')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">אימייל</Label>
+                  <Label htmlFor="login-email">{t('auth.email')}</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -141,7 +154,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">סיסמה</Label>
+                  <Label htmlFor="login-password">{t('auth.password')}</Label>
                   <Input
                     id="login-password"
                     type="password"
@@ -155,13 +168,13 @@ export default function Auth() {
                 <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      מתחבר...
+                      <Loader2 className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'} animate-spin`} />
+                      {t('auth.loggingIn')}
                     </>
                   ) : (
                     <>
-                      <Zap className="w-4 h-4 mr-2" />
-                      התחבר
+                      <Zap className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {t('auth.connect')}
                     </>
                   )}
                 </Button>
@@ -171,18 +184,18 @@ export default function Auth() {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="display-name">שם תצוגה</Label>
+                  <Label htmlFor="display-name">{t('auth.displayName')}</Label>
                   <Input
                     id="display-name"
                     type="text"
-                    placeholder="השם שלך"
+                    placeholder={t('auth.yourName')}
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">אימייל</Label>
+                  <Label htmlFor="signup-email">{t('auth.email')}</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -194,7 +207,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">סיסמה</Label>
+                  <Label htmlFor="signup-password">{t('auth.password')}</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -206,7 +219,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>אני...</Label>
+                  <Label>{t('auth.iAm')}</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       type="button"
@@ -215,8 +228,8 @@ export default function Auth() {
                       onClick={() => setRole('parent')}
                       disabled={loading}
                     >
-                      <Users className="w-4 h-4 ml-2" />
-                      הורה
+                      <Users className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {t('auth.parent')}
                     </Button>
                     <Button
                       type="button"
@@ -225,26 +238,26 @@ export default function Auth() {
                       onClick={() => setRole('child')}
                       disabled={loading}
                     >
-                      <User className="w-4 h-4 ml-2" />
-                      נער/ה
+                      <User className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {t('auth.teen')}
                     </Button>
                   </div>
                 </div>
 
                 {role === 'child' && (
                   <div className="space-y-2">
-                    <Label htmlFor="family-code">קוד משפחה</Label>
+                    <Label htmlFor="family-code">{t('auth.familyCode')}</Label>
                     <Input
                       id="family-code"
                       type="text"
-                      placeholder="הדבק כאן את הקוד מההורה"
+                      placeholder={t('auth.familyCodePlaceholder')}
                       value={familyCode}
                       onChange={(e) => setFamilyCode(e.target.value)}
                       disabled={loading}
                       dir="ltr"
                     />
                     <p className="text-xs text-muted-foreground">
-                      בקש מההורה שלך את קוד המשפחה כדי להצטרף.
+                      {t('auth.familyCodeHint')}
                     </p>
                   </div>
                 )}
@@ -252,13 +265,13 @@ export default function Auth() {
                 <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                      יוצר חשבון...
+                      <Loader2 className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'} animate-spin`} />
+                      {t('auth.creatingAccount')}
                     </>
                   ) : (
                     <>
-                      <Zap className="w-4 h-4 ml-2" />
-                      צור חשבון
+                      <Zap className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {t('auth.createAccount')}
                     </>
                   )}
                 </Button>
