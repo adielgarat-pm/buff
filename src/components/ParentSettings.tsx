@@ -405,8 +405,8 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   );
 }
 
-// Simplified Task Editor for Child
-import { Trash2, Plus } from 'lucide-react';
+// Task Editor for Child with Edit functionality
+import { Trash2, Plus, Pencil, X, Check } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Pill, Droplets, Apple } from 'lucide-react';
 
@@ -429,6 +429,13 @@ function ChildTasksEditor({
   onDeleteTask: (id: string) => void;
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    time: '12:00',
+    category: 'nutrition' as TaskCategory,
+    credits: 10,
+  });
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
@@ -446,6 +453,31 @@ function ChildTasksEditor({
     });
     setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10 });
     setShowAddForm(false);
+  };
+
+  const handleEditClick = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditForm({
+      title: task.title,
+      time: task.time,
+      category: task.category,
+      credits: task.credits,
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingTaskId || !editForm.title.trim()) return;
+    onUpdateTask(editingTaskId, {
+      title: editForm.title,
+      time: editForm.time,
+      category: editForm.category,
+      credits: editForm.credits,
+    });
+    setEditingTaskId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
   };
 
   return (
@@ -521,24 +553,86 @@ function ChildTasksEditor({
           <p className="text-sm text-muted-foreground text-center py-4">אין משימות עדיין</p>
         ) : (
           tasks.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm truncate">{task.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {task.time} • {task.credits} קרדיטים
-                </p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => onDeleteTask(task.id)}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10 touch-target"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+            <div key={task.id}>
+              {editingTaskId === task.id ? (
+                /* Edit Mode */
+                <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 space-y-3">
+                  <Input
+                    placeholder="שם המשימה"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="bg-background"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="time"
+                      value={editForm.time}
+                      onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                      className="flex-1 bg-background"
+                      dir="ltr"
+                    />
+                    <Input
+                      type="number"
+                      value={editForm.credits}
+                      onChange={(e) => setEditForm({ ...editForm, credits: parseInt(e.target.value) || 10 })}
+                      className="w-20 bg-background"
+                      dir="ltr"
+                    />
+                  </div>
+                  <Select
+                    value={editForm.category}
+                    onValueChange={(v) => setEditForm({ ...editForm, category: v as TaskCategory })}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleSaveEdit} className="flex-1 touch-target">
+                      <Check className="w-4 h-4 ml-1" />
+                      שמור
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="touch-target">
+                      <X className="w-4 h-4 ml-1" />
+                      ביטול
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* View Mode */
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground text-sm truncate">{task.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {task.time} • {task.credits} קרדיטים • {categoryOptions.find(c => c.value === task.category)?.label || task.category}
+                    </p>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleEditClick(task)}
+                    className="text-muted-foreground hover:text-primary hover:bg-primary/10 touch-target"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => onDeleteTask(task.id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 touch-target"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           ))
         )}
