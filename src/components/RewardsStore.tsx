@@ -9,10 +9,11 @@ interface RewardsStoreProps {
   totalBalance: number;
   storeRewards: StoreReward[];
   onRedeem: (rewardId: string) => void;
-  onClose: () => void;
+  onClose?: () => void;
+  showBackButton?: boolean;
 }
 
-export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose }: RewardsStoreProps) {
+export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, showBackButton = false }: RewardsStoreProps) {
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
@@ -29,19 +30,21 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose }: 
   const claimedRewards = storeRewards.filter(r => r.claimed);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-muted-foreground"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
+            {showBackButton && onClose && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="text-muted-foreground"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+            )}
             <div className="flex-1">
               <h1 className="text-xl font-bold text-foreground">Rewards Store</h1>
               <p className="text-sm text-muted-foreground">Redeem your earned credits</p>
