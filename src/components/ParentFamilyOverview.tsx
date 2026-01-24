@@ -18,7 +18,7 @@ interface ParentFamilyOverviewProps {
 }
 
 export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFamilyOverviewProps) {
-  const { familyShortCode } = useAuth();
+  const { familyShortCode, familyId } = useAuth();
   const { children, loading: membersLoading } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
@@ -26,6 +26,10 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
   const [editingGoalFor, setEditingGoalFor] = useState<string | null>(null);
   const [editGoalValue, setEditGoalValue] = useState<number>(100);
   const [savingGoal, setSavingGoal] = useState(false);
+  
+  const [editingBalanceFor, setEditingBalanceFor] = useState<string | null>(null);
+  const [editBalanceValue, setEditBalanceValue] = useState<number>(0);
+  const [savingBalance, setSavingBalance] = useState(false);
 
   const loading = membersLoading || progressLoading;
 
@@ -62,6 +66,62 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
 
   const handleCancelEdit = () => {
     setEditingGoalFor(null);
+  };
+
+  const handleStartEditBalance = (childId: string, currentBalance: number) => {
+    setEditingBalanceFor(childId);
+    setEditBalanceValue(currentBalance);
+  };
+
+  const handleSaveBalance = async (childId: string) => {
+    if (editBalanceValue < 0) {
+      toast.error('יתרה לא יכולה להיות שלילית');
+      return;
+    }
+
+    setSavingBalance(true);
+    try {
+      // Check if child has a vault
+      const { data: existingVault } = await supabase
+        .from('credit_vault')
+        .select('id')
+        .eq('family_id', familyId)
+        .eq('child_id', childId)
+        .maybeSingle();
+
+      if (existingVault) {
+        const { error } = await supabase
+          .from('credit_vault')
+          .update({ total_balance: editBalanceValue })
+          .eq('id', existingVault.id);
+
+        if (error) throw error;
+      } else {
+        // Create vault for child
+        const { error } = await supabase
+          .from('credit_vault')
+          .insert({ 
+            family_id: familyId!, 
+            child_id: childId, 
+            total_balance: editBalanceValue 
+          });
+
+        if (error) throw error;
+      }
+
+      toast.success('היתרה עודכנה בהצלחה!');
+      setEditingBalanceFor(null);
+      refetch();
+    } catch (error) {
+      console.error('Error updating balance:', error);
+      toast.error('שגיאה בעדכון היתרה');
+    } finally {
+      setSavingBalance(false);
+    }
+  };
+
+  const handleCancelEditBalance = () => {
+    setEditingBalanceFor(null);
   };
 
   const handleAwardBonus = async (childId: string, childName: string) => {
@@ -177,10 +237,43 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                               </div>
                             )}
                           </div>
-                          {progress && (
-                            <p className="text-sm text-muted-foreground">
+                          {progress && editingBalanceFor !== child.id && (
+                            <button
+                              onClick={() => handleStartEditBalance(child.id, progress.totalBalance)}
+                              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                            >
                               💰 {progress.totalBalance.toLocaleString()} קרדיטים נצברו
-                            </p>
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                          )}
+                          {editingBalanceFor === child.id && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm text-muted-foreground">💰</span>
+                              <Input
+                                type="number"
+                                value={editBalanceValue}
+                                onChange={(e) => setEditBalanceValue(Number(e.target.value))}
+                                className="w-24 h-7 text-xs px-2"
+                                min={0}
+                                dir="ltr"
+                              />
+                              <Button
+                                size="sm"
+                                className="h-7 px-2"
+                                onClick={() => handleSaveBalance(child.id)}
+                                disabled={savingBalance}
+                              >
+                                {savingBalance ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2"
+                                onClick={handleCancelEditBalance}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </div>
