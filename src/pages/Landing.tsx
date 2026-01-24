@@ -162,7 +162,7 @@ export default function Landing() {
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90">
+                <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button">
                   Get Started
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -206,7 +206,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
-              <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 shadow-buff-glow">
+              <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 cta-buff-button animate-cta-glow">
                 <Zap className="w-5 h-5 mr-2 fill-current" />
                 Try BUFF for Free
               </Button>
@@ -351,7 +351,7 @@ export default function Landing() {
             Join families who are transforming daily routines into achievable victories.
           </p>
           <Link to="/auth">
-            <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 shadow-buff-glow">
+            <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 cta-buff-button animate-cta-glow">
               <Zap className="w-5 h-5 mr-2 fill-current" />
               Start Your Free Trial
             </Button>
