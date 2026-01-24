@@ -584,10 +584,18 @@ export function useSyncedTaskStore() {
 
     setTimetable(newTimetable);
 
-    await supabase
+    // Update timetable where assigned_to is null (family-level timetable)
+    const { error } = await supabase
       .from('timetables')
-      .update({ data: JSON.parse(JSON.stringify(newTimetable)) })
-      .eq('family_id', familyId);
+      .update({ data: JSON.parse(JSON.stringify(newTimetable)), updated_at: new Date().toISOString() })
+      .eq('family_id', familyId)
+      .is('assigned_to', null);
+    
+    if (error) {
+      console.error('Failed to update timetable:', error);
+    } else {
+      console.log('Timetable updated successfully');
+    }
   }, [familyId]);
 
   // Toggle lesson reminders
