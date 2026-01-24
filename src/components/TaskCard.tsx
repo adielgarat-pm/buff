@@ -62,10 +62,11 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
     <div
       className={cn(
         'relative group cursor-pointer transition-all duration-300 animate-slide-up',
-        'rounded-xl p-4 border',
+        'rounded-2xl p-4 border',
         task.completed 
           ? 'bg-secondary/50 border-border/50 opacity-60' 
-          : 'bg-gradient-card border-border hover:border-primary/50 hover:shadow-glow'
+          : 'bg-gradient-card border-border hover:border-primary/50 hover:shadow-glow',
+        buff && !task.completed && 'buff-active-glow animate-buff-pulse'
       )}
       onClick={handleClick}
       style={{ animationDelay: `${parseInt(task.id) * 50}ms` }}
@@ -91,7 +92,7 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
 
       <div className="flex items-center gap-4">
         {/* Category Icon */}
-        <div className={cn('p-3 rounded-lg', config.bgClass)}>
+        <div className={cn('p-3 rounded-2xl', config.bgClass)}>
           <Icon className={cn('w-5 h-5', config.colorClass)} />
         </div>
 
@@ -116,10 +117,10 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
                   setShowBuffTip(!showBuffTip);
                 }}
                 className={cn(
-                  'p-1 rounded-full transition-all hover:scale-110',
+                  'p-1.5 rounded-xl transition-all hover:scale-110',
                   showBuffTip 
-                    ? 'bg-yellow-500/20 text-yellow-500' 
-                    : 'bg-yellow-500/10 text-yellow-400 animate-pulse'
+                    ? 'bg-buff/30 text-buff shadow-buff-glow' 
+                    : 'bg-buff/20 text-buff animate-buff-pulse'
                 )}
                 aria-label="Activate daily buff"
               >
@@ -132,9 +133,9 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
 
         {/* Credits Badge */}
         <div className={cn(
-          'px-3 py-1.5 rounded-full text-sm font-bold transition-all',
+          'px-3 py-1.5 rounded-2xl text-sm font-bold transition-all',
           task.completed 
-            ? 'bg-success/20 text-success' 
+            ? 'bg-buff/20 text-buff' 
             : 'bg-primary/20 text-primary'
         )}>
           +{task.credits}
@@ -142,14 +143,14 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
 
         {/* Completion Indicator */}
         <div className={cn(
-          'w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all',
+          'w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all',
           task.completed 
-            ? 'bg-success border-success' 
+            ? 'bg-buff border-buff' 
             : 'border-muted-foreground/30 group-hover:border-primary'
         )}>
           {task.completed && (
             <Check className={cn(
-              'w-5 h-5 text-success-foreground',
+              'w-5 h-5 text-buff-foreground',
               isAnimating && 'animate-check-bounce'
             )} />
           )}
@@ -158,11 +159,11 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
 
       {/* Buff Activated Message */}
       {showBuffActivated && (
-        <div className="mt-3 p-2 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/40 animate-slide-up text-center">
-          <p className="font-bold text-yellow-500 text-sm flex items-center justify-center gap-2">
-            <Zap className="w-4 h-4" />
+        <div className="mt-3 p-3 rounded-2xl bg-gradient-buff border border-buff/40 animate-slide-up text-center shadow-buff-glow">
+          <p className="font-display font-bold text-buff-foreground text-sm flex items-center justify-center gap-2">
+            <Zap className="w-4 h-4 fill-current" />
             Buff Activated!
-            <Zap className="w-4 h-4" />
+            <Zap className="w-4 h-4 fill-current" />
           </p>
         </div>
       )}
@@ -170,14 +171,14 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
       {/* Daily Buff Tip Popup */}
       {buff && showBuffTip && !showBuffActivated && (
         <div 
-          className="mt-3 p-3 rounded-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 animate-slide-up"
+          className="mt-3 p-4 rounded-2xl bg-gradient-to-br from-buff/15 to-buff/5 border border-buff/30 animate-slide-up shadow-buff-glow"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-start gap-3">
             <span className="text-2xl">{buff.icon}</span>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-yellow-500 text-sm">
+                <p className="font-display font-semibold text-buff text-sm tracking-wide">
                   {buff.title}
                 </p>
                 <button
@@ -185,17 +186,17 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
                     e.stopPropagation();
                     setShowBuffTip(false);
                   }}
-                  className="p-1 rounded-full hover:bg-yellow-500/20 text-yellow-400"
+                  className="p-1.5 rounded-xl hover:bg-buff/20 text-buff"
                 >
                   <X className="w-3 h-3" />
                 </button>
               </div>
-              <p className="text-sm text-foreground/80 mt-1">
+              <p className="text-sm text-foreground/80 mt-1 leading-relaxed">
                 {buff.tip}
               </p>
               <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                <Zap className="w-3 h-3 text-yellow-500" />
-                {STRATEGY_CATEGORIES[buff.category].label} Buff
+                <Zap className="w-3 h-3 text-buff" />
+                {STRATEGY_CATEGORIES[buff.category].label}
               </p>
             </div>
           </div>

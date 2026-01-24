@@ -2,70 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* BUFF Brand Fonts - Bold modern sans-serif for headings */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    /* BUFF Brand Colors */
+    /* Deep Slate #1A1A1A - main background */
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
+    /* Card backgrounds - slightly lighter slate */
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 190 95% 50%;
-    --primary-foreground: 222 47% 6%;
+    /* Electric Indigo #6366F1 - primary brand color */
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 222 30% 18%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 265 85% 60%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent - Electric Indigo variant */
+    --accent: 239 84% 67%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 45%;
-    --success-foreground: 222 47% 6%;
+    /* Volt Green #ADFF2F - success states */
+    --success: 84 100% 59%;
+    --success-foreground: 0 0% 10%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 6%;
+    --warning-foreground: 0 0% 10%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 190 95% 50%;
+    /* Volt Green for buffs */
+    --buff: 84 100% 59%;
+    --buff-foreground: 0 0% 10%;
 
-    --radius: 0.75rem;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 239 84% 67%;
+
+    --radius: 1rem;
 
     /* Category colors */
     --medication: 280 85% 60%;
-    --hygiene: 190 95% 50%;
-    --nutrition: 140 70% 50%;
+    --hygiene: 239 84% 67%;
+    --nutrition: 84 100% 59%;
     --school: 38 92% 50%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(190, 95%, 50%), hsl(265, 85%, 60%));
-    --gradient-success: linear-gradient(135deg, hsl(160, 84%, 45%), hsl(190, 95%, 50%));
-    --gradient-card: linear-gradient(180deg, hsl(222, 47%, 11%), hsl(222, 47%, 8%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(190, 95%, 50%, 0.15), transparent 50%);
+    /* BUFF Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(239, 84%, 67%), hsl(280, 85%, 60%));
+    --gradient-success: linear-gradient(135deg, hsl(84, 100%, 59%), hsl(84, 100%, 45%));
+    --gradient-xp: linear-gradient(90deg, hsl(84, 100%, 45%), hsl(84, 100%, 59%), hsl(84, 100%, 65%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 14%), hsl(0, 0%, 11%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(239, 84%, 67%, 0.15), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(84, 100%, 59%), hsl(84, 100%, 45%));
 
-    /* Shadows */
-    --shadow-glow: 0 0 20px hsl(190, 95%, 50%, 0.3);
-    --shadow-card: 0 4px 24px hsl(222, 47%, 4%, 0.5);
+    /* BUFF Shadows */
+    --shadow-glow: 0 0 20px hsl(239, 84%, 67%, 0.4);
+    --shadow-buff-glow: 0 0 25px hsl(84, 100%, 59%, 0.5);
+    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.5);
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 190 95% 50%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 190 95% 50%;
+    --sidebar-background: 0 0% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 239 84% 67%;
   }
 }
 
@@ -77,6 +91,19 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    line-height: 1.7;
+  }
+
+  /* BUFF Heading Styles - Bold modern font */
+  h1, h2, h3, .buff-heading {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  /* Improved line spacing for ADHD readability */
+  p, .task-description {
+    line-height: 1.8;
   }
 }
 
@@ -84,6 +111,11 @@
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
+  }
+
+  .text-gradient-buff {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-buff);
   }
 
   .bg-gradient-primary {
@@ -94,12 +126,24 @@
     background-image: var(--gradient-success);
   }
 
+  .bg-gradient-xp {
+    background-image: var(--gradient-xp);
+  }
+
   .bg-gradient-card {
     background-image: var(--gradient-card);
   }
 
+  .bg-gradient-buff {
+    background-image: var(--gradient-buff);
+  }
+
   .shadow-glow {
     box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-buff-glow {
+    box-shadow: var(--shadow-buff-glow);
   }
 
   .shadow-card {
@@ -119,37 +163,61 @@
     border-radius: inherit;
   }
 
+  /* BUFF Active Glow Effect */
+  .buff-active-glow {
+    box-shadow: 0 0 15px hsl(84, 100%, 59%, 0.4), 0 0 30px hsl(84, 100%, 59%, 0.2);
+    border-color: hsl(84, 100%, 59%, 0.5);
+  }
+
   /* Safe area for bottom navigation on iOS */
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - BUFF themed */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(222, 47%, 8%);
+  background: hsl(0, 0%, 11%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(222, 30%, 25%);
+  background: hsl(0, 0%, 25%);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(222, 30%, 35%);
+  background: hsl(239, 84%, 67%, 0.5);
 }
 
 /* Animations */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px hsl(190, 95%, 50%, 0.3);
+    box-shadow: 0 0 20px hsl(239, 84%, 67%, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px hsl(190, 95%, 50%, 0.5);
+    box-shadow: 0 0 40px hsl(239, 84%, 67%, 0.5);
+  }
+}
+
+@keyframes buff-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px hsl(84, 100%, 59%, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px hsl(84, 100%, 59%, 0.6);
+  }
+}
+
+@keyframes xp-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
   }
 }
 
@@ -195,6 +263,15 @@
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-buff-pulse {
+  animation: buff-pulse 2s ease-in-out infinite;
+}
+
+.animate-xp-shimmer {
+  background-size: 200% 100%;
+  animation: xp-shimmer 2s linear infinite;
 }
 
 .animate-check-bounce {
