@@ -54,6 +54,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const [appTitle, setAppTitle] = useState('BUFF');
   const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
   const [fridayEnabled, setFridayEnabled] = useState(false);
+  const [schoolQuestEnabled, setSchoolQuestEnabled] = useState(true);
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,6 +170,17 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .select('*')
         .eq('family_id', familyId)
         .maybeSingle();
+
+      // Fetch child's school quest setting from profile (if viewing as child)
+      if (isViewingAsChild && effectiveChildId) {
+        const { data: childProfileData } = await supabase
+          .from('profiles')
+          .select('school_quest_enabled')
+          .eq('id', effectiveChildId)
+          .single();
+        
+        setSchoolQuestEnabled(childProfileData?.school_quest_enabled ?? true);
+      }
 
       // Map tasks with completion status
       const completedTaskIds = new Set(
@@ -846,6 +858,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     unlockedRewards,
     lessonRemindersEnabled,
     fridayEnabled,
+    schoolQuestEnabled,
     totalBalance,
     storeRewards,
     buffsActivatedToday,

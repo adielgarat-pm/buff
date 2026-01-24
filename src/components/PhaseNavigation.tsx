@@ -7,13 +7,15 @@ interface PhaseNavigationProps {
   currentPhase: Phase;
   onPhaseChange: (phase: Phase) => void;
   phaseStats: Record<Phase, { completed: number; total: number }>;
+  schoolQuestEnabled?: boolean;
 }
 
 export function PhaseNavigation({ 
   activePhase, 
   currentPhase, 
   onPhaseChange,
-  phaseStats 
+  phaseStats,
+  schoolQuestEnabled = true,
 }: PhaseNavigationProps) {
   const { language } = useLanguage();
 
@@ -24,10 +26,16 @@ export function PhaseNavigation({
     }
     onPhaseChange(phase);
   };
+
+  // Filter out school phase if disabled
+  const visiblePhases = PHASES.filter(phase => {
+    if (phase.id === 'school' && !schoolQuestEnabled) return false;
+    return true;
+  });
   
   return (
     <div className="flex gap-1 p-1.5 bg-secondary/50 rounded-2xl backdrop-blur-sm">
-      {PHASES.map((phase) => {
+      {visiblePhases.map((phase) => {
         const isActive = activePhase === phase.id;
         const isCurrent = currentPhase === phase.id;
         const stats = phaseStats[phase.id];
