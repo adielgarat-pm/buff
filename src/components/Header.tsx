@@ -1,4 +1,4 @@
-import { Settings, Vault, CalendarDays } from 'lucide-react';
+import { Settings, Vault, CalendarDays, FileText } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
@@ -6,11 +6,12 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onOpenStore: () => void;
   onOpenWeeklySummary?: () => void;
+  onOpenDailySummary?: () => void;
   totalBalance: number;
   appTitle: string;
 }
 
-export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, totalBalance, appTitle }: HeaderProps) {
+export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, onOpenDailySummary, totalBalance, appTitle }: HeaderProps) {
   const today = new Date();
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -25,6 +26,19 @@ export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, total
       </div>
       
       <div className="flex items-center gap-2">
+        {/* Daily Summary Button */}
+        {onOpenDailySummary && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full hover:bg-primary/10"
+            onClick={onOpenDailySummary}
+            title="Today's Summary"
+          >
+            <FileText className="w-5 h-5 text-muted-foreground" />
+          </Button>
+        )}
+        
         {/* Weekly Summary Button */}
         {onOpenWeeklySummary && (
           <Button
@@ -32,6 +46,7 @@ export function Header({ onOpenSettings, onOpenStore, onOpenWeeklySummary, total
             size="icon"
             className="rounded-full hover:bg-primary/10"
             onClick={onOpenWeeklySummary}
+            title="Weekly Summary"
           >
             <CalendarDays className="w-5 h-5 text-muted-foreground" />
           </Button>
