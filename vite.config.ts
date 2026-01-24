@@ -20,9 +20,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
-        name: "Daily Quests",
-        short_name: "Quests",
-        description: "Track daily tasks and earn rewards",
+        name: "BUFF",
+        short_name: "BUFF",
+        description: "Level up your daily routine",
         theme_color: "#8b5cf6",
         background_color: "#0a0a0b",
         display: "standalone",
