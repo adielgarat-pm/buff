@@ -11,6 +11,7 @@ import { WeeklySummary } from '@/components/WeeklySummary';
 import { InstallPWA } from '@/components/InstallPWA';
 import { NotificationPrompt } from '@/components/NotificationPrompt';
 import { DailySchedule } from '@/components/DailySchedule';
+import { WeeklyTimetable } from '@/components/WeeklyTimetable';
 import { BottomNavigation, NavTab } from '@/components/BottomNavigation';
 import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
@@ -178,8 +179,7 @@ const Index = () => {
       case 'timetable':
         return (
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-foreground">School Timetable</h2>
-            <DailySchedule timetable={timetable} />
+            <WeeklyTimetable timetable={timetable} />
           </div>
         );
       
