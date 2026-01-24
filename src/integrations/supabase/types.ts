@@ -458,6 +458,14 @@ export type Database = {
     Functions: {
       generate_family_short_code: { Args: never; Returns: string }
       get_my_family_id: { Args: never; Returns: string }
+      update_child_profile_settings: {
+        Args: {
+          p_child_id: string
+          p_daily_goal?: number
+          p_school_quest_enabled?: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
