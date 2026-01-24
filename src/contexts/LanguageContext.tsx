@@ -44,7 +44,9 @@ const translations: Record<Language, Record<string, string>> = {
     'auth.welcomeBack': 'ברוך שובך!',
     'auth.accountCreated': 'החשבון נוצר בהצלחה! ברוך הבא למשפחה!',
     'auth.orContinueWith': 'או המשך עם',
-    'auth.continueWithGoogle': 'המשך עם גוגל',
+    'auth.continueWithGoogle': 'התחבר עם גוגל',
+    'auth.signupWithGoogle': 'הירשם עם גוגל',
+    'auth.googleRoleSelection': 'לאחר ההתחברות תוכל לבחור אם להירשם כהורה או כילד',
     'auth.googleSetupRequired': 'כדי להשתמש בגוגל, יש להגדיר קודם פרטי משתמש',
     
     // Navigation
@@ -223,7 +225,9 @@ const translations: Record<Language, Record<string, string>> = {
     'auth.welcomeBack': 'Welcome back!',
     'auth.accountCreated': 'Account created! Welcome to the family!',
     'auth.orContinueWith': 'or continue with',
-    'auth.continueWithGoogle': 'Continue with Google',
+    'auth.continueWithGoogle': 'Sign in with Google',
+    'auth.signupWithGoogle': 'Sign up with Google',
+    'auth.googleRoleSelection': 'After signing in, you can choose to register as a parent or child',
     'auth.googleSetupRequired': 'To use Google login, please set up your user details first',
     
     // Navigation

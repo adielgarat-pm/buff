@@ -1,11 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users, User, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import buffLogo from '@/assets/buff-logo.png';
+
+type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<SetupStep>('loading');
+  const [selectedRole, setSelectedRole] = useState<'parent' | 'child' | null>(null);
+  const [familyCode, setFamilyCode] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -26,45 +39,19 @@ export default function AuthCallback() {
             .eq('user_id', session.user.id)
             .maybeSingle();
 
-          if (!profile) {
-            // New Google user - create profile as parent with new family
-            const displayName = session.user.user_metadata?.full_name || 
-                              session.user.user_metadata?.name ||
-                              session.user.email?.split('@')[0] || 
-                              'User';
-
-            // Create new family
-            const { data: newFamily, error: familyError } = await supabase
-              .from('families')
-              .insert({ name: `${displayName}'s Family` } as any)
-              .select()
-              .single();
-
-            if (familyError) {
-              console.error('Error creating family:', familyError);
-              setError('Failed to create family');
-              return;
-            }
-
-            // Create profile
-            const { error: profileError } = await supabase.from('profiles').insert({
-              user_id: session.user.id,
-              family_id: newFamily.id,
-              display_name: displayName,
-              role: 'parent',
-            });
-
-            if (profileError) {
-              console.error('Error creating profile:', profileError);
-              setError('Failed to create profile');
-              return;
-            }
-
-            // Initialize family data
-            await initializeFamilyData(newFamily.id);
+          if (profile) {
+            // Existing user - go to dashboard
+            navigate('/dashboard');
+          } else {
+            // New Google user - show role selection
+            const name = session.user.user_metadata?.full_name || 
+                        session.user.user_metadata?.name ||
+                        session.user.email?.split('@')[0] || 
+                        'User';
+            setDisplayName(name);
+            setUserId(session.user.id);
+            setStep('role-selection');
           }
-
-          navigate('/dashboard');
         } else {
           navigate('/auth');
         }
@@ -76,6 +63,102 @@ export default function AuthCallback() {
 
     handleCallback();
   }, [navigate]);
+
+  const handleRoleSelect = (role: 'parent' | 'child') => {
+    setSelectedRole(role);
+    if (role === 'child') {
+      setStep('family-code');
+    } else {
+      handleCreateProfile(role, null);
+    }
+  };
+
+  const handleJoinFamily = async () => {
+    if (!familyCode.trim()) {
+      toast.error('אנא הזן קוד משפחה');
+      return;
+    }
+    handleCreateProfile('child', familyCode.trim().toUpperCase());
+  };
+
+  const handleCreateProfile = async (role: 'parent' | 'child', code: string | null) => {
+    if (!userId) return;
+    
+    setStep('creating');
+
+    try {
+      let familyId: string;
+
+      if (role === 'parent') {
+        // Create new family
+        const { data: newFamily, error: familyError } = await supabase
+          .from('families')
+          .insert({ name: `${displayName}'s Family` } as any)
+          .select()
+          .single();
+
+        if (familyError) {
+          console.error('Error creating family:', familyError);
+          setError('שגיאה ביצירת משפחה');
+          return;
+        }
+
+        familyId = newFamily.id;
+
+        // Initialize family data for parents
+        await initializeFamilyData(familyId);
+      } else {
+        // Find family by code
+        const { data: family, error: familyError } = await supabase
+          .from('families')
+          .select('*')
+          .eq('short_code', code)
+          .maybeSingle();
+
+        if (familyError || !family) {
+          toast.error('קוד משפחה לא תקין');
+          setStep('family-code');
+          return;
+        }
+
+        familyId = family.id;
+      }
+
+      // Create profile
+      const { error: profileError } = await supabase.from('profiles').insert({
+        user_id: userId,
+        family_id: familyId,
+        display_name: displayName,
+        role: role,
+      });
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        setError('שגיאה ביצירת פרופיל');
+        return;
+      }
+
+      // If child, initialize their personal data
+      if (role === 'child') {
+        // Get the new profile ID
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        if (newProfile) {
+          await initializeChildData(familyId, newProfile.id);
+        }
+      }
+
+      toast.success(role === 'parent' ? 'ברוך הבא! משפחה חדשה נוצרה' : 'ברוך הבא למשפחה!');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Profile creation error:', err);
+      setError('שגיאה ביצירת החשבון');
+    }
+  };
 
   if (error) {
     return (
@@ -93,18 +176,146 @@ export default function AuthCallback() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
-        <p className="text-muted-foreground">מאמת את החשבון...</p>
+  if (step === 'loading' || step === 'creating') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">
+            {step === 'loading' ? 'מאמת את החשבון...' : 'יוצר את החשבון...'}
+          </p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      {/* Background gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/10 via-background to-buff/5 pointer-events-none" />
+
+      <Card className="w-full max-w-md relative z-10 border-border/50 shadow-2xl rounded-2xl">
+        <CardHeader className="text-center space-y-2">
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <img 
+              src={buffLogo} 
+              alt="BUFF Logo" 
+              className="h-16 w-16 object-contain"
+            />
+            <CardTitle className="text-2xl font-display font-bold tracking-wide text-primary">
+              ברוך הבא ל-BUFF!
+            </CardTitle>
+          </div>
+          <CardDescription>
+            {step === 'role-selection' 
+              ? 'איך תרצה להשתמש באפליקציה?'
+              : 'הזן את קוד המשפחה שקיבלת מההורה'
+            }
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {step === 'role-selection' && (
+            <>
+              <div className="text-center mb-4">
+                <p className="text-sm text-muted-foreground">
+                  היי {displayName}! 👋
+                </p>
+              </div>
+              
+              <div className="grid gap-4">
+                <Button
+                  onClick={() => handleRoleSelect('parent')}
+                  variant="outline"
+                  className="h-24 rounded-2xl flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
+                >
+                  <Users className="w-8 h-8 text-primary" />
+                  <div>
+                    <p className="font-semibold">אני הורה</p>
+                    <p className="text-xs text-muted-foreground">יצירת משפחה חדשה</p>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={() => handleRoleSelect('child')}
+                  variant="outline"
+                  className="h-24 rounded-2xl flex flex-col gap-2 hover:border-accent hover:bg-accent/5"
+                >
+                  <User className="w-8 h-8 text-accent" />
+                  <div>
+                    <p className="font-semibold">אני נער/ה</p>
+                    <p className="text-xs text-muted-foreground">הצטרפות למשפחה קיימת</p>
+                  </div>
+                </Button>
+              </div>
+            </>
+          )}
+
+          {step === 'family-code' && (
+            <>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="family-code">קוד משפחה</Label>
+                  <Input
+                    id="family-code"
+                    type="text"
+                    placeholder="XXXXXX"
+                    value={familyCode}
+                    onChange={(e) => setFamilyCode(e.target.value.toUpperCase())}
+                    className="text-center text-lg tracking-widest font-mono"
+                    dir="ltr"
+                    maxLength={6}
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    בקש מההורה שלך את קוד המשפחה
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleJoinFamily}
+                  className="w-full rounded-2xl"
+                  disabled={familyCode.length < 6}
+                >
+                  <Zap className="w-4 h-4 ml-2" />
+                  הצטרף למשפחה
+                </Button>
+
+                <Button 
+                  variant="ghost"
+                  onClick={() => setStep('role-selection')}
+                  className="w-full"
+                >
+                  חזור
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-// Initialize default data for a new family (same as in AuthContext)
+// Initialize default data for a new family
 async function initializeFamilyData(familyId: string) {
+  const DEFAULT_STORE_REWARDS = [
+    { title: 'Space Session', emoji: '🚀', price: 5000 },
+    { title: 'New Game', emoji: '🎮', price: 4000 },
+    { title: 'Pocket Money', emoji: '💰', price: 2000 },
+    { title: 'Pizza Night', emoji: '🍕', price: 1500 },
+    { title: 'Home Movie', emoji: '🎬', price: 750 },
+  ];
+
+  await supabase.from('store_rewards').insert(
+    DEFAULT_STORE_REWARDS.map((r) => ({ ...r, family_id: familyId }))
+  );
+
+  await supabase.from('credit_vault').insert({ family_id: familyId, total_balance: 0 });
+  await supabase.from('app_settings').insert({ family_id: familyId });
+}
+
+// Initialize default data for a new child
+async function initializeChildData(familyId: string, childId: string) {
   const DEFAULT_TASKS = [
     { title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
     { title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
@@ -116,22 +327,15 @@ async function initializeFamilyData(familyId: string) {
     { title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
   ];
 
-  const DEFAULT_STORE_REWARDS = [
-    { title: 'Space Session', emoji: '🚀', price: 5000 },
-    { title: 'New Game', emoji: '🎮', price: 4000 },
-    { title: 'Pocket Money', emoji: '💰', price: 2000 },
-    { title: 'Pizza Night', emoji: '🍕', price: 1500 },
-    { title: 'Home Movie', emoji: '🎬', price: 750 },
-  ];
-
+  // Create tasks assigned to this child
   await supabase.from('tasks').insert(
-    DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId }))
+    DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId, assigned_to: childId }))
   );
 
-  await supabase.from('store_rewards').insert(
-    DEFAULT_STORE_REWARDS.map((r) => ({ ...r, family_id: familyId }))
-  );
-
-  await supabase.from('credit_vault').insert({ family_id: familyId, total_balance: 0 });
-  await supabase.from('app_settings').insert({ family_id: familyId });
+  // Create personal credit vault for child
+  await supabase.from('credit_vault').insert({ 
+    family_id: familyId, 
+    child_id: childId,
+    total_balance: 0 
+  });
 }
