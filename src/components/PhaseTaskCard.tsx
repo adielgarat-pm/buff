@@ -1,5 +1,5 @@
 import { Task } from '@/types/task';
-import { Check, Clock, Pill, Droplets, Apple, BookOpen } from 'lucide-react';
+import { Check, Clock, Pill, Droplets, Apple, BookOpen, Cookie } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PhaseTaskCardProps {
@@ -22,8 +22,16 @@ const categoryColors = {
   school: 'text-violet-400 bg-violet-500/20',
 };
 
+// Special icons for specific tasks
+const getTaskIcon = (task: Task) => {
+  if (task.title.toLowerCase().includes('snack')) {
+    return Cookie;
+  }
+  return categoryIcons[task.category];
+};
+
 export function PhaseTaskCard({ task, onComplete, onUncomplete }: PhaseTaskCardProps) {
-  const Icon = categoryIcons[task.category];
+  const Icon = getTaskIcon(task);
   const colorClasses = categoryColors[task.category];
 
   const handleClick = () => {
