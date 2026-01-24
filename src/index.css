@@ -69,7 +69,8 @@
 
     /* BUFF Shadows */
     --shadow-glow: 0 0 20px hsl(239, 84%, 67%, 0.4);
-    --shadow-buff-glow: 0 0 25px hsl(84, 100%, 59%, 0.5);
+    --shadow-buff-glow: 0 0 30px hsl(84, 100%, 59%, 0.6), 0 0 60px hsl(84, 100%, 59%, 0.3), 0 0 90px hsl(84, 100%, 59%, 0.15);
+    --shadow-buff-glow-intense: 0 0 40px hsl(84, 100%, 59%, 0.8), 0 0 80px hsl(84, 100%, 59%, 0.5), 0 0 120px hsl(84, 100%, 59%, 0.25);
     --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.5);
 
     --sidebar-background: 0 0% 11%;
@@ -146,6 +147,10 @@
     box-shadow: var(--shadow-buff-glow);
   }
 
+  .shadow-buff-glow-intense {
+    box-shadow: var(--shadow-buff-glow-intense);
+  }
+
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
@@ -212,6 +217,17 @@
   }
 }
 
+@keyframes cta-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 30px hsl(84, 100%, 59%, 0.6), 0 0 60px hsl(84, 100%, 59%, 0.3), 0 0 90px hsl(84, 100%, 59%, 0.15);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 50px hsl(84, 100%, 59%, 0.8), 0 0 100px hsl(84, 100%, 59%, 0.5), 0 0 150px hsl(84, 100%, 59%, 0.25);
+    transform: scale(1.02);
+  }
+}
+
 @keyframes xp-shimmer {
   0% {
     background-position: -200% center;
@@ -267,6 +283,42 @@
 
 .animate-buff-pulse {
   animation: buff-pulse 2s ease-in-out infinite;
+}
+
+.animate-cta-glow {
+  animation: cta-glow-pulse 3s ease-in-out infinite;
+}
+
+/* CTA Button Hover Effects */
+.cta-buff-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-buff-glow);
+}
+
+.cta-buff-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.cta-buff-button:hover {
+  box-shadow: var(--shadow-buff-glow-intense);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.cta-buff-button:hover::before {
+  left: 100%;
+}
+
+.cta-buff-button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .animate-xp-shimmer {
