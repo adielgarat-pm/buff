@@ -71,7 +71,7 @@ See you in the app! ✨`;
   };
 
   return (
-    <div className="p-3 rounded-xl bg-secondary/50 border border-border">
+    <div className="p-3 rounded-xl bg-primary/10 border border-primary/30">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-shrink-0">
           <Users className="w-4 h-4 text-primary" />
@@ -81,7 +81,7 @@ See you in the app! ✨`;
         </div>
         
         <div className="flex items-center gap-2">
-          <code className="px-3 py-1.5 rounded-lg bg-background border border-border text-lg font-mono font-bold text-primary tracking-widest">
+          <code className="px-3 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-lg font-mono font-bold text-primary tracking-widest">
             {shortCode}
           </code>
           <Button

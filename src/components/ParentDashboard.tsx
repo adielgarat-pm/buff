@@ -102,9 +102,9 @@ export function ParentDashboard({
         </div>
 
         {/* General Settings Card */}
-        <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
+        <div className="rounded-2xl bg-card border border-primary/20 p-5 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
               <Settings className="w-5 h-5 text-primary" />
             </div>
             <div>
