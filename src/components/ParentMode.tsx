@@ -523,12 +523,14 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
     tasks,
     timetable,
     storeRewards,
+    dailyGoal,
     loading,
     addTask,
     updateTask,
     deleteTask,
     updateTimetable,
     updateStoreRewards,
+    updateDailyGoal,
     initializeChildData,
   } = useChildData(child.id);
 
@@ -594,7 +596,7 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
         {progress && (
           <div className="text-right">
             <p className="text-lg font-bold text-primary">
-              {progress.todayEarned}/{progress.dailyGoal}
+              {progress.todayEarned}/{dailyGoal}
             </p>
             <p className="text-xs text-muted-foreground">today's credits</p>
           </div>
@@ -624,6 +626,29 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
 
         {/* Insights Tab */}
         <TabsContent value="insights" className="mt-4 space-y-4">
+          {/* Daily Goal Setting for this child */}
+          <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-foreground font-semibold">Daily Credit Goal</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Set {child.displayName}'s daily target
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={dailyGoal}
+                  onChange={(e) => updateDailyGoal(parseInt(e.target.value) || 100)}
+                  className="w-20 bg-background border-border text-foreground text-center"
+                  min={10}
+                  max={500}
+                />
+                <span className="text-sm text-muted-foreground">credits</span>
+              </div>
+            </div>
+          </div>
+          
           <ParentInsightsDashboard childId={child.id} childName={child.displayName} />
         </TabsContent>
 
