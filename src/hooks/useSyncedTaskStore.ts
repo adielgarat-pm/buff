@@ -92,9 +92,9 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .eq('family_id', familyId)
         .order('time');
 
-      // When viewing as a specific child, filter to their tasks
-      if (isViewingAsChild) {
-        tasksQuery = tasksQuery.or(`assigned_to.is.null,assigned_to.eq.${effectiveChildId}`);
+      // When viewing as a specific child, show ONLY their assigned tasks (not shared ones)
+      if (isViewingAsChild && effectiveChildId) {
+        tasksQuery = tasksQuery.eq('assigned_to', effectiveChildId);
       }
 
       const { data: tasksData } = await tasksQuery;
@@ -106,8 +106,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .eq('family_id', familyId)
         .eq('date', todayKey);
 
-      if (isViewingAsChild) {
-        progressQuery = progressQuery.or(`child_id.is.null,child_id.eq.${effectiveChildId}`);
+      if (isViewingAsChild && effectiveChildId) {
+        progressQuery = progressQuery.eq('child_id', effectiveChildId);
       }
 
       const { data: progressData } = await progressQuery;
@@ -119,8 +119,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .eq('family_id', familyId)
         .eq('date', todayKey);
 
-      if (isViewingAsChild) {
-        lessonProgressQuery = lessonProgressQuery.or(`child_id.is.null,child_id.eq.${effectiveChildId}`);
+      if (isViewingAsChild && effectiveChildId) {
+        lessonProgressQuery = lessonProgressQuery.eq('child_id', effectiveChildId);
       }
 
       const { data: lessonProgressData } = await lessonProgressQuery;
@@ -131,8 +131,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .select('*')
         .eq('family_id', familyId);
       
-      if (isViewingAsChild) {
-        vaultQuery = vaultQuery.or(`child_id.is.null,child_id.eq.${effectiveChildId}`);
+      if (isViewingAsChild && effectiveChildId) {
+        vaultQuery = vaultQuery.eq('child_id', effectiveChildId);
       } else {
         vaultQuery = vaultQuery.is('child_id', null);
       }
@@ -145,8 +145,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .select('*')
         .eq('family_id', familyId);
       
-      if (isViewingAsChild) {
-        rewardsQuery = rewardsQuery.or(`assigned_to.is.null,assigned_to.eq.${effectiveChildId}`);
+      if (isViewingAsChild && effectiveChildId) {
+        rewardsQuery = rewardsQuery.eq('assigned_to', effectiveChildId);
       }
 
       const { data: rewardsData } = await rewardsQuery;
@@ -157,8 +157,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .select('*')
         .eq('family_id', familyId);
 
-      if (isViewingAsChild) {
-        timetableQuery = timetableQuery.or(`assigned_to.is.null,assigned_to.eq.${effectiveChildId}`);
+      if (isViewingAsChild && effectiveChildId) {
+        timetableQuery = timetableQuery.eq('assigned_to', effectiveChildId);
       }
 
       const { data: timetableData } = await timetableQuery.maybeSingle();
@@ -303,6 +303,9 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   useEffect(() => {
     if (!familyId) return;
 
+    // Use effectiveChildId for filtering realtime updates when viewing as child
+    const targetChildId = effectiveChildId;
+
     const channel = supabase
       .channel('family-sync')
       .on(
@@ -311,8 +314,17 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         (payload: RealtimePostgresChangesPayload<{ task_id: string; completed: boolean; date: string; child_id: string | null }>) => {
           if (payload.new && 'date' in payload.new && payload.new.date === todayKey) {
             const newData = payload.new as { task_id: string; completed: boolean; child_id: string | null };
-            // Only update if this is for the current user (child) or if parent
-            if (isParent || !newData.child_id || newData.child_id === profileId) {
+            // Only update if this matches the effective child (or if parent with no specific child)
+            if (targetChildId) {
+              // Viewing as specific child - only accept updates for that child
+              if (newData.child_id === targetChildId) {
+                const { task_id, completed } = newData;
+                setTasks(prev => prev.map(t =>
+                  t.id === task_id ? { ...t, completed } : t
+                ));
+              }
+            } else if (isParent) {
+              // Parent not viewing as child - accept all updates
               const { task_id, completed } = newData;
               setTasks(prev => prev.map(t =>
                 t.id === task_id ? { ...t, completed } : t
@@ -327,7 +339,14 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         (payload: RealtimePostgresChangesPayload<{ lesson_key: string; completed: boolean; date: string; child_id: string | null }>) => {
           if (payload.new && 'date' in payload.new && payload.new.date === todayKey) {
             const newData = payload.new as { lesson_key: string; completed: boolean; child_id: string | null };
-            if (isParent || !newData.child_id || newData.child_id === profileId) {
+            if (targetChildId) {
+              if (newData.child_id === targetChildId) {
+                const { lesson_key, completed } = newData;
+                setLessons(prev => prev.map(l =>
+                  l.id === lesson_key ? { ...l, completed } : l
+                ));
+              }
+            } else if (isParent) {
               const { lesson_key, completed } = newData;
               setLessons(prev => prev.map(l =>
                 l.id === lesson_key ? { ...l, completed } : l
@@ -342,7 +361,11 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         (payload: RealtimePostgresChangesPayload<{ total_balance: number; child_id: string | null }>) => {
           if (payload.new && 'total_balance' in payload.new) {
             const newData = payload.new as { total_balance: number; child_id: string | null };
-            if (isParent || !newData.child_id || newData.child_id === profileId) {
+            if (targetChildId) {
+              if (newData.child_id === targetChildId) {
+                setTotalBalance(newData.total_balance);
+              }
+            } else if (isParent && !newData.child_id) {
               setTotalBalance(newData.total_balance);
             }
           }
@@ -380,7 +403,11 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         (payload: RealtimePostgresChangesPayload<{ data: Timetable; assigned_to: string | null }>) => {
           if (payload.new && 'data' in payload.new) {
             const newData = payload.new as { data: Timetable; assigned_to: string | null };
-            if (isParent || !newData.assigned_to || newData.assigned_to === profileId) {
+            if (targetChildId) {
+              if (newData.assigned_to === targetChildId) {
+                setTimetable(newData.data);
+              }
+            } else if (isParent) {
               setTimetable(newData.data);
             }
           }
@@ -391,7 +418,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [familyId, profileId, isParent, todayKey, fetchFamilyData]);
+  }, [familyId, profileId, isParent, effectiveChildId, todayKey, fetchFamilyData]);
 
   // Complete task - now includes child_id (uses effectiveChildId for viewing as child)
   const completeTask = useCallback(async (taskId: string) => {

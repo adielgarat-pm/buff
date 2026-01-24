@@ -56,12 +56,12 @@ export function useChildProgress() {
 
       // Build progress for each child
       const progressPromises = children.map(async (child) => {
-        // Fetch tasks assigned to this child (or unassigned family tasks)
+        // Fetch tasks assigned ONLY to this child (not shared ones)
         const { data: tasksData } = await supabase
           .from('tasks')
           .select('*')
           .eq('family_id', familyId)
-          .or(`assigned_to.is.null,assigned_to.eq.${child.id}`);
+          .eq('assigned_to', child.id);
 
         // Fetch today's progress for this specific child only
         const { data: progressData } = await supabase
