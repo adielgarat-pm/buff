@@ -19,6 +19,7 @@ export type Database = {
           app_title: string
           daily_goal: number
           family_id: string
+          friday_enabled: boolean
           id: string
           lesson_reminders_enabled: boolean
           updated_at: string
@@ -27,6 +28,7 @@ export type Database = {
           app_title?: string
           daily_goal?: number
           family_id: string
+          friday_enabled?: boolean
           id?: string
           lesson_reminders_enabled?: boolean
           updated_at?: string
@@ -35,6 +37,7 @@ export type Database = {
           app_title?: string
           daily_goal?: number
           family_id?: string
+          friday_enabled?: boolean
           id?: string
           lesson_reminders_enabled?: boolean
           updated_at?: string

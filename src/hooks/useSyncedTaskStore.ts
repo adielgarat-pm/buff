@@ -22,17 +22,24 @@ const DEFAULT_LESSONS: Omit<Lesson, 'completed'>[] = [
   { id: 'lesson8', label: 'P8', credits: 10 },
 ];
 
-const isWeekend = (): boolean => {
+const isWeekend = (fridayEnabled: boolean = false): boolean => {
   const day = new Date().getDay();
-  return day === 5 || day === 6;
+  // Friday (5) is weekend only if fridayEnabled is false
+  if (day === 5) return !fridayEnabled;
+  return day === 6; // Saturday is always weekend
 };
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-const getTodayWeekDay = (): WeekDay | null => {
+const getTodayWeekDay = (fridayEnabled: boolean = false): WeekDay | null => {
   const dayIndex = new Date().getDay();
+  // Sunday (0) to Thursday (4) are always school days
   if (dayIndex >= 0 && dayIndex <= 4) {
     return WEEK_DAYS[dayIndex];
+  }
+  // Friday (5) is a school day only if enabled
+  if (dayIndex === 5 && fridayEnabled) {
+    return 'friday';
   }
   return null;
 };
@@ -46,6 +53,7 @@ export function useSyncedTaskStore() {
   const [dailyGoal, setDailyGoal] = useState(100);
   const [appTitle, setAppTitle] = useState('Daily Quests');
   const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
+  const [fridayEnabled, setFridayEnabled] = useState(false);
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -251,6 +259,7 @@ export function useSyncedTaskStore() {
         setAppTitle(settingsData.app_title);
         setDailyGoal(settingsData.daily_goal);
         setLessonRemindersEnabled(settingsData.lesson_reminders_enabled);
+        setFridayEnabled(settingsData.friday_enabled ?? false);
       }
     } catch (error) {
       console.error('Error fetching family data:', error);
@@ -651,7 +660,7 @@ export function useSyncedTaskStore() {
   }, [familyId]);
 
   // Get today's schedule from timetable
-  const todayWeekDay = getTodayWeekDay();
+  const todayWeekDay = getTodayWeekDay(fridayEnabled);
   const todaySchedule: PeriodInfo[] = todayWeekDay ? (timetable[todayWeekDay] || []) : [];
 
   // Create dynamic lessons based on today's actual schedule
@@ -673,16 +682,29 @@ export function useSyncedTaskStore() {
   }, [todaySchedule, lessons]);
 
   // Filter tasks based on weekend visibility
-  const visibleTasks = isWeekend()
+  const isCurrentlyWeekend = isWeekend(fridayEnabled);
+  const visibleTasks = isCurrentlyWeekend
     ? tasks.filter(t => !t.hideOnWeekend)
     : tasks;
 
   const taskCredits = visibleTasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
-  const lessonCredits = isWeekend() ? 0 : todayLessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
+  const lessonCredits = isCurrentlyWeekend ? 0 : todayLessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   const earnedCredits = taskCredits + lessonCredits;
-  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isWeekend() ? 0 : todayLessons.reduce((sum, l) => sum + l.credits, 0));
+  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isCurrentlyWeekend ? 0 : todayLessons.reduce((sum, l) => sum + l.credits, 0));
   const progressPercent = dailyGoal > 0 ? Math.min((earnedCredits / dailyGoal) * 100, 100) : 0;
   const unlockedRewards = rewards.filter(r => earnedCredits >= r.requiredCredits);
+
+  // Toggle Friday enabled
+  const toggleFridayEnabled = useCallback(async (enabled: boolean) => {
+    if (!familyId) return;
+    
+    setFridayEnabled(enabled);
+    
+    await supabase
+      .from('app_settings')
+      .update({ friday_enabled: enabled })
+      .eq('family_id', familyId);
+  }, [familyId]);
 
   return {
     loading,
@@ -699,6 +721,7 @@ export function useSyncedTaskStore() {
     progressPercent,
     unlockedRewards,
     lessonRemindersEnabled,
+    fridayEnabled,
     totalBalance,
     storeRewards,
     buffsActivatedToday,
@@ -712,6 +735,7 @@ export function useSyncedTaskStore() {
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
+    toggleFridayEnabled,
     redeemStoreReward,
     updateStoreRewards,
     activateBuff,

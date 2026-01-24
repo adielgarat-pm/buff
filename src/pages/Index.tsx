@@ -46,6 +46,7 @@ const Index = () => {
     earnedCredits,
     progressPercent,
     lessonRemindersEnabled,
+    fridayEnabled,
     totalBalance,
     storeRewards,
     buffsActivatedToday,
@@ -59,6 +60,7 @@ const Index = () => {
     toggleLesson,
     updateTimetable,
     toggleLessonReminders,
+    toggleFridayEnabled,
     redeemStoreReward,
     updateStoreRewards,
     activateBuff,
@@ -202,7 +204,7 @@ const Index = () => {
       case 'timetable':
         return (
           <div className="space-y-6">
-            <WeeklyTimetable timetable={timetable} onUpdateTimetable={updateTimetable} />
+            <WeeklyTimetable timetable={timetable} onUpdateTimetable={updateTimetable} fridayEnabled={fridayEnabled} />
           </div>
         );
       
@@ -273,6 +275,7 @@ const Index = () => {
           appTitle={appTitle}
           timetable={timetable}
           lessonRemindersEnabled={lessonRemindersEnabled}
+          fridayEnabled={fridayEnabled}
           storeRewards={storeRewards}
           onUpdateTask={updateTask}
           onAddTask={addTask}
@@ -281,6 +284,7 @@ const Index = () => {
           onUpdateAppTitle={updateAppTitle}
           onUpdateTimetable={updateTimetable}
           onToggleLessonReminders={toggleLessonReminders}
+          onToggleFridayEnabled={toggleFridayEnabled}
           onUpdateStoreRewards={updateStoreRewards}
         />
       )}

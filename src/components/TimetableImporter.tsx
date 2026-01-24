@@ -177,27 +177,31 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     });
 
     // Group periods by day and sort by time
-    const periodsByDay: Record<WeekDay, ParsedPeriod[]> = {
+    const periodsByDay: Partial<Record<WeekDay, ParsedPeriod[]>> = {
       sunday: [],
       monday: [],
       tuesday: [],
       wednesday: [],
       thursday: [],
+      friday: [],
     };
 
     selectedPeriods.forEach(p => {
-      if (WEEK_DAYS.includes(p.day)) {
-        periodsByDay[p.day].push(p);
+      if (periodsByDay[p.day]) {
+        periodsByDay[p.day]!.push(p);
       }
     });
 
     // Sort each day by time and assign to timetable slots
-    WEEK_DAYS.forEach(day => {
-      const dayPeriods = periodsByDay[day].sort((a, b) => a.time.localeCompare(b.time));
+    Object.keys(periodsByDay).forEach(day => {
+      const weekDay = day as WeekDay;
+      if (!newTimetable[weekDay]) return;
+      
+      const dayPeriods = (periodsByDay[weekDay] || []).sort((a, b) => a.time.localeCompare(b.time));
       
       dayPeriods.forEach((period, index) => {
-        if (index < newTimetable[day].length) {
-          newTimetable[day][index] = {
+        if (index < newTimetable[weekDay].length) {
+          newTimetable[weekDay][index] = {
             subject: period.subject,
             startTime: period.time,
           };
