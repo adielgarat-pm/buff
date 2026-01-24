@@ -1,13 +1,17 @@
 import { cn } from '@/lib/utils';
 import { Trophy, Zap, Star } from 'lucide-react';
+import { LevelDisplay } from './LevelDisplay';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProgressBarProps {
   earned: number;
   goal: number;
   percent: number;
+  totalBalance?: number;
 }
 
-export function ProgressBar({ earned, goal, percent }: ProgressBarProps) {
+export function ProgressBar({ earned, goal, percent, totalBalance = 0 }: ProgressBarProps) {
+  const { language } = useLanguage();
   const isComplete = percent >= 100;
 
   return (
@@ -17,6 +21,11 @@ export function ProgressBar({ earned, goal, percent }: ProgressBarProps) {
         ? 'bg-buff/10 border-buff/30 shadow-buff-glow' 
         : 'bg-gradient-card border-border'
     )}>
+      {/* Level Display */}
+      <div className="mb-4 pb-4 border-b border-border">
+        <LevelDisplay totalXP={totalBalance} />
+      </div>
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={cn(
@@ -30,9 +39,14 @@ export function ProgressBar({ earned, goal, percent }: ProgressBarProps) {
             )}
           </div>
           <div>
-            <h2 className="font-display font-bold text-foreground tracking-wide">Daily XP</h2>
+            <h2 className="font-display font-bold text-foreground tracking-wide">
+              {language === 'he' ? 'XP יומי' : 'Daily XP'}
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {isComplete ? 'Level Complete! 🎉' : 'Keep powering up!'}
+              {isComplete 
+                ? (language === 'he' ? 'הרמה הושלמה! 🎉' : 'Level Complete! 🎉')
+                : (language === 'he' ? 'המשך להתחזק!' : 'Keep powering up!')
+              }
             </p>
           </div>
         </div>

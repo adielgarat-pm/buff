@@ -178,6 +178,7 @@ const Index = () => {
               earned={earnedCredits}
               goal={dailyGoal}
               percent={progressPercent}
+              totalBalance={totalBalance}
             />
 
             {/* Phase Content */}
