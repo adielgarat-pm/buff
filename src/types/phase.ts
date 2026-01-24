@@ -3,7 +3,9 @@ export type Phase = 'morning' | 'school' | 'afternoon' | 'evening';
 export interface PhaseConfig {
   id: Phase;
   label: string;
+  labelHe: string;
   shortLabel: string;
+  shortLabelHe: string;
   icon: string;
   startHour: number;
   endHour: number;
@@ -14,7 +16,9 @@ export const PHASES: PhaseConfig[] = [
   { 
     id: 'morning', 
     label: 'Morning Routine', 
+    labelHe: 'שגרת בוקר',
     shortLabel: 'Morning',
+    shortLabelHe: 'בוקר',
     icon: '🌅', 
     startHour: 6, 
     endHour: 9,
@@ -23,7 +27,9 @@ export const PHASES: PhaseConfig[] = [
   { 
     id: 'school', 
     label: 'School Day', 
+    labelHe: 'יום לימודים',
     shortLabel: 'School',
+    shortLabelHe: 'בי״ס',
     icon: '📚', 
     startHour: 9, 
     endHour: 16,
@@ -32,7 +38,9 @@ export const PHASES: PhaseConfig[] = [
   { 
     id: 'afternoon', 
     label: 'Afternoon / Study', 
+    labelHe: 'צהריים / למידה',
     shortLabel: 'Afternoon',
+    shortLabelHe: 'צהריים',
     icon: '📖', 
     startHour: 16, 
     endHour: 20,
@@ -41,7 +49,9 @@ export const PHASES: PhaseConfig[] = [
   { 
     id: 'evening', 
     label: 'Evening / Bedtime', 
+    labelHe: 'ערב / שינה',
     shortLabel: 'Evening',
+    shortLabelHe: 'ערב',
     icon: '🌙', 
     startHour: 20, 
     endHour: 24,

@@ -148,6 +148,8 @@ const translations: Record<Language, Record<string, string>> = {
     'common.add': 'הוסף',
     'common.close': 'סגור',
     'common.credits': 'קרדיטים',
+    'tasks': 'משימות',
+    'noTasksForPhase': 'אין משימות לשלב הזה',
   },
   en: {
     // General
@@ -284,6 +286,8 @@ const translations: Record<Language, Record<string, string>> = {
     'common.add': 'Add',
     'common.close': 'Close',
     'common.credits': 'Credits',
+    'tasks': 'Tasks',
+    'noTasksForPhase': 'No tasks for this phase',
   },
 };
 

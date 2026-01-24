@@ -5,6 +5,7 @@ import { PhaseTaskCard } from './PhaseTaskCard';
 import { SchoolDaySection } from './SchoolDaySection';
 import { DailySchedule } from './DailySchedule';
 import { Timetable } from '@/types/task';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PhaseViewProps {
   phase: Phase;
@@ -27,6 +28,7 @@ export function PhaseView({
   onUncompleteTask,
   onToggleLesson,
 }: PhaseViewProps) {
+  const { language, t } = useLanguage();
   const phaseConfig = getPhaseConfig(phase);
   
   // Filter tasks by phase
@@ -53,6 +55,8 @@ export function PhaseView({
   const phaseTotalCredits = isSchoolPhase 
     ? totalCredits + totalLessonCredits 
     : totalCredits;
+
+  const phaseLabel = language === 'he' ? phaseConfig.labelHe : phaseConfig.label;
 
   return (
     <div className="space-y-8">
@@ -84,7 +88,7 @@ export function PhaseView({
         <div className="space-y-3">
           {!isSchoolPhase && (
             <h3 className="text-sm font-medium text-muted-foreground px-1">
-              Tasks
+              {t('tasks')}
             </h3>
           )}
           {phaseTasks.map(task => (
@@ -102,7 +106,7 @@ export function PhaseView({
       {phaseTasks.length === 0 && !isSchoolPhase && (
         <div className="text-center py-12">
           <span className="text-4xl mb-4 block">{phaseConfig.icon}</span>
-          <p className="text-muted-foreground">No tasks for this phase</p>
+          <p className="text-muted-foreground">{t('noTasksForPhase')}</p>
         </div>
       )}
     </div>
