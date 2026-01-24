@@ -44,7 +44,7 @@ const getTodayWeekDay = (fridayEnabled: boolean = false): WeekDay | null => {
   return null;
 };
 
-export function useSyncedTaskStore() {
+export function useSyncedTaskStore(viewingAsChildId?: string) {
   const { familyId, profile } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>(DEFAULT_LESSONS.map(l => ({ ...l, completed: false })));
@@ -73,75 +73,92 @@ export function useSyncedTaskStore() {
 
   const todayKey = getTodayKey();
   const isParent = profile?.role === 'parent';
+  // When viewing as child, use the child's ID for data filtering
+  const effectiveChildId = viewingAsChildId || (isParent ? null : profile?.id);
   const profileId = profile?.id;
 
-  // Fetch all family data - filtered by role
+  // Fetch all family data - filtered by role or viewing child
   const fetchFamilyData = useCallback(async () => {
     if (!familyId || !profileId) return;
 
+    // Determine if we're viewing as a specific child
+    const isViewingAsChild = !!effectiveChildId;
+
     try {
-      // For children, filter tasks by assigned_to (their id or null for shared)
-      // For parents, get all tasks
+      // Fetch tasks - filter by assigned child when viewing as child
       let tasksQuery = supabase
         .from('tasks')
         .select('*')
         .eq('family_id', familyId)
         .order('time');
 
-      // RLS already filters this, but we make it explicit for clarity
-      // Children will only see tasks assigned to them or unassigned (via RLS)
+      // When viewing as a specific child, filter to their tasks
+      if (isViewingAsChild) {
+        tasksQuery = tasksQuery.or(`assigned_to.is.null,assigned_to.eq.${effectiveChildId}`);
+      }
 
       const { data: tasksData } = await tasksQuery;
 
-      // Fetch today's progress
-      // For children, filter by child_id
+      // Fetch today's progress - filter by child when viewing as child
       let progressQuery = supabase
         .from('daily_progress')
         .select('*')
         .eq('family_id', familyId)
         .eq('date', todayKey);
 
-      if (!isParent) {
-        progressQuery = progressQuery.or(`child_id.is.null,child_id.eq.${profileId}`);
+      if (isViewingAsChild) {
+        progressQuery = progressQuery.or(`child_id.is.null,child_id.eq.${effectiveChildId}`);
       }
 
       const { data: progressData } = await progressQuery;
 
-      // Fetch today's lesson progress
+      // Fetch today's lesson progress - filter by child when viewing as child
       let lessonProgressQuery = supabase
         .from('lesson_progress')
         .select('*')
         .eq('family_id', familyId)
         .eq('date', todayKey);
 
-      if (!isParent) {
-        lessonProgressQuery = lessonProgressQuery.or(`child_id.is.null,child_id.eq.${profileId}`);
+      if (isViewingAsChild) {
+        lessonProgressQuery = lessonProgressQuery.or(`child_id.is.null,child_id.eq.${effectiveChildId}`);
       }
 
       const { data: lessonProgressData } = await lessonProgressQuery;
 
-      // Fetch credit vault - always use the family vault (child_id is null)
-      const { data: vaultData } = await supabase
+      // Fetch credit vault - use child-specific vault when viewing as child
+      let vaultQuery = supabase
         .from('credit_vault')
         .select('*')
-        .eq('family_id', familyId)
-        .is('child_id', null)
-        .maybeSingle();
+        .eq('family_id', familyId);
+      
+      if (isViewingAsChild) {
+        vaultQuery = vaultQuery.or(`child_id.is.null,child_id.eq.${effectiveChildId}`);
+      } else {
+        vaultQuery = vaultQuery.is('child_id', null);
+      }
+      
+      const { data: vaultData } = await vaultQuery.maybeSingle();
 
-      // Fetch store rewards
-      const { data: rewardsData } = await supabase
+      // Fetch store rewards - filter by child when viewing as child
+      let rewardsQuery = supabase
         .from('store_rewards')
         .select('*')
         .eq('family_id', familyId);
+      
+      if (isViewingAsChild) {
+        rewardsQuery = rewardsQuery.or(`assigned_to.is.null,assigned_to.eq.${effectiveChildId}`);
+      }
 
-      // Fetch timetable - for children, get their specific one or shared
+      const { data: rewardsData } = await rewardsQuery;
+
+      // Fetch timetable - filter by child when viewing as child
       let timetableQuery = supabase
         .from('timetables')
         .select('*')
         .eq('family_id', familyId);
 
-      if (!isParent) {
-        timetableQuery = timetableQuery.or(`assigned_to.is.null,assigned_to.eq.${profileId}`);
+      if (isViewingAsChild) {
+        timetableQuery = timetableQuery.or(`assigned_to.is.null,assigned_to.eq.${effectiveChildId}`);
       }
 
       const { data: timetableData } = await timetableQuery.maybeSingle();
@@ -271,7 +288,7 @@ export function useSyncedTaskStore() {
     } finally {
       setLoading(false);
     }
-  }, [familyId, profileId, isParent, todayKey]);
+  }, [familyId, profileId, effectiveChildId, todayKey]);
 
   // Initial fetch
   useEffect(() => {

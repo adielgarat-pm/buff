@@ -24,6 +24,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
   const currentPhase = getCurrentPhase();
 
+  // Pass viewingChildId to the store so it loads the correct child's data
   const {
     loading,
     tasks,
@@ -46,7 +47,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     redeemStoreReward,
     updateTimetable,
     lessons,
-  } = useSyncedTaskStore();
+  } = useSyncedTaskStore(viewingChildId);
 
   const {
     permission,
