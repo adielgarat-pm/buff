@@ -143,11 +143,11 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                     <Button
                       onClick={() => handleAwardBonus(child.id, child.displayName)}
                       disabled={bonusAwarded || isAwarding}
-                      variant={bonusAwarded ? "outline" : "default"}
+                      variant="outline"
                       className={cn(
                         "w-full touch-target transition-all",
                         bonusAwarded
-                          ? "bg-accent/20 text-accent border-accent/30"
+                          ? "border-accent text-accent bg-transparent"
                           : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                       )}
                     >
