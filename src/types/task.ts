@@ -37,6 +37,8 @@ export interface Task {
   completed: boolean;
   completedAt?: Date;
   hideOnWeekend?: boolean; // Hide this task on Friday/Saturday
+  description?: string; // Optional description for UI display
+  icon?: string; // Optional custom icon identifier
 }
 
 export interface Lesson {

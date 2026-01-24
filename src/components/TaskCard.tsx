@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types/task';
-import { Pill, Droplets, Apple, BookOpen, Check, Sparkles } from 'lucide-react';
+import { Pill, Droplets, Apple, BookOpen, Check, Sparkles, Cookie } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TaskCardProps {
@@ -16,12 +16,20 @@ const categoryConfig: Record<TaskCategory, { icon: typeof Pill; colorClass: stri
   school: { icon: BookOpen, colorClass: 'text-school', bgClass: 'bg-school/20' },
 };
 
+// Special icons for specific tasks
+const getTaskIcon = (task: Task) => {
+  if (task.title.toLowerCase().includes('snack')) {
+    return Cookie;
+  }
+  return categoryConfig[task.category].icon;
+};
+
 export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   
   const config = categoryConfig[task.category];
-  const Icon = config.icon;
+  const Icon = getTaskIcon(task);
 
   const handleClick = () => {
     if (task.completed) {
