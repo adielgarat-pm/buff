@@ -13,10 +13,10 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
 
   const severityConfig = {
     info: {
-      bgClass: 'bg-gradient-to-br from-emerald-500/10 to-green-500/10',
-      borderClass: 'border-emerald-500/30',
-      iconBg: 'bg-emerald-500/20',
-      iconColor: 'text-emerald-500',
+      bgClass: 'bg-gradient-to-br from-indigo-500/10 to-violet-500/10',
+      borderClass: 'border-indigo-500/30',
+      iconBg: 'bg-indigo-500/20',
+      iconColor: 'text-indigo-400',
       Icon: TrendingUp,
     },
     suggestion: {

@@ -48,14 +48,14 @@ export function PhaseCompletionChart({ phaseInsights }: PhaseCompletionChartProp
                   strokeLinecap="round"
                   className={cn(
                     'transition-all duration-500',
-                    isLow ? 'text-rose-400' : isMedium ? 'text-amber-400' : 'text-emerald-400'
+                    isLow ? 'text-rose-400' : isMedium ? 'text-amber-400' : 'text-indigo-400'
                   )}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className={cn(
                   'text-xs font-bold',
-                  isLow ? 'text-rose-400' : isMedium ? 'text-amber-400' : 'text-emerald-400'
+                  isLow ? 'text-rose-400' : isMedium ? 'text-amber-400' : 'text-indigo-400'
                 )}>
                   {Math.round(rate)}%
                 </span>

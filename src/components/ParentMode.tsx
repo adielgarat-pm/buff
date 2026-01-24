@@ -402,7 +402,7 @@ function FamilyOverview({ childrenProgress, loading, onSelectChild }: FamilyOver
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-accent" />
+                  <div className="w-2 h-2 rounded-full bg-primary/60" />
                   <span className="text-muted-foreground">
                     Lessons: {child.lessonsCompleted}/{child.lessonsTotal}
                   </span>
