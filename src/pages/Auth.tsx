@@ -26,10 +26,11 @@ export default function Auth() {
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [familyCode, setFamilyCode] = useState('');
 
-  // Redirect if already logged in
+  // Redirect if already logged in - handled by PublicRoute wrapper
+  // This is a fallback for any edge cases
   useEffect(() => {
     if (user) {
-      navigate('/app');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -52,7 +53,7 @@ export default function Auth() {
       }
     } else {
       toast.success('Welcome back!');
-      navigate('/app');
+      navigate('/dashboard');
     }
   };
 
@@ -85,7 +86,7 @@ export default function Auth() {
       }
     } else {
       toast.success('Account created! Welcome to the family!');
-      navigate('/app');
+      navigate('/dashboard');
     }
   };
 

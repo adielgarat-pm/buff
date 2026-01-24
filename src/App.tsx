@@ -12,37 +12,52 @@ import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
-// Protected route wrapper
+// Loading component
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Protected route - redirects to /auth if not logged in
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/auth" replace />;
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+  return <>{children}</>;
+}
+
+// Public route - redirects logged-in users to /dashboard
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  if (user) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 }
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/" element={<Landing />} />
-    <Route path="/auth" element={<Auth />} />
-    <Route
-      path="/app"
-      element={
-        <ProtectedRoute>
-          <Index />
-        </ProtectedRoute>
-      }
-    />
+    {/* Public marketing landing page */}
+    <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+    
+    {/* Auth page */}
+    <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+    
+    {/* Protected dashboard - the main app */}
+    <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+    
+    {/* Legacy route redirect */}
+    <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+    
     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
     <Route path="*" element={<NotFound />} />
   </Routes>
