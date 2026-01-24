@@ -51,9 +51,11 @@ const DEFAULT_REWARDS: Reward[] = [
 ];
 
 const DEFAULT_STORE_REWARDS: StoreReward[] = [
-  { id: 'store1', title: 'New Gaming Mouse', icon: '🖱️', price: 2000, claimed: false },
-  { id: 'store2', title: 'Movie Night Out', icon: '🎬', price: 1000, claimed: false },
-  { id: 'store3', title: 'New Game', icon: '🎮', price: 3000, claimed: false },
+  { id: 'store1', title: 'Space Session', icon: '🚀', price: 5000, claimed: false },
+  { id: 'store2', title: 'New Game', icon: '🎮', price: 4000, claimed: false },
+  { id: 'store3', title: 'Pocket Money', icon: '💰', price: 2000, claimed: false },
+  { id: 'store4', title: 'Pizza Night', icon: '🍕', price: 1500, claimed: false },
+  { id: 'store5', title: 'Home Movie', icon: '🎬', price: 750, claimed: false },
 ];
 
 const DAILY_GOAL = 150;
