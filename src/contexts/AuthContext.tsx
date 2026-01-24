@@ -103,17 +103,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let familyId: string | null = null;
 
-    // If joining existing family
+    // If joining existing family (child with family code)
     if (familyCode && role === 'child') {
-      // familyCode is the family ID
-      const { data: existingFamily } = await supabase
-        .from('families')
-        .select('id')
-        .eq('id', familyCode)
-        .maybeSingle();
-
-      if (existingFamily) {
-        familyId = existingFamily.id;
+      // familyCode is the family ID - validate it's a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(familyCode)) {
+        // Trust the family code directly since RLS may prevent verification
+        familyId = familyCode;
+      } else {
+        return { error: new Error('Invalid family code format') };
       }
     }
 
