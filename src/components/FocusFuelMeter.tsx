@@ -79,54 +79,22 @@ export function FocusFuelMeter({ earned, goal, buffsActivated = 0, className }: 
       {showCelebration && (
         <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
           <div className="animate-ping">
-            <Sparkles className="w-12 h-12 text-buff" />
+            <Sparkles className="w-8 h-8 text-buff" />
           </div>
         </div>
       )}
       
-      {/* Main Container */}
+      {/* Main Container - Compact */}
       <div className={cn(
-        "rounded-2xl p-6 border transition-all duration-500",
+        "rounded-2xl p-3 border transition-all duration-500",
         isFull 
-          ? "bg-buff/10 border-buff/40 shadow-[0_0_30px_rgba(173,255,47,0.3)]" 
+          ? "bg-buff/10 border-buff/40 shadow-[0_0_20px_rgba(57,255,20,0.3)]" 
           : "bg-gradient-card border-border"
       )}>
-        {/* Header with Badge */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-              isFull 
-                ? "bg-buff/30 shadow-[0_0_20px_rgba(173,255,47,0.5)]" 
-                : "bg-primary/20"
-            )}>
-              <span className="text-2xl">{currentBadge?.icon || '⚡'}</span>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">
-                {language === 'he' ? 'תג כישורים' : 'Skill Badge'}
-              </p>
-              <p className="font-bold text-foreground">
-                {language === 'he' ? currentBadge?.nameHe : currentBadge?.name}
-              </p>
-            </div>
-          </div>
-          
-          {/* Buffs Activated Counter */}
-          {buffsActivated > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-buff/20 border border-buff/30">
-              <Zap className="w-4 h-4 text-buff" />
-              <span className="text-sm font-bold text-buff">
-                {buffsActivated} {language === 'he' ? 'באפים' : 'Buffs'}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        {/* Focus Fuel Meter - Circular Battery Design */}
-        <div className="relative flex justify-center py-6">
-          <div className="relative w-36 h-36">
-            {/* Background Circle */}
+        {/* Compact Layout - Horizontal */}
+        <div className="flex items-center gap-3">
+          {/* Circular Meter - Smaller */}
+          <div className="relative w-16 h-16 flex-shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
               <circle
                 cx="60"
@@ -134,101 +102,82 @@ export function FocusFuelMeter({ earned, goal, buffsActivated = 0, className }: 
                 r="52"
                 fill="none"
                 stroke="hsl(var(--secondary))"
-                strokeWidth="12"
+                strokeWidth="14"
               />
-              
-              {/* Progress Circle with Gradient */}
               <circle
                 cx="60"
                 cy="60"
                 r="52"
                 fill="none"
                 stroke="url(#fuelGradient)"
-                strokeWidth="12"
+                strokeWidth="14"
                 strokeLinecap="round"
                 strokeDasharray={`${percent * 3.27} 327`}
                 className="transition-all duration-700 ease-out"
                 style={{
-                  filter: isFull ? 'drop-shadow(0 0 10px rgba(173,255,47,0.8))' : 
-                          isAlmostFull ? 'drop-shadow(0 0 6px rgba(173,255,47,0.5))' : 'none'
+                  filter: isFull ? 'drop-shadow(0 0 8px rgba(57,255,20,0.8))' : 
+                          isAlmostFull ? 'drop-shadow(0 0 4px rgba(57,255,20,0.5))' : 'none'
                 }}
               />
-              
-              {/* Gradient Definition */}
               <defs>
                 <linearGradient id="fuelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="hsl(var(--primary))" />
-                  <stop offset="50%" stopColor="hsl(var(--buff))" />
                   <stop offset="100%" stopColor="hsl(var(--buff))" />
                 </linearGradient>
               </defs>
             </svg>
             
-            {/* Center Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <Battery className={cn(
-                "w-8 h-8 mb-1 transition-colors duration-300",
-                isFull ? "text-buff" : isAlmostFull ? "text-buff/80" : "text-primary"
-              )} />
+            {/* Center Percentage */}
+            <div className="absolute inset-0 flex items-center justify-center">
               <span className={cn(
-                "text-3xl font-bold transition-colors duration-300",
+                "text-sm font-bold",
                 isFull ? "text-buff" : "text-foreground"
               )}>
                 {Math.round(percent)}%
               </span>
             </div>
-            
-            {/* Spark Animation for Buff Bonus */}
-            {buffsActivated > 0 && (
-              <div className="absolute -top-2 -right-2">
-                <div className="relative">
-                  <Zap className="w-8 h-8 text-buff animate-pulse" />
-                  <div className="absolute inset-0 animate-ping">
-                    <Zap className="w-8 h-8 text-buff/50" />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
+          
+          {/* Badge & Status - Compact */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">{currentBadge?.icon || '⚡'}</span>
+              <span className="font-bold text-sm text-foreground truncate">
+                {language === 'he' ? currentBadge?.nameHe : currentBadge?.name}
+              </span>
+            </div>
+            
+            <p className={cn(
+              "text-xs truncate",
+              isFull ? "text-buff" : "text-muted-foreground"
+            )}>
+              {getStatusText()}
+            </p>
+            
+            {/* Milestone Dots - Inline */}
+            <div className="flex gap-1.5 mt-1.5">
+              {[25, 50, 75, 100].map((milestone) => (
+                <div
+                  key={milestone}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all",
+                    percent >= milestone 
+                      ? "bg-buff shadow-[0_0_4px_rgba(57,255,20,0.8)]" 
+                      : "bg-secondary"
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+          
+          {/* Buffs Counter - Compact */}
+          {buffsActivated > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-buff/20 border border-buff/30 flex-shrink-0">
+              <Zap className="w-3.5 h-3.5 text-buff" />
+              <span className="text-xs font-bold text-buff">{buffsActivated}</span>
+            </div>
+          )}
         </div>
-        
-        {/* Status Text */}
-        <div className={cn(
-          "text-center py-3 px-4 rounded-xl transition-all duration-300",
-          isFull 
-            ? "bg-buff/20 border border-buff/30" 
-            : "bg-secondary/50"
-        )}>
-          <p className={cn(
-            "font-medium transition-colors",
-            isFull ? "text-buff" : "text-foreground"
-          )}>
-            {getStatusText()}
-          </p>
-        </div>
-        
-        {/* Milestone Progress Dots */}
-        <div className="flex justify-center gap-3 mt-4">
-          {[25, 50, 75, 100].map((milestone) => (
-            <div
-              key={milestone}
-              className={cn(
-                "w-3 h-3 rounded-full transition-all duration-300",
-                percent >= milestone 
-                  ? "bg-buff shadow-[0_0_8px_rgba(173,255,47,0.8)]" 
-                  : "bg-secondary"
-              )}
-            />
-          ))}
-        </div>
-        
-        {/* Daily Reset Message */}
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          {language === 'he' 
-            ? '🌅 המד מתאפס כל בוקר - כל יום הוא התחלה חדשה!'
-            : '🌅 Meter resets every morning - every day is a fresh start!'
-          }
-        </p>
       </div>
     </div>
   );
