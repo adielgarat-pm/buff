@@ -342,7 +342,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_family_id: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
