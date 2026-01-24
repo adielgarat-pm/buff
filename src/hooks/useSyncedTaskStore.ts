@@ -393,9 +393,12 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     };
   }, [familyId, profileId, isParent, todayKey, fetchFamilyData]);
 
-  // Complete task - now includes child_id
+  // Complete task - now includes child_id (uses effectiveChildId for viewing as child)
   const completeTask = useCallback(async (taskId: string) => {
     if (!familyId || !profileId) return;
+
+    // Use effectiveChildId to support "view as child" mode
+    const targetChildId = effectiveChildId || null;
 
     // Optimistic update
     setTasks(prev => prev.map(task =>
@@ -405,34 +408,69 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Upsert progress with child_id
+    // Insert or update progress with specific child_id
+    // Use delete + insert pattern for proper child_id handling
     await supabase
       .from('daily_progress')
-      .upsert({
+      .delete()
+      .eq('family_id', familyId)
+      .eq('date', todayKey)
+      .eq('task_id', taskId)
+      .eq('child_id', targetChildId);
+
+    await supabase
+      .from('daily_progress')
+      .insert({
         family_id: familyId,
         date: todayKey,
         task_id: taskId,
-        child_id: isParent ? null : profileId,
+        child_id: targetChildId,
         completed: true,
         completed_at: new Date().toISOString(),
-      }, { onConflict: 'family_id,date,task_id' });
+      });
 
-    // Update vault balance - always use the family vault for simplicity
+    // Update vault balance for the specific child
     const newBalance = totalBalance + task.credits;
     
-    await supabase
-      .from('credit_vault')
-      .update({ total_balance: newBalance, last_updated_date: todayKey })
-      .eq('family_id', familyId)
-      .is('child_id', null);
+    if (targetChildId) {
+      // Update child-specific vault
+      const { data: childVault } = await supabase
+        .from('credit_vault')
+        .select('id')
+        .eq('family_id', familyId)
+        .eq('child_id', targetChildId)
+        .maybeSingle();
+
+      if (childVault) {
+        await supabase
+          .from('credit_vault')
+          .update({ total_balance: newBalance, last_updated_date: todayKey })
+          .eq('id', childVault.id);
+      } else {
+        // Create child vault if it doesn't exist
+        await supabase
+          .from('credit_vault')
+          .insert({ family_id: familyId, child_id: targetChildId, total_balance: newBalance, last_updated_date: todayKey });
+      }
+    } else {
+      // Update family vault
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .is('child_id', null);
+    }
       
     // Update local state
     setTotalBalance(newBalance);
-  }, [familyId, profileId, isParent, todayKey, tasks, totalBalance]);
+  }, [familyId, profileId, effectiveChildId, todayKey, tasks, totalBalance]);
 
   // Uncomplete task
   const uncompleteTask = useCallback(async (taskId: string) => {
     if (!familyId || !profileId) return;
+
+    // Use effectiveChildId to support "view as child" mode
+    const targetChildId = effectiveChildId || null;
 
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -442,39 +480,52 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       t.id === taskId ? { ...t, completed: false, completedAt: undefined } : t
     ));
 
-    // Update progress
+    // Delete and re-insert with completed=false
     await supabase
       .from('daily_progress')
-      .upsert({
+      .delete()
+      .eq('family_id', familyId)
+      .eq('date', todayKey)
+      .eq('task_id', taskId)
+      .eq('child_id', targetChildId);
+
+    await supabase
+      .from('daily_progress')
+      .insert({
         family_id: familyId,
         date: todayKey,
         task_id: taskId,
-        child_id: isParent ? null : profileId,
+        child_id: targetChildId,
         completed: false,
         completed_at: null,
-      }, { onConflict: 'family_id,date,task_id' });
+      });
 
-    // Update vault balance
+    // Update vault balance for the specific child
     const newBalance = Math.max(0, totalBalance - task.credits);
     
-    if (isParent) {
+    if (targetChildId) {
       await supabase
         .from('credit_vault')
         .update({ total_balance: newBalance, last_updated_date: todayKey })
         .eq('family_id', familyId)
-        .is('child_id', null);
+        .eq('child_id', targetChildId);
     } else {
       await supabase
         .from('credit_vault')
         .update({ total_balance: newBalance, last_updated_date: todayKey })
         .eq('family_id', familyId)
-        .eq('child_id', profileId);
+        .is('child_id', null);
     }
-  }, [familyId, profileId, isParent, todayKey, tasks, totalBalance]);
+    
+    setTotalBalance(newBalance);
+  }, [familyId, profileId, effectiveChildId, todayKey, tasks, totalBalance]);
 
   // Toggle lesson
   const toggleLesson = useCallback(async (lessonId: string) => {
     if (!familyId || !profileId) return;
+
+    // Use effectiveChildId to support "view as child" mode
+    const targetChildId = effectiveChildId || null;
 
     const lesson = lessons.find(l => l.id === lessonId);
     if (!lesson) return;
@@ -486,28 +537,44 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       l.id === lessonId ? { ...l, completed: newCompleted } : l
     ));
 
-    // Upsert lesson progress with child_id
+    // Delete and re-insert for proper child_id handling
     await supabase
       .from('lesson_progress')
-      .upsert({
+      .delete()
+      .eq('family_id', familyId)
+      .eq('date', todayKey)
+      .eq('lesson_key', lessonId)
+      .eq('child_id', targetChildId);
+
+    await supabase
+      .from('lesson_progress')
+      .insert({
         family_id: familyId,
         date: todayKey,
         lesson_key: lessonId,
-        child_id: isParent ? null : profileId,
+        child_id: targetChildId,
         completed: newCompleted,
         completed_at: newCompleted ? new Date().toISOString() : null,
         credits: lesson.credits,
-      }, { onConflict: 'family_id,date,lesson_key' });
+      });
 
-    // Update vault balance - use family vault
+    // Update vault balance for the specific child
     const creditChange = newCompleted ? lesson.credits : -lesson.credits;
     const newBalance = Math.max(0, totalBalance + creditChange);
     
-    await supabase
-      .from('credit_vault')
-      .update({ total_balance: newBalance, last_updated_date: todayKey })
-      .eq('family_id', familyId)
-      .is('child_id', null);
+    if (targetChildId) {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .eq('child_id', targetChildId);
+    } else {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .is('child_id', null);
+    }
       
     setTotalBalance(newBalance);
   }, [familyId, profileId, isParent, todayKey, lessons, totalBalance]);
