@@ -1,11 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Settings, Bell, Calendar, Save, User, BookOpen, Gift, Upload, ChevronRight, ArrowRight, GraduationCap, Lightbulb, Loader2 } from 'lucide-react';
+import {
+  Settings,
+  Bell,
+  Calendar,
+  Save,
+  User,
+  BookOpen,
+  Gift,
+  Upload,
+  ChevronRight,
+  ArrowRight,
+  GraduationCap,
+  Lightbulb,
+  Loader2,
+  Trash2,
+  Plus,
+  Pencil,
+  X,
+  Check,
+  Pill,
+  Droplets,
+  Apple,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Progress } from './ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { TimetableEditor } from './TimetableEditor';
 import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -14,6 +37,7 @@ import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 interface ParentSettingsProps {
   dailyGoal: number;
@@ -268,9 +292,19 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   const [localBalance, setLocalBalance] = useState(totalBalance);
   const [savingBalance, setSavingBalance] = useState(false);
 
+  const [localDailyGoal, setLocalDailyGoal] = useState(dailyGoal);
+  const [savingDailyGoal, setSavingDailyGoal] = useState(false);
+
+  const dailyGoalSchema = z.coerce.number().int().min(10).max(1000);
+  const balanceSchema = z.coerce.number().int().min(0).max(1_000_000);
+
   useEffect(() => {
     setLocalBalance(totalBalance);
   }, [totalBalance]);
+
+  useEffect(() => {
+    setLocalDailyGoal(dailyGoal);
+  }, [dailyGoal]);
 
   useEffect(() => {
     initializeChildData();
@@ -306,22 +340,39 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   };
 
   const handleSaveBalance = async () => {
-    if (localBalance < 0) {
-      toast.error('יתרה לא יכולה להיות שלילית');
+    const parsed = balanceSchema.safeParse(localBalance);
+    if (!parsed.success) {
+      toast.error('אנא הזן יתרה תקינה (0 עד 1,000,000)');
       return;
     }
-    console.log('handleSaveBalance: Starting save', { localBalance, childId });
+
     setSavingBalance(true);
     try {
-      await updateTotalBalance(localBalance);
-      console.log('handleSaveBalance: Save successful');
+      await updateTotalBalance(parsed.data);
       toast.success('היתרה עודכנה בהצלחה!');
       setEditingBalance(false);
-    } catch (error) {
-      console.error('handleSaveBalance: Error saving', error);
-      toast.error('שגיאה בעדכון היתרה: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } catch {
+      toast.error('שגיאה בעדכון היתרה');
     } finally {
       setSavingBalance(false);
+    }
+  };
+
+  const handleSaveDailyGoal = async () => {
+    const parsed = dailyGoalSchema.safeParse(localDailyGoal);
+    if (!parsed.success) {
+      toast.error('אנא הזן יעד תקין (10 עד 1000)');
+      return;
+    }
+
+    setSavingDailyGoal(true);
+    try {
+      await updateDailyGoal(parsed.data);
+      toast.success('היעד עודכן בהצלחה!');
+    } catch {
+      toast.error('שגיאה בעדכון היעד');
+    } finally {
+      setSavingDailyGoal(false);
     }
   };
 
@@ -388,19 +439,33 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
         <div className="flex items-center gap-2">
           <Input
             type="number"
-            value={dailyGoal}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              if (!isNaN(val) && val >= 10 && val <= 1000) {
-                updateDailyGoal(val);
-              }
-            }}
+            value={localDailyGoal}
+            onChange={(e) => setLocalDailyGoal(Number(e.target.value))}
             className="w-20 h-8 bg-background border-border text-center text-sm"
             min={10}
             max={1000}
             dir="ltr"
           />
           <span className="text-xs text-muted-foreground">קרדיטים</span>
+
+          <Button
+            size="sm"
+            className="h-8 px-3"
+            onClick={handleSaveDailyGoal}
+            disabled={savingDailyGoal || localDailyGoal === dailyGoal}
+          >
+            {savingDailyGoal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-2"
+            onClick={() => setLocalDailyGoal(dailyGoal)}
+            disabled={savingDailyGoal || localDailyGoal === dailyGoal}
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
@@ -551,11 +616,6 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     </div>
   );
 }
-
-// Task Editor for Child with Edit functionality
-import { Trash2, Plus, Pencil, X, Check } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Pill, Droplets, Apple } from 'lucide-react';
 
 const categoryOptions: { value: TaskCategory; label: string; icon: typeof Pill }[] = [
   { value: 'medication', label: 'תרופות', icon: Pill },
