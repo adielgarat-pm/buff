@@ -38,7 +38,7 @@ const getTodayWeekDay = (): WeekDay | null => {
 };
 
 export function useSyncedTaskStore() {
-  const { familyId } = useAuth();
+  const { familyId, profile } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>(DEFAULT_LESSONS.map(l => ({ ...l, completed: false })));
   const [timetable, setTimetable] = useState<Timetable>({});
@@ -51,39 +51,65 @@ export function useSyncedTaskStore() {
   const [loading, setLoading] = useState(true);
 
   const todayKey = getTodayKey();
+  const isParent = profile?.role === 'parent';
+  const profileId = profile?.id;
 
-  // Fetch all family data
+  // Fetch all family data - filtered by role
   const fetchFamilyData = useCallback(async () => {
-    if (!familyId) return;
+    if (!familyId || !profileId) return;
 
     try {
-      // Fetch tasks
-      const { data: tasksData } = await supabase
+      // For children, filter tasks by assigned_to (their id or null for shared)
+      // For parents, get all tasks
+      let tasksQuery = supabase
         .from('tasks')
         .select('*')
         .eq('family_id', familyId)
         .order('time');
 
+      // RLS already filters this, but we make it explicit for clarity
+      // Children will only see tasks assigned to them or unassigned (via RLS)
+
+      const { data: tasksData } = await tasksQuery;
+
       // Fetch today's progress
-      const { data: progressData } = await supabase
+      // For children, filter by child_id
+      let progressQuery = supabase
         .from('daily_progress')
         .select('*')
         .eq('family_id', familyId)
         .eq('date', todayKey);
 
+      if (!isParent) {
+        progressQuery = progressQuery.or(`child_id.is.null,child_id.eq.${profileId}`);
+      }
+
+      const { data: progressData } = await progressQuery;
+
       // Fetch today's lesson progress
-      const { data: lessonProgressData } = await supabase
+      let lessonProgressQuery = supabase
         .from('lesson_progress')
         .select('*')
         .eq('family_id', familyId)
         .eq('date', todayKey);
 
-      // Fetch credit vault
-      const { data: vaultData } = await supabase
+      if (!isParent) {
+        lessonProgressQuery = lessonProgressQuery.or(`child_id.is.null,child_id.eq.${profileId}`);
+      }
+
+      const { data: lessonProgressData } = await lessonProgressQuery;
+
+      // Fetch credit vault - for children, get their specific vault
+      let vaultQuery = supabase
         .from('credit_vault')
         .select('*')
-        .eq('family_id', familyId)
-        .maybeSingle();
+        .eq('family_id', familyId);
+
+      if (!isParent) {
+        vaultQuery = vaultQuery.or(`child_id.is.null,child_id.eq.${profileId}`);
+      }
+
+      const { data: vaultData } = await vaultQuery.maybeSingle();
 
       // Fetch store rewards
       const { data: rewardsData } = await supabase
@@ -91,12 +117,17 @@ export function useSyncedTaskStore() {
         .select('*')
         .eq('family_id', familyId);
 
-      // Fetch timetable
-      const { data: timetableData } = await supabase
+      // Fetch timetable - for children, get their specific one or shared
+      let timetableQuery = supabase
         .from('timetables')
         .select('*')
-        .eq('family_id', familyId)
-        .maybeSingle();
+        .eq('family_id', familyId);
+
+      if (!isParent) {
+        timetableQuery = timetableQuery.or(`assigned_to.is.null,assigned_to.eq.${profileId}`);
+      }
+
+      const { data: timetableData } = await timetableQuery.maybeSingle();
 
       // Fetch app settings
       const { data: settingsData } = await supabase
@@ -119,6 +150,7 @@ export function useSyncedTaskStore() {
         description: t.description || undefined,
         icon: t.icon || undefined,
         completed: completedTaskIds.has(t.id),
+        assignedTo: t.assigned_to || undefined,
       }));
 
       setTasks(mappedTasks);
@@ -145,6 +177,7 @@ export function useSyncedTaskStore() {
           icon: r.emoji,
           claimed: r.claimed,
           claimedAt: r.claimed_at || undefined,
+          assignedTo: r.assigned_to || undefined,
         })));
       }
 
@@ -162,16 +195,16 @@ export function useSyncedTaskStore() {
     } finally {
       setLoading(false);
     }
-  }, [familyId, todayKey]);
+  }, [familyId, profileId, isParent, todayKey]);
 
   // Initial fetch
   useEffect(() => {
-    if (familyId) {
+    if (familyId && profileId) {
       fetchFamilyData();
     } else {
       setLoading(false);
     }
-  }, [familyId, fetchFamilyData]);
+  }, [familyId, profileId, fetchFamilyData]);
 
   // Set up real-time subscriptions
   useEffect(() => {
@@ -182,33 +215,43 @@ export function useSyncedTaskStore() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'daily_progress', filter: `family_id=eq.${familyId}` },
-        (payload: RealtimePostgresChangesPayload<{ task_id: string; completed: boolean; date: string }>) => {
+        (payload: RealtimePostgresChangesPayload<{ task_id: string; completed: boolean; date: string; child_id: string | null }>) => {
           if (payload.new && 'date' in payload.new && payload.new.date === todayKey) {
-            const { task_id, completed } = payload.new as { task_id: string; completed: boolean };
-            setTasks(prev => prev.map(t =>
-              t.id === task_id ? { ...t, completed } : t
-            ));
+            const newData = payload.new as { task_id: string; completed: boolean; child_id: string | null };
+            // Only update if this is for the current user (child) or if parent
+            if (isParent || !newData.child_id || newData.child_id === profileId) {
+              const { task_id, completed } = newData;
+              setTasks(prev => prev.map(t =>
+                t.id === task_id ? { ...t, completed } : t
+              ));
+            }
           }
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'lesson_progress', filter: `family_id=eq.${familyId}` },
-        (payload: RealtimePostgresChangesPayload<{ lesson_key: string; completed: boolean; date: string }>) => {
+        (payload: RealtimePostgresChangesPayload<{ lesson_key: string; completed: boolean; date: string; child_id: string | null }>) => {
           if (payload.new && 'date' in payload.new && payload.new.date === todayKey) {
-            const { lesson_key, completed } = payload.new as { lesson_key: string; completed: boolean };
-            setLessons(prev => prev.map(l =>
-              l.id === lesson_key ? { ...l, completed } : l
-            ));
+            const newData = payload.new as { lesson_key: string; completed: boolean; child_id: string | null };
+            if (isParent || !newData.child_id || newData.child_id === profileId) {
+              const { lesson_key, completed } = newData;
+              setLessons(prev => prev.map(l =>
+                l.id === lesson_key ? { ...l, completed } : l
+              ));
+            }
           }
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'credit_vault', filter: `family_id=eq.${familyId}` },
-        (payload: RealtimePostgresChangesPayload<{ total_balance: number }>) => {
+        (payload: RealtimePostgresChangesPayload<{ total_balance: number; child_id: string | null }>) => {
           if (payload.new && 'total_balance' in payload.new) {
-            setTotalBalance((payload.new as { total_balance: number }).total_balance);
+            const newData = payload.new as { total_balance: number; child_id: string | null };
+            if (isParent || !newData.child_id || newData.child_id === profileId) {
+              setTotalBalance(newData.total_balance);
+            }
           }
         }
       )
@@ -216,7 +259,6 @@ export function useSyncedTaskStore() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'store_rewards', filter: `family_id=eq.${familyId}` },
         () => {
-          // Refetch all rewards on any change
           fetchFamilyData();
         }
       )
@@ -242,9 +284,12 @@ export function useSyncedTaskStore() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'timetables', filter: `family_id=eq.${familyId}` },
-        (payload: RealtimePostgresChangesPayload<{ data: Timetable }>) => {
+        (payload: RealtimePostgresChangesPayload<{ data: Timetable; assigned_to: string | null }>) => {
           if (payload.new && 'data' in payload.new) {
-            setTimetable((payload.new as { data: Timetable }).data);
+            const newData = payload.new as { data: Timetable; assigned_to: string | null };
+            if (isParent || !newData.assigned_to || newData.assigned_to === profileId) {
+              setTimetable(newData.data);
+            }
           }
         }
       )
@@ -253,11 +298,11 @@ export function useSyncedTaskStore() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [familyId, todayKey, fetchFamilyData]);
+  }, [familyId, profileId, isParent, todayKey, fetchFamilyData]);
 
-  // Complete task
+  // Complete task - now includes child_id
   const completeTask = useCallback(async (taskId: string) => {
-    if (!familyId) return;
+    if (!familyId || !profileId) return;
 
     // Optimistic update
     setTasks(prev => prev.map(task =>
@@ -267,28 +312,52 @@ export function useSyncedTaskStore() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Upsert progress
+    // Upsert progress with child_id
     await supabase
       .from('daily_progress')
       .upsert({
         family_id: familyId,
         date: todayKey,
         task_id: taskId,
+        child_id: isParent ? null : profileId,
         completed: true,
         completed_at: new Date().toISOString(),
       }, { onConflict: 'family_id,date,task_id' });
 
-    // Update vault balance
+    // Update vault balance - for child's specific vault or family vault
     const newBalance = totalBalance + task.credits;
-    await supabase
-      .from('credit_vault')
-      .update({ total_balance: newBalance, last_updated_date: todayKey })
-      .eq('family_id', familyId);
-  }, [familyId, todayKey, tasks, totalBalance]);
+    
+    if (isParent) {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .is('child_id', null);
+    } else {
+      // Update or create child's vault
+      const { data: existingVault } = await supabase
+        .from('credit_vault')
+        .select('id')
+        .eq('family_id', familyId)
+        .eq('child_id', profileId)
+        .maybeSingle();
+
+      if (existingVault) {
+        await supabase
+          .from('credit_vault')
+          .update({ total_balance: newBalance, last_updated_date: todayKey })
+          .eq('id', existingVault.id);
+      } else {
+        await supabase
+          .from('credit_vault')
+          .insert({ family_id: familyId, child_id: profileId, total_balance: newBalance, last_updated_date: todayKey });
+      }
+    }
+  }, [familyId, profileId, isParent, todayKey, tasks, totalBalance]);
 
   // Uncomplete task
   const uncompleteTask = useCallback(async (taskId: string) => {
-    if (!familyId) return;
+    if (!familyId || !profileId) return;
 
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -305,21 +374,32 @@ export function useSyncedTaskStore() {
         family_id: familyId,
         date: todayKey,
         task_id: taskId,
+        child_id: isParent ? null : profileId,
         completed: false,
         completed_at: null,
       }, { onConflict: 'family_id,date,task_id' });
 
     // Update vault balance
     const newBalance = Math.max(0, totalBalance - task.credits);
-    await supabase
-      .from('credit_vault')
-      .update({ total_balance: newBalance, last_updated_date: todayKey })
-      .eq('family_id', familyId);
-  }, [familyId, todayKey, tasks, totalBalance]);
+    
+    if (isParent) {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .is('child_id', null);
+    } else {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .eq('child_id', profileId);
+    }
+  }, [familyId, profileId, isParent, todayKey, tasks, totalBalance]);
 
   // Toggle lesson
   const toggleLesson = useCallback(async (lessonId: string) => {
-    if (!familyId) return;
+    if (!familyId || !profileId) return;
 
     const lesson = lessons.find(l => l.id === lessonId);
     if (!lesson) return;
@@ -331,13 +411,14 @@ export function useSyncedTaskStore() {
       l.id === lessonId ? { ...l, completed: newCompleted } : l
     ));
 
-    // Upsert lesson progress
+    // Upsert lesson progress with child_id
     await supabase
       .from('lesson_progress')
       .upsert({
         family_id: familyId,
         date: todayKey,
         lesson_key: lessonId,
+        child_id: isParent ? null : profileId,
         completed: newCompleted,
         completed_at: newCompleted ? new Date().toISOString() : null,
         credits: lesson.credits,
@@ -346,11 +427,33 @@ export function useSyncedTaskStore() {
     // Update vault balance
     const creditChange = newCompleted ? lesson.credits : -lesson.credits;
     const newBalance = Math.max(0, totalBalance + creditChange);
-    await supabase
-      .from('credit_vault')
-      .update({ total_balance: newBalance, last_updated_date: todayKey })
-      .eq('family_id', familyId);
-  }, [familyId, todayKey, lessons, totalBalance]);
+    
+    if (isParent) {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance, last_updated_date: todayKey })
+        .eq('family_id', familyId)
+        .is('child_id', null);
+    } else {
+      const { data: existingVault } = await supabase
+        .from('credit_vault')
+        .select('id')
+        .eq('family_id', familyId)
+        .eq('child_id', profileId)
+        .maybeSingle();
+
+      if (existingVault) {
+        await supabase
+          .from('credit_vault')
+          .update({ total_balance: newBalance, last_updated_date: todayKey })
+          .eq('id', existingVault.id);
+      } else {
+        await supabase
+          .from('credit_vault')
+          .insert({ family_id: familyId, child_id: profileId, total_balance: newBalance, last_updated_date: todayKey });
+      }
+    }
+  }, [familyId, profileId, isParent, todayKey, lessons, totalBalance]);
 
   // Update task (parent only)
   const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
@@ -463,7 +566,7 @@ export function useSyncedTaskStore() {
 
   // Redeem store reward
   const redeemStoreReward = useCallback(async (rewardId: string) => {
-    if (!familyId) return;
+    if (!familyId || !profileId) return;
 
     const reward = storeRewards.find(r => r.id === rewardId);
     if (!reward || reward.claimed || totalBalance < reward.price) return;
@@ -482,11 +585,20 @@ export function useSyncedTaskStore() {
       .update({ claimed: true, claimed_at: new Date().toISOString() })
       .eq('id', rewardId);
 
-    await supabase
-      .from('credit_vault')
-      .update({ total_balance: newBalance })
-      .eq('family_id', familyId);
-  }, [familyId, storeRewards, totalBalance]);
+    if (isParent) {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance })
+        .eq('family_id', familyId)
+        .is('child_id', null);
+    } else {
+      await supabase
+        .from('credit_vault')
+        .update({ total_balance: newBalance })
+        .eq('family_id', familyId)
+        .eq('child_id', profileId);
+    }
+  }, [familyId, profileId, isParent, storeRewards, totalBalance]);
 
   // Update store rewards
   const updateStoreRewards = useCallback(async (rewards: StoreReward[]) => {

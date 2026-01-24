@@ -36,9 +36,10 @@ export interface Task {
   credits: number;
   completed: boolean;
   completedAt?: Date;
-  hideOnWeekend?: boolean; // Hide this task on Friday/Saturday
-  description?: string; // Optional description for UI display
-  icon?: string; // Optional custom icon identifier
+  hideOnWeekend?: boolean;
+  description?: string;
+  icon?: string;
+  assignedTo?: string; // Child profile ID for per-child tasks
 }
 
 export interface Lesson {
@@ -62,6 +63,7 @@ export interface StoreReward {
   price: number;
   claimed: boolean;
   claimedAt?: string;
+  assignedTo?: string; // Child profile ID for per-child rewards
 }
 
 export interface DailyProgress {
