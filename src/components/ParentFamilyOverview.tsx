@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { User, Users, Zap, TrendingUp, ChevronRight, Eye, Settings as SettingsIcon } from 'lucide-react';
+import { User, Users, Zap, ChevronRight, Eye, Settings as SettingsIcon, Sparkles, Loader2, Check } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildProgress } from '@/hooks/useChildProgress';
+import { useCleanDayBonus } from '@/hooks/useCleanDayBonus';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,9 +17,17 @@ interface ParentFamilyOverviewProps {
 export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFamilyOverviewProps) {
   const { familyShortCode } = useAuth();
   const { children, loading: membersLoading } = useFamilyMembers();
-  const { childrenProgress, loading: progressLoading } = useChildProgress();
+  const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
+  const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
 
   const loading = membersLoading || progressLoading;
+
+  const handleAwardBonus = async (childId: string, childName: string) => {
+    const success = await awardCleanDayBonus(childId, childName);
+    if (success) {
+      refetch(); // Refresh progress data to show updated balance
+    }
+  };
 
   if (loading) {
     return (
@@ -69,6 +78,8 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
               const progressPercent = progress 
                 ? Math.min((progress.todayEarned / progress.dailyGoal) * 100, 100)
                 : 0;
+              const bonusAwarded = wasBonusAwardedToday(child.id);
+              const isAwarding = awarding === child.id;
 
               return (
                 <div
@@ -127,6 +138,36 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                         </div>
                       </div>
                     )}
+
+                    {/* Clean Day Bonus Button */}
+                    <Button
+                      onClick={() => handleAwardBonus(child.id, child.displayName)}
+                      disabled={bonusAwarded || isAwarding}
+                      variant={bonusAwarded ? "outline" : "default"}
+                      className={cn(
+                        "w-full touch-target transition-all",
+                        bonusAwarded
+                          ? "bg-accent/20 text-accent border-accent/30"
+                          : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                      )}
+                    >
+                      {isAwarding ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          מעניק בונוס...
+                        </>
+                      ) : bonusAwarded ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          בונוס יום נקי ניתן ✓
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          🌟 בונוס יום נקי (+20)
+                        </>
+                      )}
+                    </Button>
                   </div>
 
                   {/* Action Buttons */}
