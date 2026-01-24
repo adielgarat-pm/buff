@@ -52,14 +52,7 @@ export function useChildProgress() {
         return;
       }
 
-      // Fetch app settings for daily goal
-      const { data: settingsData } = await supabase
-        .from('app_settings')
-        .select('daily_goal')
-        .eq('family_id', familyId)
-        .maybeSingle();
-
-      const dailyGoal = settingsData?.daily_goal || 100;
+      // Daily goal is now per-child, stored in profiles table
 
       // Build progress for each child
       const progressPromises = children.map(async (child) => {
@@ -86,12 +79,12 @@ export function useChildProgress() {
           .eq('date', todayKey)
           .or(`child_id.is.null,child_id.eq.${child.id}`);
 
-        // Fetch credit vault for this child
+        // Fetch credit vault for this specific child
         const { data: vaultData } = await supabase
           .from('credit_vault')
           .select('*')
           .eq('family_id', familyId)
-          .or(`child_id.is.null,child_id.eq.${child.id}`)
+          .eq('child_id', child.id)
           .maybeSingle();
 
         const completedTaskIds = new Set(
@@ -114,7 +107,7 @@ export function useChildProgress() {
           childId: child.id,
           displayName: child.display_name,
           todayEarned: taskCredits + lessonCredits,
-          dailyGoal,
+          dailyGoal: child.daily_goal || 100,
           tasksCompleted,
           tasksTotal,
           lessonsCompleted,
@@ -168,6 +161,7 @@ export function useChildData(childId: string | null) {
   const [timetable, setTimetable] = useState<Timetable>({});
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [totalBalance, setTotalBalance] = useState(0);
+  const [dailyGoal, setDailyGoal] = useState(100);
   const [loading, setLoading] = useState(true);
 
   const todayKey = getTodayKey();
@@ -210,13 +204,20 @@ export function useChildData(childId: string | null) {
         .eq('family_id', familyId)
         .or(`assigned_to.is.null,assigned_to.eq.${childId}`);
 
-      // Fetch credit vault for this child
+      // Fetch credit vault for this specific child
       const { data: vaultData } = await supabase
         .from('credit_vault')
         .select('*')
         .eq('family_id', familyId)
-        .or(`child_id.is.null,child_id.eq.${childId}`)
+        .eq('child_id', childId)
         .maybeSingle();
+
+      // Fetch child's daily goal from profile
+      const { data: childProfile } = await supabase
+        .from('profiles')
+        .select('daily_goal')
+        .eq('id', childId)
+        .single();
 
       const completedTaskIds = new Set(
         progressData?.filter(p => p.completed).map(p => p.task_id) || []
@@ -256,6 +257,9 @@ export function useChildData(childId: string | null) {
       if (vaultData) {
         setTotalBalance(vaultData.total_balance);
       }
+
+      // Set child's daily goal
+      setDailyGoal(childProfile?.daily_goal || 100);
     } catch (error) {
       console.error('Error fetching child data:', error);
     } finally {
@@ -409,17 +413,31 @@ export function useChildData(childId: string | null) {
     await fetchChildData();
   }, [familyId, childId, fetchChildData]);
 
+  // Update child's daily goal
+  const updateDailyGoal = useCallback(async (goal: number) => {
+    if (!childId) return;
+
+    setDailyGoal(goal);
+
+    await supabase
+      .from('profiles')
+      .update({ daily_goal: goal })
+      .eq('id', childId);
+  }, [childId]);
+
   return {
     tasks,
     timetable,
     storeRewards,
     totalBalance,
+    dailyGoal,
     loading,
     addTask,
     updateTask,
     deleteTask,
     updateTimetable,
     updateStoreRewards,
+    updateDailyGoal,
     initializeChildData,
     refetch: fetchChildData,
   };

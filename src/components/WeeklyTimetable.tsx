@@ -1,8 +1,9 @@
-import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS, WeekDay } from '@/types/task';
-import { Clock, BookOpen, Settings2 } from 'lucide-react';
+import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS, WeekDay, PeriodInfo } from '@/types/task';
+import { Clock, BookOpen, Settings2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { TimetableEditor } from './TimetableEditor';
 
 interface WeeklyTimetableProps {
@@ -20,11 +21,75 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
     }
     return 'sunday';
   });
+  
+  // Inline editing state
+  const [editingPeriod, setEditingPeriod] = useState<{ day: WeekDay; index: number } | null>(null);
+  const [editingSubject, setEditingSubject] = useState('');
+  const [editingTime, setEditingTime] = useState('');
 
   const todayIndex = new Date().getDay();
   const isToday = (day: WeekDay) => WEEK_DAYS.indexOf(day) === todayIndex;
 
   const selectedSchedule = timetable[selectedDay] || [];
+
+  const handleStartEdit = (day: WeekDay, index: number, period: PeriodInfo) => {
+    setEditingPeriod({ day, index });
+    setEditingSubject(period.subject);
+    setEditingTime(period.startTime);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingPeriod) return;
+
+    const updatedTimetable = { ...timetable };
+    const daySchedule = [...(updatedTimetable[editingPeriod.day] || [])];
+    
+    if (daySchedule[editingPeriod.index]) {
+      daySchedule[editingPeriod.index] = {
+        subject: editingSubject,
+        startTime: editingTime,
+      };
+      updatedTimetable[editingPeriod.day] = daySchedule;
+      onUpdateTimetable(updatedTimetable);
+    }
+    
+    setEditingPeriod(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPeriod(null);
+    setEditingSubject('');
+    setEditingTime('');
+  };
+
+  const handleAddPeriod = () => {
+    const updatedTimetable = { ...timetable };
+    const daySchedule = [...(updatedTimetable[selectedDay] || [])];
+    
+    // Find the next available time slot
+    const lastPeriod = daySchedule[daySchedule.length - 1];
+    const nextTime = lastPeriod 
+      ? incrementTime(lastPeriod.startTime, 50) 
+      : '08:00';
+    
+    daySchedule.push({ subject: '', startTime: nextTime });
+    updatedTimetable[selectedDay] = daySchedule;
+    
+    // Start editing the new period
+    setEditingPeriod({ day: selectedDay, index: daySchedule.length - 1 });
+    setEditingSubject('');
+    setEditingTime(nextTime);
+    
+    onUpdateTimetable(updatedTimetable);
+  };
+
+  const handleDeletePeriod = (index: number) => {
+    const updatedTimetable = { ...timetable };
+    const daySchedule = [...(updatedTimetable[selectedDay] || [])];
+    daySchedule.splice(index, 1);
+    updatedTimetable[selectedDay] = daySchedule;
+    onUpdateTimetable(updatedTimetable);
+  };
 
   return (
     <div className="space-y-4">
@@ -85,15 +150,25 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditorOpen(true)}
-              className="gap-1.5"
-            >
-              <Settings2 className="w-4 h-4" />
-              Edit
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddPeriod}
+                className="gap-1.5"
+              >
+                + Add
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditorOpen(true)}
+                className="gap-1.5"
+              >
+                <Settings2 className="w-4 h-4" />
+                Edit All
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -101,15 +176,84 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
           {selectedSchedule.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <p>No schedule set for this day</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddPeriod}
+                className="mt-4"
+              >
+                + Add First Period
+              </Button>
             </div>
           ) : (
             selectedSchedule.map((period, index) => {
-              if (!period.subject) return null;
+              const isEditing = editingPeriod?.day === selectedDay && editingPeriod?.index === index;
+              
+              if (isEditing) {
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 bg-primary/5"
+                  >
+                    {/* Period Number */}
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary">
+                        {index + 1}
+                      </span>
+                    </div>
+
+                    {/* Time Input */}
+                    <div className="flex items-center gap-1.5 w-24">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Input
+                        type="time"
+                        value={editingTime}
+                        onChange={(e) => setEditingTime(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+
+                    {/* Subject Input */}
+                    <Input
+                      value={editingSubject}
+                      onChange={(e) => setEditingSubject(e.target.value)}
+                      placeholder="Subject name"
+                      className="flex-1 h-8"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveEdit();
+                        if (e.key === 'Escape') handleCancelEdit();
+                      }}
+                    />
+
+                    {/* Actions */}
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleSaveEdit}
+                        className="h-8 w-8 text-primary"
+                      >
+                        <Check className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCancelEdit}
+                        className="h-8 w-8 text-muted-foreground"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
                   key={index}
-                  className="flex items-center gap-4 p-4 hover:bg-secondary/30 transition-colors"
+                  onClick={() => handleStartEdit(selectedDay, index, period)}
+                  className="flex items-center gap-4 p-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
                 >
                   {/* Period Number */}
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -126,10 +270,26 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
 
                   {/* Subject */}
                   <div className="flex-1">
-                    <span className="font-medium text-foreground">
-                      {period.subject}
+                    <span className={cn(
+                      "font-medium",
+                      period.subject ? "text-foreground" : "text-muted-foreground italic"
+                    )}>
+                      {period.subject || 'Click to add subject...'}
                     </span>
                   </div>
+
+                  {/* Delete button (visible on hover) */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePeriod(index);
+                    }}
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               );
             })
@@ -196,6 +356,15 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable }: WeeklyTimetabl
       />
     </div>
   );
+}
+
+// Helper to increment time by minutes
+function incrementTime(time: string, minutes: number): string {
+  const [hours, mins] = time.split(':').map(Number);
+  const totalMins = hours * 60 + mins + minutes;
+  const newHours = Math.floor(totalMins / 60) % 24;
+  const newMins = totalMins % 60;
+  return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
 }
 
 // Helper to get all unique times across the week
