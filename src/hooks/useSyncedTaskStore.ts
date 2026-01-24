@@ -112,17 +112,13 @@ export function useSyncedTaskStore() {
 
       const { data: lessonProgressData } = await lessonProgressQuery;
 
-      // Fetch credit vault - for children, get their specific vault
-      let vaultQuery = supabase
+      // Fetch credit vault - always use the family vault (child_id is null)
+      const { data: vaultData } = await supabase
         .from('credit_vault')
         .select('*')
-        .eq('family_id', familyId);
-
-      if (!isParent) {
-        vaultQuery = vaultQuery.or(`child_id.is.null,child_id.eq.${profileId}`);
-      }
-
-      const { data: vaultData } = await vaultQuery.maybeSingle();
+        .eq('family_id', familyId)
+        .is('child_id', null)
+        .maybeSingle();
 
       // Fetch store rewards
       const { data: rewardsData } = await supabase
@@ -338,35 +334,17 @@ export function useSyncedTaskStore() {
         completed_at: new Date().toISOString(),
       }, { onConflict: 'family_id,date,task_id' });
 
-    // Update vault balance - for child's specific vault or family vault
+    // Update vault balance - always use the family vault for simplicity
     const newBalance = totalBalance + task.credits;
     
-    if (isParent) {
-      await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance, last_updated_date: todayKey })
-        .eq('family_id', familyId)
-        .is('child_id', null);
-    } else {
-      // Update or create child's vault
-      const { data: existingVault } = await supabase
-        .from('credit_vault')
-        .select('id')
-        .eq('family_id', familyId)
-        .eq('child_id', profileId)
-        .maybeSingle();
-
-      if (existingVault) {
-        await supabase
-          .from('credit_vault')
-          .update({ total_balance: newBalance, last_updated_date: todayKey })
-          .eq('id', existingVault.id);
-      } else {
-        await supabase
-          .from('credit_vault')
-          .insert({ family_id: familyId, child_id: profileId, total_balance: newBalance, last_updated_date: todayKey });
-      }
-    }
+    await supabase
+      .from('credit_vault')
+      .update({ total_balance: newBalance, last_updated_date: todayKey })
+      .eq('family_id', familyId)
+      .is('child_id', null);
+      
+    // Update local state
+    setTotalBalance(newBalance);
   }, [familyId, profileId, isParent, todayKey, tasks, totalBalance]);
 
   // Uncomplete task
@@ -438,35 +416,17 @@ export function useSyncedTaskStore() {
         credits: lesson.credits,
       }, { onConflict: 'family_id,date,lesson_key' });
 
-    // Update vault balance
+    // Update vault balance - use family vault
     const creditChange = newCompleted ? lesson.credits : -lesson.credits;
     const newBalance = Math.max(0, totalBalance + creditChange);
     
-    if (isParent) {
-      await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance, last_updated_date: todayKey })
-        .eq('family_id', familyId)
-        .is('child_id', null);
-    } else {
-      const { data: existingVault } = await supabase
-        .from('credit_vault')
-        .select('id')
-        .eq('family_id', familyId)
-        .eq('child_id', profileId)
-        .maybeSingle();
-
-      if (existingVault) {
-        await supabase
-          .from('credit_vault')
-          .update({ total_balance: newBalance, last_updated_date: todayKey })
-          .eq('id', existingVault.id);
-      } else {
-        await supabase
-          .from('credit_vault')
-          .insert({ family_id: familyId, child_id: profileId, total_balance: newBalance, last_updated_date: todayKey });
-      }
-    }
+    await supabase
+      .from('credit_vault')
+      .update({ total_balance: newBalance, last_updated_date: todayKey })
+      .eq('family_id', familyId)
+      .is('child_id', null);
+      
+    setTotalBalance(newBalance);
   }, [familyId, profileId, isParent, todayKey, lessons, totalBalance]);
 
   // Update task (parent only)
