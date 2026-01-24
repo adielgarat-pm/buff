@@ -4,7 +4,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
-import { ParentDashboard } from '@/components/ParentDashboard';
+import { ParentMode } from '@/components/ParentMode';
 import { PhaseNavigation } from '@/components/PhaseNavigation';
 import { PhaseView } from '@/components/PhaseView';
 import { RewardsStore } from '@/components/RewardsStore';
@@ -20,6 +20,7 @@ import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const { profile, familyId, signOut } = useAuth();
+  const [parentModeOpen, setParentModeOpen] = useState(false);
   const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
   const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
   const [activeTab, setActiveTab] = useState<NavTab>('tasks');
@@ -217,30 +218,6 @@ const Index = () => {
             onClose={() => setActiveTab('tasks')}
           />
         );
-
-      case 'settings':
-        if (!isParent) return null;
-        return (
-          <ParentDashboard
-            tasks={tasks}
-            dailyGoal={dailyGoal}
-            appTitle={appTitle}
-            timetable={timetable}
-            lessonRemindersEnabled={lessonRemindersEnabled}
-            fridayEnabled={fridayEnabled}
-            storeRewards={storeRewards}
-            onUpdateTask={updateTask}
-            onAddTask={addTask}
-            onDeleteTask={deleteTask}
-            onUpdateGoal={updateDailyGoal}
-            onUpdateAppTitle={updateAppTitle}
-            onUpdateTimetable={updateTimetable}
-            onToggleLessonReminders={toggleLessonReminders}
-            onToggleFridayEnabled={toggleFridayEnabled}
-            onUpdateStoreRewards={updateStoreRewards}
-            onBack={() => setActiveTab('tasks')}
-          />
-        );
       
       default:
         return null;
@@ -250,8 +227,8 @@ const Index = () => {
   // Store view is full-screen, so handle it separately
   if (activeTab === 'store') {
     return (
-      <div className="min-h-screen bg-background pb-24 no-horizontal-scroll safe-area-inset">
-        <div className="tab-content screen-padding">
+      <div className="min-h-screen bg-background pb-24 no-horizontal-scroll">
+        <div className="tab-content">
           <RewardsStore
             totalBalance={totalBalance}
             storeRewards={storeRewards}
@@ -259,18 +236,19 @@ const Index = () => {
             onClose={() => setActiveTab('tasks')}
           />
         </div>
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} isParent={isParent} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 no-horizontal-scroll safe-area-inset">
+    <div className="min-h-screen bg-background pb-24 no-horizontal-scroll">
       {/* Subtle gradient glow */}
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
       
-      <div className="relative max-w-lg mx-auto screen-padding pb-8">
+      <div className="relative max-w-lg mx-auto px-4 pb-8">
         <Header 
+          onOpenSettings={isParent ? () => setParentModeOpen(true) : undefined}
           onOpenStore={() => setActiveTab('store')}
           onOpenWeeklySummary={() => setWeeklySummaryOpen(true)}
           totalBalance={totalBalance}
@@ -290,11 +268,31 @@ const Index = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-        isParent={isParent}
-      />
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Parent Mode Dialog (only for parents) */}
+      {isParent && (
+        <ParentMode
+          open={parentModeOpen}
+          onClose={() => setParentModeOpen(false)}
+          tasks={tasks}
+          dailyGoal={dailyGoal}
+          appTitle={appTitle}
+          timetable={timetable}
+          lessonRemindersEnabled={lessonRemindersEnabled}
+          fridayEnabled={fridayEnabled}
+          storeRewards={storeRewards}
+          onUpdateTask={updateTask}
+          onAddTask={addTask}
+          onDeleteTask={deleteTask}
+          onUpdateGoal={updateDailyGoal}
+          onUpdateAppTitle={updateAppTitle}
+          onUpdateTimetable={updateTimetable}
+          onToggleLessonReminders={toggleLessonReminders}
+          onToggleFridayEnabled={toggleFridayEnabled}
+          onUpdateStoreRewards={updateStoreRewards}
+        />
+      )}
 
       {/* PWA Install Banner */}
       <InstallPWA />
