@@ -174,8 +174,8 @@ export function useNotifications() {
       if (notifyTime > today) {
         scheduleNotification(
           `lesson_${index}`,
-          `Next: ${period.subject}`,
-          `Period ${index + 1} starts in 5 minutes! 📚`,
+          `${period.subject} starts in 5 minutes!`,
+          `Get ready for your next class 📚`,
           notifyTime
         );
       }

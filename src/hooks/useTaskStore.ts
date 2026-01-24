@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task, DailyProgress, Reward, Lesson, Timetable, WEEK_DAYS, PeriodInfo, WeekDay, StoreReward, VaultData } from '@/types/task';
 
 const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
@@ -28,19 +28,61 @@ const DEFAULT_LESSONS: Omit<Lesson, 'completed'>[] = [
   { id: 'lesson8', label: 'P8', credits: 10 },
 ];
 
-const DEFAULT_PERIOD_TIMES = [
-  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00'
-];
-
+// Default timetable with actual school schedule
 const createDefaultTimetable = (): Timetable => {
-  const timetable: Timetable = {};
-  WEEK_DAYS.forEach(day => {
-    timetable[day] = DEFAULT_PERIOD_TIMES.map(time => ({
-      subject: '',
-      startTime: time,
-    }));
-  });
-  return timetable;
+  return {
+    sunday: [
+      { subject: 'Math', startTime: '08:15' },
+      { subject: 'Math', startTime: '09:05' },
+      { subject: 'Math', startTime: '10:05' },
+      { subject: 'Bible Studies', startTime: '10:55' },
+      { subject: 'Literature', startTime: '11:55' },
+      { subject: 'Literature', startTime: '12:45' },
+      { subject: 'Chemistry / Physics', startTime: '13:35' },
+      { subject: 'Chemistry / Physics', startTime: '14:25' },
+      { subject: 'Self Study', startTime: '15:15' },
+    ],
+    monday: [
+      { subject: 'Chemistry / Physics', startTime: '08:15' },
+      { subject: 'Chemistry / Physics', startTime: '09:05' },
+      { subject: 'P.E.', startTime: '10:05' },
+      { subject: 'Hebrew Grammar', startTime: '10:55' },
+      { subject: 'History', startTime: '11:55' },
+      { subject: 'History', startTime: '12:45' },
+      { subject: 'Math', startTime: '13:35' },
+      { subject: 'Math', startTime: '14:25' },
+    ],
+    tuesday: [
+      { subject: 'English', startTime: '08:15' },
+      { subject: 'English', startTime: '09:05' },
+      { subject: 'Hebrew Grammar', startTime: '10:05' },
+      { subject: 'Math', startTime: '10:55' },
+      { subject: 'Bible Studies', startTime: '11:55' },
+      { subject: 'English', startTime: '12:45' },
+      { subject: 'English', startTime: '13:35' },
+    ],
+    wednesday: [
+      { subject: 'Ramon Program', startTime: '08:15' },
+      { subject: 'Ramon Program', startTime: '09:05' },
+      { subject: 'Civics', startTime: '10:05' },
+      { subject: 'Hebrew Grammar', startTime: '10:55' },
+      { subject: 'History', startTime: '11:55' },
+      { subject: 'History', startTime: '12:45' },
+      { subject: 'English', startTime: '13:35' },
+      { subject: 'English', startTime: '14:25' },
+    ],
+    thursday: [
+      { subject: 'Chemistry', startTime: '08:15' },
+      { subject: 'English', startTime: '09:05' },
+      { subject: 'English', startTime: '10:05' },
+      { subject: 'English', startTime: '10:55' },
+      { subject: 'Math', startTime: '11:55' },
+      { subject: 'Math', startTime: '12:45' },
+      { subject: 'Literature', startTime: '13:35' },
+      { subject: 'Literature', startTime: '14:25' },
+      { subject: 'MUN', startTime: '16:00' },
+    ],
+  };
 };
 
 const DEFAULT_REWARDS: Reward[] = [
@@ -126,7 +168,17 @@ export function useTaskStore() {
       setDailyGoal(parseInt(storedGoal, 10));
     }
 
-    if (storedTimetable) {
+    // Force update to new default timetable if version changed
+    const TIMETABLE_VERSION = 'v2';
+    const storedTimetableVersion = localStorage.getItem('timetableVersion');
+    
+    if (storedTimetableVersion !== TIMETABLE_VERSION) {
+      // Reset to new defaults
+      const newTimetable = createDefaultTimetable();
+      setTimetable(newTimetable);
+      localStorage.setItem('timetable', JSON.stringify(newTimetable));
+      localStorage.setItem('timetableVersion', TIMETABLE_VERSION);
+    } else if (storedTimetable) {
       setTimetable(JSON.parse(storedTimetable));
     }
 
@@ -327,16 +379,24 @@ export function useTaskStore() {
   const todayWeekDay = getTodayWeekDay();
   const todaySchedule: PeriodInfo[] = todayWeekDay ? (timetable[todayWeekDay] || []) : [];
 
-  // Create dynamic lessons based on today's timetable
-  const todayLessons = lessons.map((lesson, index) => {
-    const periodInfo = todaySchedule[index];
-    const subject = periodInfo?.subject || '';
-    return {
-      ...lesson,
-      label: subject || `P${index + 1}`,
-      displayLabel: subject ? `${subject}` : `Period ${index + 1}`,
-    };
-  });
+  // Create dynamic lessons based on today's actual schedule
+  // Only include lessons that have subjects assigned
+  const todayLessons = useMemo(() => {
+    return todaySchedule
+      .filter(period => period.subject) // Only periods with subjects
+      .map((period, index) => {
+        const lessonId = `lesson_${index}`;
+        const existingLesson = lessons.find(l => l.id === lessonId);
+        return {
+          id: lessonId,
+          label: period.subject,
+          displayLabel: period.subject,
+          startTime: period.startTime,
+          credits: 10,
+          completed: existingLesson?.completed || false,
+        };
+      });
+  }, [todaySchedule, lessons]);
 
   // Filter tasks based on weekend visibility
   const visibleTasks = isWeekend() 
@@ -344,9 +404,9 @@ export function useTaskStore() {
     : tasks;
 
   const taskCredits = visibleTasks.filter(t => t.completed).reduce((sum, t) => sum + t.credits, 0);
-  const lessonCredits = isWeekend() ? 0 : lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
+  const lessonCredits = isWeekend() ? 0 : todayLessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   const earnedCredits = taskCredits + lessonCredits;
-  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isWeekend() ? 0 : lessons.reduce((sum, l) => sum + l.credits, 0));
+  const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isWeekend() ? 0 : todayLessons.reduce((sum, l) => sum + l.credits, 0));
   const progressPercent = dailyGoal > 0 ? Math.min((earnedCredits / dailyGoal) * 100, 100) : 0;
   const unlockedRewards = rewards.filter(r => earnedCredits >= r.requiredCredits);
 
