@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2, Zap, Users, User } from 'lucide-react';
+import buffLogo from '@/assets/buff-logo.png';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -97,25 +98,17 @@ export default function Auth() {
 
       <Card className="w-full max-w-md relative z-10 border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center mb-2 shadow-glow">
-            <Zap className="w-8 h-8 text-white fill-white" />
+          {/* BUFF Logo */}
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <img 
+              src={buffLogo} 
+              alt="BUFF Logo" 
+              className="h-20 w-20 object-contain"
+            />
+            <CardTitle className="text-3xl font-display font-black tracking-wider text-primary">
+              BUFF
+            </CardTitle>
           </div>
-          {/* BUFF Logo with lightning in U */}
-          <CardTitle className="text-3xl font-display font-black tracking-wider">
-            <span className="text-primary">B</span>
-            <span className="relative inline-flex items-center justify-center">
-              <span className="text-primary">U</span>
-              <Zap 
-                className="absolute w-3 h-3 text-buff fill-buff" 
-                style={{ 
-                  top: '50%', 
-                  left: '50%', 
-                  transform: 'translate(-50%, -45%)',
-                }} 
-              />
-            </span>
-            <span className="text-primary">FF</span>
-          </CardTitle>
           <CardDescription className="text-sm italic text-buff font-medium">
             Your Executive Function Power-up
           </CardDescription>
