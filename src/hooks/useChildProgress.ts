@@ -63,21 +63,21 @@ export function useChildProgress() {
           .eq('family_id', familyId)
           .or(`assigned_to.is.null,assigned_to.eq.${child.id}`);
 
-        // Fetch today's progress for this child
+        // Fetch today's progress for this specific child only
         const { data: progressData } = await supabase
           .from('daily_progress')
           .select('*')
           .eq('family_id', familyId)
           .eq('date', todayKey)
-          .or(`child_id.is.null,child_id.eq.${child.id}`);
+          .eq('child_id', child.id);
 
-        // Fetch lesson progress for this child
+        // Fetch lesson progress for this specific child only
         const { data: lessonProgressData } = await supabase
           .from('lesson_progress')
           .select('*')
           .eq('family_id', familyId)
           .eq('date', todayKey)
-          .or(`child_id.is.null,child_id.eq.${child.id}`);
+          .eq('child_id', child.id);
 
         // Fetch credit vault - try child-specific first, then family vault
         let vaultBalance = 0;
