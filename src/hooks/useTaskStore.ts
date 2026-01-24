@@ -221,6 +221,10 @@ export function useTaskStore() {
     const lessonCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
     const todayEarned = taskCredits + lessonCredits;
     
+    // Read previous progress BEFORE saving the new one
+    const prevProgressStr = localStorage.getItem(`progress_${todayKey}`);
+    const prevEarned = prevProgressStr ? JSON.parse(prevProgressStr).earnedCredits : 0;
+    
     const progress: DailyProgress = {
       date: todayKey,
       earnedCredits: todayEarned,
@@ -229,9 +233,9 @@ export function useTaskStore() {
     };
     localStorage.setItem(`progress_${todayKey}`, JSON.stringify(progress));
 
-    // Update vault balance - add today's credits if not already added
+    // Update vault balance
     if (lastVaultDate !== todayKey) {
-      // New day, add the full earned credits
+      // New day - add today's credits to total
       const newBalance = totalBalance + todayEarned;
       setTotalBalance(newBalance);
       setLastVaultDate(todayKey);
@@ -241,29 +245,20 @@ export function useTaskStore() {
         storeRewards,
       };
       localStorage.setItem('creditVault', JSON.stringify(vault));
-    } else {
-      // Same day, recalculate based on current tasks
-      // Get yesterday's vault balance (before today's credits)
-      const storedVault = localStorage.getItem('creditVault');
-      if (storedVault) {
-        const prevVault: VaultData = JSON.parse(storedVault);
-        const prevProgress = localStorage.getItem(`progress_${todayKey}`);
-        const prevEarned = prevProgress ? JSON.parse(prevProgress).earnedCredits : 0;
-        
-        // Only update if credits changed
-        if (prevEarned !== todayEarned) {
-          const baseBalance = prevVault.totalBalance - prevEarned + todayEarned;
-          setTotalBalance(baseBalance);
-          const vault: VaultData = {
-            totalBalance: baseBalance,
-            lastUpdatedDate: todayKey,
-            storeRewards,
-          };
-          localStorage.setItem('creditVault', JSON.stringify(vault));
-        }
-      }
+    } else if (prevEarned !== todayEarned) {
+      // Same day - only update if credits changed
+      // Calculate the delta (difference between new and old earned)
+      const creditDelta = todayEarned - prevEarned;
+      const newBalance = totalBalance + creditDelta;
+      setTotalBalance(newBalance);
+      const vault: VaultData = {
+        totalBalance: newBalance,
+        lastUpdatedDate: todayKey,
+        storeRewards,
+      };
+      localStorage.setItem('creditVault', JSON.stringify(vault));
     }
-  }, [tasks, lessons]);
+  }, [tasks, lessons, lastVaultDate, totalBalance, storeRewards]);
 
   const completeTask = useCallback((taskId: string) => {
     setTasks(prev => prev.map(task => 
