@@ -268,6 +268,7 @@ export type Database = {
           family_id: string | null
           id: string
           role: string
+          school_quest_enabled: boolean
           updated_at: string
           user_id: string
         }
@@ -278,6 +279,7 @@ export type Database = {
           family_id?: string | null
           id?: string
           role?: string
+          school_quest_enabled?: boolean
           updated_at?: string
           user_id: string
         }
@@ -288,6 +290,7 @@ export type Database = {
           family_id?: string | null
           id?: string
           role?: string
+          school_quest_enabled?: boolean
           updated_at?: string
           user_id?: string
         }

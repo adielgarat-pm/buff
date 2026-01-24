@@ -37,6 +37,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     progressPercent,
     lessonRemindersEnabled,
     fridayEnabled,
+    schoolQuestEnabled,
     totalBalance,
     storeRewards,
     buffsActivatedToday,
@@ -54,7 +55,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     requestPermission,
   } = useNotifications();
 
-  // Calculate phase stats
+  // Calculate phase stats (hide school if disabled)
   const phaseStats = useMemo(() => {
     const stats: Record<Phase, { completed: number; total: number }> = {
       morning: { completed: 0, total: 0 },
@@ -69,11 +70,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       if (task.completed) stats[phase].completed++;
     });
 
-    stats.school.total += lessons.length;
-    stats.school.completed += lessons.filter(l => l.completed).length;
+    // Only add lessons to school phase if school quest is enabled
+    if (schoolQuestEnabled) {
+      stats.school.total += lessons.length;
+      stats.school.completed += lessons.filter(l => l.completed).length;
+    }
 
     return stats;
-  }, [tasks, lessons]);
+  }, [tasks, lessons, schoolQuestEnabled]);
 
   // Loading state when switching children
   if (loading) {
@@ -130,6 +134,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 currentPhase={currentPhase}
                 onPhaseChange={setActivePhase}
                 phaseStats={phaseStats}
+                schoolQuestEnabled={schoolQuestEnabled}
               />
 
               {/* Focus Fuel Meter */}
@@ -153,6 +158,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 onToggleLesson={toggleLesson}
                 onBuffActivated={activateBuff}
                 fridayEnabled={fridayEnabled}
+                schoolQuestEnabled={schoolQuestEnabled}
               />
             </div>
           )}

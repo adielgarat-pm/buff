@@ -21,6 +21,7 @@ interface PhaseViewProps {
   onToggleLesson: (id: string) => void;
   onBuffActivated?: () => void;
   fridayEnabled?: boolean;
+  schoolQuestEnabled?: boolean;
 }
 
 export function PhaseView({
@@ -34,6 +35,7 @@ export function PhaseView({
   onToggleLesson,
   onBuffActivated,
   fridayEnabled = false,
+  schoolQuestEnabled = true,
 }: PhaseViewProps) {
   const { language, t } = useLanguage();
   const [focusMode, setFocusMode] = useState(false);
@@ -56,11 +58,11 @@ export function PhaseView({
   const earnedCredits = completedTasks.reduce((sum, t) => sum + t.credits, 0);
   const totalCredits = phaseTasks.reduce((sum, t) => sum + t.credits, 0);
 
-  // For school phase, include lessons
-  const isSchoolPhase = phase === 'school';
-  const completedLessons = lessons.filter(l => l.completed);
+  // For school phase, include lessons only if enabled
+  const isSchoolPhase = phase === 'school' && schoolQuestEnabled;
+  const completedLessons = schoolQuestEnabled ? lessons.filter(l => l.completed) : [];
   const lessonCredits = completedLessons.reduce((sum, l) => sum + l.credits, 0);
-  const totalLessonCredits = lessons.reduce((sum, l) => sum + l.credits, 0);
+  const totalLessonCredits = schoolQuestEnabled ? lessons.reduce((sum, l) => sum + l.credits, 0) : 0;
 
   const phaseTotal = isSchoolPhase 
     ? phaseTasks.length + lessons.length 

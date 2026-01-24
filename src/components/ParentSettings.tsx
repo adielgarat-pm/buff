@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Bell, Calendar, Save, User, BookOpen, Gift, Upload, ChevronRight, ArrowRight } from 'lucide-react';
+import { Settings, Bell, Calendar, Save, User, BookOpen, Gift, Upload, ChevronRight, ArrowRight, GraduationCap, Lightbulb } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -13,6 +13,7 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface ParentSettingsProps {
   dailyGoal: number;
@@ -243,6 +244,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     timetable,
     storeRewards,
     dailyGoal,
+    schoolQuestEnabled,
     loading,
     addTask,
     updateTask,
@@ -250,6 +252,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     updateTimetable,
     updateStoreRewards,
     updateDailyGoal,
+    toggleSchoolQuestEnabled,
     initializeChildData,
   } = useChildData(childId);
 
@@ -257,6 +260,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   const [timetableEditorOpen, setTimetableEditorOpen] = useState(false);
   const [storeEditorOpen, setStoreEditorOpen] = useState(false);
   const [scheduleImporterOpen, setScheduleImporterOpen] = useState(false);
+  const [showSchoolQuestTip, setShowSchoolQuestTip] = useState(false);
 
   useEffect(() => {
     initializeChildData();
@@ -269,6 +273,26 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   const handleImportTimetable = (newTimetable: Timetable) => {
     updateTimetable(newTimetable);
     setScheduleImporterOpen(false);
+  };
+
+  const handleToggleSchoolQuest = (enabled: boolean) => {
+    toggleSchoolQuestEnabled(enabled);
+    
+    // Show tip when enabling for the first time
+    if (enabled) {
+      const hasSeenTip = localStorage.getItem(`school_quest_tip_${childId}`);
+      if (!hasSeenTip) {
+        setShowSchoolQuestTip(true);
+        localStorage.setItem(`school_quest_tip_${childId}`, 'true');
+        toast.success(
+          "הפעלת את מודול School Quest! 🎓",
+          {
+            description: "עכשיו, מלא את מערכת השעות כדי לעזור לילד לקבל Buff במיקוד בבית הספר!",
+            duration: 6000,
+          }
+        );
+      }
+    }
   };
 
   const sections = [
@@ -296,23 +320,62 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
         </div>
       </div>
 
+      {/* School Quest Toggle */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="w-4 h-4 text-primary" />
+          <span className="text-sm text-foreground">הפעל מודול School Quest</span>
+        </div>
+        <Switch
+          checked={schoolQuestEnabled}
+          onCheckedChange={handleToggleSchoolQuest}
+          className="touch-target"
+        />
+      </div>
+
+      {/* School Quest Activation Tip */}
+      {showSchoolQuestTip && schoolQuestEnabled && (
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/10 border border-primary/30">
+          <Lightbulb className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-foreground">הפעלת את School Quests! 🎓</p>
+            <p className="text-muted-foreground mt-1">
+              עכשיו, מלא את מערכת השעות כדי לעזור לילד לקבל Buff במיקוד בבית הספר!
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0 text-muted-foreground"
+            onClick={() => setShowSchoolQuestTip(false)}
+          >
+            ×
+          </Button>
+        </div>
+      )}
+
       {/* Section Tabs */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            onClick={() => setActiveSection(section.id)}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors touch-target",
-              activeSection === section.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <section.icon className="w-4 h-4" />
-            {section.label}
-          </button>
-        ))}
+        {sections.map((section) => {
+          // Hide schedule tab if school quest is disabled
+          if (section.id === 'schedule' && !schoolQuestEnabled) return null;
+          
+          return (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors touch-target",
+                activeSection === section.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <section.icon className="w-4 h-4" />
+              {section.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Section Content */}
@@ -326,7 +389,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           />
         )}
 
-        {activeSection === 'schedule' && (
+        {activeSection === 'schedule' && schoolQuestEnabled && (
           <div className="space-y-3">
             <div className="flex flex-col gap-2">
               <Button

@@ -13,6 +13,7 @@ export interface ChildProgress {
   lessonsCompleted: number;
   lessonsTotal: number;
   totalBalance: number;
+  schoolQuestEnabled: boolean;
 }
 
 interface ChildData {
@@ -21,6 +22,7 @@ interface ChildData {
   storeRewards: StoreReward[];
   dailyGoal: number;
   totalBalance: number;
+  schoolQuestEnabled: boolean;
 }
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
@@ -111,12 +113,15 @@ export function useChildProgress() {
           ?.filter(t => completedTaskIds.has(t.id))
           .reduce((sum, t) => sum + t.credits, 0) || 0;
 
-        // Fixed 8 lessons per school day
-        const lessonsTotal = 8;
-        const lessonsCompleted = lessonProgressData?.filter(l => l.completed).length || 0;
-        const lessonCredits = lessonProgressData
-          ?.filter(l => l.completed)
-          .reduce((sum, l) => sum + (l.credits || 10), 0) || 0;
+        // Fixed 8 lessons per school day (only if school quest enabled)
+        const schoolQuestEnabled = child.school_quest_enabled ?? true;
+        const lessonsTotal = schoolQuestEnabled ? 8 : 0;
+        const lessonsCompleted = schoolQuestEnabled ? (lessonProgressData?.filter(l => l.completed).length || 0) : 0;
+        const lessonCredits = schoolQuestEnabled 
+          ? (lessonProgressData
+              ?.filter(l => l.completed)
+              .reduce((sum, l) => sum + (l.credits || 10), 0) || 0)
+          : 0;
 
         return {
           childId: child.id,
@@ -128,6 +133,7 @@ export function useChildProgress() {
           lessonsCompleted,
           lessonsTotal,
           totalBalance: vaultBalance,
+          schoolQuestEnabled,
         };
       });
 
@@ -169,7 +175,6 @@ export function useChildProgress() {
   return { childrenProgress, loading, refetch: fetchChildrenProgress };
 }
 
-// Hook for managing a specific child's data
 export function useChildData(childId: string | null) {
   const { familyId } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -177,6 +182,7 @@ export function useChildData(childId: string | null) {
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [totalBalance, setTotalBalance] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(100);
+  const [schoolQuestEnabled, setSchoolQuestEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
 
   const todayKey = getTodayKey();
@@ -227,10 +233,10 @@ export function useChildData(childId: string | null) {
         .eq('child_id', childId)
         .maybeSingle();
 
-      // Fetch child's daily goal from profile
+      // Fetch child's daily goal and school quest setting from profile
       const { data: childProfile } = await supabase
         .from('profiles')
-        .select('daily_goal')
+        .select('daily_goal, school_quest_enabled')
         .eq('id', childId)
         .single();
 
@@ -273,8 +279,9 @@ export function useChildData(childId: string | null) {
         setTotalBalance(vaultData.total_balance);
       }
 
-      // Set child's daily goal
+      // Set child's daily goal and school quest setting
       setDailyGoal(childProfile?.daily_goal || 100);
+      setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);
     } catch (error) {
       console.error('Error fetching child data:', error);
     } finally {
@@ -440,12 +447,25 @@ export function useChildData(childId: string | null) {
       .eq('id', childId);
   }, [childId]);
 
+  // Toggle school quest module for child
+  const toggleSchoolQuestEnabled = useCallback(async (enabled: boolean) => {
+    if (!childId) return;
+
+    setSchoolQuestEnabled(enabled);
+
+    await supabase
+      .from('profiles')
+      .update({ school_quest_enabled: enabled })
+      .eq('id', childId);
+  }, [childId]);
+
   return {
     tasks,
     timetable,
     storeRewards,
     totalBalance,
     dailyGoal,
+    schoolQuestEnabled,
     loading,
     addTask,
     updateTask,
@@ -453,6 +473,7 @@ export function useChildData(childId: string | null) {
     updateTimetable,
     updateStoreRewards,
     updateDailyGoal,
+    toggleSchoolQuestEnabled,
     initializeChildData,
     refetch: fetchChildData,
   };
