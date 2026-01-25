@@ -95,6 +95,10 @@ self.addEventListener('notificationclick', (event) => {
 
 // Handle messages from the main app
 self.addEventListener('message', (event) => {
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
   if (event.data.type === 'SCHEDULE_NOTIFICATION') {
     const { title, body, scheduledTime, taskId } = event.data;
     const delay = new Date(scheduledTime).getTime() - Date.now();
