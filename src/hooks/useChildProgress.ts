@@ -391,27 +391,57 @@ export function useChildData(childId: string | null) {
   const updateStoreRewards = useCallback(async (rewards: StoreReward[]) => {
     if (!familyId || !childId) return;
 
+    // Optimistically update UI
     setStoreRewards(rewards);
 
-    // Delete rewards for this child and re-insert
-    await supabase
-      .from('store_rewards')
-      .delete()
-      .eq('family_id', familyId)
-      .eq('assigned_to', childId);
+    try {
+      // Delete rewards for this child and re-insert
+      const { error: deleteError } = await supabase
+        .from('store_rewards')
+        .delete()
+        .eq('family_id', familyId)
+        .eq('assigned_to', childId);
 
-    await supabase.from('store_rewards').insert(
-      rewards.map(r => ({
-        id: r.id,
-        family_id: familyId,
-        assigned_to: childId,
-        title: r.title,
-        price: r.price,
-        emoji: r.icon,
-        claimed: r.claimed,
-        claimed_at: r.claimedAt || null,
-      }))
-    );
+      if (deleteError) {
+        console.error('Error deleting rewards:', deleteError);
+        return;
+      }
+
+      if (rewards.length > 0) {
+        const { data, error: insertError } = await supabase.from('store_rewards').insert(
+          rewards.map(r => ({
+            id: r.id, // UUID from crypto.randomUUID()
+            family_id: familyId,
+            assigned_to: childId,
+            title: r.title,
+            price: r.price,
+            emoji: r.icon,
+            claimed: r.claimed,
+            claimed_at: r.claimedAt || null,
+          }))
+        ).select();
+
+        if (insertError) {
+          console.error('Error inserting rewards:', insertError);
+          return;
+        }
+
+        // Update with server-returned data to ensure IDs are correct
+        if (data) {
+          setStoreRewards(data.map(r => ({
+            id: r.id,
+            title: r.title,
+            price: r.price,
+            icon: r.emoji,
+            claimed: r.claimed,
+            claimedAt: r.claimed_at || undefined,
+            assignedTo: r.assigned_to || undefined,
+          })));
+        }
+      }
+    } catch (error) {
+      console.error('Error updating store rewards:', error);
+    }
   }, [familyId, childId]);
 
   // Initialize child data if needed
