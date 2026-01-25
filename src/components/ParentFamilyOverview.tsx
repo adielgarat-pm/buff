@@ -23,50 +23,11 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
   
-  const [editingGoalFor, setEditingGoalFor] = useState<string | null>(null);
-  const [editGoalValue, setEditGoalValue] = useState<number>(100);
-  const [savingGoal, setSavingGoal] = useState(false);
-  
   const [editingBalanceFor, setEditingBalanceFor] = useState<string | null>(null);
   const [editBalanceValue, setEditBalanceValue] = useState<number>(0);
   const [savingBalance, setSavingBalance] = useState(false);
 
   const loading = membersLoading || progressLoading;
-
-  const handleStartEditGoal = (childId: string, currentGoal: number) => {
-    setEditingGoalFor(childId);
-    setEditGoalValue(currentGoal);
-  };
-
-  const handleSaveGoal = async (childId: string) => {
-    if (editGoalValue < 10 || editGoalValue > 1000) {
-      toast.error('יעד חייב להיות בין 10 ל-1000');
-      return;
-    }
-
-    setSavingGoal(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ daily_goal: editGoalValue })
-        .eq('id', childId);
-
-      if (error) throw error;
-
-      toast.success('היעד עודכן בהצלחה!');
-      setEditingGoalFor(null);
-      refetch();
-    } catch (error) {
-      console.error('Error updating goal:', error);
-      toast.error('שגיאה בעדכון היעד');
-    } finally {
-      setSavingGoal(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingGoalFor(null);
-  };
 
   const handleStartEditBalance = (childId: string, currentBalance: number) => {
     setEditingBalanceFor(childId);
@@ -197,44 +158,11 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
-                            {progress && editingGoalFor !== child.id && (
-                              <button
-                                onClick={() => handleStartEditGoal(child.id, progress.dailyGoal)}
-                                className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium hover:bg-primary/30 transition-colors"
-                              >
+                          <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
+                            {progress && (
+                              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
                                 יעד: {progress.dailyGoal}
-                                <Pencil className="w-3 h-3" />
-                              </button>
-                            )}
-                            {editingGoalFor === child.id && (
-                              <div className="flex items-center gap-1">
-                                <Input
-                                  type="number"
-                                  value={editGoalValue}
-                                  onChange={(e) => setEditGoalValue(Number(e.target.value))}
-                                  className="w-20 h-7 text-xs px-2"
-                                  min={10}
-                                  max={1000}
-                                  dir="ltr"
-                                />
-                                <Button
-                                  size="sm"
-                                  className="h-7 px-2"
-                                  onClick={() => handleSaveGoal(child.id)}
-                                  disabled={savingGoal}
-                                >
-                                  {savingGoal ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2"
-                                  onClick={handleCancelEdit}
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
-                              </div>
+                              </span>
                             )}
                           </div>
                           {progress && editingBalanceFor !== child.id && (
