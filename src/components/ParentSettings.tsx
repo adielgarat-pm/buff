@@ -506,9 +506,6 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
       {/* Section Tabs */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar">
         {sections.map((section) => {
-          // Hide schedule tab if school quest is disabled
-          if (section.id === 'schedule' && !schoolQuestEnabled) return null;
-          
           return (
             <button
               key={section.id}
@@ -538,7 +535,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           />
         )}
 
-        {activeSection === 'schedule' && schoolQuestEnabled && (
+        {activeSection === 'schedule' && (
           <div className="space-y-3">
             <div className="flex flex-col gap-2">
               <Button
