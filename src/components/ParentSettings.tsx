@@ -8,7 +8,6 @@ import {
   BookOpen,
   Gift,
   Upload,
-  ChevronRight,
   ArrowRight,
   GraduationCap,
   Lightbulb,
@@ -21,19 +20,18 @@ import {
   Pill,
   Droplets,
   Apple,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Progress } from './ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { TimetableEditor } from './TimetableEditor';
 import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
-import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
+import { useChildData } from '@/hooks/useChildProgress';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -50,6 +48,7 @@ interface ParentSettingsProps {
   onToggleFridayEnabled: (enabled: boolean) => void;
   selectedChildId?: string | null;
   onBackFromChild?: () => void;
+  onSelectChild?: (childId: string) => void;
 }
 
 export function ParentSettings({
@@ -63,29 +62,20 @@ export function ParentSettings({
   onToggleFridayEnabled,
   selectedChildId,
   onBackFromChild,
+  onSelectChild,
 }: ParentSettingsProps) {
   const { children, loading: membersLoading } = useFamilyMembers();
-  const { childrenProgress, loading: progressLoading } = useChildProgress();
 
   const [localGoal, setLocalGoal] = useState(dailyGoal);
   const [localTitle, setLocalTitle] = useState(appTitle);
-  const [expandedChild, setExpandedChild] = useState<string>(selectedChildId || '');
 
   useEffect(() => {
     setLocalGoal(dailyGoal);
     setLocalTitle(appTitle);
   }, [dailyGoal, appTitle]);
 
-  useEffect(() => {
-    if (selectedChildId) {
-      setExpandedChild(selectedChildId);
-    }
-  }, [selectedChildId]);
-
   const handleSaveGoal = () => onUpdateGoal(localGoal);
   const handleSaveTitle = () => onUpdateAppTitle(localTitle);
-
-  const loading = membersLoading || progressLoading;
 
   return (
     <div className="space-y-6 pb-8">
@@ -93,10 +83,10 @@ export function ParentSettings({
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-foreground font-display">
-            {selectedChildId ? 'הגדרות ילד' : 'הגדרות'}
+            {selectedChildId ? 'הגדרות Buff' : 'הגדרות'}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {selectedChildId ? 'ערוך משימות, מערכת ופרסים' : 'הגדרות כלליות וניהול ילדים'}
+            {selectedChildId ? 'עריכת משימות, מערכת ופרסים' : 'הגדרות כלליות וניהול ילדים'}
           </p>
         </div>
         {selectedChildId && onBackFromChild && (
@@ -113,9 +103,9 @@ export function ParentSettings({
       ) : (
         <>
           {/* General Settings Card */}
-          <div className="rounded-2xl bg-card border border-primary/20 p-5 space-y-4">
+          <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Settings className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -132,8 +122,8 @@ export function ParentSettings({
                   type="text"
                   value={localTitle}
                   onChange={(e) => setLocalTitle(e.target.value)}
-                  placeholder="BUFF"
-                  className="flex-1 bg-secondary border-border"
+                  placeholder="Buff"
+                  className="flex-1 bg-background border-border"
                   dir="ltr"
                 />
                 <Button size="sm" onClick={handleSaveTitle} className="bg-primary text-primary-foreground touch-target">
@@ -150,7 +140,7 @@ export function ParentSettings({
                   type="number"
                   value={localGoal}
                   onChange={(e) => setLocalGoal(parseInt(e.target.value) || 0)}
-                  className="w-24 bg-secondary border-border"
+                  className="w-24 bg-background border-border"
                   dir="ltr"
                 />
                 <span className="text-sm text-muted-foreground">קרדיטים</span>
@@ -187,16 +177,16 @@ export function ParentSettings({
             </div>
           </div>
 
-          {/* Children Section */}
+          {/* Children Management Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-foreground">הגדרות ילדים</h2>
+              <h2 className="font-semibold text-foreground">ניהול ילדים</h2>
             </div>
 
-            {loading ? (
+            {membersLoading ? (
               <div className="rounded-2xl bg-card border border-border p-8 text-center">
-                <p className="text-muted-foreground">טוען...</p>
+                <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
               </div>
             ) : children.length === 0 ? (
               <div className="rounded-2xl bg-card border border-border p-8 text-center space-y-2">
@@ -204,55 +194,16 @@ export function ParentSettings({
                 <p className="text-muted-foreground">עדיין לא הצטרפו ילדים</p>
               </div>
             ) : (
-              <Accordion
-                type="single"
-                collapsible
-                value={expandedChild}
-                onValueChange={setExpandedChild}
-                className="space-y-3"
-              >
-                {children.map((child) => {
-                  const progress = childrenProgress.find(p => p.childId === child.id);
-                  const progressPercent = progress 
-                    ? Math.min((progress.todayEarned / progress.dailyGoal) * 100, 100)
-                    : 0;
-
-                  return (
-                    <AccordionItem
-                      key={child.id}
-                      value={child.id}
-                      className="rounded-2xl bg-card border border-border overflow-hidden"
-                    >
-                      <AccordionTrigger className="px-5 py-4 hover:no-underline touch-target">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                            <User className="w-6 h-6 text-primary" />
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="font-semibold text-foreground">{child.displayName}</p>
-                            {progress && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <Progress value={progressPercent} className="h-1.5 flex-1 max-w-24" />
-                                <span className="text-xs text-muted-foreground">
-                                  {progress.todayEarned}/{progress.dailyGoal}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          {progress && (
-                            <div className="text-left ml-2">
-                              <p className="text-lg font-bold text-primary">{Math.round(progressPercent)}%</p>
-                            </div>
-                          )}
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-5 pb-5">
-                        <ChildConfigPanel childId={child.id} childName={child.displayName} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
+              <div className="space-y-3">
+                {children.map((child) => (
+                  <ChildManagementCard
+                    key={child.id}
+                    childId={child.id}
+                    childName={child.displayName}
+                    onSelect={() => onSelectChild?.(child.id)}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </>
@@ -261,7 +212,36 @@ export function ParentSettings({
   );
 }
 
-// Child Configuration Panel
+// Child Management Card - Clean, no progress bars
+function ChildManagementCard({ 
+  childId, 
+  childName,
+  onSelect 
+}: { 
+  childId: string; 
+  childName: string;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      className="w-full rounded-2xl bg-card border border-border p-4 hover:border-primary/50 transition-colors text-right"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="w-6 h-6 text-primary" />
+        </div>
+        <div className="flex-1 text-right">
+          <p className="font-semibold text-foreground">{childName}</p>
+          <p className="text-xs text-muted-foreground">לחץ כדי לערוך הגדרות Buff</p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+      </div>
+    </button>
+  );
+}
+
+// Child Configuration Panel - Focus on Configuration
 function ChildConfigPanel({ childId, childName }: { childId: string; childName: string }) {
   const {
     tasks,
@@ -311,7 +291,11 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   }, [initializeChildData]);
 
   if (loading) {
-    return <div className="py-4 text-center text-muted-foreground">טוען...</div>;
+    return (
+      <div className="py-8 text-center">
+        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+      </div>
+    );
   }
 
   const handleImportTimetable = (newTimetable: Timetable) => {
@@ -384,8 +368,19 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
 
   return (
     <div className="space-y-4">
+      {/* Child Name Header */}
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
+        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+          <User className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">{childName}</p>
+          <p className="text-xs text-muted-foreground">הגדרות Buff אישיות</p>
+        </div>
+      </div>
+
       {/* Credit Balance */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
         <div className="flex items-center gap-2">
           <span className="text-lg">💰</span>
           <span className="text-sm font-medium text-foreground">יתרת קרדיטים</span>
@@ -434,7 +429,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
       </div>
 
       {/* Daily Goal */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
         <span className="text-sm text-foreground">יעד יומי</span>
         <div className="flex items-center gap-2">
           <Input
@@ -470,7 +465,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
       </div>
 
       {/* School Quest Toggle */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-primary" />
           <span className="text-sm text-foreground">הפעל מודול School Quest</span>
@@ -484,7 +479,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
 
       {/* School Quest Activation Tip */}
       {showSchoolQuestTip && schoolQuestEnabled && (
-        <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/10 border border-primary/30">
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/10 border border-primary/20">
           <Lightbulb className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-medium text-foreground">הפעלת את School Quests! 🎓</p>
@@ -538,14 +533,14 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
         {activeSection === 'schedule' && (
           <div className="space-y-4">
             {/* Coach's Tip */}
-            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+            <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
               <p className="text-sm text-foreground leading-relaxed">
                 <span className="font-semibold">💡 למה מערכת שעות?</span>
                 <br />
                 מערכת השעות עוזרת לילד לעקוב אחרי רגעי הצלחה בלמידה קשובה ולזהות מתי קשה יותר להתרכז. זה כלי למודעות עצמית, לא לביקורת.
               </p>
               {!schoolQuestEnabled && (
-                <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-primary/20">
+                <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-primary/10">
                   ⚠️ כרגע ״משימת בית הספר״ כבויה - המערכת לא תוצג לילד. הפעילו אותה בהגדרות למעלה.
                 </p>
               )}
@@ -714,7 +709,7 @@ function ChildTasksEditor({
 
       {/* Add Form */}
       {showAddForm && (
-        <div className="p-4 rounded-xl bg-secondary/50 space-y-3">
+        <div className="p-4 rounded-xl bg-card border border-border space-y-3">
           <Input
             placeholder="שם המשימה"
             value={newTask.title}
@@ -773,7 +768,7 @@ function ChildTasksEditor({
             <div key={task.id}>
               {editingTaskId === task.id ? (
                 /* Edit Mode */
-                <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 space-y-3">
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
                   <Input
                     placeholder="שם המשימה"
                     value={editForm.title}
@@ -825,7 +820,7 @@ function ChildTasksEditor({
                 </div>
               ) : (
                 /* View Mode */
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border hover:bg-secondary/50 transition-colors">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:bg-secondary/50 transition-colors">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{task.title}</p>
                     <p className="text-xs text-muted-foreground">
