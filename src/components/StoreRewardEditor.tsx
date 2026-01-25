@@ -30,21 +30,36 @@ const ICON_OPTIONS = [
 ];
 
 export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewardEditorProps) {
-  const [localRewards, setLocalRewards] = useState<StoreReward[]>(rewards);
+  const [localRewards, setLocalRewards] = useState<StoreReward[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const [newReward, setNewReward] = useState({
     title: '',
     icon: '🎁',
     price: 500,
   });
 
-  // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
+  // Reset initialization flag when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setHasInitialized(false);
+    }
+  }, [open]);
+
+  // Sync rewards when dialog opens OR when rewards arrive while dialog is open
   useEffect(() => {
     if (!open) return;
-    setLocalRewards(rewards);
-    setShowAddForm(false);
-    setNewReward({ title: '', icon: '🎁', price: 500 });
-  }, [open, rewards]);
+    
+    // Only sync if we haven't initialized yet, or if this is fresh data from DB
+    if (!hasInitialized || (rewards.length > 0 && localRewards.length === 0)) {
+      setLocalRewards(rewards);
+      setShowAddForm(false);
+      setNewReward({ title: '', icon: '🎁', price: 500 });
+      if (rewards.length > 0 || hasInitialized === false) {
+        setHasInitialized(true);
+      }
+    }
+  }, [open, rewards, hasInitialized, localRewards.length]);
 
   const handleAddReward = () => {
     if (newReward.title.trim()) {
