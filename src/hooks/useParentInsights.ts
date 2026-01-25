@@ -180,6 +180,19 @@ export function useParentInsights(childId: string | null) {
         .in('date', dates)
         .or(`child_id.is.null,child_id.eq.${childId}`);
 
+      // Check minimum data requirement - need at least 2 days with activity
+      const uniqueDatesWithActivity = new Set(
+        progressData?.filter(p => p.completed).map(p => p.date) || []
+      );
+      
+      if (uniqueDatesWithActivity.size < 2) {
+        // Not enough data for insights
+        setInsights([]);
+        setPhaseInsights([]);
+        setLoading(false);
+        return;
+      }
+
       // Analyze task completion rates
       const taskInsights: TaskInsight[] = tasksData.map(task => {
         const taskProgress = progressData?.filter(p => p.task_id === task.id) || [];
