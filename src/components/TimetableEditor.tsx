@@ -15,8 +15,10 @@ interface TimetableEditorProps {
 }
 
 const DEFAULT_PERIOD_TIMES = [
-  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00'
+  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00', '14:50', '15:40'
 ];
+
+const PERIOD_LABELS_HE = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳', 'ח׳', 'ט׳', 'י׳'];
 
 const buildInitialTimetable = (timetable: Timetable): Timetable => {
   const initial: Timetable = {};
@@ -88,9 +90,9 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
     >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Weekly Timetable</DialogTitle>
+          <DialogTitle className="text-foreground">מערכת שעות שבועית</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Set your subjects and lesson times for each day.
+            הגדירו מקצועות וזמני שיעורים לכל יום.
           </DialogDescription>
         </DialogHeader>
 
@@ -121,23 +123,23 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/20 text-primary font-bold text-sm">
-                    P{index + 1}
+                    {PERIOD_LABELS_HE[index] || index + 1}
                   </span>
-                  <Label className="text-foreground font-medium">Period {index + 1}</Label>
+                  <Label className="text-foreground font-medium">שיעור {PERIOD_LABELS_HE[index] || index + 1}</Label>
                 </div>
                 
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <Label className="text-xs text-muted-foreground mb-1 block">Subject</Label>
+                    <Label className="text-xs text-muted-foreground mb-1 block">מקצוע</Label>
                     <Input
-                      placeholder="e.g., Math, English..."
+                      placeholder="לדוגמה: מתמטיקה, אנגלית..."
                       value={period.subject}
                       onChange={(e) => handleSubjectChange(index, e.target.value)}
                       className="bg-background border-border text-foreground"
                     />
                   </div>
                   <div className="w-28">
-                    <Label className="text-xs text-muted-foreground mb-1 block">Start Time</Label>
+                    <Label className="text-xs text-muted-foreground mb-1 block">שעת התחלה</Label>
                     <div className="relative">
                       <Clock className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
@@ -156,7 +158,7 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
                   onClick={() => handleApplyToAll(index)}
                   className="text-xs text-muted-foreground hover:text-foreground"
                 >
-                  Apply time to all days
+                  החל זמן על כל הימים
                 </Button>
               </div>
             ))}
@@ -166,8 +168,8 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
         {/* Save Button */}
         <div className="flex justify-end pt-2">
           <Button onClick={handleSave} className="bg-primary text-primary-foreground">
-            <Save className="w-4 h-4 mr-2" />
-            Save Timetable
+            <Save className="w-4 h-4 ml-2" />
+            שמור מערכת
           </Button>
         </div>
       </DialogContent>

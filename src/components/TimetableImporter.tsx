@@ -36,7 +36,7 @@ interface TimetableImporterProps {
 }
 
 const DEFAULT_PERIOD_TIMES = [
-  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00'
+  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00', '14:50', '15:40'
 ];
 
 export function TimetableImporter({ onImport, onClose, currentTimetable, childName }: TimetableImporterProps) {

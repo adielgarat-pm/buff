@@ -7,6 +7,15 @@ export const WEEK_DAYS: WeekDay[] = ['sunday', 'monday', 'tuesday', 'wednesday',
 export const WEEK_DAYS_WITH_FRIDAY: WeekDay[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
 export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
+  sunday: 'ראשון',
+  monday: 'שני',
+  tuesday: 'שלישי',
+  wednesday: 'רביעי',
+  thursday: 'חמישי',
+  friday: 'שישי',
+};
+
+export const WEEK_DAY_LABELS_EN: Record<WeekDay, string> = {
   sunday: 'Sun',
   monday: 'Mon',
   tuesday: 'Tue',
@@ -28,7 +37,7 @@ export interface PeriodInfo {
 }
 
 export interface Timetable {
-  [day: string]: PeriodInfo[]; // 8 periods per day
+  [day: string]: PeriodInfo[]; // Up to 10 periods per day
 }
 
 export interface Task {
