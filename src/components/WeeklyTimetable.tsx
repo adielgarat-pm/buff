@@ -139,7 +139,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                   "text-[11px] font-medium",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}>
-                  {lessonCount} lessons
+                  {lessonCount} שיעורים
                 </span>
               </div>
             </button>
@@ -156,9 +156,9 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 <BookOpen className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground capitalize">{selectedDay}</h3>
+                <h3 className="font-semibold text-foreground capitalize">{WEEK_DAY_LABELS[selectedDay]}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {selectedSchedule.filter(p => p.subject).length} lessons scheduled
+                  {selectedSchedule.filter(p => p.subject).length} שיעורים מתוכננים
                 </p>
               </div>
             </div>
@@ -169,7 +169,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 onClick={handleAddPeriod}
                 className="gap-1.5 h-10 px-3 touch-target rounded-xl"
               >
-                + Add
+                + הוסף
               </Button>
               <Button
                 variant="outline"
@@ -178,7 +178,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 className="gap-1.5 h-10 px-3 touch-target rounded-xl"
               >
                 <Settings2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Edit All</span>
+                <span className="hidden sm:inline">ערוך הכל</span>
               </Button>
             </div>
           </div>
@@ -187,14 +187,14 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
         <div className="divide-y divide-border">
           {selectedSchedule.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              <p>No schedule set for this day</p>
+              <p>אין מערכת ליום זה</p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleAddPeriod}
                 className="mt-4"
               >
-                + Add First Period
+                + הוסף שיעור ראשון
               </Button>
             </div>
           ) : (
@@ -286,7 +286,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                       "font-medium block truncate",
                       period.subject ? "text-foreground" : "text-muted-foreground italic"
                     )}>
-                      {period.subject || 'Tap to add subject...'}
+                      {period.subject || 'לחצו להוספת מקצוע...'}
                     </span>
                   </div>
 
@@ -311,12 +311,12 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
 
       {/* Full Week Overview (compact) */}
       <div className="rounded-2xl bg-card border border-border p-4">
-        <h4 className="text-sm font-medium text-muted-foreground mb-3">Week Overview</h4>
+        <h4 className="text-sm font-medium text-muted-foreground mb-3">סקירת השבוע</h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr>
-                <th className="text-left py-2 px-1 text-muted-foreground font-medium w-12">Time</th>
+                <th className="text-left py-2 px-1 text-muted-foreground font-medium w-12">שעה</th>
                 {displayDays.map(day => (
                   <th 
                     key={day} 
