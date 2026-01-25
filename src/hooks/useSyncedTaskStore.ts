@@ -876,5 +876,6 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     redeemStoreReward,
     updateStoreRewards,
     activateBuff,
+    refetch: fetchFamilyData,
   };
 }

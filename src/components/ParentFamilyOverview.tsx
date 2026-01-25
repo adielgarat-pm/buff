@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { User, Users, Zap, ChevronRight, Eye, Settings as SettingsIcon, Sparkles, Loader2, Check, Pencil, X } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
@@ -7,7 +7,9 @@ import { cn } from '@/lib/utils';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildProgress } from '@/hooks/useChildProgress';
 import { useCleanDayBonus } from '@/hooks/useCleanDayBonus';
+import { useMidnightReset } from '@/hooks/useMidnightReset';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
+import { NewDayBanner } from './NewDayBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -26,6 +28,15 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
   const [editingBalanceFor, setEditingBalanceFor] = useState<string | null>(null);
   const [editBalanceValue, setEditBalanceValue] = useState<number>(0);
   const [savingBalance, setSavingBalance] = useState(false);
+
+  // Midnight reset for parent view - refresh progress data
+  const handleMidnightReset = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const { showNewDayMessage, dismissNewDayMessage } = useMidnightReset({
+    onReset: handleMidnightReset,
+  });
 
   const loading = membersLoading || progressLoading;
 
@@ -102,6 +113,9 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
 
   return (
     <div className="space-y-6 pb-8">
+      {/* New Day Banner - shows at midnight */}
+      <NewDayBanner show={showNewDayMessage} onDismiss={dismissNewDayMessage} />
+      
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-foreground font-display">
