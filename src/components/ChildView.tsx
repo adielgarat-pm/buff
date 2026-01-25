@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
+import { useMidnightReset } from '@/hooks/useMidnightReset';
 import { Header } from './Header';
 import { ProgressBar } from './ProgressBar';
 import { PhaseNavigation } from './PhaseNavigation';
@@ -10,6 +11,7 @@ import { WeeklyTimetable } from './WeeklyTimetable';
 import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
 import { InstallPWA } from './InstallPWA';
 import { NotificationPrompt } from './NotificationPrompt';
+import { NewDayBanner } from './NewDayBanner';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
@@ -48,7 +50,17 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     redeemStoreReward,
     updateTimetable,
     lessons,
+    refetch,
   } = useSyncedTaskStore(viewingChildId);
+
+  // Midnight reset - refresh data when day changes
+  const handleMidnightReset = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const { showNewDayMessage, dismissNewDayMessage } = useMidnightReset({
+    onReset: handleMidnightReset,
+  });
 
   const {
     permission,
@@ -112,6 +124,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
 
   return (
     <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      {/* New Day Banner - shows at midnight */}
+      <NewDayBanner show={showNewDayMessage} onDismiss={dismissNewDayMessage} />
+      
       {/* Neon gradient glow - Gamer style */}
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
       
