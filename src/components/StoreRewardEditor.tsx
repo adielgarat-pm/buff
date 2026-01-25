@@ -49,7 +49,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
   const handleAddReward = () => {
     if (newReward.title.trim()) {
       const reward: StoreReward = {
-        id: `store_${Date.now()}`,
+        id: crypto.randomUUID(), // Generate valid UUID for Supabase
         title: newReward.title,
         icon: newReward.icon,
         price: newReward.price,

@@ -609,7 +609,6 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
         rewards={storeRewards}
         onSave={(newRewards) => {
           updateStoreRewards(newRewards);
-          setStoreEditorOpen(false);
         }}
         onClose={() => setStoreEditorOpen(false)}
       />
