@@ -109,34 +109,6 @@ export function useWeeklyBuffStats(childId: string | null) {
 
       const timetable = timetableData?.data as Record<string, { subject: string; startTime: string }[]> || {};
 
-      // Check minimum data requirement - need at least 2 days with activity
-      const uniqueDatesWithTaskActivity = new Set(
-        progressData?.filter(p => p.completed).map(p => p.date) || []
-      );
-      const uniqueDatesWithLessonActivity = new Set(
-        lessonProgressData?.filter(l => l.completed).map(l => l.date) || []
-      );
-      const totalUniqueDates = new Set([...uniqueDatesWithTaskActivity, ...uniqueDatesWithLessonActivity]);
-      
-      if (totalUniqueDates.size < 2) {
-        // Not enough data for stats - return minimal data without trends/insights
-        setStats({
-          totalBuffPoints: 0,
-          questsConquered: 0,
-          totalQuests: 0,
-          lessonsConquered: 0,
-          totalLessons: 0,
-          dailyStats: [],
-          subjectTrends: [],
-          reflections: [],
-          streakDays: 0,
-          topPhase: null,
-          strugglePhase: null,
-        });
-        setLoading(false);
-        return;
-      }
-
       // Calculate daily stats
       const dailyStats: DailyStats[] = dates.map(date => {
         const dayDate = new Date(date);
