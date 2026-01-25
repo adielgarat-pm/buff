@@ -7,44 +7,48 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Heebo:wght@400;500;600;700;800;900&display=swap');
 
 @layer base {
-  :root {
-    /* BUFF Brand Colors - Gamer/Tech Aesthetic */
-    /* Pure Black Background */
-    --background: 0 0% 0%;
+  /* ========================================
+     CHILD GAMER THEME (Default for :root)
+     Pure Dark with Neon Accents
+     ======================================== */
+  :root,
+  .theme-child-gamer {
+    /* Pure Dark Background - #0A0A0A */
+    --background: 0 0% 4%;
     --foreground: 0 0% 100%;
 
     /* Card backgrounds - very dark */
-    --card: 0 0% 5%;
+    --card: 0 0% 6%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 5%;
+    --popover: 0 0% 6%;
     --popover-foreground: 0 0% 100%;
 
-    /* Neon Green - Primary (success/completed) - #39FF14 */
-    --primary: 112 100% 54%;
+    /* Neon Cyan - Primary - #00F2FF */
+    --primary: 183 100% 50%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 10%;
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
 
-    /* Electric Purple - Accent (rewards/bonuses) - #8B5CF6 */
-    --accent: 262 83% 66%;
-    --accent-foreground: 0 0% 100%;
+    /* Electric Green - Accent - #39FF14 */
+    --accent: 112 100% 54%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Neon Green - Success states */
+    /* Electric Green - Success states */
     --success: 112 100% 54%;
     --success-foreground: 0 0% 0%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
 
-    /* Neon Green for buffs - #39FF14 */
+    /* Electric Green for buffs - #39FF14 */
     --buff: 112 100% 54%;
     --buff-foreground: 0 0% 0%;
 
@@ -52,46 +56,136 @@
     --streak: 24 95% 53%;
     --streak-foreground: 0 0% 0%;
 
-    /* Electric Purple for rewards - #8B5CF6 */
-    --reward: 262 83% 66%;
-    --reward-foreground: 0 0% 100%;
+    /* Neon Cyan for rewards - #00F2FF */
+    --reward: 183 100% 50%;
+    --reward-foreground: 0 0% 0%;
 
-    --border: 0 0% 15%;
+    --border: 0 0% 18%;
     --input: 0 0% 15%;
-    --ring: 112 100% 54%;
+    --ring: 183 100% 50%;
 
     --radius: 1rem;
 
-    /* Category colors */
+    /* Category colors - Neon */
     --medication: 280 85% 60%;
-    --hygiene: 200 95% 55%;
+    --hygiene: 183 100% 50%;
     --nutrition: 112 100% 54%;
     --school: 38 92% 50%;
 
-    /* BUFF Gradients - Gamer Aesthetic */
-    --gradient-primary: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
+    /* GAMER Gradients - Neon Aesthetic */
+    --gradient-primary: linear-gradient(135deg, hsl(183, 100%, 50%), hsl(112, 100%, 54%));
     --gradient-success: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
     --gradient-xp: linear-gradient(90deg, hsl(112, 100%, 44%), hsl(112, 100%, 54%), hsl(112, 100%, 60%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 7%), hsl(0, 0%, 3%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(112, 100%, 54%, 0.15), transparent 50%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 8%), hsl(0, 0%, 4%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(183, 100%, 50%, 0.15), transparent 50%);
     --gradient-buff: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
-    --gradient-reward: linear-gradient(135deg, hsl(262, 83%, 66%), hsl(272, 80%, 55%));
+    --gradient-reward: linear-gradient(135deg, hsl(183, 100%, 50%), hsl(183, 100%, 40%));
 
-    /* BUFF Shadows - Neon Glow */
-    --shadow-glow: 0 0 20px hsl(112, 100%, 54%, 0.4);
+    /* GAMER Shadows - Neon Glow */
+    --shadow-glow: 0 0 20px hsl(183, 100%, 50%, 0.4);
     --shadow-buff-glow: 0 0 30px hsl(112, 100%, 54%, 0.6), 0 0 60px hsl(112, 100%, 54%, 0.3), 0 0 90px hsl(112, 100%, 54%, 0.15);
     --shadow-buff-glow-intense: 0 0 40px hsl(112, 100%, 54%, 0.8), 0 0 80px hsl(112, 100%, 54%, 0.5), 0 0 120px hsl(112, 100%, 54%, 0.25);
-    --shadow-reward-glow: 0 0 20px hsl(262, 83%, 66%, 0.5), 0 0 40px hsl(262, 83%, 66%, 0.3);
+    --shadow-reward-glow: 0 0 20px hsl(183, 100%, 50%, 0.5), 0 0 40px hsl(183, 100%, 50%, 0.3);
     --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.8);
 
-    --sidebar-background: 0 0% 3%;
+    --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 112 100% 54%;
+    --sidebar-primary: 183 100% 50%;
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 112 100% 54%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 183 100% 50%;
+  }
+
+  /* ========================================
+     PARENT ZEN THEME
+     Soft Light with Professional Accents
+     ======================================== */
+  .theme-parent-zen {
+    /* Soft Slate Background - #F8FAFC */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    /* Clean White Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Professional Indigo - Primary - #4F46E5 */
+    --primary: 239 84% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Sage Green - Accent - #10B981 */
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Sage Green - Success states */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    /* Sage Green for buffs */
+    --buff: 160 84% 39%;
+    --buff-foreground: 0 0% 100%;
+
+    /* Warm Orange for streaks */
+    --streak: 24 95% 53%;
+    --streak-foreground: 0 0% 100%;
+
+    /* Professional Indigo for rewards */
+    --reward: 239 84% 59%;
+    --reward-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 239 84% 59%;
+
+    --radius: 0.75rem;
+
+    /* Category colors - Professional */
+    --medication: 280 60% 50%;
+    --hygiene: 200 80% 45%;
+    --nutrition: 160 84% 39%;
+    --school: 38 80% 50%;
+
+    /* ZEN Gradients - Subtle and Professional */
+    --gradient-primary: linear-gradient(135deg, hsl(239, 84%, 59%), hsl(239, 84%, 50%));
+    --gradient-success: linear-gradient(135deg, hsl(160, 84%, 39%), hsl(160, 84%, 32%));
+    --gradient-xp: linear-gradient(90deg, hsl(160, 84%, 35%), hsl(160, 84%, 39%), hsl(160, 84%, 45%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(210, 40%, 98%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(239, 84%, 59%, 0.05), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(160, 84%, 39%), hsl(160, 84%, 32%));
+    --gradient-reward: linear-gradient(135deg, hsl(239, 84%, 59%), hsl(239, 84%, 50%));
+
+    /* ZEN Shadows - Subtle and Clean */
+    --shadow-glow: 0 4px 12px hsl(239, 84%, 59%, 0.1);
+    --shadow-buff-glow: 0 4px 16px hsl(160, 84%, 39%, 0.15);
+    --shadow-buff-glow-intense: 0 8px 24px hsl(160, 84%, 39%, 0.2);
+    --shadow-reward-glow: 0 4px 12px hsl(239, 84%, 59%, 0.15);
+    --shadow-card: 0 1px 3px hsl(0, 0%, 0%, 0.08), 0 4px 12px hsl(0, 0%, 0%, 0.05);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 239 84% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 239 84% 59%;
   }
 }
 
@@ -110,8 +204,43 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Heebo', system-ui, -apple-system, sans-serif;
     line-height: 1.7;
+  }
+
+  /* Theme-specific body styles */
+  .theme-child-gamer body,
+  .theme-child-gamer {
     color: hsl(0, 0%, 100%);
-    background-color: hsl(0, 0%, 0%);
+    background-color: hsl(0, 0%, 4%);
+  }
+
+  .theme-parent-zen body,
+  .theme-parent-zen {
+    color: hsl(222, 47%, 11%);
+    background-color: hsl(210, 40%, 98%);
+  }
+
+  /* Parent Zen specific overrides - NO NEON */
+  .theme-parent-zen .shadow-buff-glow,
+  .theme-parent-zen .shadow-glow,
+  .theme-parent-zen .shadow-reward-glow {
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  .theme-parent-zen .animate-buff-pulse,
+  .theme-parent-zen .animate-cta-glow,
+  .theme-parent-zen .animate-pulse-glow,
+  .theme-parent-zen .buff-active-glow {
+    animation: none !important;
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  .theme-parent-zen .cta-buff-button {
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  .theme-parent-zen .cta-buff-button:hover {
+    box-shadow: 0 6px 20px hsl(0, 0%, 0%, 0.1) !important;
+    transform: translateY(-1px);
   }
 
   /* LTR fallback */

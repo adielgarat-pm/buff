@@ -36,7 +36,7 @@ export function ParentView() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="theme-parent-zen min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">טוען...</p>
@@ -103,9 +103,9 @@ export function ParentView() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 no-horizontal-scroll">
-      {/* Subtle gradient glow - purple for parents */}
-      <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+    <div className="theme-parent-zen min-h-screen bg-background pb-24 no-horizontal-scroll">
+      {/* Subtle gradient - Professional for parents */}
+      <div className="fixed inset-x-0 top-0 h-48 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
       
       <div className="relative max-w-lg mx-auto px-5 py-6 safe-area-px">
         {renderTabContent()}

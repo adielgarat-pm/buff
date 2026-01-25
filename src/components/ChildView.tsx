@@ -82,7 +82,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   // Loading state when switching children
   if (loading) {
     return (
-      <div className={`min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`theme-child-gamer min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground font-medium">
@@ -96,7 +96,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   // Store view is full-screen
   if (activeTab === 'store') {
     return (
-      <div className={`min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="tab-content">
           <RewardsStore
             totalBalance={totalBalance}
@@ -111,9 +111,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   }
 
   return (
-    <div className={`min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
-      {/* Subtle gradient glow */}
-      <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-accent/5 to-transparent pointer-events-none" />
+    <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      {/* Neon gradient glow - Gamer style */}
+      <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
       
       <div className="relative max-w-lg mx-auto safe-area-px pb-8">
         <Header 
