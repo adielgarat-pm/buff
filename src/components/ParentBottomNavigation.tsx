@@ -1,4 +1,4 @@
-import { Users, Settings, BarChart3, Eye } from 'lucide-react';
+import { Activity, Sliders, BarChart3, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -19,10 +19,11 @@ export function ParentBottomNavigation({
 }: ParentBottomNavigationProps) {
   const { t } = useLanguage();
 
+  // Clear distinction: Monitoring (Activity) vs Configuring (Sliders)
   const NAV_ITEMS = [
-    { id: 'overview' as const, label: 'סקירה', icon: Users },
-    { id: 'settings' as const, label: 'הגדרות', icon: Settings },
-    { id: 'reports' as const, label: 'דוחות', icon: BarChart3 },
+    { id: 'overview' as const, label: 'מעקב', sublabel: 'Monitoring', icon: Activity },
+    { id: 'settings' as const, label: 'הגדרות', sublabel: 'Configure', icon: Sliders },
+    { id: 'reports' as const, label: 'דוחות', sublabel: 'Reports', icon: BarChart3 },
   ];
 
   const handleTabChange = (tab: ParentNavTab) => {

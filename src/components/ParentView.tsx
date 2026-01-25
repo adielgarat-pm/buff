@@ -91,6 +91,7 @@ export function ParentView() {
             onToggleFridayEnabled={toggleFridayEnabled}
             selectedChildId={selectedChildIdForSettings}
             onBackFromChild={() => setSelectedChildIdForSettings(null)}
+            onSelectChild={handleSelectChildForSettings}
           />
         );
       
