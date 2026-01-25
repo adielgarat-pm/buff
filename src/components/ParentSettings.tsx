@@ -536,7 +536,21 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
         )}
 
         {activeSection === 'schedule' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Coach's Tip */}
+            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+              <p className="text-sm text-foreground leading-relaxed">
+                <span className="font-semibold">💡 למה מערכת שעות?</span>
+                <br />
+                מערכת השעות עוזרת לילד לעקוב אחרי רגעי הצלחה בלמידה קשובה ולזהות מתי קשה יותר להתרכז. זה כלי למודעות עצמית, לא לביקורת.
+              </p>
+              {!schoolQuestEnabled && (
+                <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-primary/20">
+                  ⚠️ כרגע ״משימת בית הספר״ כבויה - המערכת לא תוצג לילד. הפעילו אותה בהגדרות למעלה.
+                </p>
+              )}
+            </div>
+
             <div className="flex flex-col gap-2">
               <Button
                 size="sm"
@@ -558,7 +572,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center">
-              {Object.values(timetable).flat().length} שיעורים מוגדרים
+              {Object.values(timetable).flat().filter(p => p.subject).length} שיעורים מוגדרים
             </p>
           </div>
         )}
