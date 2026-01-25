@@ -296,8 +296,19 @@ export default function AuthCallback() {
   );
 }
 
-// Initialize default data for a new family
+// Initialize default data for a new family (same as AuthContext)
 async function initializeFamilyData(familyId: string) {
+  const DEFAULT_TASKS = [
+    { title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
+    { title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
+    { title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
+    { title: 'Homework Check', time: '14:00', category: 'school', credits: 15 },
+    { title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
+    { title: 'Smart Snack Selection', time: '17:00', category: 'nutrition', credits: 15, description: 'I chose one small portion/snack today and stopped there.' },
+    { title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
+    { title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
+  ];
+
   const DEFAULT_STORE_REWARDS = [
     { title: 'Space Session', emoji: '🚀', price: 5000 },
     { title: 'New Game', emoji: '🎮', price: 4000 },
@@ -306,11 +317,77 @@ async function initializeFamilyData(familyId: string) {
     { title: 'Home Movie', emoji: '🎬', price: 750 },
   ];
 
+  const DEFAULT_TIMETABLE = {
+    sunday: [
+      { subject: 'Math', startTime: '08:15' },
+      { subject: 'Math', startTime: '09:05' },
+      { subject: 'Math', startTime: '10:05' },
+      { subject: 'Bible Studies', startTime: '10:55' },
+      { subject: 'Literature', startTime: '11:55' },
+      { subject: 'Literature', startTime: '12:45' },
+      { subject: 'Chemistry / Physics', startTime: '13:35' },
+      { subject: 'Chemistry / Physics', startTime: '14:25' },
+      { subject: 'Self Study', startTime: '15:15' },
+    ],
+    monday: [
+      { subject: 'Chemistry / Physics', startTime: '08:15' },
+      { subject: 'Chemistry / Physics', startTime: '09:05' },
+      { subject: 'P.E.', startTime: '10:05' },
+      { subject: 'Hebrew Grammar', startTime: '10:55' },
+      { subject: 'History', startTime: '11:55' },
+      { subject: 'History', startTime: '12:45' },
+      { subject: 'Math', startTime: '13:35' },
+      { subject: 'Math', startTime: '14:25' },
+    ],
+    tuesday: [
+      { subject: 'English', startTime: '08:15' },
+      { subject: 'English', startTime: '09:05' },
+      { subject: 'Hebrew Grammar', startTime: '10:05' },
+      { subject: 'Math', startTime: '10:55' },
+      { subject: 'Bible Studies', startTime: '11:55' },
+      { subject: 'English', startTime: '12:45' },
+      { subject: 'English', startTime: '13:35' },
+    ],
+    wednesday: [
+      { subject: 'Ramon Program', startTime: '08:15' },
+      { subject: 'Ramon Program', startTime: '09:05' },
+      { subject: 'Civics', startTime: '10:05' },
+      { subject: 'Hebrew Grammar', startTime: '10:55' },
+      { subject: 'History', startTime: '11:55' },
+      { subject: 'History', startTime: '12:45' },
+      { subject: 'English', startTime: '13:35' },
+      { subject: 'English', startTime: '14:25' },
+    ],
+    thursday: [
+      { subject: 'Chemistry', startTime: '08:15' },
+      { subject: 'English', startTime: '09:05' },
+      { subject: 'English', startTime: '10:05' },
+      { subject: 'English', startTime: '10:55' },
+      { subject: 'Math', startTime: '11:55' },
+      { subject: 'Math', startTime: '12:45' },
+      { subject: 'Literature', startTime: '13:35' },
+      { subject: 'Literature', startTime: '14:25' },
+      { subject: 'MUN', startTime: '16:00' },
+    ],
+  };
+
+  // Insert tasks
+  await supabase.from('tasks').insert(
+    DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId }))
+  );
+
+  // Insert store rewards
   await supabase.from('store_rewards').insert(
     DEFAULT_STORE_REWARDS.map((r) => ({ ...r, family_id: familyId }))
   );
 
+  // Insert credit vault
   await supabase.from('credit_vault').insert({ family_id: familyId, total_balance: 0 });
+
+  // Insert timetable
+  await supabase.from('timetables').insert({ family_id: familyId, data: DEFAULT_TIMETABLE });
+
+  // Insert app settings
   await supabase.from('app_settings').insert({ family_id: familyId });
 }
 
