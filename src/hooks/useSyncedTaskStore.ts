@@ -249,6 +249,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       // Get vault balance and sync if needed
       const storedBalance = vaultData?.total_balance || 0;
       const lastUpdatedDate = vaultData?.last_updated_date;
+      const vaultId = vaultData?.id;
       
       // If vault was last updated today, use calculated credits
       // Otherwise, add today's credits to the stored balance
@@ -256,35 +257,50 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       
       if (lastUpdatedDate === todayKey) {
         // Same day - recalculate from scratch for accuracy
-        // Find yesterday's balance by subtracting what was earned today based on vault
-        // Actually, for simplicity, trust the calculated credits for today
-        finalBalance = calculatedTodayCredits;
+        // The stored balance should already include today's progress
+        // Only update if there's a mismatch (safety sync)
+        finalBalance = storedBalance;
         
-        // Update vault if there's a mismatch
-        if (storedBalance !== calculatedTodayCredits && familyId) {
-          supabase
-            .from('credit_vault')
-            .update({ total_balance: calculatedTodayCredits, last_updated_date: todayKey })
-            .eq('family_id', familyId)
-            .is('child_id', null)
-            .then(() => console.log('Vault synced:', calculatedTodayCredits));
+        // Sync if calculated differs significantly from stored (edge case fix)
+        if (Math.abs(storedBalance - calculatedTodayCredits) > 0 && familyId && !lastUpdatedDate) {
+          // Only sync if we don't have a last_updated_date yet
+          finalBalance = calculatedTodayCredits;
         }
       } else if (lastUpdatedDate && lastUpdatedDate < todayKey) {
-        // New day - keep historical balance and add today's credits
+        // New day detected! 
+        // The storedBalance already contains the historical total
+        // We need to add ONLY today's newly earned credits
         finalBalance = storedBalance + calculatedTodayCredits;
         
-        // Update vault with new day's progress
-        if (familyId) {
+        // Update vault with new day's progress - use correct child filter
+        if (familyId && vaultId) {
           supabase
             .from('credit_vault')
             .update({ total_balance: finalBalance, last_updated_date: todayKey })
-            .eq('family_id', familyId)
-            .is('child_id', null)
+            .eq('id', vaultId)
             .then(() => console.log('Vault updated for new day:', finalBalance));
+        } else if (familyId && isViewingAsChild && effectiveChildId) {
+          // Create vault if it doesn't exist for this child
+          supabase
+            .from('credit_vault')
+            .insert({ family_id: familyId, child_id: effectiveChildId, total_balance: finalBalance, last_updated_date: todayKey })
+            .then(() => console.log('Created child vault for new day:', finalBalance));
+        }
+      } else if (!lastUpdatedDate && storedBalance === 0) {
+        // First time - use calculated (fresh start)
+        finalBalance = calculatedTodayCredits;
+        
+        // Initialize vault with today's date
+        if (familyId && vaultId) {
+          supabase
+            .from('credit_vault')
+            .update({ total_balance: finalBalance, last_updated_date: todayKey })
+            .eq('id', vaultId)
+            .then(() => console.log('Vault initialized:', finalBalance));
         }
       } else {
-        // First time or no date - use calculated
-        finalBalance = calculatedTodayCredits;
+        // Has balance but no date - preserve the balance (migration case)
+        finalBalance = storedBalance;
       }
       
       setTotalBalance(finalBalance);
