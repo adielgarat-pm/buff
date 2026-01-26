@@ -48,6 +48,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Lazy load About page
+import { AboutPage } from "@/components/AboutPage";
+
 const AppRoutes = () => (
   <Routes>
     {/* Public marketing landing page */}
@@ -64,6 +67,9 @@ const AppRoutes = () => (
     
     {/* Admin dashboard - protected with role check inside */}
     <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+    
+    {/* About page - public */}
+    <Route path="/about" element={<AboutPage onBack={() => window.history.back()} />} />
     
     {/* Legacy route redirect */}
     <Route path="/app" element={<Navigate to="/dashboard" replace />} />

@@ -222,6 +222,18 @@ export function ParentSettings({
               </div>
               <ChevronRight className="w-4 h-4" />
             </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/about'}
+              className="w-full justify-between touch-target"
+            >
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                <span>אודות - הסיפור מאחורי Buff</span>
+              </div>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
         </>
       )}
