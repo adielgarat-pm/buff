@@ -12,6 +12,7 @@ import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
 import { InstallPWA } from './InstallPWA';
 import { NotificationPrompt } from './NotificationPrompt';
 import { NewDayBanner } from './NewDayBanner';
+import { WelcomeBanner } from './WelcomeBanner';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
 
@@ -201,6 +202,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         <NotificationPrompt
           permission={permission}
           onRequestPermission={requestPermission}
+        />
+      )}
+
+      {/* Welcome Banner for new users */}
+      {!isViewingAsChild && profile?.id && (
+        <WelcomeBanner 
+          userId={profile.id} 
+          userName={profile.display_name} 
         />
       )}
     </div>
