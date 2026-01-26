@@ -18,7 +18,7 @@ interface PhaseViewProps {
   todaySchedule: PeriodInfo[];
   onCompleteTask: (id: string) => void;
   onUncompleteTask: (id: string) => void;
-  onToggleLesson: (id: string) => void;
+  onToggleLesson: (id: string, credits: number) => void;
   onBuffActivated?: () => void;
   fridayEnabled?: boolean;
   schoolQuestEnabled?: boolean;
