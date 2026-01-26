@@ -12,7 +12,17 @@ interface StoreRewardEditorProps {
   onClose: () => void;
   rewards: StoreReward[];
   onSave: (rewards: StoreReward[]) => void;
+  dailyGoal?: number;
 }
+
+// Days of Success tiers for smart price suggestions
+const REWARD_TIERS = [
+  { days: 1, label: 'יום 1', description: 'תוספת זמן מסך / קינוח' },
+  { days: 2, label: 'יומיים', description: 'פטור ממטלה' },
+  { days: 4, label: '4 ימים', description: 'ערב סרט' },
+  { days: 5, label: '5 ימים', description: 'פיצה / סושי' },
+  { days: 10, label: '10 ימים', description: 'יום כיף' },
+];
 
 const ICON_OPTIONS = [
   { icon: '🎮', label: 'Gaming' },
@@ -29,14 +39,18 @@ const ICON_OPTIONS = [
   { icon: '🎪', label: 'Event' },
 ];
 
-export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewardEditorProps) {
+export function StoreRewardEditor({ open, onClose, rewards, onSave, dailyGoal = 100 }: StoreRewardEditorProps) {
   const [localRewards, setLocalRewards] = useState<StoreReward[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  
+  // Calculate smart goal (70% of daily goal)
+  const smartGoal = Math.round((dailyGoal * 70) / 100);
+  
   const [newReward, setNewReward] = useState({
     title: '',
     icon: '🎁',
-    price: 500,
+    price: smartGoal, // Default to 1 day of success
   });
 
   // Reset initialization flag when dialog closes
@@ -102,10 +116,10 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-foreground flex items-center gap-2">
             <Gift className="w-5 h-5 text-primary" />
-            Manage Store Rewards
+            ניהול פרסים
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Add big rewards that can be redeemed with accumulated credits.
+            הוסף פרסים גדולים שניתן לממש עם קרדיטים שנצברו.
           </DialogDescription>
         </DialogHeader>
 
@@ -118,8 +132,8 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
                 onClick={() => setShowAddForm(true)}
                 className="w-full border-dashed border-primary/50 text-primary hover:bg-primary/10"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Reward
+                <Plus className="w-4 h-4 ml-2" />
+                הוסף פרס חדש
               </Button>
             )}
 
@@ -127,14 +141,15 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
             {showAddForm && (
               <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 space-y-3">
                 <Input
-                  placeholder="Reward name (e.g., New Gaming Mouse)"
+                  placeholder="שם הפרס (לדוגמה: ערב סרט)"
                   value={newReward.title}
                   onChange={(e) => setNewReward({ ...newReward, title: e.target.value })}
                   className="bg-background border-border text-foreground"
+                  dir="rtl"
                 />
                 
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-2 block">Icon</Label>
+                  <Label className="text-xs text-muted-foreground mb-2 block">אייקון</Label>
                   <div className="flex flex-wrap gap-2">
                     {ICON_OPTIONS.map((opt) => (
                       <button
@@ -153,21 +168,44 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
                 </div>
                 
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Price (Credits)</Label>
+                  <Label className="text-xs text-muted-foreground mb-1 block">מחיר (קרדיטים)</Label>
                   <Input
                     type="number"
                     value={newReward.price}
                     onChange={(e) => setNewReward({ ...newReward, price: parseInt(e.target.value) || 0 })}
                     className="bg-background border-border text-foreground"
+                    dir="ltr"
                   />
+                  {/* Smart Price Suggestions */}
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {REWARD_TIERS.map((tier) => {
+                      const suggestedPrice = smartGoal * tier.days;
+                      return (
+                        <button
+                          key={tier.days}
+                          onClick={() => setNewReward({ ...newReward, price: suggestedPrice })}
+                          className={`px-2 py-1 text-xs rounded-md transition-all ${
+                            newReward.price === suggestedPrice
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                          }`}
+                        >
+                          {tier.label}: {suggestedPrice}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    💡 המלצות מבוססות על 70% מהיעד היומי ({smartGoal} נקודות)
+                  </p>
                 </div>
                 
                 <div className="flex gap-2 justify-end">
                   <Button size="sm" variant="ghost" onClick={() => setShowAddForm(false)}>
-                    Cancel
+                    ביטול
                   </Button>
                   <Button size="sm" onClick={handleAddReward} className="bg-primary text-primary-foreground">
-                    Add Reward
+                    הוסף פרס
                   </Button>
                 </div>
               </div>
@@ -199,7 +237,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
                 </div>
                 
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-2 block">Icon</Label>
+                  <Label className="text-xs text-muted-foreground mb-2 block">אייקון</Label>
                   <div className="flex flex-wrap gap-2">
                     {ICON_OPTIONS.map((opt) => (
                       <button
@@ -219,17 +257,37 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
                 
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
-                    <Label className="text-xs text-muted-foreground">Price</Label>
+                    <Label className="text-xs text-muted-foreground">מחיר</Label>
                     <Input
                       type="number"
                       value={reward.price}
                       onChange={(e) => handleUpdateReward(reward.id, { price: parseInt(e.target.value) || 0 })}
                       className="bg-background border-border text-foreground"
+                      dir="ltr"
                     />
+                    {/* Quick price suggestions for existing rewards */}
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {REWARD_TIERS.map((tier) => {
+                        const suggestedPrice = smartGoal * tier.days;
+                        return (
+                          <button
+                            key={tier.days}
+                            onClick={() => handleUpdateReward(reward.id, { price: suggestedPrice })}
+                            className={`px-1.5 py-0.5 text-xs rounded transition-all ${
+                              reward.price === suggestedPrice
+                                ? 'bg-primary/20 text-primary'
+                                : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
+                            }`}
+                          >
+                            {tier.days}d
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   {reward.claimed && (
                     <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                      Claimed
+                      נוצל
                     </span>
                   )}
                 </div>
@@ -239,7 +297,7 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
             {localRewards.length === 0 && !showAddForm && (
               <div className="text-center py-8 text-muted-foreground">
                 <Gift className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No rewards yet. Add some big rewards!</p>
+                <p>עדיין אין פרסים. הוסף פרסים גדולים!</p>
               </div>
             )}
           </div>
@@ -247,8 +305,8 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave }: StoreRewar
 
         <div className="flex-shrink-0 flex justify-end pt-4 border-t border-border">
           <Button onClick={handleSave} className="bg-primary text-primary-foreground">
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
+            <Save className="w-4 h-4 ml-2" />
+            שמור שינויים
           </Button>
         </div>
       </DialogContent>
