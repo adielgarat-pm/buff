@@ -288,6 +288,16 @@
     background-image: var(--gradient-buff);
   }
 
+  /* Glowing Neon Green Text */
+  .text-glow-green {
+    color: hsl(112, 100%, 54%);
+    text-shadow: 
+      0 0 10px hsl(112, 100%, 54%, 0.8),
+      0 0 20px hsl(112, 100%, 54%, 0.6),
+      0 0 40px hsl(112, 100%, 54%, 0.4),
+      0 0 80px hsl(112, 100%, 54%, 0.2);
+  }
+
   .bg-gradient-primary {
     background-image: var(--gradient-primary);
   }
