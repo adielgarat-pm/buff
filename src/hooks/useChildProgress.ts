@@ -183,6 +183,7 @@ export function useChildData(childId: string | null) {
   const [totalBalance, setTotalBalance] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(100);
   const [schoolQuestEnabled, setSchoolQuestEnabled] = useState(true);
+  const [birthDate, setBirthDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const todayKey = getTodayKey();
@@ -233,10 +234,10 @@ export function useChildData(childId: string | null) {
         .eq('child_id', childId)
         .maybeSingle();
 
-      // Fetch child's daily goal and school quest setting from profile
+      // Fetch child's daily goal, school quest setting, and birth_date from profile
       const { data: childProfile } = await supabase
         .from('profiles')
-        .select('daily_goal, school_quest_enabled')
+        .select('daily_goal, school_quest_enabled, birth_date')
         .eq('id', childId)
         .single();
 
@@ -279,9 +280,10 @@ export function useChildData(childId: string | null) {
         setTotalBalance(vaultData.total_balance);
       }
 
-      // Set child's daily goal and school quest setting
+      // Set child's daily goal, school quest setting, and birth date
       setDailyGoal(childProfile?.daily_goal || 100);
       setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);
+      setBirthDate(childProfile?.birth_date || null);
     } catch (error) {
       console.error('Error fetching child data:', error);
     } finally {
@@ -491,6 +493,20 @@ export function useChildData(childId: string | null) {
     if (error) throw error;
   }, [childId]);
 
+  // Update child's birth date
+  const updateBirthDate = useCallback(async (date: string | null) => {
+    if (!childId) throw new Error('Missing childId');
+
+    setBirthDate(date);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ birth_date: date })
+      .eq('id', childId);
+
+    if (error) throw error;
+  }, [childId]);
+
   // Update child's credit balance
   const updateTotalBalance = useCallback(async (balance: number) => {
     if (!familyId || !childId) {
@@ -536,6 +552,7 @@ export function useChildData(childId: string | null) {
     totalBalance,
     dailyGoal,
     schoolQuestEnabled,
+    birthDate,
     loading,
     addTask,
     updateTask,
@@ -545,6 +562,7 @@ export function useChildData(childId: string | null) {
     updateDailyGoal,
     updateTotalBalance,
     toggleSchoolQuestEnabled,
+    updateBirthDate,
     initializeChildData,
     refetch: fetchChildData,
   };
