@@ -202,17 +202,38 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
 
       setTasks(mappedTasks);
 
-      // Map lessons with completion status
-      const completedLessonKeys = new Set(
-        lessonProgressData?.filter(l => l.completed).map(l => l.lesson_key) || []
-      );
+      // Map lessons with completion status from database
+      // Use the actual lesson_keys from DB to track completion
+      const lessonProgressMap = new Map<string, boolean>();
+      lessonProgressData?.forEach(l => {
+        if (l.completed) {
+          lessonProgressMap.set(l.lesson_key, true);
+        }
+      });
 
-      const mappedLessons = DEFAULT_LESSONS.map(l => ({
-        ...l,
-        completed: completedLessonKeys.has(l.id),
-      }));
+      // Create lessons array from DB progress data AND default lessons
+      // This ensures dynamic lesson IDs (lesson_0, lesson_1) are tracked
+      const dynamicLessons: Lesson[] = [];
+      lessonProgressData?.forEach(l => {
+        dynamicLessons.push({
+          id: l.lesson_key,
+          label: l.lesson_key,
+          credits: l.credits || 10,
+          completed: l.completed,
+        });
+      });
+      
+      // Also include default lessons for any that aren't in DB yet
+      DEFAULT_LESSONS.forEach(l => {
+        if (!dynamicLessons.find(dl => dl.id === l.id)) {
+          dynamicLessons.push({
+            ...l,
+            completed: lessonProgressMap.has(l.id),
+          });
+        }
+      });
 
-      setLessons(mappedLessons);
+      setLessons(dynamicLessons);
 
       // Calculate actual earned credits from completed tasks and lessons
       const completedTaskCredits = mappedTasks
@@ -559,23 +580,30 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     setTotalBalance(newBalance);
   }, [familyId, profileId, effectiveChildId, todayKey, tasks, totalBalance]);
 
-  // Toggle lesson
-  const toggleLesson = useCallback(async (lessonId: string) => {
+  // Toggle lesson - works with dynamic lesson IDs from todayLessons
+  const toggleLesson = useCallback(async (lessonId: string, lessonCredits: number = 10) => {
     if (!familyId || !profileId) return;
 
     // Use effectiveChildId to support "view as child" mode
     // For children, this should always be their own profile.id
     const targetChildId = effectiveChildId || profileId;
 
-    const lesson = lessons.find(l => l.id === lessonId);
-    if (!lesson) return;
+    // Check if lesson is already completed by looking at lesson_progress data
+    // We track completion state per lessonId in the lessons state
+    const existingLesson = lessons.find(l => l.id === lessonId);
+    const wasCompleted = existingLesson?.completed || false;
+    const newCompleted = !wasCompleted;
 
-    const newCompleted = !lesson.completed;
-
-    // Optimistic update
-    setLessons(prev => prev.map(l =>
-      l.id === lessonId ? { ...l, completed: newCompleted } : l
-    ));
+    // Optimistic update - update the lessons state to track this lessonId
+    setLessons(prev => {
+      const existing = prev.find(l => l.id === lessonId);
+      if (existing) {
+        return prev.map(l => l.id === lessonId ? { ...l, completed: newCompleted } : l);
+      } else {
+        // Add this dynamic lesson ID to the tracked lessons
+        return [...prev, { id: lessonId, label: lessonId, credits: lessonCredits, completed: newCompleted }];
+      }
+    });
 
     // Delete existing record with proper null handling
     if (targetChildId) {
@@ -605,11 +633,11 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         child_id: targetChildId,
         completed: newCompleted,
         completed_at: newCompleted ? new Date().toISOString() : null,
-        credits: lesson.credits,
+        credits: lessonCredits,
       });
 
     // Update vault balance for the specific child
-    const creditChange = newCompleted ? lesson.credits : -lesson.credits;
+    const creditChange = newCompleted ? lessonCredits : -lessonCredits;
     const newBalance = Math.max(0, totalBalance + creditChange);
     
     if (targetChildId) {

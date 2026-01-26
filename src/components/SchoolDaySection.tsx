@@ -4,9 +4,9 @@ import { BookOpen, Swords, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SchoolDaySectionProps {
-  lessons: (Lesson & { displayLabel?: string })[];
+  lessons: (Lesson & { displayLabel?: string; startTime?: string })[];
   todaySchedule: PeriodInfo[];
-  onToggleLesson: (lessonId: string) => void;
+  onToggleLesson: (lessonId: string, credits: number) => void;
   fridayEnabled?: boolean;
 }
 
@@ -74,22 +74,19 @@ export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson, frida
       </div>
 
       <div className="grid grid-cols-4 gap-2">
-        {lessons.map((lesson, index) => {
-          const periodInfo = todaySchedule[index];
-          const subject = periodInfo?.subject;
-          const hasSubject = !!subject;
+        {lessons.map((lesson) => {
+          // Use the lesson's displayLabel directly - it already contains the subject name
+          const subject = lesson.displayLabel || lesson.label;
           
           return (
             <button
               key={lesson.id}
-              onClick={() => onToggleLesson(lesson.id)}
+              onClick={() => onToggleLesson(lesson.id, lesson.credits)}
               className={cn(
                 "relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200",
                 lesson.completed
                   ? "bg-buff/20 border-buff text-buff shadow-glow"
-                  : hasSubject
-                    ? "bg-secondary/50 border-border text-foreground hover:border-primary/50 hover:bg-secondary"
-                    : "bg-secondary/30 border-border/50 text-muted-foreground"
+                  : "bg-secondary/50 border-border text-foreground hover:border-primary/50 hover:bg-secondary"
               )}
             >
               <Checkbox
@@ -100,7 +97,7 @@ export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson, frida
                 )}
               />
               <span className="text-xs font-medium text-center leading-tight line-clamp-2 min-h-[2rem] flex items-center">
-                {subject || `Quest ${index + 1}`}
+                {subject}
               </span>
               <span className="text-[10px] opacity-70">+{lesson.credits} BP</span>
             </button>
