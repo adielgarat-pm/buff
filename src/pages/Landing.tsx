@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe } from 'lucide-react';
+import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -386,6 +386,10 @@ export default function Landing() {
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
               <a href="#for-parents" className="hover:text-foreground transition-colors">{t('nav.forParents')}</a>
+              <Link to="/about" className="hover:text-foreground transition-colors flex items-center gap-1">
+                <Heart className="w-3 h-3" />
+                {language === 'he' ? 'אודות' : 'About'}
+              </Link>
               <Link to="/auth" className="hover:text-foreground transition-colors">{t('nav.getStarted')}</Link>
             </div>
           </div>
