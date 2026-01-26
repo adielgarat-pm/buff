@@ -195,6 +195,12 @@ const translations: Record<Language, Record<string, string>> = {
     'common.xp': 'XP',
     'tasks': 'משימות',
     'noTasksForPhase': 'אין משימות לשלב הזה',
+    
+    // Welcome Banner
+    'welcome.title': 'ברוכים הבאים ל-BUFF',
+    'welcome.message': 'הכנו לך כמה משימות התחלתיות לשגרה היומית. אתה יכול להתאים אותן בכל עת דרך ההגדרות!',
+    'welcome.tasksReady': '✨ 8 משימות מוכנות ומחכות לך!',
+    'welcome.letsGo': 'בוא נתחיל!',
   },
   en: {
     // General
@@ -378,6 +384,12 @@ const translations: Record<Language, Record<string, string>> = {
     'common.xp': 'XP',
     'tasks': 'Tasks',
     'noTasksForPhase': 'No tasks for this phase',
+    
+    // Welcome Banner
+    'welcome.title': 'Welcome to BUFF',
+    'welcome.message': 'We\'ve set up some starter quests for your daily routine. You can customize them anytime in the settings!',
+    'welcome.tasksReady': '✨ 8 quests ready and waiting!',
+    'welcome.letsGo': 'Let\'s Go!',
   },
 };
 
