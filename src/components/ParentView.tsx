@@ -143,7 +143,13 @@ export function ParentView() {
       <InstallPWA />
       
       {/* Parent Welcome Onboarding */}
-      {profile?.id && <ParentWelcomeBanner userId={profile.id} />}
+      {/* Parent Welcome Onboarding */}
+      {profile?.id && (
+        <ParentWelcomeBanner 
+          userId={profile.id} 
+          onNavigateToSettings={() => setActiveTab('settings')}
+        />
+      )}
     </div>
   );
 }

@@ -6,11 +6,12 @@ import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 
 interface ParentWelcomeBannerProps {
   userId: string;
+  onNavigateToSettings?: () => void;
 }
 
 const PARENT_WELCOME_DISMISSED_KEY = 'buff_parent_welcome_dismissed';
 
-export function ParentWelcomeBanner({ userId }: ParentWelcomeBannerProps) {
+export function ParentWelcomeBanner({ userId, onNavigateToSettings }: ParentWelcomeBannerProps) {
   const [show, setShow] = useState(false);
   const [showPhilosophy, setShowPhilosophy] = useState(false);
 
@@ -106,7 +107,8 @@ export function ParentWelcomeBanner({ userId }: ParentWelcomeBannerProps) {
         <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
           <BuffPhilosophyPage 
             isModal 
-            onClose={() => setShowPhilosophy(false)} 
+            onClose={() => setShowPhilosophy(false)}
+            onNavigateToSettings={onNavigateToSettings}
           />
         </DialogContent>
       </Dialog>
