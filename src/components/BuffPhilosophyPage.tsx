@@ -27,9 +27,10 @@ interface BuffPhilosophyPageProps {
   onBack?: () => void;
   isModal?: boolean;
   onClose?: () => void;
+  onNavigateToSettings?: () => void;
 }
 
-export function BuffPhilosophyPage({ onBack, isModal, onClose }: BuffPhilosophyPageProps) {
+export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSettings }: BuffPhilosophyPageProps) {
   const navigate = useNavigate();
 
   const philosophyPoints = [
@@ -128,6 +129,9 @@ Buff היא לא עוד אפליקציה לניהול משימות. היא מע�
   const handleStartClick = () => {
     if (isModal && onClose) {
       onClose();
+    }
+    if (onNavigateToSettings) {
+      onNavigateToSettings();
     } else if (onBack) {
       onBack();
     } else {
