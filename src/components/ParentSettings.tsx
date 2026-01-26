@@ -21,15 +21,18 @@ import {
   Droplets,
   Apple,
   ChevronRight,
+  Brain,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Dialog, DialogContent } from './ui/dialog';
 import { TimetableEditor } from './TimetableEditor';
 import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
+import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildData } from '@/hooks/useChildProgress';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
@@ -65,6 +68,7 @@ export function ParentSettings({
   onSelectChild,
 }: ParentSettingsProps) {
   const { children, loading: membersLoading } = useFamilyMembers();
+  const [showPhilosophy, setShowPhilosophy] = useState(false);
 
   const [localGoal, setLocalGoal] = useState(dailyGoal);
   const [localTitle, setLocalTitle] = useState(appTitle);
@@ -78,6 +82,13 @@ export function ParentSettings({
   const handleSaveTitle = () => onUpdateAppTitle(localTitle);
 
   return (
+    <>
+    <Dialog open={showPhilosophy} onOpenChange={setShowPhilosophy}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        <BuffPhilosophyPage isModal onClose={() => setShowPhilosophy(false)} />
+      </DialogContent>
+    </Dialog>
+
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -206,9 +217,34 @@ export function ParentSettings({
               </div>
             )}
           </div>
+          {/* Learning & Guidance Section */}
+          <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Brain className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-foreground">למידה והדרכה</h2>
+                <p className="text-xs text-muted-foreground">הבנת הגישה מאחורי Buff</p>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowPhilosophy(true)}
+              className="w-full justify-between touch-target"
+            >
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-primary" />
+                <span>קרא את תפיסת העולם של Buff</span>
+              </div>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </>
       )}
     </div>
+    </>
   );
 }
 

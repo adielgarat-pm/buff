@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import { User, Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock } from 'lucide-react';
+import { User, Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
+import { Dialog, DialogContent } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildProgress } from '@/hooks/useChildProgress';
@@ -9,6 +10,7 @@ import { useCleanDayBonus } from '@/hooks/useCleanDayBonus';
 import { useMidnightReset } from '@/hooks/useMidnightReset';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
 import { NewDayBanner } from './NewDayBanner';
+import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ParentFamilyOverviewProps {
@@ -32,6 +34,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
   const { children, loading: membersLoading } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
+  const [showPhilosophy, setShowPhilosophy] = useState(false);
 
   // Midnight reset for parent view - refresh progress data
   const handleMidnightReset = useCallback(() => {
@@ -61,18 +64,36 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
   }
 
   return (
+    <>
+    {/* Philosophy Modal */}
+    <Dialog open={showPhilosophy} onOpenChange={setShowPhilosophy}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        <BuffPhilosophyPage isModal onClose={() => setShowPhilosophy(false)} />
+      </DialogContent>
+    </Dialog>
+
     <div className="space-y-6 pb-8">
       {/* New Day Banner - shows at midnight */}
       <NewDayBanner show={showNewDayMessage} onDismiss={dismissNewDayMessage} />
       
-      {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-foreground font-display">
-          סקירה משפחתית
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          מעקב התקדמות בזמן אמת
-        </p>
+      {/* Header with Info Button */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold text-foreground font-display">
+            סקירה משפחתית
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            מעקב התקדמות בזמן אמת
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowPhilosophy(true)}
+          className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+        >
+          <Info className="w-5 h-5" />
+        </Button>
       </div>
 
       {/* Current Phase Indicator */}
@@ -220,5 +241,6 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
         </div>
       )}
     </div>
+    </>
   );
 }
