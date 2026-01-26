@@ -680,6 +680,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           updateStoreRewards(newRewards);
         }}
         onClose={() => setStoreEditorOpen(false)}
+        dailyGoal={dailyGoal}
       />
     </div>
   );
