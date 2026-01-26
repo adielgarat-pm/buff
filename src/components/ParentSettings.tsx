@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { format, differenceInYears, parseISO } from 'date-fns';
+import { he } from 'date-fns/locale';
 import {
   Settings,
   Bell,
@@ -22,6 +24,7 @@ import {
   Apple,
   ChevronRight,
   Brain,
+  CalendarDays,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -29,6 +32,8 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent } from './ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar as CalendarComponent } from './ui/calendar';
 import { TimetableEditor } from './TimetableEditor';
 import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -286,6 +291,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     dailyGoal,
     totalBalance,
     schoolQuestEnabled,
+    birthDate,
     loading,
     addTask,
     updateTask,
@@ -295,6 +301,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     updateDailyGoal,
     updateTotalBalance,
     toggleSchoolQuestEnabled,
+    updateBirthDate,
     initializeChildData,
   } = useChildData(childId);
 
@@ -311,6 +318,12 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   const [localDailyGoal, setLocalDailyGoal] = useState(dailyGoal);
   const [savingDailyGoal, setSavingDailyGoal] = useState(false);
 
+  const [localBirthDate, setLocalBirthDate] = useState<Date | undefined>(
+    birthDate ? parseISO(birthDate) : undefined
+  );
+  const [savingBirthDate, setSavingBirthDate] = useState(false);
+  const [birthDatePopoverOpen, setBirthDatePopoverOpen] = useState(false);
+
   const dailyGoalSchema = z.coerce.number().int().min(10).max(1000);
   const balanceSchema = z.coerce.number().int().min(0).max(1_000_000);
 
@@ -321,6 +334,10 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
   useEffect(() => {
     setLocalDailyGoal(dailyGoal);
   }, [dailyGoal]);
+
+  useEffect(() => {
+    setLocalBirthDate(birthDate ? parseISO(birthDate) : undefined);
+  }, [birthDate]);
 
   useEffect(() => {
     initializeChildData();
@@ -392,8 +409,28 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     } catch {
       toast.error('שגיאה בעדכון היעד');
     } finally {
-      setSavingDailyGoal(false);
+    setSavingDailyGoal(false);
     }
+  };
+
+  const handleSaveBirthDate = async (date: Date | undefined) => {
+    setSavingBirthDate(true);
+    try {
+      const dateString = date ? format(date, 'yyyy-MM-dd') : null;
+      await updateBirthDate(dateString);
+      toast.success('תאריך הלידה נשמר!');
+      setBirthDatePopoverOpen(false);
+    } catch {
+      toast.error('שגיאה בשמירת תאריך הלידה');
+    } finally {
+      setSavingBirthDate(false);
+    }
+  };
+
+  const calculateAge = (date: Date | undefined): string => {
+    if (!date) return '';
+    const age = differenceInYears(new Date(), date);
+    return `גיל ${age}`;
   };
 
   const sections = [
@@ -497,6 +534,53 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           >
             <X className="w-4 h-4" />
           </Button>
+        </div>
+      </div>
+
+      {/* Birth Date Picker */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="w-4 h-4 text-primary" />
+          <span className="text-sm text-foreground">תאריך לידה</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Popover open={birthDatePopoverOpen} onOpenChange={setBirthDatePopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-8 justify-start text-right font-normal",
+                  !localBirthDate && "text-muted-foreground"
+                )}
+              >
+                {localBirthDate ? (
+                  <span className="flex items-center gap-2">
+                    {format(localBirthDate, 'dd/MM/yyyy', { locale: he })}
+                    <span className="text-xs text-muted-foreground">({calculateAge(localBirthDate)})</span>
+                  </span>
+                ) : (
+                  <span>בחר תאריך</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={localBirthDate}
+                onSelect={(date) => {
+                  setLocalBirthDate(date);
+                  handleSaveBirthDate(date);
+                }}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("2000-01-01")
+                }
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          {savingBirthDate && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
         </div>
       </div>
 

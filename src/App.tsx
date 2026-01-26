@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import { AdminDashboard } from "@/components/AdminDashboard";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,9 @@ const AppRoutes = () => (
     
     {/* Protected dashboard - the main app */}
     <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+    
+    {/* Admin dashboard - protected with role check inside */}
+    <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
     
     {/* Legacy route redirect */}
     <Route path="/app" element={<Navigate to="/dashboard" replace />} />
