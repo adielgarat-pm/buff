@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -8,9 +7,9 @@ import {
   Lightbulb,
   Brain,
   Heart,
-  Zap,
   BookOpen,
-  X
+  X,
+  Share2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -110,17 +109,41 @@ export function BuffPhilosophyPage({ onBack, isModal, onClose }: BuffPhilosophyP
               הפילוסופיה מאחורי המערכת
             </p>
           </div>
-          {isModal && onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-5 h-5" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const shareText = `🎮 *תפיסת העולם של Buff* - אפליקציה לילדים עם ADHD
+
+📱 Buff משתמשת בשפת גיימינג ועקרונות Cog-Fun כדי לעזור לילדים לבנות שגרה יומית בצורה מהנה וחיובית.
+
+✨ *עקרונות מרכזיים:*
+• חיזוק חיובי בלבד - אין עונשים
+• יעד חכם של 70% - הצלחה ריאליסטית
+• שפת גיימינג שמדברת לילדים
+
+🔗 למידע נוסף: https://buff.lovable.app`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                window.open(whatsappUrl, '_blank');
+              }}
+              className="text-accent hover:bg-accent/10"
+            >
+              <Share2 className="w-4 h-4 ml-1" />
+              שתף
             </Button>
-          )}
-          {!isModal && onBack && (
-            <Button variant="ghost" size="sm" onClick={onBack} className="text-muted-foreground">
-              <ArrowRight className="w-4 h-4 ml-1" />
-              חזרה
-            </Button>
-          )}
+            {isModal && onClose && (
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="w-5 h-5" />
+              </Button>
+            )}
+            {!isModal && onBack && (
+              <Button variant="ghost" size="sm" onClick={onBack} className="text-muted-foreground">
+                <ArrowRight className="w-4 h-4 ml-1" />
+                חזרה
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Introduction Card */}
