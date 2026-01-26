@@ -48,8 +48,14 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Lazy load About page
+// About page wrapper with navigation
 import { AboutPage } from "@/components/AboutPage";
+import { useNavigate } from "react-router-dom";
+
+function AboutPageWrapper() {
+  const navigate = useNavigate();
+  return <AboutPage onBack={() => navigate(-1)} />;
+}
 
 const AppRoutes = () => (
   <Routes>
@@ -69,7 +75,7 @@ const AppRoutes = () => (
     <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
     
     {/* About page - public */}
-    <Route path="/about" element={<AboutPage onBack={() => window.history.back()} />} />
+    <Route path="/about" element={<AboutPageWrapper />} />
     
     {/* Legacy route redirect */}
     <Route path="/app" element={<Navigate to="/dashboard" replace />} />
