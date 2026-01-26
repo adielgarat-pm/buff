@@ -34,6 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent } from './ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar as CalendarComponent } from './ui/calendar';
+import { BirthDatePicker } from './BirthDatePicker';
 import { TimetableEditor } from './TimetableEditor';
 import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -298,7 +299,6 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
     birthDate ? parseISO(birthDate) : undefined
   );
   const [savingBirthDate, setSavingBirthDate] = useState(false);
-  const [birthDatePopoverOpen, setBirthDatePopoverOpen] = useState(false);
 
   const dailyGoalSchema = z.coerce.number().int().min(10).max(1000);
   const balanceSchema = z.coerce.number().int().min(0).max(1_000_000);
@@ -395,18 +395,11 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
       const dateString = date ? format(date, 'yyyy-MM-dd') : null;
       await updateBirthDate(dateString);
       toast.success('תאריך הלידה נשמר!');
-      setBirthDatePopoverOpen(false);
     } catch {
       toast.error('שגיאה בשמירת תאריך הלידה');
     } finally {
       setSavingBirthDate(false);
     }
-  };
-
-  const calculateAge = (date: Date | undefined): string => {
-    if (!date) return '';
-    const age = differenceInYears(new Date(), date);
-    return `גיל ${age}`;
   };
 
   const sections = [
@@ -519,45 +512,14 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           <CalendarDays className="w-4 h-4 text-primary" />
           <span className="text-sm text-foreground">תאריך לידה</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Popover open={birthDatePopoverOpen} onOpenChange={setBirthDatePopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "h-8 justify-start text-right font-normal",
-                  !localBirthDate && "text-muted-foreground"
-                )}
-              >
-                {localBirthDate ? (
-                  <span className="flex items-center gap-2">
-                    {format(localBirthDate, 'dd/MM/yyyy', { locale: he })}
-                    <span className="text-xs text-muted-foreground">({calculateAge(localBirthDate)})</span>
-                  </span>
-                ) : (
-                  <span>בחר תאריך</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <CalendarComponent
-                mode="single"
-                selected={localBirthDate}
-                onSelect={(date) => {
-                  setLocalBirthDate(date);
-                  handleSaveBirthDate(date);
-                }}
-                disabled={(date) =>
-                  date > new Date() || date < new Date("2000-01-01")
-                }
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-          {savingBirthDate && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
-        </div>
+        <BirthDatePicker
+          value={localBirthDate}
+          onChange={(date) => {
+            setLocalBirthDate(date);
+            handleSaveBirthDate(date);
+          }}
+          saving={savingBirthDate}
+        />
       </div>
 
       {/* School Quest Toggle */}
