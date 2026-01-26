@@ -9,11 +9,12 @@ import { ChildView } from './ChildView';
 import { ViewAsChildBanner } from './ViewAsChildBanner';
 import { ChildPickerDialog } from './ChildPickerDialog';
 import { InstallPWA } from './InstallPWA';
+import { ParentWelcomeBanner } from './ParentWelcomeBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { Loader2 } from 'lucide-react';
 
 export function ParentView() {
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const { children } = useFamilyMembers();
   
   const [activeTab, setActiveTab] = useState<ParentNavTab>('overview');
@@ -140,6 +141,9 @@ export function ParentView() {
 
       {/* PWA Install Banner */}
       <InstallPWA />
+      
+      {/* Parent Welcome Onboarding */}
+      {profile?.id && <ParentWelcomeBanner userId={profile.id} />}
     </div>
   );
 }
