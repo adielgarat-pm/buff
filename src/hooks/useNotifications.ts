@@ -28,25 +28,66 @@ export function useNotifications() {
 
     setPermission(Notification.permission as NotificationPermissionStatus);
 
-    // Register service worker
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('Service Worker registered:', registration.scope);
-        setServiceWorkerReady(true);
-      })
-      .catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
+    let isMounted = true;
 
-    // Listen for messages from service worker
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data.type === 'COMPLETE_TASK') {
+    const registerAndSetup = async () => {
+      try {
+        // Wait for any existing service worker to be ready first
+        if (navigator.serviceWorker.controller) {
+          await navigator.serviceWorker.ready;
+        }
+
+        // Register our notification service worker
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          updateViaCache: 'none' // Ensure we always get fresh SW
+        });
+        
+        console.log('Notification Service Worker registered:', registration.scope);
+        
+        if (isMounted) {
+          setServiceWorkerReady(true);
+        }
+
+        // Handle updates to our notification SW
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated' && isMounted) {
+                console.log('Notification SW updated and activated');
+                setServiceWorkerReady(true);
+              }
+            });
+          }
+        });
+
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+        // Still try to use notifications if possible
+        if (isMounted) {
+          setServiceWorkerReady(false);
+        }
+      }
+    };
+
+    registerAndSetup();
+
+    // Message handler for service worker
+    const messageHandler = (event: MessageEvent) => {
+      if (event.data?.type === 'COMPLETE_TASK') {
         // Dispatch custom event for task completion
         window.dispatchEvent(new CustomEvent('sw-complete-task', {
           detail: { taskId: event.data.taskId }
         }));
       }
-    });
+    };
+
+    navigator.serviceWorker.addEventListener('message', messageHandler);
+
+    return () => {
+      isMounted = false;
+      navigator.serviceWorker.removeEventListener('message', messageHandler);
+    };
   }, [isSupported]);
 
   // Request notification permission
@@ -86,13 +127,13 @@ export function useNotifications() {
     }
   }, [permission, serviceWorkerReady]);
 
-  // Schedule a notification for a specific time
-  const scheduleNotification = useCallback((
+  // Schedule a notification for a specific time using Service Worker
+  const scheduleNotification = useCallback(async (
     taskId: string,
     title: string,
     body: string,
     scheduledTime: Date
-  ): void => {
+  ): Promise<void> => {
     const now = new Date();
     const delay = scheduledTime.getTime() - now.getTime();
 
@@ -107,7 +148,32 @@ export function useNotifications() {
       return prev.filter(n => n.taskId !== taskId);
     });
 
-    // Schedule the notification
+    // Try to use Service Worker for scheduling (survives page refresh)
+    if (serviceWorkerReady) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+        if (registration?.active) {
+          registration.active.postMessage({
+            type: 'SCHEDULE_NOTIFICATION',
+            title,
+            body,
+            scheduledTime: scheduledTime.toISOString(),
+            taskId
+          });
+          
+          // Still track it locally for UI purposes
+          setScheduledNotifications(prev => [
+            ...prev,
+            { taskId, title, body, scheduledTime }
+          ]);
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to schedule via SW:', error);
+      }
+    }
+
+    // Fallback: Use setTimeout (doesn't survive page refresh)
     const timeoutId = setTimeout(async () => {
       if (permission === 'granted') {
         await showNotification(title, {
@@ -125,7 +191,7 @@ export function useNotifications() {
       ...prev,
       { taskId, title, body, scheduledTime, timeoutId }
     ]);
-  }, [permission, showNotification]);
+  }, [permission, showNotification, serviceWorkerReady]);
 
   // Schedule all task notifications for today
   const scheduleTaskNotifications = useCallback((tasks: Task[]): void => {
