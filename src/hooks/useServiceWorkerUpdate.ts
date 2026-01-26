@@ -65,14 +65,25 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState {
     }, 5 * 60 * 1000);
 
     // Listen for controller change (when update is activated)
+    // Use a debounce to prevent multiple reloads and give notification SW time to re-register
+    let reloadTimeout: NodeJS.Timeout | null = null;
     controllerChangeHandler = () => {
-      // Reload immediately when controller changes
-      window.location.reload();
+      // Clear any pending reload
+      if (reloadTimeout) {
+        clearTimeout(reloadTimeout);
+      }
+      // Wait a short moment before reloading to allow SWs to stabilize
+      reloadTimeout = setTimeout(() => {
+        window.location.reload();
+      }, 500);
     };
     navigator.serviceWorker.addEventListener('controllerchange', controllerChangeHandler);
 
     return () => {
       clearInterval(interval);
+      if (reloadTimeout) {
+        clearTimeout(reloadTimeout);
+      }
       if (controllerChangeHandler) {
         navigator.serviceWorker.removeEventListener('controllerchange', controllerChangeHandler);
       }
