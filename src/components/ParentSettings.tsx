@@ -630,10 +630,12 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {storeRewards.map((reward) => (
-                  <div
+                  <button
                     key={reward.id}
+                    onClick={() => setStoreEditorOpen(true)}
                     className={cn(
                       "p-3 rounded-xl bg-card border border-border flex flex-col items-center gap-2 text-center transition-all",
+                      "hover:border-primary/50 hover:shadow-md cursor-pointer active:scale-95",
                       reward.claimed && "opacity-60"
                     )}
                   >
@@ -643,7 +645,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
                     {reward.claimed && (
                       <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">נמכר</span>
                     )}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
