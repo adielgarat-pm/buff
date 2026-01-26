@@ -564,7 +564,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     if (!familyId || !profileId) return;
 
     // Use effectiveChildId to support "view as child" mode
-    const targetChildId = effectiveChildId || null;
+    // For children, this should always be their own profile.id
+    const targetChildId = effectiveChildId || profileId;
 
     const lesson = lessons.find(l => l.id === lessonId);
     if (!lesson) return;
@@ -576,14 +577,24 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       l.id === lessonId ? { ...l, completed: newCompleted } : l
     ));
 
-    // Delete and re-insert for proper child_id handling
-    await supabase
-      .from('lesson_progress')
-      .delete()
-      .eq('family_id', familyId)
-      .eq('date', todayKey)
-      .eq('lesson_key', lessonId)
-      .eq('child_id', targetChildId);
+    // Delete existing record with proper null handling
+    if (targetChildId) {
+      await supabase
+        .from('lesson_progress')
+        .delete()
+        .eq('family_id', familyId)
+        .eq('date', todayKey)
+        .eq('lesson_key', lessonId)
+        .eq('child_id', targetChildId);
+    } else {
+      await supabase
+        .from('lesson_progress')
+        .delete()
+        .eq('family_id', familyId)
+        .eq('date', todayKey)
+        .eq('lesson_key', lessonId)
+        .is('child_id', null);
+    }
 
     await supabase
       .from('lesson_progress')
@@ -616,7 +627,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     }
       
     setTotalBalance(newBalance);
-  }, [familyId, profileId, isParent, todayKey, lessons, totalBalance]);
+  }, [familyId, profileId, effectiveChildId, todayKey, lessons, totalBalance]);
 
   // Update task (parent only)
   const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
