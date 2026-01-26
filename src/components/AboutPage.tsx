@@ -69,7 +69,7 @@ export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: 
             </AvatarFallback>
           </Avatar>
           <p className="text-lg text-foreground leading-relaxed max-w-md">
-            היי, אני מנהלת מוצר ביומיום, אבל לפני הכל – <span className="font-semibold text-primary">אני אמא של איתי ואמי.</span>
+            היי, אני <span className="font-semibold text-primary">עדי אלגרט גרמן</span> - מנהלת מוצר ביומיום, אבל לפני הכל – אני אמא של איתי ואמי.
           </p>
         </div>
 
