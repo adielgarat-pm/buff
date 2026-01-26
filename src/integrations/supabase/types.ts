@@ -458,6 +458,14 @@ export type Database = {
     Functions: {
       generate_family_short_code: { Args: never; Returns: string }
       get_my_family_id: { Args: never; Returns: string }
+      update_child_credits: {
+        Args: {
+          p_child_id: string
+          p_credit_change: number
+          p_is_completion?: boolean
+        }
+        Returns: number
+      }
       update_child_profile_settings: {
         Args: {
           p_child_id: string

@@ -505,31 +505,43 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         completed_at: new Date().toISOString(),
       });
 
-    // Update vault balance for the specific child
+    // Update vault balance using secure RPC function
     const newBalance = totalBalance + task.credits;
     
     if (targetChildId) {
-      // Update child-specific vault
-      const { data: childVault } = await supabase
-        .from('credit_vault')
-        .select('id')
-        .eq('family_id', familyId)
-        .eq('child_id', targetChildId)
-        .maybeSingle();
+      // Use secure RPC function for credit updates
+      const { data: updatedBalance, error } = await supabase
+        .rpc('update_child_credits', {
+          p_child_id: targetChildId,
+          p_credit_change: task.credits,
+          p_is_completion: true
+        });
+      
+      if (error) {
+        console.error('Error updating credits:', error);
+        // Fallback for parents (they have direct access)
+        if (isParent) {
+          const { data: childVault } = await supabase
+            .from('credit_vault')
+            .select('id')
+            .eq('family_id', familyId)
+            .eq('child_id', targetChildId)
+            .maybeSingle();
 
-      if (childVault) {
-        await supabase
-          .from('credit_vault')
-          .update({ total_balance: newBalance, last_updated_date: todayKey })
-          .eq('id', childVault.id);
-      } else {
-        // Create child vault if it doesn't exist
-        await supabase
-          .from('credit_vault')
-          .insert({ family_id: familyId, child_id: targetChildId, total_balance: newBalance, last_updated_date: todayKey });
+          if (childVault) {
+            await supabase
+              .from('credit_vault')
+              .update({ total_balance: newBalance, last_updated_date: todayKey })
+              .eq('id', childVault.id);
+          } else {
+            await supabase
+              .from('credit_vault')
+              .insert({ family_id: familyId, child_id: targetChildId, total_balance: newBalance, last_updated_date: todayKey });
+          }
+        }
       }
     } else {
-      // Update family vault
+      // Update family vault (parent only)
       await supabase
         .from('credit_vault')
         .update({ total_balance: newBalance, last_updated_date: todayKey })
@@ -576,15 +588,29 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         completed_at: null,
       });
 
-    // Update vault balance for the specific child
+    // Update vault balance using secure RPC function
     const newBalance = Math.max(0, totalBalance - task.credits);
     
     if (targetChildId) {
-      await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance, last_updated_date: todayKey })
-        .eq('family_id', familyId)
-        .eq('child_id', targetChildId);
+      // Use secure RPC function for credit updates (negative for uncomplete)
+      const { error } = await supabase
+        .rpc('update_child_credits', {
+          p_child_id: targetChildId,
+          p_credit_change: -task.credits,
+          p_is_completion: false
+        });
+      
+      if (error) {
+        console.error('Error updating credits:', error);
+        // Fallback for parents
+        if (isParent) {
+          await supabase
+            .from('credit_vault')
+            .update({ total_balance: newBalance, last_updated_date: todayKey })
+            .eq('family_id', familyId)
+            .eq('child_id', targetChildId);
+        }
+      }
     } else {
       await supabase
         .from('credit_vault')
@@ -652,16 +678,30 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         credits: lessonCredits,
       });
 
-    // Update vault balance for the specific child
+    // Update vault balance using secure RPC function
     const creditChange = newCompleted ? lessonCredits : -lessonCredits;
     const newBalance = Math.max(0, totalBalance + creditChange);
     
     if (targetChildId) {
-      await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance, last_updated_date: todayKey })
-        .eq('family_id', familyId)
-        .eq('child_id', targetChildId);
+      // Use secure RPC function for credit updates
+      const { error } = await supabase
+        .rpc('update_child_credits', {
+          p_child_id: targetChildId,
+          p_credit_change: creditChange,
+          p_is_completion: newCompleted
+        });
+      
+      if (error) {
+        console.error('Error updating credits:', error);
+        // Fallback for parents
+        if (isParent) {
+          await supabase
+            .from('credit_vault')
+            .update({ total_balance: newBalance, last_updated_date: todayKey })
+            .eq('family_id', familyId)
+            .eq('child_id', targetChildId);
+        }
+      }
     } else {
       await supabase
         .from('credit_vault')
