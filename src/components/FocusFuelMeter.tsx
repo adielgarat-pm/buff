@@ -6,6 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface FocusFuelMeterProps {
   earned: number;
   goal: number;
+  totalPossible?: number;
+  isWeekend?: boolean;
   buffsActivated?: number;
   className?: string;
 }
@@ -19,7 +21,7 @@ const SKILL_BADGES = [
   { level: 5, name: 'Persistence Pro', nameHe: 'מקצוען התמדה', icon: '🏆', description: 'Never giving up', descriptionHe: 'לא מוותרים' },
 ];
 
-export function FocusFuelMeter({ earned, goal, buffsActivated = 0, className }: FocusFuelMeterProps) {
+export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = false, buffsActivated = 0, className }: FocusFuelMeterProps) {
   const { language, t } = useLanguage();
   const [showCelebration, setShowCelebration] = useState(false);
   const [lastMilestone, setLastMilestone] = useState(0);
@@ -28,6 +30,11 @@ export function FocusFuelMeter({ earned, goal, buffsActivated = 0, className }: 
   const isHalfway = percent >= 50;
   const isAlmostFull = percent >= 80;
   const isFull = percent >= 100;
+  
+  // Day type label
+  const dayTypeLabel = isWeekend 
+    ? (language === 'he' ? '🌴 יום חופש' : '🌴 Off Day')
+    : (language === 'he' ? '📚 יום לימודים' : '📚 School Day');
   
   // Determine current milestone
   const currentMilestone = isFull ? 100 : isAlmostFull ? 80 : isHalfway ? 50 : 0;
@@ -153,6 +160,18 @@ export function FocusFuelMeter({ earned, goal, buffsActivated = 0, className }: 
             )}>
               {getStatusText()}
             </p>
+            
+            {/* Day Type & Goal Info */}
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                {dayTypeLabel}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {language === 'he' 
+                  ? `יעד: ${goal} (70% מ-${totalPossible})`
+                  : `Goal: ${goal} (70% of ${totalPossible})`}
+              </span>
+            </div>
             
             {/* Milestone Dots - Inline */}
             <div className="flex gap-1.5 mt-1.5">

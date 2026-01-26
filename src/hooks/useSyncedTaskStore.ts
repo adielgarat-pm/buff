@@ -827,7 +827,13 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const lessonCredits = isCurrentlyWeekend ? 0 : todayLessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   const earnedCredits = taskCredits + lessonCredits;
   const totalPossibleCredits = visibleTasks.reduce((sum, t) => sum + t.credits, 0) + (isCurrentlyWeekend ? 0 : todayLessons.reduce((sum, l) => sum + l.credits, 0));
-  const progressPercent = dailyGoal > 0 ? Math.min((earnedCredits / dailyGoal) * 100, 100) : 0;
+  
+  // Smart 70% Goal: Calculate the finish line as 70% of today's total possible credits
+  const smartGoal = Math.round(totalPossibleCredits * 0.7);
+  // Use the smart goal if it's set, otherwise fall back to the configured daily goal
+  const effectiveGoal = totalPossibleCredits > 0 ? smartGoal : dailyGoal;
+  
+  const progressPercent = effectiveGoal > 0 ? Math.min((earnedCredits / effectiveGoal) * 100, 100) : 0;
   const unlockedRewards = rewards.filter(r => earnedCredits >= r.requiredCredits);
 
   // Toggle Friday enabled
@@ -851,11 +857,14 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     todaySchedule,
     rewards,
     dailyGoal,
+    smartGoal,
+    effectiveGoal,
     appTitle,
     earnedCredits,
     totalPossibleCredits,
     progressPercent,
     unlockedRewards,
+    isCurrentlyWeekend,
     lessonRemindersEnabled,
     fridayEnabled,
     schoolQuestEnabled,

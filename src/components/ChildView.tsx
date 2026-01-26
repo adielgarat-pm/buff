@@ -35,12 +35,16 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     timetable,
     todaySchedule,
     dailyGoal,
+    smartGoal,
+    effectiveGoal,
     appTitle,
     earnedCredits,
+    totalPossibleCredits,
     progressPercent,
     lessonRemindersEnabled,
     fridayEnabled,
     schoolQuestEnabled,
+    isCurrentlyWeekend,
     totalBalance,
     storeRewards,
     buffsActivatedToday,
@@ -156,9 +160,11 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
               {/* Focus Fuel Meter */}
               <ProgressBar
                 earned={earnedCredits}
-                goal={dailyGoal}
+                goal={effectiveGoal}
                 percent={progressPercent}
                 totalBalance={totalBalance}
+                totalPossible={totalPossibleCredits}
+                isWeekend={isCurrentlyWeekend}
                 buffsActivated={buffsActivatedToday}
               />
 
