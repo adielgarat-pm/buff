@@ -149,6 +149,8 @@ const translations: Record<Language, Record<string, string>> = {
     'store.claimedRewards': 'פרסים שמומשו',
     'store.noRewards': 'אין פרסים עדיין',
     'store.askParent': 'בקש מההורה להוסיף פרסים מגניבים!',
+    'store.vaultEmpty': 'הכספת ריקה',
+    'store.askParentToAdd': 'בקש מההורה להוסיף פרסים למסע שלך!',
     'store.credits': 'קרדיטים',
     
     // Navigation tabs
@@ -330,6 +332,8 @@ const translations: Record<Language, Record<string, string>> = {
     'store.claimedRewards': 'Claimed Rewards',
     'store.noRewards': 'No Rewards Yet',
     'store.askParent': 'Ask your parent to add some awesome rewards!',
+    'store.vaultEmpty': 'The Vault is Empty',
+    'store.askParentToAdd': 'Ask your parent to add rewards to your quest!',
     'store.credits': 'credits',
     
     // Navigation tabs
