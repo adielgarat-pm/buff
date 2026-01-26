@@ -573,7 +573,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
         )}
 
         {activeSection === 'rewards' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Button
               size="sm"
               variant="outline"
@@ -583,9 +583,34 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
               <Gift className="w-4 h-4 ml-2" />
               ערוך חנות פרסים
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              {storeRewards.length} פרסים מוגדרים
-            </p>
+
+            {/* Rewards Preview List */}
+            {storeRewards.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <Gift className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">אין פרסים מוגדרים</p>
+                <p className="text-xs mt-1">לחץ על "ערוך חנות פרסים" להוספה</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {storeRewards.map((reward) => (
+                  <div
+                    key={reward.id}
+                    className={cn(
+                      "p-3 rounded-xl bg-card border border-border flex flex-col items-center gap-2 text-center transition-all",
+                      reward.claimed && "opacity-60"
+                    )}
+                  >
+                    <span className="text-2xl">{reward.icon}</span>
+                    <span className="text-sm font-medium text-foreground line-clamp-2">{reward.title}</span>
+                    <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
+                    {reward.claimed && (
+                      <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">נמכר</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
