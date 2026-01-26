@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
@@ -12,6 +12,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "@/components/AdminDashboard";
+import { AboutPage } from "@/components/AboutPage";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -48,13 +49,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// About page wrapper with navigation
-import { AboutPage } from "@/components/AboutPage";
-import { useNavigate } from "react-router-dom";
-
 function AboutPageWrapper() {
   const navigate = useNavigate();
-  return <AboutPage onBack={() => navigate(-1)} />;
+  return <AboutPage onBack={() => navigate("/dashboard", { replace: true })} />;
 }
 
 const AppRoutes = () => (
