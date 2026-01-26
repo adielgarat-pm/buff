@@ -1,4 +1,7 @@
-import { Settings, Vault, CalendarDays, LogOut, User, Globe } from 'lucide-react';
+import { Settings, Vault, CalendarDays, LogOut, User, Globe, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Dialog, DialogContent } from './ui/dialog';
+import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -20,6 +23,7 @@ interface HeaderProps {
   appTitle: string;
   onSignOut?: () => void;
   userName?: string;
+  showPhilosophyIcon?: boolean;
 }
 
 // BUFF Logo Component with image
@@ -45,8 +49,10 @@ export function Header({
   appTitle,
   onSignOut,
   userName,
+  showPhilosophyIcon,
 }: HeaderProps) {
   const { language, setLanguage, t, isRTL } = useLanguage();
+  const [showPhilosophy, setShowPhilosophy] = useState(false);
   const today = new Date();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
   const dayName = today.toLocaleDateString(locale, { weekday: 'long' });
@@ -62,6 +68,19 @@ export function Header({
       </div>
       
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        {/* Philosophy Info Icon - for parent view */}
+        {showPhilosophyIcon && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-xl w-10 h-10 touch-target active:bg-primary/10"
+            onClick={() => setShowPhilosophy(true)}
+            title="תפיסת העולם של Buff"
+          >
+            <Info className="w-5 h-5 text-primary" />
+          </Button>
+        )}
+        
         {/* Weekly Summary Button */}
         {onOpenWeeklySummary && (
           <Button
@@ -143,6 +162,16 @@ export function Header({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      
+      {/* Philosophy Dialog */}
+      <Dialog open={showPhilosophy} onOpenChange={setShowPhilosophy}>
+        <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+          <BuffPhilosophyPage 
+            isModal 
+            onClose={() => setShowPhilosophy(false)} 
+          />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
