@@ -46,11 +46,9 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 interface ParentSettingsProps {
-  dailyGoal: number;
   appTitle: string;
   lessonRemindersEnabled: boolean;
   fridayEnabled: boolean;
-  onUpdateGoal: (goal: number) => void;
   onUpdateAppTitle: (title: string) => void;
   onToggleLessonReminders: (enabled: boolean) => void;
   onToggleFridayEnabled: (enabled: boolean) => void;
@@ -60,11 +58,9 @@ interface ParentSettingsProps {
 }
 
 export function ParentSettings({
-  dailyGoal,
   appTitle,
   lessonRemindersEnabled,
   fridayEnabled,
-  onUpdateGoal,
   onUpdateAppTitle,
   onToggleLessonReminders,
   onToggleFridayEnabled,
@@ -75,15 +71,12 @@ export function ParentSettings({
   const { children, loading: membersLoading } = useFamilyMembers();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
 
-  const [localGoal, setLocalGoal] = useState(dailyGoal);
   const [localTitle, setLocalTitle] = useState(appTitle);
 
   useEffect(() => {
-    setLocalGoal(dailyGoal);
     setLocalTitle(appTitle);
-  }, [dailyGoal, appTitle]);
+  }, [appTitle]);
 
-  const handleSaveGoal = () => onUpdateGoal(localGoal);
   const handleSaveTitle = () => onUpdateAppTitle(localTitle);
 
   return (
@@ -148,23 +141,6 @@ export function ParentSettings({
               </div>
             </div>
 
-            {/* Daily Goal */}
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">יעד יומי ברירת מחדל</Label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  type="number"
-                  value={localGoal}
-                  onChange={(e) => setLocalGoal(parseInt(e.target.value) || 0)}
-                  className="w-24 bg-background border-border"
-                  dir="ltr"
-                />
-                <span className="text-sm text-muted-foreground">קרדיטים</span>
-                <Button size="sm" onClick={handleSaveGoal} className="mr-auto bg-primary text-primary-foreground touch-target">
-                  <Save className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
 
             {/* Toggles */}
             <div className="space-y-3 pt-2">

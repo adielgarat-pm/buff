@@ -24,11 +24,9 @@ export function ParentView() {
 
   const {
     loading,
-    dailyGoal,
     appTitle,
     lessonRemindersEnabled,
     fridayEnabled,
-    updateDailyGoal,
     updateAppTitle,
     toggleLessonReminders,
     toggleFridayEnabled,
@@ -82,11 +80,9 @@ export function ParentView() {
       case 'settings':
         return (
           <ParentSettings
-            dailyGoal={dailyGoal}
             appTitle={appTitle}
             lessonRemindersEnabled={lessonRemindersEnabled}
             fridayEnabled={fridayEnabled}
-            onUpdateGoal={updateDailyGoal}
             onUpdateAppTitle={updateAppTitle}
             onToggleLessonReminders={toggleLessonReminders}
             onToggleFridayEnabled={toggleFridayEnabled}
