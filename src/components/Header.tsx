@@ -31,7 +31,7 @@ function BuffLogo() {
         alt="BUFF Logo" 
         className="h-14 w-14 object-contain"
       />
-      <span className="font-display text-2xl font-bold tracking-wide text-primary">
+      <span className="font-display text-2xl font-bold tracking-wide text-glow-green">
         BUFF
       </span>
     </div>
