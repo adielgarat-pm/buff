@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Landing from "./pages/Landing";
+import ChildInvite from "./pages/ChildInvite";
 import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AboutPage } from "@/components/AboutPage";
@@ -70,6 +71,9 @@ const AppRoutes = () => (
     
     {/* OAuth Callback */}
     <Route path="/auth/callback" element={<AuthCallback />} />
+    
+    {/* Child Magic Link Invite */}
+    <Route path="/join" element={<PublicRoute><ChildInvite /></PublicRoute>} />
     
     {/* Protected dashboard - the main app */}
     <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
