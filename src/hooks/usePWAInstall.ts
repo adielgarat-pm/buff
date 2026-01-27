@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { trackPWAEvent } from './usePWAAnalytics';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -137,6 +138,8 @@ export function usePWAInstall(): UsePWAInstallReturn {
       };
 
       const handleAppInstalled = () => {
+        // Track successful installation
+        trackPWAEvent('pwa_install_success', deviceOS);
         setState(prev => ({
           ...prev,
           isInstalled: true,
@@ -157,13 +160,19 @@ export function usePWAInstall(): UsePWAInstallReturn {
   }, []);
 
   const triggerInstall = useCallback(async (): Promise<boolean> => {
+    const currentOS = forcedOS || state.deviceOS;
+    
     if (!deferredPrompt) return false;
+
+    // Track install started
+    trackPWAEvent('pwa_install_started', currentOS);
 
     try {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
+        // Note: pwa_install_success is tracked via appinstalled event
         setState(prev => ({
           ...prev,
           isInstalled: true,
@@ -171,15 +180,21 @@ export function usePWAInstall(): UsePWAInstallReturn {
         }));
         setDeferredPrompt(null);
         return true;
+      } else {
+        // User cancelled the native dialog
+        trackPWAEvent('pwa_install_cancelled', currentOS);
       }
       return false;
     } catch (error) {
       console.error('PWA install error:', error);
       return false;
     }
-  }, [deferredPrompt]);
+  }, [deferredPrompt, forcedOS, state.deviceOS]);
 
   const dismiss = useCallback((hours: number = DEFAULT_DISMISS_HOURS) => {
+    const currentOS = forcedOS || state.deviceOS;
+    trackPWAEvent('pwa_prompt_dismissed_temp', currentOS, { hours });
+    
     localStorage.setItem(DISMISS_KEY, JSON.stringify({
       timestamp: new Date().toISOString(),
       hours,
@@ -191,9 +206,12 @@ export function usePWAInstall(): UsePWAInstallReturn {
       isDismissed: true,
       canShowPrompt: false,
     }));
-  }, []);
+  }, [forcedOS, state.deviceOS]);
 
   const dismissPermanently = useCallback(() => {
+    const currentOS = forcedOS || state.deviceOS;
+    trackPWAEvent('pwa_prompt_dismissed_perm', currentOS);
+    
     localStorage.setItem(PERMANENT_DISMISS_KEY, 'true');
     setForceVisible(false);
     setForcedOS(null);
@@ -203,7 +221,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
       isDismissed: true,
       canShowPrompt: false,
     }));
-  }, []);
+  }, [forcedOS, state.deviceOS]);
 
   const resetDismissal = useCallback(() => {
     localStorage.removeItem(DISMISS_KEY);

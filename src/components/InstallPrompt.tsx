@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { usePWAInstall, DeviceOS } from '@/hooks/usePWAInstall';
+import { trackPWAEvent } from '@/hooks/usePWAAnalytics';
 import buffLogo from '@/assets/buff-logo.png';
 
 interface InstallPromptProps {
@@ -282,6 +283,15 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
   } = usePWAInstall();
   
   const [isVisible, setIsVisible] = useState(true);
+  const impressionTracked = useRef(false);
+
+  // Track impression when prompt is shown
+  useEffect(() => {
+    if (!isInstalled && canShowPrompt && !impressionTracked.current) {
+      trackPWAEvent('pwa_prompt_impression', deviceOS);
+      impressionTracked.current = true;
+    }
+  }, [isInstalled, canShowPrompt, deviceOS]);
 
   // Don't render if already installed or can't show prompt
   if (isInstalled || !canShowPrompt) {
