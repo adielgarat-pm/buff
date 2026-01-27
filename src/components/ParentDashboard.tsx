@@ -68,7 +68,7 @@ export function ParentDashboard({
   onBack,
 }: ParentDashboardProps) {
   const { familyId, familyShortCode } = useAuth();
-  const { members, children, loading: membersLoading } = useFamilyMembers();
+  const { members, children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   
   const [localGoal, setLocalGoal] = useState(dailyGoal);
@@ -115,7 +115,7 @@ export function ParentDashboard({
 
           {/* Family Code - Compact inside settings */}
           {familyShortCode && (
-            <FamilyCodeDisplay shortCode={familyShortCode} />
+            <FamilyCodeDisplay shortCode={familyShortCode} onChildAdded={refetchMembers} />
           )}
 
           {/* App Title */}
