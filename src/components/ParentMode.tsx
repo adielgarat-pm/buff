@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload, Camera, FileSpreadsheet } from 'lucide-react';
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -832,10 +832,11 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
                   size="sm"
                   variant="outline"
                   onClick={() => setScheduleImporterOpen(true)}
-                  className="border-buff text-buff hover:bg-buff/10"
+                  className="border-buff text-buff hover:bg-buff/10 min-h-[48px]"
                 >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import
+                  <Camera className="w-4 h-4 ml-1" />
+                  <FileSpreadsheet className="w-4 h-4 ml-2" />
+                  העלאת מערכת
                 </Button>
                 <Button
                   size="sm"

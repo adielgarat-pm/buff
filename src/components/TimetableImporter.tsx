@@ -6,7 +6,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { 
   Upload, 
   FileSpreadsheet, 
-  Image, 
+  Camera,
   Zap, 
   Trash2, 
   Check, 
@@ -220,11 +220,11 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       <div className="space-y-6">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-foreground mb-1">
-            Import Timetable
+            העלאת מערכת שעות
           </h3>
           <p className="text-sm text-muted-foreground">
-            Upload a photo of a school timetable or an Excel file
-            {childName && <span className="text-primary"> for {childName}</span>}
+            העלו תמונה של מערכת השעות או קובץ אקסל
+            {childName && <span className="text-primary"> עבור {childName}</span>}
           </p>
         </div>
 
@@ -247,18 +247,25 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
             id="timetable-file-input"
           />
           <label htmlFor="timetable-file-input" className="cursor-pointer">
-            <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Camera className="w-10 h-10 text-primary" />
+              <span className="text-2xl text-muted-foreground">/</span>
+              <FileSpreadsheet className="w-10 h-10 text-primary" />
+            </div>
             <p className="font-medium text-foreground mb-2">
-              Drop file here or click to browse
+              לחצו כאן או גררו קובץ
             </p>
-            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Image className="w-4 h-4" />
-                <span>JPG, PNG</span>
+            <p className="text-sm text-muted-foreground mb-3">
+              תומך ב-JPG, PNG ו-XLSX
+            </p>
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1 bg-secondary/50 px-2 py-1 rounded-full">
+                <Camera className="w-3 h-3" />
+                <span>תמונה</span>
               </div>
-              <div className="flex items-center gap-1">
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>Excel</span>
+              <div className="flex items-center gap-1 bg-secondary/50 px-2 py-1 rounded-full">
+                <FileSpreadsheet className="w-3 h-3" />
+                <span>אקסל</span>
               </div>
             </div>
           </label>
@@ -266,7 +273,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
         <div className="flex justify-end">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            ביטול
           </Button>
         </div>
       </div>
@@ -283,10 +290,10 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         </div>
         <div>
           <h3 className="text-lg font-semibold text-foreground mb-1">
-            Analyzing timetable... ⚡
+            מנתח את המערכת... ⚡
           </h3>
           <p className="text-sm text-muted-foreground">
-            Using AI to detect subjects, times, and days
+            מזהה שיעורים, שעות וימים באמצעות AI
           </p>
         </div>
       </div>
@@ -307,14 +314,14 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-foreground">
-            Review & Confirm
+            בדיקה ואישור
           </h3>
           <p className="text-sm text-muted-foreground">
-            {selectedCount} of {parsedPeriods.length} lessons selected
+            {selectedCount} מתוך {parsedPeriods.length} שיעורים נבחרו
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => setStep('upload')}>
-          Upload Different
+          העלאה אחרת
         </Button>
       </div>
 
@@ -322,7 +329,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         <div className="space-y-4">
           {parsedPeriods.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
-              No lessons found. Try uploading a different file.
+              לא נמצאו שיעורים. נסו להעלות קובץ אחר.
             </div>
           ) : (
             WEEK_DAYS.map(day => {
@@ -418,7 +425,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
       <div className="flex justify-between pt-4 border-t border-border">
         <Button variant="outline" onClick={onClose}>
-          Cancel
+          ביטול
         </Button>
         <Button 
           onClick={handleConfirmImport} 
@@ -426,7 +433,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           className="gap-2"
         >
           <Check className="w-4 h-4" />
-          Import {selectedCount} Lessons
+          ייבוא {selectedCount} שיעורים
         </Button>
       </div>
     </div>
