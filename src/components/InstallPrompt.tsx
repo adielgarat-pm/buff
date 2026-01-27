@@ -13,6 +13,7 @@ import {
 import { Button } from './ui/button';
 import { usePWAInstall, DeviceOS } from '@/hooks/usePWAInstall';
 import { trackPWAEvent } from '@/hooks/usePWAAnalytics';
+import { useInstallPromptMessage } from '@/hooks/useInstallPromptMessage';
 import buffLogo from '@/assets/buff-logo.png';
 
 interface InstallPromptProps {
@@ -209,12 +210,36 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
   );
 }
 
-function AndroidDesktopInstructions({ onInstall, deviceOS, isInstallable }: { onInstall: () => void; deviceOS: DeviceOS; isInstallable: boolean }) {
+interface AndroidDesktopInstructionsProps {
+  onInstall: () => void;
+  deviceOS: DeviceOS;
+  isInstallable: boolean;
+  personalizedMessage: string;
+  childrenCount: number;
+}
+
+function AndroidDesktopInstructions({ 
+  onInstall, 
+  deviceOS, 
+  isInstallable,
+  personalizedMessage,
+  childrenCount,
+}: AndroidDesktopInstructionsProps) {
   const isDesktop = deviceOS === 'desktop';
+  // Adjust font size based on message length and number of children
+  const getMessageStyle = () => {
+    if (childrenCount >= 3 || personalizedMessage.length > 70) {
+      return 'text-sm leading-relaxed';
+    }
+    if (childrenCount >= 2 || personalizedMessage.length > 50) {
+      return 'text-base leading-relaxed';
+    }
+    return 'text-lg';
+  };
   
   return (
     <div className="space-y-6">
-      {/* Hero Section */}
+      {/* Hero Section with personalized message */}
       <div className="text-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -225,14 +250,15 @@ function AndroidDesktopInstructions({ onInstall, deviceOS, isInstallable }: { on
           <img src={buffLogo} alt="BUFF" className="w-14 h-14" />
         </motion.div>
         
-        <h2 className="text-2xl font-bold text-foreground mb-2">
-          שדרגו את החוויה!
-        </h2>
-        <p className="text-muted-foreground">
-          {isDesktop 
-            ? 'התקינו את BUFF על המחשב לגישה מהירה'
-            : 'הוסיפו את BUFF למסך הבית'}
-        </p>
+        {/* Dynamic personalized header */}
+        <motion.h2 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className={`font-bold text-foreground mb-2 px-2 ${getMessageStyle()}`}
+        >
+          {personalizedMessage}
+        </motion.h2>
       </div>
 
       {/* Features Grid */}
@@ -326,6 +352,8 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     dismissPermanently,
   } = usePWAInstall();
   
+  const { message: personalizedMessage, childrenCount } = useInstallPromptMessage();
+  
   const [isVisible, setIsVisible] = useState(true);
   const impressionTracked = useRef(false);
 
@@ -413,6 +441,8 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
                 onInstall={handleInstall} 
                 deviceOS={deviceOS}
                 isInstallable={isInstallable}
+                personalizedMessage={personalizedMessage}
+                childrenCount={childrenCount}
               />
             </div>
 
