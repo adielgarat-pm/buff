@@ -66,7 +66,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState {
 
     // Listen for controller change (when update is activated)
     // Use a debounce to prevent multiple reloads and give notification SW time to re-register
-    let reloadTimeout: NodeJS.Timeout | null = null;
+    let reloadTimeout: ReturnType<typeof setTimeout> | null = null;
     controllerChangeHandler = () => {
       // Clear any pending reload
       if (reloadTimeout) {

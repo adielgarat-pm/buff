@@ -8,7 +8,7 @@ interface ScheduledNotification {
   title: string;
   body: string;
   scheduledTime: Date;
-  timeoutId?: NodeJS.Timeout;
+  timeoutId?: ReturnType<typeof setTimeout>;
 }
 
 export function useNotifications() {
