@@ -119,61 +119,87 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
+    let isMounted = true;
+
     const initializeAuth = async () => {
       try {
         // Get existing session first
         const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
         
         if (existingSession?.user) {
           setSession(existingSession);
           setUser(existingSession.user);
           
           const p = await fetchProfile(existingSession.user.id);
+          if (!isMounted) return;
+          
           setProfile(p);
           
           if (p?.family_id) {
             const code = await fetchFamilyShortCode(p.family_id);
-            setFamilyShortCode(code);
+            if (isMounted) setFamilyShortCode(code);
           }
         }
       } catch (err) {
         console.error('Auth initialization error:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         console.log('Auth state change:', event);
+        
+        if (!isMounted) return;
         
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        // Only fetch profile on specific events to avoid race conditions
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (newSession?.user && !fetchingProfile.current) {
+        // Handle sign out immediately
+        if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          setFamilyShortCode(null);
+          setLoading(false);
+          return;
+        }
+
+        // For SIGNED_IN or TOKEN_REFRESHED, fetch profile
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && newSession?.user) {
+          if (!fetchingProfile.current) {
             // Use setTimeout to defer and avoid Supabase deadlock
             setTimeout(async () => {
-              const p = await fetchProfile(newSession.user.id);
-              setProfile(p);
-              if (p?.family_id) {
-                const code = await fetchFamilyShortCode(p.family_id);
-                setFamilyShortCode(code);
+              if (!isMounted || fetchingProfile.current) return;
+              fetchingProfile.current = true;
+              
+              try {
+                const p = await fetchProfile(newSession.user.id);
+                if (!isMounted) return;
+                
+                setProfile(p);
+                if (p?.family_id) {
+                  const code = await fetchFamilyShortCode(p.family_id);
+                  if (isMounted) setFamilyShortCode(code);
+                }
+              } finally {
+                fetchingProfile.current = false;
+                if (isMounted) setLoading(false);
               }
             }, 0);
           }
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setFamilyShortCode(null);
         }
       }
     );
 
     initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [fetchProfile, fetchFamilyShortCode]);
 
   const signIn = async (email: string, password: string) => {
