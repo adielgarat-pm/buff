@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,92 +36,145 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [familyShortCode, setFamilyShortCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Refs to prevent race conditions
+  const isInitialized = useRef(false);
+  const fetchingProfile = useRef(false);
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching profile:', error);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      return data as Profile | null;
+    } catch (err) {
+      console.error('Network error fetching profile:', err);
       return null;
     }
-    return data as Profile | null;
   }, []);
 
-  const fetchFamilyShortCode = useCallback(async (familyId: string) => {
-    const { data, error } = await supabase
-      .from('families')
-      .select('short_code')
-      .eq('id', familyId)
-      .single();
+  const fetchFamilyShortCode = useCallback(async (familyId: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('families')
+        .select('short_code')
+        .eq('id', familyId)
+        .single();
 
-    if (error) {
-      console.error('Error fetching family short code:', error);
+      if (error) {
+        console.error('Error fetching family short code:', error);
+        return null;
+      }
+      return data?.short_code ?? null;
+    } catch (err) {
+      console.error('Network error fetching family code:', err);
       return null;
     }
-    return data?.short_code ?? null;
   }, []);
 
+  // Stable refresh function that doesn't depend on user state
   const refreshProfile = useCallback(
-    async (userId?: string) => {
-      const effectiveUserId = userId ?? user?.id;
+    async (userId?: string): Promise<Profile | null> => {
+      const effectiveUserId = userId;
       if (!effectiveUserId) {
         setProfile(null);
         setFamilyShortCode(null);
         return null;
       }
 
-      const p = await fetchProfile(effectiveUserId);
-      setProfile(p);
-
-      if (p?.family_id) {
-        const code = await fetchFamilyShortCode(p.family_id);
-        setFamilyShortCode(code);
-      } else {
-        setFamilyShortCode(null);
+      // Prevent concurrent fetches
+      if (fetchingProfile.current) {
+        return profile;
       }
+      fetchingProfile.current = true;
 
-      return p;
+      try {
+        const p = await fetchProfile(effectiveUserId);
+        setProfile(p);
+
+        if (p?.family_id) {
+          const code = await fetchFamilyShortCode(p.family_id);
+          setFamilyShortCode(code);
+        } else {
+          setFamilyShortCode(null);
+        }
+
+        return p;
+      } finally {
+        fetchingProfile.current = false;
+      }
     },
-    [fetchFamilyShortCode, fetchProfile, user?.id]
+    [fetchFamilyShortCode, fetchProfile, profile]
   );
 
+  // Initial auth setup - runs only once
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    if (isInitialized.current) return;
+    isInitialized.current = true;
 
-        // Defer profile fetch with setTimeout to avoid deadlock
-        if (session?.user) {
-          setTimeout(async () => {
-            await refreshProfile(session.user.id);
-          }, 0);
-        } else {
+    const initializeAuth = async () => {
+      try {
+        // Get existing session first
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (existingSession?.user) {
+          setSession(existingSession);
+          setUser(existingSession.user);
+          
+          const p = await fetchProfile(existingSession.user.id);
+          setProfile(p);
+          
+          if (p?.family_id) {
+            const code = await fetchFamilyShortCode(p.family_id);
+            setFamilyShortCode(code);
+          }
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log('Auth state change:', event);
+        
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        // Only fetch profile on specific events to avoid race conditions
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (newSession?.user && !fetchingProfile.current) {
+            // Use setTimeout to defer and avoid Supabase deadlock
+            setTimeout(async () => {
+              const p = await fetchProfile(newSession.user.id);
+              setProfile(p);
+              if (p?.family_id) {
+                const code = await fetchFamilyShortCode(p.family_id);
+                setFamilyShortCode(code);
+              }
+            }, 0);
+          }
+        } else if (event === 'SIGNED_OUT') {
           setProfile(null);
           setFamilyShortCode(null);
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await refreshProfile(session.user.id);
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
-    });
+    initializeAuth();
 
     return () => subscription.unsubscribe();
-  }, [refreshProfile]);
+  }, [fetchProfile, fetchFamilyShortCode]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
