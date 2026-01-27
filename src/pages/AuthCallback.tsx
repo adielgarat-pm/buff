@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import buffLogo from '@/assets/buff-logo.png';
+import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 
 type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating';
 
@@ -22,11 +23,14 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
+      trackRegistrationStep('google_auth_callback');
+      
       try {
         // Get the session from the URL
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
+          trackRegistrationError('signup_error', sessionError.message, { method: 'google' });
           setError(sessionError.message);
           return;
         }
@@ -57,6 +61,7 @@ export default function AuthCallback() {
         }
       } catch (err) {
         console.error('Auth callback error:', err);
+        trackRegistrationError('signup_error', 'Authentication failed', { method: 'google' });
         setError('Authentication failed');
       }
     };
@@ -65,6 +70,7 @@ export default function AuthCallback() {
   }, [navigate]);
 
   const handleRoleSelect = (role: 'parent' | 'child') => {
+    trackRegistrationStep('role_selected', { role, method: 'google' });
     setSelectedRole(role);
     if (role === 'child') {
       setStep('family-code');
@@ -84,6 +90,7 @@ export default function AuthCallback() {
   const handleCreateProfile = async (role: 'parent' | 'child', code: string | null) => {
     if (!userId) return;
     
+    trackRegistrationStep('profile_creation_started', { role, method: 'google' });
     setStep('creating');
 
     try {
@@ -99,11 +106,13 @@ export default function AuthCallback() {
 
         if (familyError) {
           console.error('Error creating family:', familyError);
+          trackRegistrationError('signup_error', 'Error creating family', { role, method: 'google' });
           setError('שגיאה ביצירת משפחה');
           return;
         }
 
         familyId = newFamily.id;
+        trackRegistrationStep('family_created', { familyId, method: 'google' });
 
         // Step 2: Create profile BEFORE initializing family data
         // This is critical - RLS policies require a profile to exist for data access
@@ -116,13 +125,17 @@ export default function AuthCallback() {
 
         if (profileError) {
           console.error('Error creating parent profile:', profileError);
+          trackRegistrationError('signup_error', 'Error creating profile', { role: 'parent', method: 'google' });
           setError('שגיאה ביצירת פרופיל');
           return;
         }
 
+        trackRegistrationStep('profile_created', { role: 'parent', method: 'google' });
+
         // Step 3: Now initialize family data (profile exists, RLS will work)
         await initializeFamilyData(familyId);
 
+        trackRegistrationStep('onboarding_complete', { role: 'parent', method: 'google' });
         toast.success('ברוך הבא! משפחה חדשה נוצרה');
         navigate('/dashboard');
         return;
@@ -136,12 +149,14 @@ export default function AuthCallback() {
           .maybeSingle();
 
         if (familyError || !family) {
+          trackRegistrationError('signup_error', 'Invalid family code', { role: 'child', method: 'google' });
           toast.error('קוד משפחה לא תקין');
           setStep('family-code');
           return;
         }
 
         familyId = family.id;
+        trackRegistrationStep('family_joined', { familyId, method: 'google' });
 
         // Create child profile (trigger will auto-create tasks, rewards, vault)
         const { error: profileError } = await supabase.from('profiles').insert({
@@ -153,17 +168,22 @@ export default function AuthCallback() {
 
         if (profileError) {
           console.error('Error creating child profile:', profileError);
+          trackRegistrationError('signup_error', 'Error creating profile', { role: 'child', method: 'google' });
           setError('שגיאה ביצירת פרופיל');
           return;
         }
 
+        trackRegistrationStep('profile_created', { role: 'child', method: 'google' });
+
         // Note: Child data is now auto-created by the create_default_tasks_for_child trigger
 
+        trackRegistrationStep('onboarding_complete', { role: 'child', method: 'google' });
         toast.success('ברוך הבא למשפחה!');
         navigate('/dashboard');
       }
     } catch (err) {
       console.error('Profile creation error:', err);
+      trackRegistrationError('signup_error', 'Profile creation error', { method: 'google' });
       setError('שגיאה ביצירת החשבון');
     }
   };
