@@ -8,7 +8,7 @@ import { ParentReports } from './ParentReports';
 import { ChildView } from './ChildView';
 import { ViewAsChildBanner } from './ViewAsChildBanner';
 import { ChildPickerDialog } from './ChildPickerDialog';
-import { InstallPWA } from './InstallPWA';
+import { InstallPrompt } from './InstallPrompt';
 import { ParentWelcomeBanner } from './ParentWelcomeBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
@@ -143,8 +143,8 @@ export function ParentView() {
         </div>
       </div>
 
-      {/* PWA Install Banner */}
-      <InstallPWA />
+      {/* Smart PWA Install Prompt */}
+      <InstallPrompt showAsModal={true} />
       
       {/* Parent Welcome Onboarding */}
       {profile?.id && (
