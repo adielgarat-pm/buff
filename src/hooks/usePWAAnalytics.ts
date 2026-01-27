@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import type { MessageType } from './useInstallPromptMessage';
 
 // PWA analytics event types
 export type PWAAnalyticsEvent = 
@@ -9,11 +10,19 @@ export type PWAAnalyticsEvent =
   | 'pwa_install_success'        // Installation completed successfully
   | 'pwa_install_cancelled';     // User cancelled native install dialog
 
+export interface PWAAnalyticsMetadata {
+  hours?: number;
+  message_type?: MessageType;
+  template_index?: number;
+  browser?: string;
+  [key: string]: unknown;
+}
+
 interface PWAAnalyticsData {
   event: PWAAnalyticsEvent;
   device_os: string;
   timestamp: string;
-  metadata?: Record<string, unknown>;
+  metadata?: PWAAnalyticsMetadata;
 }
 
 // In-memory session storage
@@ -59,7 +68,7 @@ export function usePWAAnalytics() {
   const trackEvent = useCallback((
     event: PWAAnalyticsEvent, 
     deviceOS: string,
-    metadata?: Record<string, unknown>
+    metadata?: PWAAnalyticsMetadata
   ) => {
     logPWAEvent({
       event,
@@ -91,6 +100,27 @@ export function usePWAAnalytics() {
         return acc;
       }, {} as Record<string, { impressions: number; installs: number }>);
 
+      // Group by message type (personalized vs generic)
+      const byMessageType = events.reduce((acc, event) => {
+        const msgType = (event.metadata?.message_type as string) || 'unknown';
+        if (!acc[msgType]) acc[msgType] = { impressions: 0, installs: 0, dismissals: 0 };
+        if (event.event === 'pwa_prompt_impression') acc[msgType].impressions++;
+        if (event.event === 'pwa_install_success') acc[msgType].installs++;
+        if (event.event === 'pwa_prompt_dismissed_perm' || event.event === 'pwa_prompt_dismissed_temp') {
+          acc[msgType].dismissals++;
+        }
+        return acc;
+      }, {} as Record<string, { impressions: number; installs: number; dismissals: number }>);
+
+      // Group by browser
+      const byBrowser = events.reduce((acc, event) => {
+        const browser = (event.metadata?.browser as string) || 'unknown';
+        if (!acc[browser]) acc[browser] = { impressions: 0, installs: 0 };
+        if (event.event === 'pwa_prompt_impression') acc[browser].impressions++;
+        if (event.event === 'pwa_install_success') acc[browser].installs++;
+        return acc;
+      }, {} as Record<string, { impressions: number; installs: number }>);
+
       // Calculate conversion rate
       const conversionRate = impressions > 0 
         ? Math.round((installSuccesses / impressions) * 100) 
@@ -105,6 +135,8 @@ export function usePWAAnalytics() {
         installCancelled,
         conversionRate,
         byDevice,
+        byMessageType,
+        byBrowser,
         recentEvents: events.slice(-20).reverse(),
       };
     } catch (e) {
@@ -129,7 +161,7 @@ export function usePWAAnalytics() {
 export function trackPWAEvent(
   event: PWAAnalyticsEvent, 
   deviceOS: string,
-  metadata?: Record<string, unknown>
+  metadata?: PWAAnalyticsMetadata
 ) {
   logPWAEvent({
     event,

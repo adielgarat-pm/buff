@@ -34,6 +34,8 @@ function formatChildrenNames(names: string[]): string {
   return `${allButLast} ו${last}`;
 }
 
+export type MessageType = 'personalized' | 'generic';
+
 /**
  * Hook that returns a personalized or generic install prompt message
  * - Selects randomly on mount (stable during session via useMemo)
@@ -42,6 +44,8 @@ function formatChildrenNames(names: string[]): string {
 export function useInstallPromptMessage(): {
   message: string;
   isPersonalized: boolean;
+  messageType: MessageType;
+  templateIndex: number;
   childrenCount: number;
 } {
   const { children, loading } = useFamilyMembers();
@@ -59,6 +63,8 @@ export function useInstallPromptMessage(): {
       return {
         message: genericTemplates[randomIndex.generic],
         isPersonalized: false,
+        messageType: 'generic' as MessageType,
+        templateIndex: randomIndex.generic,
         childrenCount: 0,
       };
     }
@@ -73,6 +79,8 @@ export function useInstallPromptMessage(): {
       return {
         message: template.replace('{names}', formattedNames),
         isPersonalized: true,
+        messageType: 'personalized' as MessageType,
+        templateIndex: randomIndex.personalized,
         childrenCount: childNames.length,
       };
     }
@@ -81,6 +89,8 @@ export function useInstallPromptMessage(): {
     return {
       message: genericTemplates[randomIndex.generic],
       isPersonalized: false,
+      messageType: 'generic' as MessageType,
+      templateIndex: randomIndex.generic,
       childrenCount: 0,
     };
   }, [children, loading, randomIndex]);
