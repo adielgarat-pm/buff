@@ -481,6 +481,7 @@ export type Database = {
     }
     Functions: {
       generate_family_short_code: { Args: never; Returns: string }
+      get_admin_app_pulse: { Args: never; Returns: Json }
       get_admin_families_overview: {
         Args: never
         Returns: {
