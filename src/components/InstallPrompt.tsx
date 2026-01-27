@@ -3,14 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
   Sparkles, 
-  Smartphone, 
   Zap, 
   Bell, 
   Wifi,
-  ArrowDown,
-  Share,
   Plus,
   CheckCircle2,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { usePWAInstall, DeviceOS } from '@/hooks/usePWAInstall';
@@ -28,60 +26,180 @@ const features = [
   { icon: Wifi, title: 'עובד אופליין', description: 'גם בלי אינטרנט' },
 ];
 
-// iOS-specific instruction steps
-const iosSteps = [
-  { step: 1, icon: Share, text: 'לחצו על כפתור השיתוף', highlight: 'Share' },
-  { step: 2, icon: Plus, text: 'בחרו "הוסף למסך הבית"', highlight: 'Add to Home Screen' },
-  { step: 3, icon: CheckCircle2, text: 'לחצו "הוסף" וזהו!', highlight: 'Add' },
-];
-
-function IOSInstructions() {
+// Floating Arrow Component for iOS
+function FloatingArrow() {
   return (
-    <div className="space-y-4">
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/20 mb-3">
-          <Smartphone className="w-8 h-8 text-accent" />
-        </div>
-        <h3 className="text-lg font-bold text-foreground mb-1">
-          התקינו את BUFF על האייפון
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          עקבו אחר הצעדים הפשוטים הבאים
-        </p>
+    <motion.div
+      className="absolute -top-14 left-1/2 -translate-x-1/2 z-10"
+      initial={{ y: 0 }}
+      animate={{ y: [0, 8, 0] }}
+      transition={{ 
+        duration: 1.5, 
+        repeat: Infinity, 
+        ease: "easeInOut" 
+      }}
+    >
+      <div className="relative flex flex-col items-center">
+        {/* Glow effect behind arrow */}
+        <div className="absolute inset-0 blur-md bg-primary/40 rounded-full scale-150" />
+        <ChevronDown className="w-10 h-10 text-primary relative z-10" strokeWidth={3} />
+        <span className="text-xs text-primary font-medium mt-1 relative z-10 whitespace-nowrap">
+          לחצו על השיתוף למטה
+        </span>
       </div>
+    </motion.div>
+  );
+}
 
-      <div className="space-y-3">
-        {iosSteps.map((step, index) => (
-          <motion.div
-            key={step.step}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.15 }}
-            className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border"
+// Apple Share Icon SVG
+function AppleShareIcon({ className }: { className?: string }) {
+  return (
+    <svg 
+      className={className} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+// iOS-specific instruction component with floating arrow
+function IOSInstallGuide({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ y: '100%', opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+      className="fixed bottom-0 inset-x-0 z-[100]"
+    >
+      {/* Floating Arrow pointing to Safari Share button */}
+      <FloatingArrow />
+      
+      {/* Main Banner */}
+      <div className="bg-card/95 backdrop-blur-xl border-t border-border rounded-t-3xl shadow-2xl">
+        {/* Handle bar */}
+        <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-3" />
+        
+        <div className="p-5 pb-safe max-w-lg mx-auto">
+          {/* Header with dismiss */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-buff-glow">
+                <img src={buffLogo} alt="BUFF" className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
+                  התקינו את BUFF
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  הוסיפו לקיצורי הדרך שלכם
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onDismiss}
+              className="h-8 w-8 rounded-full -mt-1 -ml-2"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Step-by-step instructions */}
+          <div className="space-y-3">
+            {/* Step 1 */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50"
+            >
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                1
+              </div>
+              <div className="flex-1">
+                <p className="text-foreground font-medium text-sm">
+                  לחצו על כפתור השיתוף
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  בתחתית המסך ב-Safari
+                </p>
+              </div>
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <AppleShareIcon className="w-5 h-5 text-primary" />
+              </div>
+            </motion.div>
+
+            {/* Step 2 */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50"
+            >
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                2
+              </div>
+              <div className="flex-1">
+                <p className="text-foreground font-medium text-sm">
+                  גללו ובחרו "הוסף למסך הבית"
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Add to Home Screen
+                </p>
+              </div>
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-accent" />
+              </div>
+            </motion.div>
+
+            {/* Step 3 */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50"
+            >
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">
+                3
+              </div>
+              <div className="flex-1">
+                <p className="text-foreground font-medium text-sm">
+                  לחצו "הוסף" וזהו! 🎉
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  BUFF יופיע במסך הבית
+                </p>
+              </div>
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Dismiss text */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            onClick={onDismiss}
+            className="w-full mt-4 text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-primary font-bold">{step.step}</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-foreground font-medium">{step.text}</p>
-              <p className="text-xs text-muted-foreground">
-                {step.highlight}
-              </p>
-            </div>
-            <step.icon className="w-5 h-5 text-muted-foreground" />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Visual Safari Share Button hint */}
-      <div className="mt-6 p-4 rounded-xl bg-gradient-to-b from-muted/50 to-muted/20 border border-border/50">
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <ArrowDown className="w-4 h-4 animate-bounce" />
-          <span>כפתור השיתוף נמצא בתחתית הדפדפן</span>
-          <ArrowDown className="w-4 h-4 animate-bounce" />
+            לא עכשיו, אולי אחר כך
+          </motion.button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -151,14 +269,12 @@ function AndroidDesktopInstructions({ onInstall, deviceOS }: { onInstall: () => 
 export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProps) {
   const { 
     deviceOS, 
-    isInstallable, 
     canShowPrompt,
     isInstalled,
     triggerInstall, 
     dismiss 
   } = usePWAInstall();
   
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
   // Don't render if already installed or can't show prompt
@@ -167,11 +283,6 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
   }
 
   const handleInstall = async () => {
-    if (deviceOS === 'ios') {
-      setShowIOSGuide(true);
-      return;
-    }
-
     const success = await triggerInstall();
     if (success) {
       setIsVisible(false);
@@ -185,14 +296,18 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     onClose?.();
   };
 
-  const handleCloseFull = () => {
-    setIsVisible(false);
-    onClose?.();
-  };
-
   if (!isVisible) return null;
 
-  // Full-screen modal version
+  // iOS gets the special floating arrow guide
+  if (deviceOS === 'ios') {
+    return (
+      <AnimatePresence>
+        <IOSInstallGuide onDismiss={handleDismiss} />
+      </AnimatePresence>
+    );
+  }
+
+  // Full-screen modal version for Android/Desktop
   if (showAsModal) {
     return (
       <AnimatePresence>
@@ -213,7 +328,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleCloseFull}
+              onClick={handleDismiss}
               className="absolute top-4 left-4 h-8 w-8 rounded-full"
             >
               <X className="w-4 h-4" />
@@ -223,14 +338,10 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
             <div className="absolute inset-0 rounded-3xl bg-gradient-glow opacity-50 pointer-events-none" />
 
             <div className="relative">
-              {showIOSGuide || deviceOS === 'ios' ? (
-                <IOSInstructions />
-              ) : (
-                <AndroidDesktopInstructions 
-                  onInstall={handleInstall} 
-                  deviceOS={deviceOS}
-                />
-              )}
+              <AndroidDesktopInstructions 
+                onInstall={handleInstall} 
+                deviceOS={deviceOS}
+              />
             </div>
 
             {/* Dismiss option */}
@@ -248,7 +359,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     );
   }
 
-  // Bottom sheet version (compact)
+  // Bottom sheet version (compact) for non-modal display
   return (
     <AnimatePresence>
       <motion.div
