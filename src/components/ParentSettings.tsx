@@ -39,6 +39,7 @@ import { TimetableEditor } from './TimetableEditor';
 import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
+import { JoinFamilySection } from './JoinFamilySection';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildData } from '@/hooks/useChildProgress';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
@@ -233,8 +234,11 @@ export function ParentSettings({
                 <span>אודות - הסיפור מאחורי Buff</span>
               </div>
               <ChevronRight className="w-4 h-4" />
-            </Button>
+          </Button>
           </div>
+
+          {/* Join Family Section */}
+          <JoinFamilySection />
         </>
       )}
     </div>
