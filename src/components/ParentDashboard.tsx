@@ -248,7 +248,7 @@ export function ParentDashboard({
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="px-5 pb-5">
-                      <ChildConfigPanel childId={child.id} childName={child.displayName} />
+                      <ChildConfigPanel childId={child.id} childName={child.displayName} fridayEnabled={fridayEnabled} />
                     </AccordionContent>
                   </AccordionItem>
                 );
@@ -262,7 +262,7 @@ export function ParentDashboard({
 }
 
 // Child Configuration Panel (embedded in accordion)
-function ChildConfigPanel({ childId, childName }: { childId: string; childName: string }) {
+function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: string; childName: string; fridayEnabled: boolean }) {
   const {
     tasks,
     timetable,
@@ -434,6 +434,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           onImport={handleImportTimetable}
           onClose={() => setScheduleImporterOpen(false)}
           childName={childName}
+          fridayEnabled={fridayEnabled}
         />
       )}
 
@@ -445,6 +446,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           setTimetableEditorOpen(false);
         }}
         onClose={() => setTimetableEditorOpen(false)}
+        fridayEnabled={fridayEnabled}
       />
 
       <StoreRewardEditor

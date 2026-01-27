@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Timetable, WEEK_DAYS, WEEK_DAY_LABELS } from '@/types/task';
+import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WeekDay } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -12,6 +12,7 @@ interface TimetableEditorProps {
   onClose: () => void;
   timetable: Timetable;
   onSave: (timetable: Timetable) => void;
+  fridayEnabled?: boolean;
 }
 
 const DEFAULT_PERIOD_TIMES = [
@@ -20,9 +21,10 @@ const DEFAULT_PERIOD_TIMES = [
 
 const PERIOD_LABELS_HE = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳', 'ח׳', 'ט׳', 'י׳'];
 
-const buildInitialTimetable = (timetable: Timetable): Timetable => {
+const buildInitialTimetable = (timetable: Timetable, includeFriday: boolean): Timetable => {
   const initial: Timetable = {};
-  WEEK_DAYS.forEach(day => {
+  const days = includeFriday ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
+  days.forEach(day => {
     initial[day] = timetable[day] || DEFAULT_PERIOD_TIMES.map((time) => ({
       subject: '',
       startTime: time,
@@ -31,15 +33,16 @@ const buildInitialTimetable = (timetable: Timetable): Timetable => {
   return initial;
 };
 
-export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableEditorProps) {
-  const [localTimetable, setLocalTimetable] = useState<Timetable>(() => buildInitialTimetable(timetable));
+export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnabled = false }: TimetableEditorProps) {
+  const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
+  const [localTimetable, setLocalTimetable] = useState<Timetable>(() => buildInitialTimetable(timetable, fridayEnabled));
 
-  const [selectedDay, setSelectedDay] = useState<string>('sunday');
+  const [selectedDay, setSelectedDay] = useState<WeekDay>('sunday');
 
   // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
   useEffect(() => {
     if (!open) return;
-    setLocalTimetable(buildInitialTimetable(timetable));
+    setLocalTimetable(buildInitialTimetable(timetable, fridayEnabled));
     setSelectedDay('sunday');
   }, [open, timetable]);
 
@@ -72,10 +75,12 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
     
     setLocalTimetable(prev => {
       const updated = { ...prev };
-      WEEK_DAYS.forEach(day => {
-        updated[day] = updated[day].map((period, i) =>
-          i === periodIndex ? { ...period, startTime: currentTime } : period
-        );
+      displayDays.forEach(day => {
+        if (updated[day]) {
+          updated[day] = updated[day].map((period, i) =>
+            i === periodIndex ? { ...period, startTime: currentTime } : period
+          );
+        }
       });
       return updated;
     });
@@ -97,12 +102,12 @@ export function TimetableEditor({ open, onClose, timetable, onSave }: TimetableE
         </DialogHeader>
 
         {/* Day Tabs */}
-        <div className="flex gap-1 p-1 bg-secondary/50 rounded-lg">
-          {WEEK_DAYS.map(day => (
+        <div className="flex gap-1 p-1 bg-secondary/50 rounded-lg overflow-x-auto">
+          {displayDays.map(day => (
             <button
               key={day}
               onClick={() => setSelectedDay(day)}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 min-w-[50px] py-2 px-2 rounded-md text-sm font-medium transition-colors ${
                 selectedDay === day
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'

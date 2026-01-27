@@ -112,7 +112,7 @@ export function ParentSettings({
 
       {/* If child selected, show child config only */}
       {selectedChildId ? (
-        <ChildConfigPanel childId={selectedChildId} childName={children.find(c => c.id === selectedChildId)?.displayName || ''} />
+        <ChildConfigPanel childId={selectedChildId} childName={children.find(c => c.id === selectedChildId)?.displayName || ''} fridayEnabled={fridayEnabled} />
       ) : (
         <>
           {/* General Settings Card */}
@@ -278,7 +278,7 @@ function ChildManagementCard({
 }
 
 // Child Configuration Panel - Focus on Configuration
-function ChildConfigPanel({ childId, childName }: { childId: string; childName: string }) {
+function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: string; childName: string; fridayEnabled: boolean }) {
   const {
     tasks,
     timetable,
@@ -701,6 +701,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           onImport={handleImportTimetable}
           onClose={() => setScheduleImporterOpen(false)}
           childName={childName}
+          fridayEnabled={fridayEnabled}
         />
       )}
 
@@ -712,6 +713,7 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
           setTimetableEditorOpen(false);
         }}
         onClose={() => setTimetableEditorOpen(false)}
+        fridayEnabled={fridayEnabled}
       />
 
       <StoreRewardEditor

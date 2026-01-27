@@ -296,6 +296,7 @@ export function ParentMode({
                   <ChildConfiguration
                     child={selectedChild}
                     progress={selectedChildProgress}
+                    fridayEnabled={fridayEnabled}
                   />
                 )}
               </div>
@@ -543,9 +544,10 @@ interface ChildConfigurationProps {
     tasksCompleted: number;
     tasksTotal: number;
   };
+  fridayEnabled: boolean;
 }
 
-function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
+function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurationProps) {
   const {
     tasks,
     timetable,
@@ -878,6 +880,7 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
                 onClose={() => setScheduleImporterOpen(false)}
                 currentTimetable={timetable}
                 childName={child.displayName}
+                fridayEnabled={fridayEnabled}
               />
             </div>
           )}
@@ -887,6 +890,7 @@ function ChildConfiguration({ child, progress }: ChildConfigurationProps) {
             onClose={() => setTimetableEditorOpen(false)}
             timetable={timetable}
             onSave={updateTimetable}
+            fridayEnabled={fridayEnabled}
           />
         </TabsContent>
 

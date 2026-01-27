@@ -365,6 +365,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
         onClose={() => setEditorOpen(false)}
         timetable={timetable}
         onSave={onUpdateTimetable}
+        fridayEnabled={fridayEnabled}
       />
     </div>
   );

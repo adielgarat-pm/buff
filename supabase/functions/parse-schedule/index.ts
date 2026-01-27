@@ -228,11 +228,13 @@ serve(async (req) => {
 CRITICAL RULES:
 1. Return ONLY valid JSON - no markdown, no explanation, no conversation.
 2. The spreadsheet may be RTL (Right-to-Left) Hebrew layout.
-3. Hebrew day headers: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
-4. Times are typically in the first column or row headers in HH:MM format.
-5. If a time is missing but inferable from grid position, infer it.
-6. If lesson text is unclear, include it with [?] suffix.
-7. If a cell is empty, set lesson_name to null but still include the row.
+3. IMPORTANT: Israeli schools have a 6-DAY week (Sunday-Friday). Always check for 6 columns of days.
+4. Hebrew day headers: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
+5. If Friday (יום שישי / שישי / ו') exists in the data, it MUST be included in the output.
+6. Times are typically in the first column or row headers in HH:MM format.
+7. If a time is missing but inferable from grid position, infer it.
+8. If lesson text is unclear, include it with [?] suffix.
+9. If a cell is empty, set lesson_name to null but still include the row.
 
 OUTPUT SCHEMA:
 {"lessons":[{"day":"יום ראשון","start_time":"08:00","end_time":"08:45","lesson_name":"מתמטיקה"},...]}
@@ -302,27 +304,29 @@ Return ONLY the JSON object, nothing else.`
 CRITICAL EXTRACTION RULES:
 1. Return ONLY a valid JSON object - NO markdown, NO explanation, NO conversation.
 2. Hebrew tables are often RTL (Right-to-Left). Days may appear right-to-left.
-3. Hebrew day identification:
+3. IMPORTANT: Israeli schools have a 6-DAY week (Sunday-Friday). Always look for 6 day columns.
+4. Hebrew day identification:
    - ראשון / יום ראשון / א' = Sunday
    - שני / יום שני / ב' = Monday  
    - שלישי / יום שלישי / ג' = Tuesday
    - רביעי / יום רביעי / ד' = Wednesday
    - חמישי / יום חמישי / ה' = Thursday
-   - שישי / יום שישי / ו' = Friday
+   - שישי / יום שישי / ו' = Friday (MUST BE INCLUDED IF PRESENT)
 
-4. TIME EXTRACTION:
+5. TIME EXTRACTION:
    - Times are in HH:MM 24-hour format
    - If time is missing but grid position is clear, infer from adjacent rows
    - Common school times: 08:00, 08:45, 09:30, 10:15, 11:00, 11:45, 12:30, 13:15, 14:00, 14:45
 
-5. LESSON NAME EXTRACTION:
+6. LESSON NAME EXTRACTION:
    - Extract Hebrew text exactly as shown
    - If text is blurry/unclear, provide best guess with [?] suffix
    - If cell is completely empty, set lesson_name to null
    - Do NOT skip empty cells - include them with null
 
-6. COMPLETENESS:
+7. COMPLETENESS:
    - Extract ALL visible rows and columns
+   - If a schedule shows 6 days (including Friday), include ALL 6 days
    - Maintain grid structure - every cell becomes a lesson entry
    - If a lesson spans multiple periods, create separate entries for each time slot
 
