@@ -25,6 +25,8 @@ import {
   ChevronRight,
   Brain,
   CalendarDays,
+  Camera,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -625,10 +627,11 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
                 size="sm"
                 variant="outline"
                 onClick={() => setScheduleImporterOpen(true)}
-                className="w-full touch-target"
+                className="w-full touch-target min-h-[48px]"
               >
-                <Upload className="w-4 h-4 ml-2" />
-                ייבוא מאקסל
+                <Camera className="w-4 h-4 ml-1" />
+                <FileSpreadsheet className="w-4 h-4 ml-2" />
+                העלאת מערכת
               </Button>
               <Button
                 size="sm"

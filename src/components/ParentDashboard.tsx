@@ -7,7 +7,7 @@ import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload, ChevronRight } from 'lucide-react';
+import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload, ChevronRight, Camera, FileSpreadsheet } from 'lucide-react';
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -362,10 +362,11 @@ function ChildConfigPanel({ childId, childName }: { childId: string; childName: 
                 size="sm"
                 variant="outline"
                 onClick={() => setScheduleImporterOpen(true)}
-                className="flex-1 touch-target"
+                className="flex-1 touch-target min-h-[48px]"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Import
+                <Camera className="w-4 h-4 ml-1" />
+                <FileSpreadsheet className="w-4 h-4 ml-2" />
+                העלאת מערכת
               </Button>
               <Button
                 size="sm"
