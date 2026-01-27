@@ -9,7 +9,7 @@ import { PhaseView } from './PhaseView';
 import { RewardsStore } from './RewardsStore';
 import { WeeklyTimetable } from './WeeklyTimetable';
 import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
-import { InstallPWA } from './InstallPWA';
+import { InstallPrompt } from './InstallPrompt';
 import { NotificationPrompt } from './NotificationPrompt';
 import { NewDayBanner } from './NewDayBanner';
 import { WelcomeBanner } from './WelcomeBanner';
@@ -200,8 +200,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       {/* Bottom Navigation */}
       <ChildBottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* PWA Install Banner */}
-      {!isViewingAsChild && <InstallPWA />}
+      {/* Smart PWA Install Prompt */}
+      {!isViewingAsChild && <InstallPrompt showAsModal={false} />}
 
       {/* Notification Permission Prompt */}
       {!isViewingAsChild && (
