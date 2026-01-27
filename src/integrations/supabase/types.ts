@@ -493,6 +493,15 @@ export type Database = {
           parent_count: number
         }[]
       }
+      get_admin_orphaned_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          last_sign_in_at: string
+          user_id: string
+        }[]
+      }
       get_my_family_id: { Args: never; Returns: string }
       has_role: {
         Args: {
