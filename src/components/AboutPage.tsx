@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   ArrowRight, 
   Heart, 
@@ -5,11 +6,14 @@ import {
   Users,
   Sparkles,
   X,
-  Lightbulb
+  Lightbulb,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Separator } from './ui/separator';
 
 interface AboutPageProps {
   onBack?: () => void;
@@ -20,6 +24,7 @@ interface AboutPageProps {
 
 export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: AboutPageProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleWhatsAppContact = () => {
     const message = encodeURIComponent('היי, הגעתי מהאפליקציה Buff ואשמח לדבר!');
@@ -147,6 +152,26 @@ export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: 
             </Button>
           </div>
         )}
+
+        {/* Legal Disclaimer Section */}
+        <div className="mt-8">
+          <Separator className="mb-6" />
+          <div className="p-4 rounded-xl bg-muted/30 border border-border">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-muted shrink-0">
+                <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-2">
+                  {t('legal.title')}
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {t('legal.disclaimer')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center">

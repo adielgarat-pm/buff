@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Loader2, Zap, Users, User, Globe } from 'lucide-react';
 import buffLogo from '@/assets/buff-logo.png';
 import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
+import { LegalDisclaimerLink } from '@/components/LegalDisclaimer';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -240,6 +241,11 @@ export default function Auth() {
                   </svg>
                   {t('auth.continueWithGoogle')}
                 </Button>
+
+                {/* Legal consent text */}
+                <p className="text-xs text-muted-foreground text-center mt-3">
+                  {t('legal.consentText')} <LegalDisclaimerLink className="text-xs" />
+                </p>
               </form>
             </TabsContent>
 
@@ -384,6 +390,11 @@ export default function Auth() {
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
                   {t('auth.googleRoleSelection')}
+                </p>
+
+                {/* Legal consent text */}
+                <p className="text-xs text-muted-foreground text-center mt-3">
+                  {t('legal.consentText')} <LegalDisclaimerLink className="text-xs" />
                 </p>
               </form>
             </TabsContent>

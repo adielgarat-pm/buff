@@ -11,6 +11,7 @@ import { ChildPickerDialog } from './ChildPickerDialog';
 import { InstallPWA } from './InstallPWA';
 import { ParentWelcomeBanner } from './ParentWelcomeBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { GlobalFooter } from './GlobalFooter';
 import { Loader2 } from 'lucide-react';
 
 export function ParentView() {
@@ -135,10 +136,16 @@ export function ParentView() {
         onSelectChild={(childId) => setViewingAsChildId(childId)}
       />
 
+      {/* Global Legal Footer */}
+      <div className="fixed bottom-20 inset-x-0 z-10 pointer-events-none">
+        <div className="max-w-lg mx-auto px-5 pointer-events-auto">
+          <GlobalFooter />
+        </div>
+      </div>
+
       {/* PWA Install Banner */}
       <InstallPWA />
       
-      {/* Parent Welcome Onboarding */}
       {/* Parent Welcome Onboarding */}
       {profile?.id && (
         <ParentWelcomeBanner 
