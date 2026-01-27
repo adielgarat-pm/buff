@@ -18,10 +18,16 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState {
 
     const checkForUpdates = async () => {
       try {
-        // Get all registrations and find the VitePWA one (not our custom sw.js)
+        // Get only the VitePWA service worker registration (exclude notification-sw.js)
         const registrations = await navigator.serviceWorker.getRegistrations();
         
         for (const registration of registrations) {
+          // Skip the notification service worker - only handle the main PWA SW
+          const swUrl = registration.active?.scriptURL || registration.waiting?.scriptURL || registration.installing?.scriptURL;
+          if (swUrl && swUrl.includes('notification-sw.js')) {
+            continue;
+          }
+
           // Check if there's already a waiting worker
           if (registration.waiting) {
             setWaitingWorker(registration.waiting);
@@ -52,11 +58,15 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState {
 
     checkForUpdates();
 
-    // Periodically check for updates (every 5 minutes)
+    // Periodically check for updates (every 5 minutes) - only for PWA SW
     const interval = setInterval(async () => {
       try {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const registration of registrations) {
+          const swUrl = registration.active?.scriptURL || registration.waiting?.scriptURL;
+          if (swUrl && swUrl.includes('notification-sw.js')) {
+            continue;
+          }
           registration.update().catch(console.error);
         }
       } catch (e) {
