@@ -249,12 +249,97 @@ export function AdminDashboard() {
                   </Card>
                 </div>
 
+                {/* A/B Testing - Message Type */}
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      A/B Test: Message Type
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {Object.entries(pwaReport.byMessageType).map(([msgType, stats]) => {
+                        const convRate = stats.impressions > 0 
+                          ? Math.round((stats.installs / stats.impressions) * 100) 
+                          : 0;
+                        const isPersonalized = msgType === 'personalized';
+                        return (
+                          <div 
+                            key={msgType} 
+                            className={`p-4 rounded-lg text-center ${
+                              isPersonalized 
+                                ? 'bg-primary/10 border border-primary/30' 
+                                : 'bg-muted/50'
+                            }`}
+                          >
+                            <Badge 
+                              variant={isPersonalized ? 'default' : 'secondary'}
+                              className="mb-3"
+                            >
+                              {isPersonalized ? '👤 מותאם אישית' : msgType === 'generic' ? '📝 גנרי' : msgType}
+                            </Badge>
+                            <div className="space-y-1">
+                              <p className="text-2xl font-bold">
+                                {convRate}%
+                                <span className="text-sm font-normal text-muted-foreground"> conv.</span>
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {stats.installs} / {stats.impressions} impressions
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {stats.dismissals} dismissals
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {Object.keys(pwaReport.byMessageType).length === 0 && (
+                        <p className="text-muted-foreground col-span-full text-center py-4">No message data yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Browser Breakdown */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Eye className="w-5 h-5" />
+                      By Browser
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {Object.entries(pwaReport.byBrowser).map(([browser, stats]) => {
+                        const convRate = stats.impressions > 0 
+                          ? Math.round((stats.installs / stats.impressions) * 100) 
+                          : 0;
+                        return (
+                          <div key={browser} className="p-3 rounded-lg bg-muted/50 text-center">
+                            <Badge variant="outline" className="mb-2">{browser}</Badge>
+                            <div className="text-sm space-y-0.5">
+                              <p className="text-lg font-bold text-primary">{convRate}%</p>
+                              <p className="text-xs text-muted-foreground">
+                                {stats.installs} installs / {stats.impressions} imp.
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {Object.keys(pwaReport.byBrowser).length === 0 && (
+                        <p className="text-muted-foreground col-span-full text-center py-4">No browser data yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Device Breakdown */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Smartphone className="w-5 h-5" />
-                      By Device
+                      By Device OS
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
