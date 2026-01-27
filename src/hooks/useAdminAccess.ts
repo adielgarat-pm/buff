@@ -19,11 +19,19 @@ interface FamilyOverview {
   children_info: ChildInfo[];
 }
 
+interface OrphanedUser {
+  user_id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string | null;
+}
+
 export function useAdminAccess() {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [families, setFamilies] = useState<FamilyOverview[]>([]);
+  const [orphanedUsers, setOrphanedUsers] = useState<OrphanedUser[]>([]);
   const [fetchingFamilies, setFetchingFamilies] = useState(false);
 
   // Check if user is admin
@@ -66,27 +74,40 @@ export function useAdminAccess() {
 
     setFetchingFamilies(true);
     try {
-      const { data, error } = await supabase.rpc('get_admin_families_overview');
+      // Fetch families and orphaned users in parallel
+      const [familiesResult, orphanedResult] = await Promise.all([
+        supabase.rpc('get_admin_families_overview'),
+        supabase.rpc('get_admin_orphaned_users')
+      ]);
 
-      if (error) {
-        console.error('Error fetching families overview:', error);
-        return;
+      if (familiesResult.error) {
+        console.error('Error fetching families overview:', familiesResult.error);
+      } else {
+        const mappedData: FamilyOverview[] = (familiesResult.data || []).map((item: Record<string, unknown>) => ({
+          family_id: item.family_id as string,
+          family_name: item.family_name as string,
+          family_code: item.family_code as string,
+          family_created_at: item.family_created_at as string,
+          parent_count: item.parent_count as number,
+          child_count: item.child_count as number,
+          children_info: (item.children_info as ChildInfo[]) || [],
+        }));
+        setFamilies(mappedData);
       }
 
-      // Map and type-cast the data
-      const mappedData: FamilyOverview[] = (data || []).map((item: Record<string, unknown>) => ({
-        family_id: item.family_id as string,
-        family_name: item.family_name as string,
-        family_code: item.family_code as string,
-        family_created_at: item.family_created_at as string,
-        parent_count: item.parent_count as number,
-        child_count: item.child_count as number,
-        children_info: (item.children_info as ChildInfo[]) || [],
-      }));
-
-      setFamilies(mappedData);
+      if (orphanedResult.error) {
+        console.error('Error fetching orphaned users:', orphanedResult.error);
+      } else {
+        const mappedOrphaned: OrphanedUser[] = (orphanedResult.data || []).map((item: Record<string, unknown>) => ({
+          user_id: item.user_id as string,
+          email: item.email as string,
+          created_at: item.created_at as string,
+          last_sign_in_at: item.last_sign_in_at as string | null,
+        }));
+        setOrphanedUsers(mappedOrphaned);
+      }
     } catch (err) {
-      console.error('Error fetching families overview:', err);
+      console.error('Error fetching admin data:', err);
     } finally {
       setFetchingFamilies(false);
     }
@@ -102,6 +123,7 @@ export function useAdminAccess() {
     isAdmin,
     loading,
     families,
+    orphanedUsers,
     fetchingFamilies,
     refetchFamilies: fetchFamiliesOverview,
   };

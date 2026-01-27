@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 
@@ -18,7 +18,7 @@ function calculateAge(birthDate: string | null): string {
 }
 
 export function AdminDashboard() {
-  const { isAdmin, loading, families, fetchingFamilies, refetchFamilies } = useAdminAccess();
+  const { isAdmin, loading, families, orphanedUsers, fetchingFamilies, refetchFamilies } = useAdminAccess();
 
   if (loading) {
     return (
@@ -47,6 +47,7 @@ export function AdminDashboard() {
   const totalFamilies = families.length;
   const totalChildren = families.reduce((sum, f) => sum + f.child_count, 0);
   const totalParents = families.reduce((sum, f) => sum + f.parent_count, 0);
+  const totalOrphaned = orphanedUsers.length;
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -71,7 +72,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">משפחות</CardTitle>
@@ -107,7 +108,67 @@ export function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className={totalOrphaned > 0 ? 'border-warning/50 bg-warning/5' : ''}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">ממתינים להשלמה</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className={`w-5 h-5 ${totalOrphaned > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
+                <span className={`text-3xl font-bold ${totalOrphaned > 0 ? 'text-warning' : ''}`}>{totalOrphaned}</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Orphaned Users Warning */}
+        {orphanedUsers.length > 0 && (
+          <Card className="border-warning/50 bg-warning/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-warning">
+                <AlertTriangle className="w-5 h-5" />
+                משתמשים שנרשמו אך לא השלימו הגדרת פרופיל
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                משתמשים אלה נרשמו דרך Google אך לא בחרו תפקיד (הורה/נער). הם צריכים להיכנס שוב ולהשלים את הרישום.
+              </p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">אימייל</TableHead>
+                    <TableHead className="text-right">תאריך רישום</TableHead>
+                    <TableHead className="text-right">כניסה אחרונה</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orphanedUsers.map((user) => (
+                    <TableRow key={user.user_id}>
+                      <TableCell className="font-medium">{user.email}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {format(new Date(user.created_at), 'dd/MM/yyyy HH:mm', { locale: he })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.last_sign_in_at ? (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            {format(new Date(user.last_sign_in_at), 'dd/MM/yyyy HH:mm', { locale: he })}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Families Table */}
         <Card>
