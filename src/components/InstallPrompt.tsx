@@ -209,7 +209,7 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
   );
 }
 
-function AndroidDesktopInstructions({ onInstall, deviceOS }: { onInstall: () => void; deviceOS: DeviceOS }) {
+function AndroidDesktopInstructions({ onInstall, deviceOS, isInstallable }: { onInstall: () => void; deviceOS: DeviceOS; isInstallable: boolean }) {
   const isDesktop = deviceOS === 'desktop';
   
   return (
@@ -252,21 +252,64 @@ function AndroidDesktopInstructions({ onInstall, deviceOS }: { onInstall: () => 
         ))}
       </div>
 
-      {/* Install CTA */}
+      {/* Install CTA or Alternative Instructions */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <Button
-          onClick={onInstall}
-          size="lg"
-          className="w-full h-14 text-lg font-bold gap-3 bg-gradient-primary shadow-buff-glow hover:shadow-buff-glow-intense transition-all"
-        >
-          <Sparkles className="w-5 h-5" />
-          התקן עכשיו
-          <Sparkles className="w-5 h-5" />
-        </Button>
+        {isInstallable ? (
+          <Button
+            onClick={onInstall}
+            size="lg"
+            className="w-full h-14 text-lg font-bold gap-3 bg-gradient-primary shadow-buff-glow hover:shadow-buff-glow-intense transition-all"
+          >
+            <Sparkles className="w-5 h-5" />
+            התקן עכשיו
+            <Sparkles className="w-5 h-5" />
+          </Button>
+        ) : (
+          <div className="space-y-4">
+            {/* Explanation why install isn't available */}
+            <div className="p-4 rounded-xl bg-muted/50 border border-border text-center">
+              <p className="text-sm text-muted-foreground mb-2">
+                ההתקנה האוטומטית לא זמינה כרגע
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                {isDesktop 
+                  ? 'נסו להשתמש ב-Chrome או Edge' 
+                  : 'נסו להשתמש ב-Chrome באנדרואיד'}
+              </p>
+            </div>
+            
+            {/* Manual installation instructions */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground text-center">
+                להתקנה ידנית:
+              </p>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-sm font-bold text-primary">1</span>
+                </div>
+                <p className="text-sm text-foreground">
+                  {isDesktop 
+                    ? 'לחצו על ⋮ בפינה הימנית העליונה של הדפדפן'
+                    : 'לחצו על ⋮ בפינה העליונה של Chrome'}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-sm font-bold text-primary">2</span>
+                </div>
+                <p className="text-sm text-foreground">
+                  {isDesktop 
+                    ? 'בחרו "התקן אפליקציה" או "Install app"'
+                    : 'בחרו "הוסף למסך הבית" או "Add to Home screen"'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );
@@ -277,6 +320,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     deviceOS, 
     canShowPrompt,
     isInstalled,
+    isInstallable,
     triggerInstall, 
     dismiss,
     dismissPermanently,
@@ -368,6 +412,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
               <AndroidDesktopInstructions 
                 onInstall={handleInstall} 
                 deviceOS={deviceOS}
+                isInstallable={isInstallable}
               />
             </div>
 
