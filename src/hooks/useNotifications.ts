@@ -37,8 +37,10 @@ export function useNotifications() {
           await navigator.serviceWorker.ready;
         }
 
-        // Register our notification service worker
-        const registration = await navigator.serviceWorker.register('/sw.js', {
+        // Register our notification service worker.
+        // NOTE: We intentionally do NOT use '/sw.js' here because the PWA build
+        // tool also generates a service worker with that filename during production builds.
+        const registration = await navigator.serviceWorker.register('/notification-sw.js', {
           updateViaCache: 'none' // Ensure we always get fresh SW
         });
         
@@ -151,7 +153,7 @@ export function useNotifications() {
     // Try to use Service Worker for scheduling (survives page refresh)
     if (serviceWorkerReady) {
       try {
-        const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+        const registration = await navigator.serviceWorker.getRegistration('/notification-sw.js');
         if (registration?.active) {
           registration.active.postMessage({
             type: 'SCHEDULE_NOTIFICATION',
