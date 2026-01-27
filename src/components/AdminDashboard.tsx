@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePWAAnalytics } from '@/hooks/usePWAAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2 } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { AppPulseTab } from '@/components/admin/AppPulseTab';
@@ -27,12 +28,27 @@ export function AdminDashboard() {
   const { isAdmin, loading, families, orphanedUsers, fetchingFamilies, refetchFamilies } = useAdminAccess();
   const { data: analyticsData, loading: analyticsLoading, refetch: refetchAnalytics, completionRate, conversionRate } = useAdminAnalytics(isAdmin);
   const { forceShow, resetDismissal, deviceOS, isInstalled, canShowPrompt, isPermanentlyDismissed } = usePWAInstall();
+  const { getAnalyticsReport, clearAnalytics } = usePWAAnalytics();
   const [activeTab, setActiveTab] = useState('pulse');
   const [debugIOSPrompt, setDebugIOSPrompt] = useState(false);
+  const [pwaReport, setPwaReport] = useState<ReturnType<typeof getAnalyticsReport>>(null);
+
+  // Load PWA analytics report on mount and when tab changes
+  useEffect(() => {
+    if (activeTab === 'pwa' || activeTab === 'pulse') {
+      setPwaReport(getAnalyticsReport());
+    }
+  }, [activeTab, getAnalyticsReport]);
 
   const handleRefresh = () => {
     refetchFamilies();
     refetchAnalytics();
+    setPwaReport(getAnalyticsReport());
+  };
+
+  const handleClearPWAAnalytics = () => {
+    clearAnalytics();
+    setPwaReport(getAnalyticsReport());
   };
 
   const handleDebugIOSPrompt = () => {
@@ -148,10 +164,14 @@ export function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg">
             <TabsTrigger value="pulse" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
               App Pulse
+            </TabsTrigger>
+            <TabsTrigger value="pwa" className="flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              PWA Analytics
             </TabsTrigger>
             <TabsTrigger value="families" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -167,6 +187,147 @@ export function AdminDashboard() {
               completionRate={completionRate}
               conversionRate={conversionRate}
             />
+          </TabsContent>
+
+          {/* PWA Analytics Tab */}
+          <TabsContent value="pwa" className="mt-6 space-y-6">
+            {pwaReport ? (
+              <>
+                {/* PWA Metrics Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Impressions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <span className="text-3xl font-bold">{pwaReport.totalImpressions}</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-success" />
+                        Installs
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <span className="text-3xl font-bold text-success">{pwaReport.installSuccesses}</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-primary" />
+                        Conversion
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <span className="text-3xl font-bold text-primary">{pwaReport.conversionRate}%</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <XCircle className="w-4 h-4 text-destructive" />
+                        Dismissed
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold">{pwaReport.permDismissals}</span>
+                        <span className="text-sm text-muted-foreground">perm</span>
+                        <span className="text-2xl font-bold text-muted-foreground">{pwaReport.tempDismissals}</span>
+                        <span className="text-sm text-muted-foreground">temp</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Device Breakdown */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Smartphone className="w-5 h-5" />
+                      By Device
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {Object.entries(pwaReport.byDevice).map(([os, stats]) => (
+                        <div key={os} className="p-3 rounded-lg bg-muted/50 text-center">
+                          <Badge variant="outline" className="mb-2">{os.toUpperCase()}</Badge>
+                          <div className="text-sm">
+                            <p>Impressions: <span className="font-bold">{stats.impressions}</span></p>
+                            <p>Installs: <span className="font-bold text-success">{stats.installs}</span></p>
+                            <p className="text-muted-foreground text-xs">
+                              {stats.impressions > 0 ? Math.round((stats.installs / stats.impressions) * 100) : 0}% conv.
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {Object.keys(pwaReport.byDevice).length === 0 && (
+                        <p className="text-muted-foreground col-span-full text-center py-4">No device data yet</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Recent Events */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Recent Events</CardTitle>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleClearPWAAnalytics}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Clear
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {pwaReport.recentEvents.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">No events recorded yet</p>
+                    ) : (
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {pwaReport.recentEvents.map((event, index) => (
+                          <div key={index} className="flex items-center gap-3 p-2 rounded bg-muted/30 text-sm">
+                            <Badge 
+                              variant={
+                                event.event.includes('success') ? 'default' :
+                                event.event.includes('dismissed') ? 'secondary' :
+                                event.event.includes('cancelled') ? 'destructive' :
+                                'outline'
+                              }
+                              className="text-xs"
+                            >
+                              {event.event.replace('pwa_', '').replace(/_/g, ' ')}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">{event.device_os}</Badge>
+                            <span className="text-muted-foreground text-xs mr-auto">
+                              {format(new Date(event.timestamp), 'dd/MM HH:mm:ss')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  Failed to load PWA analytics
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Families Tab */}
