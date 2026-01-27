@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import {
@@ -753,6 +753,18 @@ function ChildTasksEditor({
     credits: 10,
   });
 
+  // Sort tasks chronologically by time for the management view only
+  const sortedTasks = useMemo(() => {
+    return [...tasks].sort((a, b) => {
+      // Parse time strings (HH:MM) for comparison
+      const [aHours, aMinutes] = a.time.split(':').map(Number);
+      const [bHours, bMinutes] = b.time.split(':').map(Number);
+      const aTotal = aHours * 60 + aMinutes;
+      const bTotal = bHours * 60 + bMinutes;
+      return aTotal - bTotal;
+    });
+  }, [tasks]);
+
   const handleAddTask = () => {
     if (!newTask.title.trim()) return;
     onAddTask({
@@ -862,7 +874,7 @@ function ChildTasksEditor({
         {tasks.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">אין משימות עדיין</p>
         ) : (
-          tasks.map((task) => (
+          sortedTasks.map((task) => (
             <div key={task.id}>
               {editingTaskId === task.id ? (
                 /* Edit Mode */
