@@ -57,10 +57,10 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.getStarted': 'התחל עכשיו',
     
     // Landing Page
-    'landing.basedOnCogFun': 'מבוסס על מודל Cog-Fun',
+    'landing.basedOnCogFun': 'מבוסס על עקרונות תפקודים ניהוליים',
     'landing.executiveFunction': 'כוח-העל לתפקודים',
     'landing.powerUp': 'הניהוליים',
-    'landing.heroDescription': 'שלוט בשגרה היומית עם אסטרטגיות Cog-Fun מבוססות מחקר, מותאמות למוח ה-ADHD.',
+    'landing.heroDescription': 'שלוט בשגרה היומית עם אסטרטגיות מקצועיות מבוססות מחקר, מותאמות למוח ה-ADHD.',
     'landing.tryFree': 'נסה BUFF בחינם',
     'landing.seeHow': 'ראה איך זה עובד',
     'landing.unlockBuffs': 'שחרר את הבאפים היומיים שלך',
@@ -72,7 +72,7 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.smartInsights': 'תובנות חכמות',
     'landing.smartInsightsDescription': 'לוח בקרה מבוסס נתונים שעוזר להורים לזהות דפוסים ולהציע תמיכה נכונה בזמן הנכון.',
     'landing.powerUpsFor': 'כוחות-על למוח ה-ADHD',
-    'landing.powerUpsDescription': 'BUFF משתמש במודל Cog-Fun מבוסס מחקר כדי לספק אסטרטגיות קוגניטיביות מותאמות אישית בדיוק כשהנער שלך צריך אותן.',
+    'landing.powerUpsDescription': 'BUFF משתמש בגישה מקצועית לחיזוק תפקודים ניהוליים כדי לספק אסטרטגיות קוגניטיביות מותאמות אישית בדיוק כשהנער שלך צריך אותן.',
     'landing.environmentBuffs': 'באפים סביבתיים',
     'landing.environmentDescription': 'בצע אופטימיזציה של המרחב שלך לריכוז והפחת הסחות חושיות.',
     'landing.focusBuffs': 'באפים לריכוז',
@@ -90,7 +90,7 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.readyToPowerUp': 'מוכנים להתחזק?',
     'landing.joinFamilies': 'הצטרפו למשפחות שהופכות שגרות יומיות לניצחונות ברי השגה.',
     'landing.startFreeTrial': 'התחל תקופת ניסיון חינם',
-    'landing.researchBacked': 'מבוסס על מודל Cog-Fun — אסטרטגיות קוגניטיביות מבוססות מחקר',
+    'landing.researchBacked': 'מבוסס על עקרונות לחיזוק תפקודים ניהוליים — אסטרטגיות קוגניטיביות מבוססות מחקר',
     
     // Dashboard
     'dashboard.dailyXP': 'XP יומי',
@@ -246,10 +246,10 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.getStarted': 'Get Started',
     
     // Landing Page
-    'landing.basedOnCogFun': 'Based on the Cog-Fun Model',
+    'landing.basedOnCogFun': 'Based on Executive Function Principles',
     'landing.executiveFunction': 'The Executive Function',
     'landing.powerUp': 'Power-up',
-    'landing.heroDescription': 'Master your daily routine with research-based Cog-Fun strategies designed for the ADHD brain.',
+    'landing.heroDescription': 'Master your daily routine with research-based strategies designed for the ADHD brain.',
     'landing.tryFree': 'Try BUFF for Free',
     'landing.seeHow': 'See How It Works',
     'landing.unlockBuffs': 'Unlock Your Daily Buffs',
@@ -261,7 +261,7 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.smartInsights': 'Smart Insights',
     'landing.smartInsightsDescription': 'A data-driven dashboard that helps parents identify patterns and offer the right support at the right time.',
     'landing.powerUpsFor': 'Power-ups for the ADHD Brain',
-    'landing.powerUpsDescription': 'BUFF uses the research-backed Cog-Fun model to provide personalized cognitive strategies exactly when your teen needs them most.',
+    'landing.powerUpsDescription': 'BUFF uses a professional, research-backed approach to provide personalized cognitive strategies exactly when your teen needs them most.',
     'landing.environmentBuffs': 'Environment Buffs',
     'landing.environmentDescription': 'Optimize your space for focus and reduce sensory distractions.',
     'landing.focusBuffs': 'Focus Buffs',
@@ -279,7 +279,7 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.readyToPowerUp': 'Ready to Power Up?',
     'landing.joinFamilies': 'Join families who are transforming daily routines into achievable victories.',
     'landing.startFreeTrial': 'Start Your Free Trial',
-    'landing.researchBacked': 'Based on the Cog-Fun Model — Research-backed cognitive strategies',
+    'landing.researchBacked': 'Based on Executive Function Principles — Research-backed cognitive strategies',
     
     // Dashboard
     'dashboard.dailyXP': 'Daily XP',

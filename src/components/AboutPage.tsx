@@ -84,7 +84,7 @@ export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: 
                 המשימה
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Buff נולדה מתוך הצורך האישי שלי לפתור את האתגרים היומיומיים שאנחנו חווים בבית סביב הפרעת קשב. 
+                Buff נולדה מתוך מחקר מעמיק בעולמות התפקודים הניהוליים (Executive Functions) ואימון קוגניטיבי, בשילוב הניסיון האישי שלי כאמא וכמנהלת מוצר.
                 רציתי להפסיק להיות ה'שוטרת' של המשימות ולהפוך למאמנת של הילדים שלי, תוך שימוש בכלים שבאמת מדברים אליהם.
               </p>
             </div>
