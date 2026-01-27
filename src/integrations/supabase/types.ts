@@ -271,7 +271,7 @@ export type Database = {
           role: string
           school_quest_enabled: boolean
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           birth_date?: string | null
@@ -283,7 +283,7 @@ export type Database = {
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           birth_date?: string | null
@@ -295,7 +295,7 @@ export type Database = {
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

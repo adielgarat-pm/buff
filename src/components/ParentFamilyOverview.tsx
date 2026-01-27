@@ -31,7 +31,7 @@ function getCurrentPhase(): { name: string; emoji: string } {
 
 export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFamilyOverviewProps) {
   const { familyShortCode } = useAuth();
-  const { children, loading: membersLoading } = useFamilyMembers();
+  const { children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
@@ -107,7 +107,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild }: ParentFam
       {/* Family Code */}
       {familyShortCode && (
         <div className="rounded-2xl bg-card border border-primary/20 p-4">
-          <FamilyCodeDisplay shortCode={familyShortCode} />
+          <FamilyCodeDisplay shortCode={familyShortCode} onChildAdded={refetchMembers} />
         </div>
       )}
 
