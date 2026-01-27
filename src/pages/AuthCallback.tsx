@@ -13,6 +13,9 @@ import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegist
 
 type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating' | 'error';
 
+// Helper function to wait
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export default function AuthCallback() {
   const navigate = useNavigate();
   const { refreshProfile } = useAuth();
@@ -23,22 +26,91 @@ export default function AuthCallback() {
   const [displayName, setDisplayName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [showRescueButton, setShowRescueButton] = useState(false);
   
   // Prevent double initialization
   const hasInitialized = useRef(false);
+  const rescueTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * SEQUENTIAL GUARD LOGIC:
+   * 1. IF no profile exists -> Create Profile + Generate new family_id (for parent) or use existing (child)
+   * 2. IF profile exists but family_id is null -> Generate and update a new family_id
+   * 3. IF family_id exists but zero children are found -> Redirect to dashboard (parent will add children there)
+   * 4. IF everything is found -> Redirect to /dashboard
+   */
+  const runSequentialGuard = async (userId: string, existingProfile: any): Promise<'needs-role-selection' | 'needs-family' | 'complete'> => {
+    // Guard 1: No profile exists
+    if (!existingProfile) {
+      console.log('[Guard] No profile - needs role selection');
+      return 'needs-role-selection';
+    }
+
+    // Guard 2: Profile exists but no family_id
+    if (!existingProfile.family_id) {
+      console.log('[Guard] Profile exists but no family_id');
+      
+      // Only parents can create families - children need to join one
+      if (existingProfile.role === 'parent') {
+        // Create a new family and update the profile
+        try {
+          const { data: newFamily, error: familyError } = await supabase
+            .from('families')
+            .insert({ name: `${existingProfile.display_name}'s Family` } as any)
+            .select()
+            .single();
+
+          if (familyError) throw familyError;
+
+          // Update profile with new family_id
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ family_id: newFamily.id })
+            .eq('id', existingProfile.id);
+
+          if (updateError) throw updateError;
+
+          // Initialize family data
+          await initializeFamilyData(newFamily.id);
+          
+          // Refresh profile
+          await refreshProfile(userId);
+          
+          console.log('[Guard] Created family for orphaned parent profile');
+          return 'complete';
+        } catch (err) {
+          console.error('[Guard] Failed to create family:', err);
+          return 'needs-family';
+        }
+      } else {
+        // Child without family - this shouldn't happen but handle gracefully
+        console.log('[Guard] Child without family - needs family code');
+        return 'needs-family';
+      }
+    }
+
+    // Guard 3 & 4: Profile exists with family_id - we're complete
+    console.log('[Guard] Profile complete with family_id:', existingProfile.family_id);
+    return 'complete';
+  };
 
   const handleCallback = async (retryCount = 0) => {
     trackRegistrationStep('google_auth_callback');
     
+    // Start rescue timer
+    rescueTimerRef.current = setTimeout(() => {
+      setShowRescueButton(true);
+    }, 5000);
+    
     try {
-      // Get the session from the URL with retry logic
+      // Get the session with retry logic
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         // Network errors - retry up to 3 times
         if (retryCount < 3 && sessionError.message?.includes('fetch')) {
           console.log(`Retrying session fetch (attempt ${retryCount + 1})...`);
-          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+          await wait(1000 * (retryCount + 1));
           return handleCallback(retryCount + 1);
         }
         
@@ -55,41 +127,59 @@ export default function AuthCallback() {
         return;
       }
 
-      // Check if profile exists with retry logic for network issues
+      const currentUserId = session.user.id;
+
+      // Check if profile exists with retry logic
       let existingProfile = null;
-      try {
-        existingProfile = await refreshProfile(session.user.id);
-      } catch (profileErr) {
-        // Retry once on network error
-        if (retryCount < 2) {
-          console.log('Profile fetch failed, retrying...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          try {
-            existingProfile = await refreshProfile(session.user.id);
-          } catch {
-            // Continue without profile - will show role selection
-          }
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          existingProfile = await refreshProfile(currentUserId);
+          break; // Success - exit retry loop
+        } catch (profileErr) {
+          console.log(`Profile fetch attempt ${attempt + 1} failed:`, profileErr);
+          if (attempt < 2) await wait(1000);
         }
       }
 
-      if (existingProfile) {
-        // User already has profile - go to dashboard
-        console.log('Existing profile found, navigating to dashboard');
-        navigate('/dashboard', { replace: true });
-        return;
+      // Run sequential guard logic
+      const guardResult = await runSequentialGuard(currentUserId, existingProfile);
+
+      // Clear rescue timer if we got a result
+      if (rescueTimerRef.current) {
+        clearTimeout(rescueTimerRef.current);
       }
-      
-      // New Google user - show role selection
-      const name = session.user.user_metadata?.full_name || 
-                  session.user.user_metadata?.name ||
-                  session.user.email?.split('@')[0] || 
-                  'User';
-      setDisplayName(name);
-      setUserId(session.user.id);
-      setStep('role-selection');
+
+      switch (guardResult) {
+        case 'complete':
+          navigate('/dashboard', { replace: true });
+          return;
+        
+        case 'needs-family':
+          // Show family code entry (for orphaned children)
+          setUserId(currentUserId);
+          setDisplayName(existingProfile?.display_name || session.user.email?.split('@')[0] || 'User');
+          setStep('family-code');
+          return;
+        
+        case 'needs-role-selection':
+          // New user - show role selection
+          const name = session.user.user_metadata?.full_name || 
+                      session.user.user_metadata?.name ||
+                      session.user.email?.split('@')[0] || 
+                      'User';
+          setDisplayName(name);
+          setUserId(currentUserId);
+          setStep('role-selection');
+          return;
+      }
       
     } catch (err) {
       console.error('Auth callback error:', err);
+      
+      // Clear rescue timer on error
+      if (rescueTimerRef.current) {
+        clearTimeout(rescueTimerRef.current);
+      }
       
       // Network error - allow retry
       if (err instanceof Error && err.message?.includes('fetch')) {
@@ -104,18 +194,77 @@ export default function AuthCallback() {
     }
   };
 
+  // Rescue function - re-triggers the entire flow
+  const handleRescue = async () => {
+    console.log('[Rescue] User clicked rescue button');
+    setShowRescueButton(false);
+    setIsRetrying(true);
+    
+    try {
+      // Get fresh session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        navigate('/auth', { replace: true });
+        return;
+      }
+
+      // Force refresh profile
+      const profile = await refreshProfile(session.user.id);
+      
+      // Run guard logic again
+      const guardResult = await runSequentialGuard(session.user.id, profile);
+      
+      switch (guardResult) {
+        case 'complete':
+          navigate('/dashboard', { replace: true });
+          return;
+        
+        case 'needs-family':
+          setUserId(session.user.id);
+          setDisplayName(profile?.display_name || 'User');
+          setStep('family-code');
+          return;
+        
+        case 'needs-role-selection':
+          const name = session.user.user_metadata?.full_name || 
+                      session.user.user_metadata?.name ||
+                      session.user.email?.split('@')[0] || 
+                      'User';
+          setDisplayName(name);
+          setUserId(session.user.id);
+          setStep('role-selection');
+          return;
+      }
+    } catch (err) {
+      console.error('[Rescue] Error:', err);
+      setError('שגיאה בריענון הפרופיל');
+      setStep('error');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   useEffect(() => {
     // Prevent double initialization
     if (hasInitialized.current) return;
     hasInitialized.current = true;
     
     handleCallback();
-  }, []); // Empty deps - runs once
+    
+    // Cleanup rescue timer
+    return () => {
+      if (rescueTimerRef.current) {
+        clearTimeout(rescueTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleRetry = async () => {
     setIsRetrying(true);
     setError(null);
     setStep('loading');
+    setShowRescueButton(false);
     hasInitialized.current = false;
     
     await handleCallback();
@@ -140,6 +289,12 @@ export default function AuthCallback() {
     handleCreateProfile('child', familyCode.trim().toUpperCase());
   };
 
+  /**
+   * UPSERT LOGIC: Create or update profile safely
+   * - Uses INSERT with ON CONFLICT DO UPDATE behavior via separate check
+   * - Never deletes existing data
+   * - Only updates missing fields
+   */
   const handleCreateProfile = async (role: 'parent' | 'child', code: string | null) => {
     if (!userId) {
       setError('לא נמצא מזהה משתמש');
@@ -151,53 +306,87 @@ export default function AuthCallback() {
     setStep('creating');
 
     try {
+      // First check if profile already exists (UPSERT safety check)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
       let familyId: string;
 
       if (role === 'parent') {
-        // Step 1: Create new family first (trigger will auto-generate short_code)
-        const { data: newFamily, error: familyError } = await supabase
-          .from('families')
-          .insert({ name: `${displayName}'s Family` } as any)
-          .select()
-          .single();
+        // Check if we already have a family (from incomplete previous attempt)
+        if (existingProfile?.family_id) {
+          familyId = existingProfile.family_id;
+          console.log('[UPSERT] Using existing family:', familyId);
+        } else {
+          // Create new family
+          const { data: newFamily, error: familyError } = await supabase
+            .from('families')
+            .insert({ name: `${displayName}'s Family` } as any)
+            .select()
+            .single();
 
-        if (familyError) {
-          console.error('Error creating family:', familyError);
-          trackRegistrationError('signup_error', `Error creating family: ${familyError.message}`, { role, method: 'google' });
-          setError(`שגיאה ביצירת משפחה: ${familyError.message}`);
-          setStep('error');
-          return;
+          if (familyError) {
+            console.error('Error creating family:', familyError);
+            trackRegistrationError('signup_error', `Error creating family: ${familyError.message}`, { role, method: 'google' });
+            setError(`שגיאה ביצירת משפחה: ${familyError.message}`);
+            setStep('error');
+            return;
+          }
+
+          familyId = newFamily.id;
+          trackRegistrationStep('family_created', { familyId, method: 'google' });
         }
 
-        familyId = newFamily.id;
-        trackRegistrationStep('family_created', { familyId, method: 'google' });
+        // UPSERT profile: update if exists, insert if not
+        if (existingProfile) {
+          // Update existing profile with family_id (don't overwrite other fields)
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ 
+              family_id: familyId,
+              // Only update display_name if it's empty
+              ...(existingProfile.display_name ? {} : { display_name: displayName })
+            })
+            .eq('id', existingProfile.id);
 
-        // Step 2: Create profile BEFORE initializing family data
-        const { error: profileError } = await supabase.from('profiles').insert({
-          user_id: userId,
-          family_id: familyId,
-          display_name: displayName,
-          role: 'parent',
-        });
+          if (updateError) {
+            console.error('Error updating profile:', updateError);
+            setError(`שגיאה בעדכון פרופיל: ${updateError.message}`);
+            setStep('error');
+            return;
+          }
+          console.log('[UPSERT] Updated existing profile');
+        } else {
+          // Insert new profile
+          const { error: profileError } = await supabase.from('profiles').insert({
+            user_id: userId,
+            family_id: familyId,
+            display_name: displayName,
+            role: 'parent',
+          });
 
-        if (profileError) {
-          console.error('Error creating parent profile:', profileError);
-          trackRegistrationError('signup_error', `Error creating profile: ${profileError.message}`, { role: 'parent', method: 'google' });
-          setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
-          setStep('error');
-          return;
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            trackRegistrationError('signup_error', `Error creating profile: ${profileError.message}`, { role: 'parent', method: 'google' });
+            setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
+            setStep('error');
+            return;
+          }
+          console.log('[UPSERT] Created new profile');
         }
 
         trackRegistrationStep('profile_created', { role: 'parent', method: 'google' });
 
-        // Step 3: Refresh profile in context
+        // Refresh profile in context
         await refreshProfile(userId);
 
-        // Step 4: Initialize family data (profile exists, RLS will work)
+        // Initialize family data (idempotent - won't duplicate)
         try {
-          await initializeFamilyData(familyId);
+          await initializeFamilyDataSafe(familyId);
         } catch (initErr) {
-          // Non-critical - log but continue
           console.error('Error initializing family data (non-critical):', initErr);
         }
 
@@ -224,20 +413,42 @@ export default function AuthCallback() {
         familyId = family.id;
         trackRegistrationStep('family_joined', { familyId, method: 'google' });
 
-        // Create child profile (trigger will auto-create tasks, rewards, vault)
-        const { error: profileError } = await supabase.from('profiles').insert({
-          user_id: userId,
-          family_id: familyId,
-          display_name: displayName,
-          role: 'child',
-        });
+        // UPSERT child profile
+        if (existingProfile) {
+          // Update existing profile with family_id
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ 
+              family_id: familyId,
+              role: 'child',
+              ...(existingProfile.display_name ? {} : { display_name: displayName })
+            })
+            .eq('id', existingProfile.id);
 
-        if (profileError) {
-          console.error('Error creating child profile:', profileError);
-          trackRegistrationError('signup_error', `Error creating profile: ${profileError.message}`, { role: 'child', method: 'google' });
-          setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
-          setStep('error');
-          return;
+          if (updateError) {
+            console.error('Error updating child profile:', updateError);
+            setError(`שגיאה בעדכון פרופיל: ${updateError.message}`);
+            setStep('error');
+            return;
+          }
+          console.log('[UPSERT] Updated existing child profile');
+        } else {
+          // Insert new child profile (trigger will auto-create tasks, rewards, vault)
+          const { error: profileError } = await supabase.from('profiles').insert({
+            user_id: userId,
+            family_id: familyId,
+            display_name: displayName,
+            role: 'child',
+          });
+
+          if (profileError) {
+            console.error('Error creating child profile:', profileError);
+            trackRegistrationError('signup_error', `Error creating profile: ${profileError.message}`, { role: 'child', method: 'google' });
+            setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
+            setStep('error');
+            return;
+          }
+          console.log('[UPSERT] Created new child profile');
         }
 
         trackRegistrationStep('profile_created', { role: 'child', method: 'google' });
@@ -302,6 +513,29 @@ export default function AuthCallback() {
           <p className="text-muted-foreground">
             {step === 'loading' ? 'מאמת את החשבון...' : 'יוצר את החשבון...'}
           </p>
+          
+          {/* Rescue Button - appears after 5 seconds */}
+          {showRescueButton && (
+            <div className="mt-6 pt-4 border-t border-border">
+              <p className="text-sm text-muted-foreground mb-3">
+                נתקעת? לחץ כאן לרענן
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleRescue}
+                disabled={isRetrying}
+                className="gap-2"
+              >
+                {isRetrying ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+                רענן פרופיל
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -414,18 +648,24 @@ export default function AuthCallback() {
   );
 }
 
-// Initialize default data for a new family (same as AuthContext)
-async function initializeFamilyData(familyId: string) {
-  const DEFAULT_TASKS = [
-    { title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
-    { title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
-    { title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
-    { title: 'Homework Check', time: '14:00', category: 'school', credits: 15 },
-    { title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
-    { title: 'Smart Snack Selection', time: '17:00', category: 'nutrition', credits: 15, description: 'I chose one small portion/snack today and stopped there.' },
-    { title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
-    { title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
-  ];
+/**
+ * Initialize default data for a new family - SAFE version
+ * Uses individual try/catch for each operation to prevent partial failures
+ * Checks for existing data before inserting (idempotent)
+ */
+async function initializeFamilyDataSafe(familyId: string) {
+  // Check if data already exists
+  const { data: existingTasks } = await supabase
+    .from('tasks')
+    .select('id')
+    .eq('family_id', familyId)
+    .limit(1);
+
+  // Skip if family already has data
+  if (existingTasks && existingTasks.length > 0) {
+    console.log('[InitFamilyData] Family already has data, skipping');
+    return;
+  }
 
   const DEFAULT_STORE_REWARDS = [
     { title: 'Space Session', emoji: '🚀', price: 5000 },
@@ -442,10 +682,6 @@ async function initializeFamilyData(familyId: string) {
       { subject: 'Math', startTime: '10:05' },
       { subject: 'Bible Studies', startTime: '10:55' },
       { subject: 'Literature', startTime: '11:55' },
-      { subject: 'Literature', startTime: '12:45' },
-      { subject: 'Chemistry / Physics', startTime: '13:35' },
-      { subject: 'Chemistry / Physics', startTime: '14:25' },
-      { subject: 'Self Study', startTime: '15:15' },
     ],
     monday: [
       { subject: 'Chemistry / Physics', startTime: '08:15' },
@@ -453,9 +689,6 @@ async function initializeFamilyData(familyId: string) {
       { subject: 'P.E.', startTime: '10:05' },
       { subject: 'Hebrew Grammar', startTime: '10:55' },
       { subject: 'History', startTime: '11:55' },
-      { subject: 'History', startTime: '12:45' },
-      { subject: 'Math', startTime: '13:35' },
-      { subject: 'Math', startTime: '14:25' },
     ],
     tuesday: [
       { subject: 'English', startTime: '08:15' },
@@ -463,8 +696,6 @@ async function initializeFamilyData(familyId: string) {
       { subject: 'Hebrew Grammar', startTime: '10:05' },
       { subject: 'Math', startTime: '10:55' },
       { subject: 'Bible Studies', startTime: '11:55' },
-      { subject: 'English', startTime: '12:45' },
-      { subject: 'English', startTime: '13:35' },
     ],
     wednesday: [
       { subject: 'Ramon Program', startTime: '08:15' },
@@ -472,9 +703,6 @@ async function initializeFamilyData(familyId: string) {
       { subject: 'Civics', startTime: '10:05' },
       { subject: 'Hebrew Grammar', startTime: '10:55' },
       { subject: 'History', startTime: '11:55' },
-      { subject: 'History', startTime: '12:45' },
-      { subject: 'English', startTime: '13:35' },
-      { subject: 'English', startTime: '14:25' },
     ],
     thursday: [
       { subject: 'Chemistry', startTime: '08:15' },
@@ -482,45 +710,36 @@ async function initializeFamilyData(familyId: string) {
       { subject: 'English', startTime: '10:05' },
       { subject: 'English', startTime: '10:55' },
       { subject: 'Math', startTime: '11:55' },
-      { subject: 'Math', startTime: '12:45' },
-      { subject: 'Literature', startTime: '13:35' },
-      { subject: 'Literature', startTime: '14:25' },
-      { subject: 'MUN', startTime: '16:00' },
     ],
   };
 
-  // Insert tasks - use try/catch for each to prevent partial failures
-  try {
-    await supabase.from('tasks').insert(
-      DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId }))
-    );
-  } catch (e) {
-    console.error('Error inserting tasks:', e);
-  }
-
+  // Insert store rewards (non-critical)
   try {
     await supabase.from('store_rewards').insert(
       DEFAULT_STORE_REWARDS.map((r) => ({ ...r, family_id: familyId }))
     );
-  } catch (e) {
-    console.error('Error inserting rewards:', e);
+  } catch (err) {
+    console.error('Failed to insert store rewards:', err);
   }
 
-  try {
-    await supabase.from('credit_vault').insert({ family_id: familyId, total_balance: 0 });
-  } catch (e) {
-    console.error('Error inserting credit vault:', e);
-  }
-
+  // Insert timetable (non-critical)
   try {
     await supabase.from('timetables').insert({ family_id: familyId, data: DEFAULT_TIMETABLE });
-  } catch (e) {
-    console.error('Error inserting timetable:', e);
+  } catch (err) {
+    console.error('Failed to insert timetable:', err);
   }
 
+  // Insert app settings (non-critical)
   try {
     await supabase.from('app_settings').insert({ family_id: familyId });
-  } catch (e) {
-    console.error('Error inserting app settings:', e);
+  } catch (err) {
+    console.error('Failed to insert app settings:', err);
   }
+
+  console.log('[InitFamilyData] Family data initialized successfully');
+}
+
+// Keep for backward compatibility
+async function initializeFamilyData(familyId: string) {
+  return initializeFamilyDataSafe(familyId);
 }
