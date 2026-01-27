@@ -90,7 +90,7 @@ export default function AuthCallback() {
       let familyId: string;
 
       if (role === 'parent') {
-        // Create new family
+        // Step 1: Create new family first (trigger will auto-generate short_code)
         const { data: newFamily, error: familyError } = await supabase
           .from('families')
           .insert({ name: `${displayName}'s Family` } as any)
@@ -105,10 +105,30 @@ export default function AuthCallback() {
 
         familyId = newFamily.id;
 
-        // Initialize family data for parents
+        // Step 2: Create profile BEFORE initializing family data
+        // This is critical - RLS policies require a profile to exist for data access
+        const { error: profileError } = await supabase.from('profiles').insert({
+          user_id: userId,
+          family_id: familyId,
+          display_name: displayName,
+          role: 'parent',
+        });
+
+        if (profileError) {
+          console.error('Error creating parent profile:', profileError);
+          setError('שגיאה ביצירת פרופיל');
+          return;
+        }
+
+        // Step 3: Now initialize family data (profile exists, RLS will work)
         await initializeFamilyData(familyId);
+
+        toast.success('ברוך הבא! משפחה חדשה נוצרה');
+        navigate('/dashboard');
+        return;
+
       } else {
-        // Find family by code
+        // Child flow: Find family by code
         const { data: family, error: familyError } = await supabase
           .from('families')
           .select('*')
@@ -122,38 +142,26 @@ export default function AuthCallback() {
         }
 
         familyId = family.id;
-      }
 
-      // Create profile
-      const { error: profileError } = await supabase.from('profiles').insert({
-        user_id: userId,
-        family_id: familyId,
-        display_name: displayName,
-        role: role,
-      });
+        // Create child profile (trigger will auto-create tasks, rewards, vault)
+        const { error: profileError } = await supabase.from('profiles').insert({
+          user_id: userId,
+          family_id: familyId,
+          display_name: displayName,
+          role: 'child',
+        });
 
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-        setError('שגיאה ביצירת פרופיל');
-        return;
-      }
-
-      // If child, initialize their personal data
-      if (role === 'child') {
-        // Get the new profile ID
-        const { data: newProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', userId)
-          .single();
-
-        if (newProfile) {
-          await initializeChildData(familyId, newProfile.id);
+        if (profileError) {
+          console.error('Error creating child profile:', profileError);
+          setError('שגיאה ביצירת פרופיל');
+          return;
         }
-      }
 
-      toast.success(role === 'parent' ? 'ברוך הבא! משפחה חדשה נוצרה' : 'ברוך הבא למשפחה!');
-      navigate('/dashboard');
+        // Note: Child data is now auto-created by the create_default_tasks_for_child trigger
+
+        toast.success('ברוך הבא למשפחה!');
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Profile creation error:', err);
       setError('שגיאה ביצירת החשבון');
@@ -389,30 +397,4 @@ async function initializeFamilyData(familyId: string) {
 
   // Insert app settings
   await supabase.from('app_settings').insert({ family_id: familyId });
-}
-
-// Initialize default data for a new child
-async function initializeChildData(familyId: string, childId: string) {
-  const DEFAULT_TASKS = [
-    { title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
-    { title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
-    { title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
-    { title: 'Homework Check', time: '14:00', category: 'school', credits: 15 },
-    { title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
-    { title: 'Smart Snack Selection', time: '17:00', category: 'nutrition', credits: 15 },
-    { title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
-    { title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
-  ];
-
-  // Create tasks assigned to this child
-  await supabase.from('tasks').insert(
-    DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId, assigned_to: childId }))
-  );
-
-  // Create personal credit vault for child
-  await supabase.from('credit_vault').insert({ 
-    family_id: familyId, 
-    child_id: childId,
-    total_balance: 0 
-  });
 }
