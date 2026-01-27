@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Loader2, Shield, Zap, Crown, Sparkles } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import buffLogo from '@/assets/buff-logo.png';
+import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 
 // Tech grid pattern component
 function TechGridBackground() {
@@ -128,6 +129,14 @@ export default function ChildInvite() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // Track page visit
+  useEffect(() => {
+    trackRegistrationStep('child_invite_visit', { 
+      hasName: !!childName, 
+      hasCode: !!familyCode 
+    });
+  }, [childName, familyCode]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
@@ -145,6 +154,7 @@ export default function ChildInvite() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackRegistrationStep('child_invite_submitted', { familyCode });
     
     if (!email || !password || !displayName) {
       toast.error('נא למלא את כל השדות');
@@ -161,6 +171,7 @@ export default function ChildInvite() {
     
     if (error) {
       setLoading(false);
+      trackRegistrationError('child_invite_error', error.message, { familyCode });
       if (error.message.includes('already registered')) {
         toast.error('אימייל זה כבר רשום במערכת');
       } else if (error.message.includes('קוד משפחה')) {
@@ -169,12 +180,14 @@ export default function ChildInvite() {
         toast.error(error.message);
       }
     } else {
+      trackRegistrationStep('child_invite_success', { familyCode });
       // Show leveling up animation before redirect
       setShowLevelUp(true);
     }
   };
 
   const handleLevelUpComplete = () => {
+    trackRegistrationStep('onboarding_complete', { role: 'child', method: 'magic_link' });
     toast.success('ברוך הבא למשחק! 🎮');
     navigate('/dashboard');
   };

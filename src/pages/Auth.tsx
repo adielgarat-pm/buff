@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Loader2, Zap, Users, User, Globe } from 'lucide-react';
 import buffLogo from '@/assets/buff-logo.png';
+import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -27,6 +28,11 @@ export default function Auth() {
   const [displayName, setDisplayName] = useState('');
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [familyCode, setFamilyCode] = useState('');
+
+  // Track page visit
+  useEffect(() => {
+    trackRegistrationStep('auth_page_visit');
+  }, []);
 
   // Redirect if already logged in - handled by PublicRoute wrapper
   useEffect(() => {
@@ -60,6 +66,8 @@ export default function Auth() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackRegistrationStep('signup_submitted', { role });
+    
     if (!signupEmail || !signupPassword || !displayName) {
       toast.error(t('auth.fillAllFields'));
       return;
@@ -80,6 +88,7 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
+      trackRegistrationError('signup_error', error.message, { role });
       if (error.message.includes('already registered')) {
         toast.error(t('auth.emailExists'));
       } else if (error.message.includes('Invalid family code')) {
@@ -88,17 +97,21 @@ export default function Auth() {
         toast.error(error.message);
       }
     } else {
+      trackRegistrationStep('signup_success', { role });
+      trackRegistrationStep('onboarding_complete', { role, method: 'email' });
       toast.success(t('auth.accountCreated'));
       navigate('/dashboard');
     }
   };
 
   const handleGoogleLogin = async () => {
+    trackRegistrationStep('google_auth_started');
     setLoading(true);
     const { error } = await signInWithGoogle();
     setLoading(false);
     
     if (error) {
+      trackRegistrationError('signup_error', error.message, { method: 'google' });
       toast.error(error.message);
     }
   };
@@ -274,7 +287,10 @@ export default function Auth() {
                       type="button"
                       variant={role === 'parent' ? 'default' : 'outline'}
                       className="w-full rounded-2xl"
-                      onClick={() => setRole('parent')}
+                      onClick={() => {
+                        setRole('parent');
+                        trackRegistrationStep('role_selected', { role: 'parent', method: 'email' });
+                      }}
                       disabled={loading}
                     >
                       <Users className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
@@ -284,7 +300,10 @@ export default function Auth() {
                       type="button"
                       variant={role === 'child' ? 'default' : 'outline'}
                       className="w-full rounded-2xl"
-                      onClick={() => setRole('child')}
+                      onClick={() => {
+                        setRole('child');
+                        trackRegistrationStep('role_selected', { role: 'child', method: 'email' });
+                      }}
                       disabled={loading}
                     >
                       <User className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
