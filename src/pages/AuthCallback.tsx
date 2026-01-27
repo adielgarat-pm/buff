@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Users, User, Zap } from 'lucide-react';
+import { Loader2, Users, User, Zap, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import buffLogo from '@/assets/buff-logo.png';
 import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 
-type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating';
+type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating' | 'error';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -22,50 +22,105 @@ export default function AuthCallback() {
   const [familyCode, setFamilyCode] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  
+  // Prevent double initialization
+  const hasInitialized = useRef(false);
+
+  const handleCallback = async (retryCount = 0) => {
+    trackRegistrationStep('google_auth_callback');
+    
+    try {
+      // Get the session from the URL with retry logic
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        // Network errors - retry up to 3 times
+        if (retryCount < 3 && sessionError.message?.includes('fetch')) {
+          console.log(`Retrying session fetch (attempt ${retryCount + 1})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+          return handleCallback(retryCount + 1);
+        }
+        
+        trackRegistrationError('signup_error', sessionError.message, { method: 'google' });
+        setError(sessionError.message);
+        setStep('error');
+        return;
+      }
+
+      if (!session?.user) {
+        // No session - redirect to auth page
+        console.log('No session found, redirecting to auth');
+        navigate('/auth', { replace: true });
+        return;
+      }
+
+      // Check if profile exists with retry logic for network issues
+      let existingProfile = null;
+      try {
+        existingProfile = await refreshProfile(session.user.id);
+      } catch (profileErr) {
+        // Retry once on network error
+        if (retryCount < 2) {
+          console.log('Profile fetch failed, retrying...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            existingProfile = await refreshProfile(session.user.id);
+          } catch {
+            // Continue without profile - will show role selection
+          }
+        }
+      }
+
+      if (existingProfile) {
+        // User already has profile - go to dashboard
+        console.log('Existing profile found, navigating to dashboard');
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+      
+      // New Google user - show role selection
+      const name = session.user.user_metadata?.full_name || 
+                  session.user.user_metadata?.name ||
+                  session.user.email?.split('@')[0] || 
+                  'User';
+      setDisplayName(name);
+      setUserId(session.user.id);
+      setStep('role-selection');
+      
+    } catch (err) {
+      console.error('Auth callback error:', err);
+      
+      // Network error - allow retry
+      if (err instanceof Error && err.message?.includes('fetch')) {
+        setError('בעיית רשת. אנא נסה שוב.');
+        setStep('error');
+        return;
+      }
+      
+      trackRegistrationError('signup_error', 'Authentication failed', { method: 'google' });
+      setError('שגיאה באימות. אנא נסה שוב.');
+      setStep('error');
+    }
+  };
 
   useEffect(() => {
-    const handleCallback = async () => {
-      trackRegistrationStep('google_auth_callback');
-      
-      try {
-        // Get the session from the URL
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          trackRegistrationError('signup_error', sessionError.message, { method: 'google' });
-          setError(sessionError.message);
-          return;
-        }
-
-        if (session?.user) {
-          // Ensure the AuthContext picks up the profile if it already exists.
-          // (Creating a profile does NOT trigger an auth event, so without this some users get stuck in a redirect loop.)
-          const existingProfile = await refreshProfile(session.user.id);
-
-          if (existingProfile) {
-            navigate('/dashboard');
-          } else {
-            // New Google user - show role selection
-            const name = session.user.user_metadata?.full_name || 
-                        session.user.user_metadata?.name ||
-                        session.user.email?.split('@')[0] || 
-                        'User';
-            setDisplayName(name);
-            setUserId(session.user.id);
-            setStep('role-selection');
-          }
-        } else {
-          navigate('/auth');
-        }
-      } catch (err) {
-        console.error('Auth callback error:', err);
-        trackRegistrationError('signup_error', 'Authentication failed', { method: 'google' });
-        setError('Authentication failed');
-      }
-    };
-
+    // Prevent double initialization
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    
     handleCallback();
-  }, [navigate, refreshProfile]);
+  }, []); // Empty deps - runs once
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    setError(null);
+    setStep('loading');
+    hasInitialized.current = false;
+    
+    await handleCallback();
+    setIsRetrying(false);
+  };
 
   const handleRoleSelect = (role: 'parent' | 'child') => {
     trackRegistrationStep('role_selected', { role, method: 'google' });
@@ -86,7 +141,11 @@ export default function AuthCallback() {
   };
 
   const handleCreateProfile = async (role: 'parent' | 'child', code: string | null) => {
-    if (!userId) return;
+    if (!userId) {
+      setError('לא נמצא מזהה משתמש');
+      setStep('error');
+      return;
+    }
     
     trackRegistrationStep('profile_creation_started', { role, method: 'google' });
     setStep('creating');
@@ -104,8 +163,9 @@ export default function AuthCallback() {
 
         if (familyError) {
           console.error('Error creating family:', familyError);
-          trackRegistrationError('signup_error', 'Error creating family', { role, method: 'google' });
-          setError('שגיאה ביצירת משפחה');
+          trackRegistrationError('signup_error', `Error creating family: ${familyError.message}`, { role, method: 'google' });
+          setError(`שגיאה ביצירת משפחה: ${familyError.message}`);
+          setStep('error');
           return;
         }
 
@@ -113,7 +173,6 @@ export default function AuthCallback() {
         trackRegistrationStep('family_created', { familyId, method: 'google' });
 
         // Step 2: Create profile BEFORE initializing family data
-        // This is critical - RLS policies require a profile to exist for data access
         const { error: profileError } = await supabase.from('profiles').insert({
           user_id: userId,
           family_id: familyId,
@@ -123,22 +182,28 @@ export default function AuthCallback() {
 
         if (profileError) {
           console.error('Error creating parent profile:', profileError);
-          trackRegistrationError('signup_error', 'Error creating profile', { role: 'parent', method: 'google' });
-          setError('שגיאה ביצירת פרופיל');
+          trackRegistrationError('signup_error', `Error creating profile: ${profileError.message}`, { role: 'parent', method: 'google' });
+          setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
+          setStep('error');
           return;
         }
 
         trackRegistrationStep('profile_created', { role: 'parent', method: 'google' });
 
-        // IMPORTANT: profile creation doesn't trigger auth changes, so refresh context manually
+        // Step 3: Refresh profile in context
         await refreshProfile(userId);
 
-        // Step 3: Now initialize family data (profile exists, RLS will work)
-        await initializeFamilyData(familyId);
+        // Step 4: Initialize family data (profile exists, RLS will work)
+        try {
+          await initializeFamilyData(familyId);
+        } catch (initErr) {
+          // Non-critical - log but continue
+          console.error('Error initializing family data (non-critical):', initErr);
+        }
 
         trackRegistrationStep('onboarding_complete', { role: 'parent', method: 'google' });
         toast.success('ברוך הבא! משפחה חדשה נוצרה');
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
         return;
 
       } else {
@@ -169,41 +234,62 @@ export default function AuthCallback() {
 
         if (profileError) {
           console.error('Error creating child profile:', profileError);
-          trackRegistrationError('signup_error', 'Error creating profile', { role: 'child', method: 'google' });
-          setError('שגיאה ביצירת פרופיל');
+          trackRegistrationError('signup_error', `Error creating profile: ${profileError.message}`, { role: 'child', method: 'google' });
+          setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
+          setStep('error');
           return;
         }
 
         trackRegistrationStep('profile_created', { role: 'child', method: 'google' });
 
-        // IMPORTANT: profile creation doesn't trigger auth changes, so refresh context manually
+        // Refresh profile in context
         await refreshProfile(userId);
-
-        // Note: Child data is now auto-created by the create_default_tasks_for_child trigger
 
         trackRegistrationStep('onboarding_complete', { role: 'child', method: 'google' });
         toast.success('ברוך הבא למשפחה!');
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
       console.error('Profile creation error:', err);
       trackRegistrationError('signup_error', 'Profile creation error', { method: 'google' });
       setError('שגיאה ביצירת החשבון');
+      setStep('error');
     }
   };
 
-  if (error) {
+  // Error state with retry option
+  if (step === 'error') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <p className="text-destructive">{error}</p>
-          <button 
-            onClick={() => navigate('/auth')}
-            className="text-primary underline"
-          >
-            חזור לדף ההתחברות
-          </button>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+              <p className="text-destructive font-medium">{error || 'אירעה שגיאה'}</p>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={handleRetry}
+                  disabled={isRetrying}
+                  className="w-full"
+                >
+                  {isRetrying ? (
+                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 ml-2" />
+                  )}
+                  נסה שוב
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/auth', { replace: true })}
+                  className="w-full"
+                >
+                  חזור לדף ההתחברות
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -403,22 +489,38 @@ async function initializeFamilyData(familyId: string) {
     ],
   };
 
-  // Insert tasks
-  await supabase.from('tasks').insert(
-    DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId }))
-  );
+  // Insert tasks - use try/catch for each to prevent partial failures
+  try {
+    await supabase.from('tasks').insert(
+      DEFAULT_TASKS.map((t) => ({ ...t, family_id: familyId }))
+    );
+  } catch (e) {
+    console.error('Error inserting tasks:', e);
+  }
 
-  // Insert store rewards
-  await supabase.from('store_rewards').insert(
-    DEFAULT_STORE_REWARDS.map((r) => ({ ...r, family_id: familyId }))
-  );
+  try {
+    await supabase.from('store_rewards').insert(
+      DEFAULT_STORE_REWARDS.map((r) => ({ ...r, family_id: familyId }))
+    );
+  } catch (e) {
+    console.error('Error inserting rewards:', e);
+  }
 
-  // Insert credit vault
-  await supabase.from('credit_vault').insert({ family_id: familyId, total_balance: 0 });
+  try {
+    await supabase.from('credit_vault').insert({ family_id: familyId, total_balance: 0 });
+  } catch (e) {
+    console.error('Error inserting credit vault:', e);
+  }
 
-  // Insert timetable
-  await supabase.from('timetables').insert({ family_id: familyId, data: DEFAULT_TIMETABLE });
+  try {
+    await supabase.from('timetables').insert({ family_id: familyId, data: DEFAULT_TIMETABLE });
+  } catch (e) {
+    console.error('Error inserting timetable:', e);
+  }
 
-  // Insert app settings
-  await supabase.from('app_settings').insert({ family_id: familyId });
+  try {
+    await supabase.from('app_settings').insert({ family_id: familyId });
+  } catch (e) {
+    console.error('Error inserting app settings:', e);
+  }
 }
