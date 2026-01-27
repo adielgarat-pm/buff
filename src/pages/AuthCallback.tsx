@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Users, User, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<SetupStep>('loading');
   const [selectedRole, setSelectedRole] = useState<'parent' | 'child' | null>(null);
@@ -36,15 +38,11 @@ export default function AuthCallback() {
         }
 
         if (session?.user) {
-          // Check if user already has a profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
+          // Ensure the AuthContext picks up the profile if it already exists.
+          // (Creating a profile does NOT trigger an auth event, so without this some users get stuck in a redirect loop.)
+          const existingProfile = await refreshProfile(session.user.id);
 
-          if (profile) {
-            // Existing user - go to dashboard
+          if (existingProfile) {
             navigate('/dashboard');
           } else {
             // New Google user - show role selection
@@ -67,7 +65,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, refreshProfile]);
 
   const handleRoleSelect = (role: 'parent' | 'child') => {
     trackRegistrationStep('role_selected', { role, method: 'google' });
@@ -132,6 +130,9 @@ export default function AuthCallback() {
 
         trackRegistrationStep('profile_created', { role: 'parent', method: 'google' });
 
+        // IMPORTANT: profile creation doesn't trigger auth changes, so refresh context manually
+        await refreshProfile(userId);
+
         // Step 3: Now initialize family data (profile exists, RLS will work)
         await initializeFamilyData(familyId);
 
@@ -174,6 +175,9 @@ export default function AuthCallback() {
         }
 
         trackRegistrationStep('profile_created', { role: 'child', method: 'google' });
+
+        // IMPORTANT: profile creation doesn't trigger auth changes, so refresh context manually
+        await refreshProfile(userId);
 
         // Note: Child data is now auto-created by the create_default_tasks_for_child trigger
 

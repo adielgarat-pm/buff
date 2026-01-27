@@ -21,6 +21,11 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName: string, role: 'parent' | 'child', familyCode?: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  /**
+   * Re-fetches the profile from the backend and updates context state.
+   * Useful after creating a profile (signup / OAuth role selection) because auth state doesn't change.
+   */
+  refreshProfile: (userId?: string) => Promise<Profile | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [familyShortCode, setFamilyShortCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -44,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
     return data as Profile | null;
-  };
+  }, []);
 
   const fetchFamilyShortCode = useCallback(async (familyId: string) => {
     const { data, error } = await supabase
@@ -60,6 +65,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data?.short_code ?? null;
   }, []);
 
+  const refreshProfile = useCallback(
+    async (userId?: string) => {
+      const effectiveUserId = userId ?? user?.id;
+      if (!effectiveUserId) {
+        setProfile(null);
+        setFamilyShortCode(null);
+        return null;
+      }
+
+      const p = await fetchProfile(effectiveUserId);
+      setProfile(p);
+
+      if (p?.family_id) {
+        const code = await fetchFamilyShortCode(p.family_id);
+        setFamilyShortCode(code);
+      } else {
+        setFamilyShortCode(null);
+      }
+
+      return p;
+    },
+    [fetchFamilyShortCode, fetchProfile, user?.id]
+  );
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -70,12 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(async () => {
-            const p = await fetchProfile(session.user.id);
-            setProfile(p);
-            if (p?.family_id) {
-              const code = await fetchFamilyShortCode(p.family_id);
-              setFamilyShortCode(code);
-            }
+            await refreshProfile(session.user.id);
           }, 0);
         } else {
           setProfile(null);
@@ -89,12 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        const p = await fetchProfile(session.user.id);
-        setProfile(p);
-        if (p?.family_id) {
-          const code = await fetchFamilyShortCode(p.family_id);
-          setFamilyShortCode(code);
-        }
+        await refreshProfile(session.user.id);
         setLoading(false);
       } else {
         setLoading(false);
@@ -102,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchFamilyShortCode]);
+  }, [refreshProfile]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -191,6 +210,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await initializeFamilyData(familyId);
     }
 
+    // Auth state doesn't change after creating a profile, so we must refresh it manually
+    await refreshProfile(authData.user.id);
+
     return { error: null };
   };
 
@@ -205,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const familyId = profile?.family_id ?? null;
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, familyId, familyShortCode, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, familyId, familyShortCode, loading, signIn, signUp, signInWithGoogle, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
