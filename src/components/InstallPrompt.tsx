@@ -14,6 +14,7 @@ import { Button } from './ui/button';
 import { usePWAInstall, DeviceOS } from '@/hooks/usePWAInstall';
 import { trackPWAEvent } from '@/hooks/usePWAAnalytics';
 import { useInstallPromptMessage } from '@/hooks/useInstallPromptMessage';
+import { useBrowserDetection, detectBrowser } from '@/hooks/useBrowserDetection';
 import buffLogo from '@/assets/buff-logo.png';
 
 interface InstallPromptProps {
@@ -216,6 +217,10 @@ interface AndroidDesktopInstructionsProps {
   isInstallable: boolean;
   personalizedMessage: string;
   childrenCount: number;
+  browserName: string;
+  menuIcon: string;
+  menuLocation: string;
+  installAction: string;
 }
 
 function AndroidDesktopInstructions({ 
@@ -224,6 +229,10 @@ function AndroidDesktopInstructions({
   isInstallable,
   personalizedMessage,
   childrenCount,
+  browserName,
+  menuIcon,
+  menuLocation,
+  installAction,
 }: AndroidDesktopInstructionsProps) {
   const isDesktop = deviceOS === 'desktop';
   // Adjust font size based on message length and number of children
@@ -302,25 +311,23 @@ function AndroidDesktopInstructions({
                 ההתקנה האוטומטית לא זמינה כרגע
               </p>
               <p className="text-xs text-muted-foreground/70">
-                {isDesktop 
-                  ? 'נסו להשתמש ב-Chrome או Edge' 
-                  : 'נסו להשתמש ב-Chrome באנדרואיד'}
+                {browserName !== 'דפדפן' 
+                  ? `אתם משתמשים ב-${browserName}. נסו לפתוח ב-Chrome או Edge.`
+                  : 'נסו להשתמש ב-Chrome או Edge'}
               </p>
             </div>
             
             {/* Manual installation instructions */}
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground text-center">
-                להתקנה ידנית:
+                להתקנה ידנית ב-{browserName}:
               </p>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                   <span className="text-sm font-bold text-primary">1</span>
                 </div>
                 <p className="text-sm text-foreground">
-                  {isDesktop 
-                    ? 'לחצו על ⋮ בפינה הימנית העליונה של הדפדפן'
-                    : 'לחצו על ⋮ בפינה העליונה של Chrome'}
+                  לחצו על {menuIcon} {menuLocation}
                 </p>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
@@ -328,9 +335,7 @@ function AndroidDesktopInstructions({
                   <span className="text-sm font-bold text-primary">2</span>
                 </div>
                 <p className="text-sm text-foreground">
-                  {isDesktop 
-                    ? 'בחרו "התקן אפליקציה" או "Install app"'
-                    : 'בחרו "הוסף למסך הבית" או "Add to Home screen"'}
+                  בחרו "{installAction}"
                 </p>
               </div>
             </div>
@@ -352,18 +357,25 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     dismissPermanently,
   } = usePWAInstall();
   
-  const { message: personalizedMessage, childrenCount } = useInstallPromptMessage();
+  const { message: personalizedMessage, messageType, templateIndex, childrenCount } = useInstallPromptMessage();
+  const isDesktop = deviceOS === 'desktop';
+  const browserInfo = useBrowserDetection(isDesktop);
+  const browser = detectBrowser();
   
   const [isVisible, setIsVisible] = useState(true);
   const impressionTracked = useRef(false);
 
-  // Track impression when prompt is shown
+  // Track impression when prompt is shown - including message type and browser
   useEffect(() => {
     if (!isInstalled && canShowPrompt && !impressionTracked.current) {
-      trackPWAEvent('pwa_prompt_impression', deviceOS);
+      trackPWAEvent('pwa_prompt_impression', deviceOS, {
+        message_type: messageType,
+        template_index: templateIndex,
+        browser,
+      });
       impressionTracked.current = true;
     }
-  }, [isInstalled, canShowPrompt, deviceOS]);
+  }, [isInstalled, canShowPrompt, deviceOS, messageType, templateIndex, browser]);
 
   // Don't render if already installed or can't show prompt
   if (isInstalled || !canShowPrompt) {
@@ -443,6 +455,10 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
                 isInstallable={isInstallable}
                 personalizedMessage={personalizedMessage}
                 childrenCount={childrenCount}
+                browserName={browserInfo.displayName}
+                menuIcon={browserInfo.menuIcon}
+                menuLocation={browserInfo.menuLocation}
+                installAction={browserInfo.installAction}
               />
             </div>
 
