@@ -196,6 +196,13 @@ const translations: Record<Language, Record<string, string>> = {
     'tasks': 'משימות',
     'noTasksForPhase': 'אין משימות לשלב הזה',
     
+    // Legal
+    'legal.title': 'הבהרה משפטית',
+    'legal.disclaimer': 'הבהרה חשובה: האפליקציה Buff היא כלי טכנולוגי לניהול משימות והתארגנות, שפותח על בסיס ניסיון אישי וכלים מעולם ניהול המוצר וההורות. השימוש באפליקציה, ובכלל זה ה"תובנות" המופיעות בה, נועד למטרות העשרה וסיוע בלבד ואינו מהווה תחליף לייעוץ רפואי, פסיכולוגי, אבחוני או טיפולי מקצועי. יוצרת האפליקציה אינה מטפלת מוסמכת, רופאה או פסיכולוגית. בכל שאלה הנוגעת לבריאותו הגופנית או הנפשית של ילדכם, יש להיוועץ באנשי מקצוע מוסמכים. השימוש באפליקציה הוא באחריות המשתמש בלבד.',
+    'legal.termsLink': 'תנאי השימוש וההבהרה המשפטית',
+    'legal.footerLink': 'הבהרה משפטית',
+    'legal.consentText': 'בעצם ההתחברות אני מאשר את',
+    
     // Welcome Banner
     'welcome.title': 'ברוכים הבאים ל-BUFF',
     'welcome.message': 'הכנו לך כמה משימות התחלתיות לשגרה היומית. אתה יכול להתאים אותן בכל עת דרך ההגדרות!',
@@ -384,6 +391,13 @@ const translations: Record<Language, Record<string, string>> = {
     'common.xp': 'XP',
     'tasks': 'Tasks',
     'noTasksForPhase': 'No tasks for this phase',
+    
+    // Legal
+    'legal.title': 'Legal Disclaimer',
+    'legal.disclaimer': 'Important Disclaimer: The Buff app is a technological tool for task management and organization, developed based on personal experience and tools from product management and parenting. The use of the app, including the "insights" it provides, is intended for enrichment and assistance purposes only and does not constitute a substitute for medical, psychological, diagnostic, or professional therapeutic advice. The app\'s creator is not a licensed therapist, doctor, or psychologist. For any questions regarding your child\'s physical or mental health, please consult qualified professionals. Use of the app is at the user\'s sole responsibility.',
+    'legal.termsLink': 'Terms of Use and Legal Disclaimer',
+    'legal.footerLink': 'Legal Disclaimer',
+    'legal.consentText': 'By signing in, I agree to the',
     
     // Welcome Banner
     'welcome.title': 'Welcome to BUFF',
