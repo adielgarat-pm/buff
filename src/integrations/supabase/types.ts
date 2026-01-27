@@ -510,6 +510,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      switch_user_family: { Args: { p_new_family_code: string }; Returns: Json }
       update_child_credits: {
         Args: {
           p_child_id: string
