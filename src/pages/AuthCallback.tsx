@@ -30,7 +30,8 @@ export default function AuthCallback() {
   
   // Prevent double initialization
   const hasInitialized = useRef(false);
-  const rescueTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Use a cross-platform timeout type (NodeJS types are not available in browser-only tsconfig)
+  const rescueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * SEQUENTIAL GUARD LOGIC:

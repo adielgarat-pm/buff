@@ -12,7 +12,8 @@ export function useMidnightReset({ onReset }: UseMidnightResetOptions) {
   const { language } = useLanguage();
   const [lastKnownDate, setLastKnownDate] = useState(getTodayKey());
   const [showNewDayMessage, setShowNewDayMessage] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Cross-platform interval type (works in browser + node)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasShownTodayRef = useRef(false);
 
   const checkForNewDay = useCallback(() => {
