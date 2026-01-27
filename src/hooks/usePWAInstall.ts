@@ -13,15 +13,19 @@ interface PWAInstallState {
   canShowPrompt: boolean;
   deviceOS: DeviceOS;
   isDismissed: boolean;
+  isPermanentlyDismissed: boolean;
 }
 
 interface UsePWAInstallReturn extends PWAInstallState {
   triggerInstall: () => Promise<boolean>;
   dismiss: (hours?: number) => void;
+  dismissPermanently: () => void;
   resetDismissal: () => void;
+  forceShow: (os?: DeviceOS) => void;
 }
 
 const DISMISS_KEY = 'buff-pwa-install-dismissed';
+const PERMANENT_DISMISS_KEY = 'buff-pwa-install-never-show';
 const DEFAULT_DISMISS_HOURS = 24;
 
 function detectDeviceOS(): DeviceOS {
@@ -45,16 +49,36 @@ function detectDeviceOS(): DeviceOS {
   return 'unknown';
 }
 
+/**
+ * Robust standalone detection covering all PWA modes
+ */
 function isStandalone(): boolean {
-  // Check various standalone modes
-  const isDisplayStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  // iOS Safari standalone mode
   const isIOSStandalone = (navigator as any).standalone === true;
+  
+  // Standard display-mode standalone check
+  const isDisplayStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  
+  // Fullscreen mode (some PWAs use this)
+  const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+  
+  // Android TWA (Trusted Web Activity)
   const isAndroidTWA = document.referrer.includes('android-app://');
   
-  return isDisplayStandalone || isIOSStandalone || isAndroidTWA;
+  // Windows PWA check
+  const isWindowsPWA = window.matchMedia('(display-mode: window-controls-overlay)').matches;
+  
+  return isIOSStandalone || isDisplayStandalone || isFullscreen || isAndroidTWA || isWindowsPWA;
+}
+
+function isPermanentlyDismissed(): boolean {
+  return localStorage.getItem(PERMANENT_DISMISS_KEY) === 'true';
 }
 
 function isDismissed(): boolean {
+  // Check permanent dismissal first
+  if (isPermanentlyDismissed()) return true;
+  
   try {
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (!dismissed) return false;
@@ -71,12 +95,15 @@ function isDismissed(): boolean {
 
 export function usePWAInstall(): UsePWAInstallReturn {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [forceVisible, setForceVisible] = useState(false);
+  const [forcedOS, setForcedOS] = useState<DeviceOS | null>(null);
   const [state, setState] = useState<PWAInstallState>(() => ({
     isInstalled: false,
     isInstallable: false,
     canShowPrompt: false,
     deviceOS: 'unknown',
     isDismissed: false,
+    isPermanentlyDismissed: false,
   }));
 
   // Initialize on mount
@@ -84,15 +111,17 @@ export function usePWAInstall(): UsePWAInstallReturn {
     const deviceOS = detectDeviceOS();
     const installed = isStandalone();
     const dismissed = isDismissed();
+    const permanentDismiss = isPermanentlyDismissed();
     
     setState(prev => ({
       ...prev,
       deviceOS,
       isInstalled: installed,
       isDismissed: dismissed,
+      isPermanentlyDismissed: permanentDismiss,
       // iOS is always "installable" via manual method
       isInstallable: deviceOS === 'ios' && !installed,
-      canShowPrompt: !installed && !dismissed,
+      canShowPrompt: !installed && !dismissed && !permanentDismiss,
     }));
 
     // For Android/Desktop, listen for the beforeinstallprompt event
@@ -103,7 +132,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
         setState(prev => ({
           ...prev,
           isInstallable: true,
-          canShowPrompt: !prev.isInstalled && !prev.isDismissed,
+          canShowPrompt: !prev.isInstalled && !prev.isDismissed && !prev.isPermanentlyDismissed,
         }));
       };
 
@@ -155,6 +184,8 @@ export function usePWAInstall(): UsePWAInstallReturn {
       timestamp: new Date().toISOString(),
       hours,
     }));
+    setForceVisible(false);
+    setForcedOS(null);
     setState(prev => ({
       ...prev,
       isDismissed: true,
@@ -162,19 +193,48 @@ export function usePWAInstall(): UsePWAInstallReturn {
     }));
   }, []);
 
-  const resetDismissal = useCallback(() => {
-    localStorage.removeItem(DISMISS_KEY);
+  const dismissPermanently = useCallback(() => {
+    localStorage.setItem(PERMANENT_DISMISS_KEY, 'true');
+    setForceVisible(false);
+    setForcedOS(null);
     setState(prev => ({
       ...prev,
-      isDismissed: false,
-      canShowPrompt: !prev.isInstalled && prev.isInstallable,
+      isPermanentlyDismissed: true,
+      isDismissed: true,
+      canShowPrompt: false,
     }));
   }, []);
 
+  const resetDismissal = useCallback(() => {
+    localStorage.removeItem(DISMISS_KEY);
+    localStorage.removeItem(PERMANENT_DISMISS_KEY);
+    setState(prev => ({
+      ...prev,
+      isDismissed: false,
+      isPermanentlyDismissed: false,
+      canShowPrompt: !prev.isInstalled,
+    }));
+  }, []);
+
+  const forceShow = useCallback((os?: DeviceOS) => {
+    setForceVisible(true);
+    if (os) {
+      setForcedOS(os);
+    }
+  }, []);
+
+  // Compute final values considering forceVisible
+  const canShowPrompt = forceVisible || state.canShowPrompt;
+  const deviceOS = forcedOS || state.deviceOS;
+
   return {
     ...state,
+    deviceOS,
+    canShowPrompt,
     triggerInstall,
     dismiss,
+    dismissPermanently,
     resetDismissal,
+    forceShow,
   };
 }

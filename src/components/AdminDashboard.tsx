@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { AppPulseTab } from '@/components/admin/AppPulseTab';
+import { InstallPrompt } from '@/components/InstallPrompt';
 
 function calculateAge(birthDate: string | null): string {
   if (!birthDate) return 'לא צוין';
@@ -24,11 +26,25 @@ function calculateAge(birthDate: string | null): string {
 export function AdminDashboard() {
   const { isAdmin, loading, families, orphanedUsers, fetchingFamilies, refetchFamilies } = useAdminAccess();
   const { data: analyticsData, loading: analyticsLoading, refetch: refetchAnalytics, completionRate, conversionRate } = useAdminAnalytics(isAdmin);
+  const { forceShow, resetDismissal, deviceOS, isInstalled, canShowPrompt, isPermanentlyDismissed } = usePWAInstall();
   const [activeTab, setActiveTab] = useState('pulse');
+  const [debugIOSPrompt, setDebugIOSPrompt] = useState(false);
 
   const handleRefresh = () => {
     refetchFamilies();
     refetchAnalytics();
+  };
+
+  const handleDebugIOSPrompt = () => {
+    resetDismissal();
+    forceShow('ios');
+    setDebugIOSPrompt(true);
+  };
+
+  const handleDebugAndroidPrompt = () => {
+    resetDismissal();
+    forceShow('android');
+    setDebugIOSPrompt(true);
   };
 
   if (loading) {
@@ -81,6 +97,54 @@ export function AdminDashboard() {
             רענון
           </Button>
         </div>
+
+        {/* Debug Tools Card */}
+        <Card className="border-dashed border-2 border-warning/30 bg-warning/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Bug className="w-4 h-4 text-warning" />
+              Debug Mode - PWA Install Prompt
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Device OS: <Badge variant="outline">{deviceOS}</Badge></p>
+                <p>Installed: <Badge variant={isInstalled ? 'default' : 'secondary'}>{isInstalled ? 'Yes' : 'No'}</Badge></p>
+                <p>Can Show: <Badge variant={canShowPrompt ? 'default' : 'secondary'}>{canShowPrompt ? 'Yes' : 'No'}</Badge></p>
+                <p>Permanently Dismissed: <Badge variant={isPermanentlyDismissed ? 'destructive' : 'secondary'}>{isPermanentlyDismissed ? 'Yes' : 'No'}</Badge></p>
+              </div>
+              <div className="flex gap-2 mr-auto">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleDebugIOSPrompt}
+                  className="gap-1.5"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  Test iOS Prompt
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleDebugAndroidPrompt}
+                  className="gap-1.5"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  Test Android Prompt
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={resetDismissal}
+                  className="text-muted-foreground"
+                >
+                  Reset Dismissal
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -275,6 +339,9 @@ export function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Debug Install Prompt - renders when debug mode is active */}
+      {debugIOSPrompt && <InstallPrompt onClose={() => setDebugIOSPrompt(false)} />}
     </div>
   );
 }
