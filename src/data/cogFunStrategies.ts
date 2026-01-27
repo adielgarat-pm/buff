@@ -1,4 +1,4 @@
-// Cog-Fun Model Strategy Library
+// Buff Strategy Library - Executive Function Power-ups
 // Strategies are categorized into Environmental, Task-based, and Self-regulation
 
 export type StrategyCategory = 'environmental' | 'task-based' | 'self-regulation';

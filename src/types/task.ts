@@ -52,7 +52,7 @@ export interface Task {
   description?: string;
   icon?: string;
   assignedTo?: string; // Child profile ID for per-child tasks
-  strategyId?: string; // Cog-Fun strategy booster ID
+  strategyId?: string; // Buff strategy booster ID
 }
 
 export interface Lesson {
