@@ -15,7 +15,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
+import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
@@ -33,17 +33,21 @@ interface TimetableImporterProps {
   onClose: () => void;
   currentTimetable: Timetable;
   childName?: string;
+  fridayEnabled?: boolean;
 }
 
 const DEFAULT_PERIOD_TIMES = [
   '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00', '14:50', '15:40'
 ];
 
-export function TimetableImporter({ onImport, onClose, currentTimetable, childName }: TimetableImporterProps) {
+export function TimetableImporter({ onImport, onClose, currentTimetable, childName, fridayEnabled = false }: TimetableImporterProps) {
   const [step, setStep] = useState<'upload' | 'processing' | 'review'>('upload');
   const [parsedPeriods, setParsedPeriods] = useState<ParsedPeriod[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+  // Determine which days to display based on Friday setting
+  const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -168,8 +172,8 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     // Build new timetable from selected periods
     const newTimetable: Timetable = {};
     
-    // Initialize with default structure
-    WEEK_DAYS.forEach(day => {
+    // Initialize with default structure (including Friday if enabled)
+    displayDays.forEach(day => {
       newTimetable[day] = DEFAULT_PERIOD_TIMES.map(time => ({
         subject: '',
         startTime: time,
@@ -303,8 +307,9 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
   // Review Step
   const selectedCount = parsedPeriods.filter(p => p.selected).length;
 
-  // Group by day for display
-  const groupedByDay = WEEK_DAYS.reduce((acc, day) => {
+  // Group by day for display (including Friday if enabled or if Friday data exists)
+  const allDaysWithFriday = WEEK_DAYS_WITH_FRIDAY;
+  const groupedByDay = allDaysWithFriday.reduce((acc, day) => {
     acc[day] = parsedPeriods.filter(p => p.day === day);
     return acc;
   }, {} as Record<WeekDay, ParsedPeriod[]>);
@@ -332,7 +337,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
               לא נמצאו שיעורים. נסו להעלות קובץ אחר.
             </div>
           ) : (
-            WEEK_DAYS.map(day => {
+            allDaysWithFriday.map(day => {
               const dayPeriods = groupedByDay[day];
               if (dayPeriods.length === 0) return null;
               
@@ -397,7 +402,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {WEEK_DAYS.map(d => (
+                          {WEEK_DAYS_WITH_FRIDAY.map(d => (
                             <SelectItem key={d} value={d}>
                               {WEEK_DAY_LABELS[d]}
                             </SelectItem>
