@@ -30,11 +30,17 @@ function LoadingScreen() {
 }
 
 // Protected route - redirects to /auth if not logged in
+// Also redirects to /auth/callback if user exists but has no profile (incomplete registration)
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
+  
+  // User exists but no profile - redirect to complete registration
+  if (user && !profile) {
+    return <Navigate to="/auth/callback" replace />;
+  }
 
   return <>{children}</>;
 }
