@@ -40,17 +40,30 @@ interface TimetableImporterProps {
 // Generate default times using the "Buff Standard" algorithm:
 // - Lesson 1 starts at 08:00
 // - Each lesson is 50 minutes
-// - 20-minute break after every 2nd lesson
+// - 20-minute break after every 2nd lesson (after lessons 2, 4, 6, etc.)
+// Expected output:
+//   Lesson 1: 08:00 - 08:50
+//   Lesson 2: 08:50 - 09:40
+//   [20 min break]
+//   Lesson 3: 10:00 - 10:50
+//   Lesson 4: 10:50 - 11:40
+//   [20 min break]
+//   Lesson 5: 12:00 - 12:50
 const generateDefaultTime = (lessonIndex: number): { startTime: string; endTime: string } => {
   const LESSON_DURATION = 50; // minutes
   const BREAK_DURATION = 20; // minutes after every 2nd lesson
   
   let currentMinutes = 8 * 60; // Start at 08:00
   
+  // Calculate cumulative time based on previous lessons
   for (let i = 0; i < lessonIndex; i++) {
+    // Add the lesson duration
     currentMinutes += LESSON_DURATION;
-    // Add break after every 2nd lesson (after indices 1, 3, 5, etc.)
-    if ((i + 1) % 2 === 0) {
+    
+    // Add a break after every 2nd lesson (i.e., after lesson indices 1, 3, 5... which are lessons 2, 4, 6)
+    // This means: after lesson 2 (i=1), after lesson 4 (i=3), after lesson 6 (i=5), etc.
+    const lessonNumber = i + 1; // Convert 0-indexed to 1-indexed
+    if (lessonNumber % 2 === 0) {
       currentMinutes += BREAK_DURATION;
     }
   }
