@@ -10,6 +10,7 @@ interface ParsedLesson {
   start_time: string;
   end_time: string | null;
   lesson_name: string | null;
+  auto_time?: boolean; // Flag for auto-filled time
 }
 
 interface ParsedTask {
@@ -18,6 +19,7 @@ interface ParsedTask {
   day: string;
   category: string;
   credits: number;
+  autoTime?: boolean;
 }
 
 // Hebrew day name mapping (RTL aware)
@@ -26,26 +28,32 @@ const HEBREW_DAY_MAP: Record<string, string> = {
   'ראשון': 'sunday',
   'א': 'sunday',
   "א'": 'sunday',
+  'יום א': 'sunday',
   'יום שני': 'monday',
   'שני': 'monday',
   'ב': 'monday',
   "ב'": 'monday',
+  'יום ב': 'monday',
   'יום שלישי': 'tuesday',
   'שלישי': 'tuesday',
   'ג': 'tuesday',
   "ג'": 'tuesday',
+  'יום ג': 'tuesday',
   'יום רביעי': 'wednesday',
   'רביעי': 'wednesday',
   'ד': 'wednesday',
   "ד'": 'wednesday',
+  'יום ד': 'wednesday',
   'יום חמישי': 'thursday',
   'חמישי': 'thursday',
   'ה': 'thursday',
   "ה'": 'thursday',
+  'יום ה': 'thursday',
   'יום שישי': 'friday',
   'שישי': 'friday',
   'ו': 'friday',
   "ו'": 'friday',
+  'יום ו': 'friday',
 };
 
 // Normalize Hebrew day to English lowercase
@@ -102,6 +110,27 @@ function normalizeTime(time: string | null | undefined): string | null {
   return null;
 }
 
+// Generate default time using "Buff Standard" algorithm
+function generateDefaultTime(lessonIndex: number): string {
+  const LESSON_DURATION = 50;
+  const BREAK_DURATION = 20;
+  
+  let currentMinutes = 8 * 60; // Start at 08:00
+  
+  for (let i = 0; i < lessonIndex; i++) {
+    currentMinutes += LESSON_DURATION;
+    const lessonNumber = i + 1;
+    if (lessonNumber % 2 === 0) {
+      currentMinutes += BREAK_DURATION;
+    }
+  }
+  
+  const hours = Math.floor(currentMinutes / 60);
+  const mins = currentMinutes % 60;
+  
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
+
 // Determine category based on task title
 function guessCategory(title: string): string {
   const lower = title.toLowerCase();
@@ -138,27 +167,6 @@ function guessCredits(title: string): number {
   return 10;
 }
 
-// Validate parsed lesson and log warnings for discarded items
-function validateLesson(lesson: any, index: number): ParsedLesson | null {
-  const day = lesson.day;
-  const startTime = normalizeTime(lesson.start_time);
-  const endTime = normalizeTime(lesson.end_time);
-  const lessonName = lesson.lesson_name;
-  
-  // Must have day and start_time
-  if (!day || !startTime) {
-    console.warn(`[Validation] Discarding lesson at index ${index}: missing day or start_time`, JSON.stringify(lesson));
-    return null;
-  }
-  
-  return {
-    day: normalizeDay(day),
-    start_time: startTime,
-    end_time: endTime,
-    lesson_name: lessonName || null,
-  };
-}
-
 // Convert validated lessons to task format
 function lessonsToTasks(lessons: ParsedLesson[]): ParsedTask[] {
   return lessons
@@ -169,29 +177,9 @@ function lessonsToTasks(lessons: ParsedLesson[]): ParsedTask[] {
       day: l.day,
       category: guessCategory(l.lesson_name!),
       credits: guessCredits(l.lesson_name!),
+      autoTime: l.auto_time,
     }));
 }
-
-// Strict JSON schema for image extraction
-const IMAGE_EXTRACTION_SCHEMA = {
-  type: "object",
-  properties: {
-    lessons: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          day: { type: "string", description: "Hebrew day name (e.g., יום ראשון, ראשון, א')" },
-          start_time: { type: "string", description: "Lesson start time in HH:MM 24-hour format" },
-          end_time: { type: ["string", "null"], description: "Lesson end time in HH:MM 24-hour format, or null if unknown" },
-          lesson_name: { type: ["string", "null"], description: "Subject/lesson name in Hebrew, or null if cell is empty. Add [?] suffix if text is unclear" }
-        },
-        required: ["day", "start_time", "lesson_name"]
-      }
-    }
-  },
-  required: ["lessons"]
-};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -199,7 +187,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, excelData, fileType } = await req.json();
+    const { imageBase64, excelData, fileType, extractedText } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -208,12 +196,12 @@ serve(async (req) => {
 
     let parsedTasks: ParsedTask[] = [];
 
-    if (fileType === 'excel' && excelData) {
-      // Use AI to intelligently parse the Excel data structure
-      console.log("Received Excel data:", JSON.stringify(excelData).substring(0, 1000));
-
+    // STEP 1: Handle TEXT-ONLY parsing (lightweight - used when OCR text is provided)
+    if (fileType === 'text' && extractedText) {
+      console.log("Processing extracted text (lightweight mode)...");
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 85000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s for text parsing
       
       let response;
       try {
@@ -225,34 +213,29 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-2.5-flash-lite", // Fast, lightweight model for text
             messages: [
               {
                 role: "system",
-                content: `You are a Hebrew school timetable parser. Extract schedule data from spreadsheets.
+                content: `You are a Hebrew school schedule parser. Parse extracted OCR text into a structured schedule.
 
-CRITICAL RULES:
-1. Return ONLY valid JSON - no markdown, no explanation, no conversation.
-2. The spreadsheet may be RTL (Right-to-Left) Hebrew layout.
-3. IMPORTANT: Israeli schools have a 6-DAY week (Sunday-Friday). Always check for 6 columns of days.
-4. Hebrew day headers: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
-5. If Friday (יום שישי / שישי / ו') exists in the data, it MUST be included in the output.
-6. Times are typically in the first column or row headers in HH:MM format.
-7. If a time is missing but inferable from grid position, infer it.
-8. If lesson text is unclear, include it with [?] suffix.
-9. If a cell is empty, set lesson_name to null but still include the row.
+RULES:
+1. Return ONLY valid JSON - no markdown, no explanation.
+2. Israeli schools use a 6-DAY week (Sunday-Friday).
+3. Hebrew days: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
+4. Group lessons by day based on context clues in the text.
+5. If time is missing, set start_time to null (we'll auto-fill later).
+6. If a lesson seems unclear, include it with [?] suffix.
 
-OUTPUT SCHEMA:
-{"lessons":[{"day":"יום ראשון","start_time":"08:00","end_time":"08:45","lesson_name":"מתמטיקה"},...]}
-
-Return ONLY the JSON object, nothing else.`
+OUTPUT:
+{"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},...]}`
               },
               {
                 role: "user",
-                content: `Parse this Hebrew timetable into JSON:\n${JSON.stringify(excelData, null, 2)}`
+                content: `Parse this extracted Hebrew schedule text into JSON:\n\n${extractedText}`
               }
             ],
-            max_tokens: 8000,
+            max_tokens: 4000,
             response_format: { type: "json_object" }
           }),
         });
@@ -260,8 +243,117 @@ Return ONLY the JSON object, nothing else.`
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
         if (fetchError.name === 'AbortError') {
-          console.error("AI Excel processing timed out after 85 seconds");
-          return new Response(JSON.stringify({ error: "עיבוד האקסל ארך יותר מדי זמן. נסו שוב או העלו קובץ קטן יותר." }), {
+          console.error("Text parsing timed out");
+          return new Response(JSON.stringify({ error: "עיבוד הטקסט ארך יותר מדי זמן." }), {
+            status: 408,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw fetchError;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI text parsing error:", response.status, errorText);
+        throw new Error(`AI processing error: ${response.status}`);
+      }
+
+      const aiResponse = await response.json();
+      const content = aiResponse.choices?.[0]?.message?.content || "{}";
+      
+      try {
+        const parsed = JSON.parse(content);
+        const rawLessons = parsed.lessons || [];
+        
+        // Group by day and assign default times if missing
+        const lessonsByDay: Record<string, any[]> = {};
+        rawLessons.forEach((l: any) => {
+          const day = normalizeDay(l.day || 'sunday');
+          if (!lessonsByDay[day]) lessonsByDay[day] = [];
+          lessonsByDay[day].push(l);
+        });
+        
+        const validatedLessons: ParsedLesson[] = [];
+        Object.entries(lessonsByDay).forEach(([day, lessons]) => {
+          lessons.forEach((l, index) => {
+            const time = normalizeTime(l.start_time);
+            const autoTime = !time;
+            validatedLessons.push({
+              day,
+              start_time: time || generateDefaultTime(index),
+              end_time: null,
+              lesson_name: l.lesson_name || null,
+              auto_time: autoTime,
+            });
+          });
+        });
+        
+        parsedTasks = lessonsToTasks(validatedLessons);
+        console.log(`Successfully parsed ${parsedTasks.length} tasks from text`);
+      } catch (parseError) {
+        console.error("Text JSON parse error:", parseError);
+        throw new Error("לא הצלחנו לפענח את הטקסט. נסו להעתיק את הטקסט ידנית.");
+      }
+    }
+    // STEP 2: Handle IMAGE with lightweight OCR-first approach
+    else if (fileType === 'image' && imageBase64) {
+      console.log("Processing image with lightweight OCR approach...");
+      
+      // Use a fast model with a simpler OCR-focused prompt
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
+      
+      let response;
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash", // Fast model for image OCR
+            messages: [
+              {
+                role: "system",
+                content: `You are a fast Hebrew OCR system. Extract school schedule data from images.
+
+QUICK EXTRACTION RULES:
+1. Hebrew tables are RTL. Rightmost column = Sunday (יום א), leftmost = Friday (יום ו).
+2. Extract: day, start_time (HH:MM), lesson_name for each cell.
+3. If time is unclear, set start_time to null.
+4. Return ONLY JSON, no explanations.
+
+OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},...]}`
+              },
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: "Extract the school schedule. Return only JSON with lessons array."
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
+                  }
+                ]
+              }
+            ],
+            max_tokens: 6000,
+            response_format: { type: "json_object" }
+          }),
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.error("Image OCR timed out after 45 seconds");
+          return new Response(JSON.stringify({ 
+            error: "העיבוד לוקח קצת זמן. אפשר להעתיק את הטקסט ידנית או לנסות תמונה ברורה יותר.",
+            timeout: true
+          }), {
             status: 408,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -271,252 +363,157 @@ Return ONLY the JSON object, nothing else.`
 
       if (!response.ok) {
         if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+          return new Response(JSON.stringify({ error: "יש הרבה בקשות כרגע. נסו שוב בעוד דקה." }), {
             status: 429,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI credits exhausted. Please add more credits." }), {
+          return new Response(JSON.stringify({ error: "נגמרו הקרדיטים. אנא הוסיפו קרדיטים." }), {
             status: 402,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        const errorText = await response.text();
-        console.error("AI gateway error for Excel:", response.status, errorText);
-        throw new Error(`AI processing error: ${response.status}`);
+        throw new Error(`AI error: ${response.status}`);
       }
 
       const aiResponse = await response.json();
       const content = aiResponse.choices?.[0]?.message?.content || "{}";
-      console.log("AI Excel parsing response:", content.substring(0, 500));
-      
-      try {
-        const parsed = JSON.parse(content);
-        const rawLessons = parsed.lessons || parsed || [];
-        
-        if (!Array.isArray(rawLessons)) {
-          throw new Error("Response lessons is not an array");
-        }
-        
-        // Validate each lesson and filter out invalid ones
-        const validatedLessons: ParsedLesson[] = [];
-        for (let i = 0; i < rawLessons.length; i++) {
-          const validated = validateLesson(rawLessons[i], i);
-          if (validated) {
-            validatedLessons.push(validated);
-          }
-        }
-        
-        parsedTasks = lessonsToTasks(validatedLessons);
-        console.log(`Successfully parsed ${parsedTasks.length} tasks from Excel (${rawLessons.length - validatedLessons.length} discarded)`);
-      } catch (parseError) {
-        console.error("Excel JSON parse error:", parseError);
-        throw new Error("Could not parse Excel data. Please ensure the file contains a valid timetable.");
-      }
-    } else if (fileType === 'image' && imageBase64) {
-      // Use AI with strict structured output for image extraction
-      console.log("Processing schedule image...");
-      
-       // Set timeout for AI call (85s max to stay under function limit)
-       const controller = new AbortController();
-       const timeoutId = setTimeout(() => controller.abort(), 85000);
-       
-       let response;
-       try {
-         response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-           method: "POST",
-           signal: controller.signal,
-           headers: {
-             Authorization: `Bearer ${LOVABLE_API_KEY}`,
-             "Content-Type": "application/json",
-           },
-           body: JSON.stringify({
-             model: "google/gemini-2.5-pro",
-             messages: [
-               {
-                 role: "system",
-               content: `You are a precise Hebrew school schedule OCR system. Extract timetable data from images with EXACT positioning accuracy.
-
-CRITICAL TABLE STRUCTURE RULES:
-1. Hebrew tables are RTL (Right-to-Left). The RIGHTMOST column is typically Sunday (יום א'), and columns go LEFT toward Friday (יום ו').
-2. Israeli schools have a 6-DAY week (Sunday-Friday). Count the columns carefully - there should be 5 or 6 day columns.
-3. The FIRST column (usually leftmost in RTL) often contains TIME values.
-4. Each ROW represents ONE time slot. All cells in the same row share the SAME time.
-5. Each COLUMN represents ONE specific day. All cells in the same column belong to the SAME day.
-
-COLUMN-TO-DAY MAPPING (RTL - RIGHT TO LEFT):
-- Rightmost day column = יום א' (Sunday)
-- 2nd from right = יום ב' (Monday)
-- 3rd from right = יום ג' (Tuesday)
-- 4th from right = יום ד' (Wednesday)
-- 5th from right = יום ה' (Thursday)
-- 6th from right (leftmost day) = יום ו' (Friday) - if present
-
-STRICT HORIZONTAL ALIGNMENT RULES (CRITICAL FOR LATE LESSONS):
-- A lesson MUST be assigned to a day ONLY if its horizontal CENTER falls within that day's column boundaries.
-- Draw imaginary vertical lines between each day header. A lesson belongs to the column it physically sits in.
-- For rows with fewer cells (like a 7th period that only some days have), ONLY include entries for days that actually have a cell in that row.
-- If a day's column is EMPTY in a row (no cell exists), DO NOT create an entry for that day+time. Skip it entirely.
-- NEVER "fill in" missing slots by shifting lessons horizontally. Late lessons often appear in only 1-2 columns.
-
-STEP-BY-STEP EXTRACTION PROCESS:
-1. FIRST: Identify the day header row. Note the exact X-coordinate boundaries of each column.
-2. SECOND: Identify time values in the time column (usually leftmost).
-3. THIRD: For EACH cell, determine its horizontal center point. Match it to the column whose boundaries contain that center.
-4. FOURTH: Map the column to the correct day using RTL ordering.
-5. FIFTH: Assign the row's time to this cell's start_time.
-6. SIXTH: If a row has fewer cells than days (common for 7th+ periods), only output entries for days that have cells.
-
-VALIDATION RULES:
-- Early rows (periods 1-5) typically have 5-6 entries (one per day).
-- Later rows (periods 6-7+) may have only 1-4 entries. This is NORMAL - some days end earlier.
-- NEVER assume a lesson belongs to Monday just because it's "the next column" - verify its actual position.
-- If lesson text appears to span or straddle a column boundary, flag it with [?] and assign to the column containing most of the text.
-
-TIME EXTRACTION:
-- Times are in HH:MM 24-hour format
-- Common school times: 08:00, 08:45, 09:30, 10:15, 11:00, 11:45, 12:30, 13:15, 14:00, 14:45
-- Each row typically adds ~45-50 minutes from the previous row
-
-LESSON NAME EXTRACTION:
-- Extract Hebrew text exactly as shown
-- Teacher names may appear after subject (e.g., "חשבון להט רות" = Math, teacher Lehat Rut)
-- If text is blurry/unclear, provide best guess with [?] suffix
-- If cell is completely empty or doesn't exist for that day, DO NOT include an entry
-
-OUTPUT FORMAT (STRICTLY JSON):
-{"lessons":[
-  {"day":"יום א","start_time":"08:00","end_time":"08:45","lesson_name":"חשבון"},
-  {"day":"יום ב","start_time":"08:00","end_time":"08:45","lesson_name":"שפה"},
-  ...
-],
-"column_analysis": {
-  "num_day_columns": 6,
-  "days_detected": ["יום א", "יום ב", "יום ג", "יום ד", "יום ה", "יום ו"],
-  "rows_per_day": {"יום א": 6, "יום ב": 7, "יום ג": 6, "יום ד": 7, "יום ה": 6, "יום ו": 4}
-}}
-
-FINAL CHECK: Count lessons per day. If one day has significantly more late-period lessons than others, verify the column alignment is correct. A 7th period lesson in column 3 (from right) MUST be assigned to יום ג (Tuesday), not יום ב.`
-               },
-               {
-                 role: "user",
-                 content: [
-                   {
-                     type: "text",
-                  text: `Extract the complete school schedule from this image. 
-                  
-IMPORTANT: This is a Hebrew RTL table. Carefully identify:
-1. How many day columns exist (5 or 6)
-2. Which column corresponds to which day (rightmost = Sunday, leftmost = Friday if 6 days)
-3. The time for each row
-
-For EACH cell in the grid, create a lesson entry with the correct day based on its COLUMN position.
-Return ONLY JSON.`
-                   },
-                   {
-                     type: "image_url",
-                     image_url: {
-                       url: `data:image/jpeg;base64,${imageBase64}`
-                     }
-                   }
-                 ]
-               }
-             ],
-             max_tokens: 12000,
-             response_format: { type: "json_object" }
-           }),
-         });
-         clearTimeout(timeoutId);
-       } catch (fetchError: any) {
-         clearTimeout(timeoutId);
-         if (fetchError.name === 'AbortError') {
-           console.error("AI processing timed out after 85 seconds");
-           return new Response(JSON.stringify({ error: "עיבוד התמונה ארך יותר מדי זמן. נסה שוב או העלה תמונה בעלת רזולוציה נמוכה יותר." }), {
-             status: 408,
-             headers: { ...corsHeaders, "Content-Type": "application/json" },
-           });
-         }
-         throw fetchError;
-       }
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI credits exhausted. Please add more credits." }), {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        const errorText = await response.text();
-        console.error("AI gateway error:", response.status, errorText);
-        throw new Error(`AI gateway error: ${response.status}`);
-      }
-
-      const aiResponse = await response.json();
-      const content = aiResponse.choices?.[0]?.message?.content || "{}";
-      console.log("AI image parsing response length:", content.length);
-      console.log("AI image parsing response preview:", content.substring(0, 500));
+      console.log("OCR response length:", content.length);
       
       try {
         const parsed = JSON.parse(content);
         const rawLessons = parsed.lessons || [];
         
-        if (!Array.isArray(rawLessons)) {
-          throw new Error("Response lessons is not an array");
-        }
-        
-        console.log(`Raw lessons extracted: ${rawLessons.length}`);
-        
-        // Log column analysis if available (for debugging)
-        if (parsed.column_analysis) {
-          console.log("Column analysis:", JSON.stringify(parsed.column_analysis));
-        }
-        
-        // Validate each lesson and filter out invalid ones
-        const validatedLessons: ParsedLesson[] = [];
-        for (let i = 0; i < rawLessons.length; i++) {
-          const validated = validateLesson(rawLessons[i], i);
-          if (validated) {
-            validatedLessons.push(validated);
-          }
-        }
-        
-        console.log(`Validated lessons: ${validatedLessons.length}`);
-        
-        // Sanity check: detect potential misalignment by analyzing lesson distribution
-        const lessonsByDay: Record<string, number> = {};
-        const lateLessonsByDay: Record<string, number> = {}; // lessons after 11:45
-        validatedLessons.forEach(l => {
-          lessonsByDay[l.day] = (lessonsByDay[l.day] || 0) + 1;
-          if (l.start_time >= '11:45') {
-            lateLessonsByDay[l.day] = (lateLessonsByDay[l.day] || 0) + 1;
-          }
+        // Group by day and assign default times if missing
+        const lessonsByDay: Record<string, any[]> = {};
+        rawLessons.forEach((l: any) => {
+          const day = normalizeDay(l.day || 'sunday');
+          if (!lessonsByDay[day]) lessonsByDay[day] = [];
+          lessonsByDay[day].push(l);
         });
-        console.log("Lessons per day:", JSON.stringify(lessonsByDay));
-        console.log("Late lessons (after 11:45) per day:", JSON.stringify(lateLessonsByDay));
         
-        // Flag potential misalignment: if one day has 3+ more late lessons than average
-        const lateCounts = Object.values(lateLessonsByDay);
-        if (lateCounts.length > 0) {
-          const avgLate = lateCounts.reduce((a, b) => a + b, 0) / lateCounts.length;
-          const maxLate = Math.max(...lateCounts);
-          if (maxLate >= avgLate + 2) {
-            console.warn("[SANITY CHECK] Potential column misalignment detected: one day has significantly more late lessons than others");
-          }
-        }
+        // Sort each day's lessons by time if available, then assign defaults
+        const validatedLessons: ParsedLesson[] = [];
+        Object.entries(lessonsByDay).forEach(([day, lessons]) => {
+          // Sort by existing time
+          lessons.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+          
+          lessons.forEach((l, index) => {
+            const time = normalizeTime(l.start_time);
+            const autoTime = !time;
+            validatedLessons.push({
+              day,
+              start_time: time || generateDefaultTime(index),
+              end_time: null,
+              lesson_name: l.lesson_name || null,
+              auto_time: autoTime,
+            });
+          });
+        });
         
         parsedTasks = lessonsToTasks(validatedLessons);
-        console.log(`Successfully parsed ${parsedTasks.length} tasks from image (${rawLessons.length - validatedLessons.length} discarded)`);
+        
+        // Log summary
+        const autoTimeCount = parsedTasks.filter(t => t.autoTime).length;
+        console.log(`Parsed ${parsedTasks.length} tasks (${autoTimeCount} with auto-filled times)`);
+        
       } catch (parseError) {
-        console.error("Image JSON parse error:", parseError);
-        console.error("Raw content:", content.substring(0, 1000));
-        throw new Error("Could not extract schedule. The image may be unclear or the format unrecognized. Please try a different image.");
+        console.error("Image parse error:", parseError);
+        throw new Error("לא הצלחנו לחלץ את המערכת. נסו תמונה ברורה יותר או העתיקו ידנית.");
+      }
+    }
+    // STEP 3: Handle Excel/CSV
+    else if (fileType === 'excel' && excelData) {
+      console.log("Processing Excel data...");
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
+      let response;
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              {
+                role: "system",
+                content: `Parse Hebrew school schedule from spreadsheet data.
+
+RULES:
+1. Return ONLY valid JSON.
+2. 6-DAY Israeli week (Sunday-Friday).
+3. Days: ראשון=Sunday, שני=Monday, שלישי=Tuesday, רביעי=Wednesday, חמישי=Thursday, שישי=Friday
+4. If time missing, set start_time to null.
+
+OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},...]}`
+              },
+              {
+                role: "user",
+                content: `Parse this timetable:\n${JSON.stringify(excelData, null, 2)}`
+              }
+            ],
+            max_tokens: 6000,
+            response_format: { type: "json_object" }
+          }),
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          return new Response(JSON.stringify({ error: "עיבוד האקסל ארך יותר מדי זמן." }), {
+            status: 408,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw fetchError;
+      }
+
+      if (!response.ok) {
+        throw new Error(`AI error: ${response.status}`);
+      }
+
+      const aiResponse = await response.json();
+      const content = aiResponse.choices?.[0]?.message?.content || "{}";
+      
+      try {
+        const parsed = JSON.parse(content);
+        const rawLessons = parsed.lessons || [];
+        
+        const lessonsByDay: Record<string, any[]> = {};
+        rawLessons.forEach((l: any) => {
+          const day = normalizeDay(l.day || 'sunday');
+          if (!lessonsByDay[day]) lessonsByDay[day] = [];
+          lessonsByDay[day].push(l);
+        });
+        
+        const validatedLessons: ParsedLesson[] = [];
+        Object.entries(lessonsByDay).forEach(([day, lessons]) => {
+          lessons.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+          lessons.forEach((l, index) => {
+            const time = normalizeTime(l.start_time);
+            const autoTime = !time;
+            validatedLessons.push({
+              day,
+              start_time: time || generateDefaultTime(index),
+              end_time: null,
+              lesson_name: l.lesson_name || null,
+              auto_time: autoTime,
+            });
+          });
+        });
+        
+        parsedTasks = lessonsToTasks(validatedLessons);
+        console.log(`Parsed ${parsedTasks.length} tasks from Excel`);
+      } catch (parseError) {
+        console.error("Excel parse error:", parseError);
+        throw new Error("לא הצלחנו לפענח את הקובץ. ודאו שהפורמט תקין.");
       }
     }
 
@@ -526,7 +523,7 @@ Return ONLY JSON.`
   } catch (error) {
     console.error("parse-schedule error:", error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error" 
+      error: error instanceof Error ? error.message : "שגיאה לא צפויה" 
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
