@@ -5,6 +5,7 @@ import { Vault, Gift, Check, Lock, ChevronLeft, ChevronRight, Sparkles } from 'l
 import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from '@/hooks/use-toast';
 
 interface RewardsStoreProps {
   totalBalance: number;
@@ -24,6 +25,13 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
       setTimeout(() => {
         onRedeem(reward.id);
         setRedeemingId(null);
+        
+        // Show success toast
+        toast({
+          title: "🎉 פרס נרכש!",
+          description: `${reward.icon} ${reward.title} - תהנה!`,
+          duration: 4000,
+        });
       }, 500);
     }
   };
