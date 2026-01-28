@@ -27,8 +27,7 @@ export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: 
   const { t } = useLanguage();
 
   const handleWhatsAppContact = () => {
-    const message = encodeURIComponent('היי, הגעתי מהאפליקציה Buff ואשמח לדבר!');
-    window.open(`https://wa.me/972507273413?text=${message}`, '_blank');
+    window.open('https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5?mode=gi_t', '_blank');
   };
 
   const containerClass = isModal 
