@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ParsedLesson {
@@ -211,19 +211,25 @@ serve(async (req) => {
     if (fileType === 'excel' && excelData) {
       // Use AI to intelligently parse the Excel data structure
       console.log("Received Excel data:", JSON.stringify(excelData).substring(0, 1000));
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 85000);
       
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: `You are a Hebrew school timetable parser. Extract schedule data from spreadsheets.
+      let response;
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              {
+                role: "system",
+                content: `You are a Hebrew school timetable parser. Extract schedule data from spreadsheets.
 
 CRITICAL RULES:
 1. Return ONLY valid JSON - no markdown, no explanation, no conversation.
@@ -240,18 +246,42 @@ OUTPUT SCHEMA:
 {"lessons":[{"day":"יום ראשון","start_time":"08:00","end_time":"08:45","lesson_name":"מתמטיקה"},...]}
 
 Return ONLY the JSON object, nothing else.`
-            },
-            {
-              role: "user",
-              content: `Parse this Hebrew timetable into JSON:\n${JSON.stringify(excelData, null, 2)}`
-            }
-          ],
-          max_tokens: 8000,
-          response_format: { type: "json_object" }
-        }),
-      });
+              },
+              {
+                role: "user",
+                content: `Parse this Hebrew timetable into JSON:\n${JSON.stringify(excelData, null, 2)}`
+              }
+            ],
+            max_tokens: 8000,
+            response_format: { type: "json_object" }
+          }),
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.error("AI Excel processing timed out after 85 seconds");
+          return new Response(JSON.stringify({ error: "עיבוד האקסל ארך יותר מדי זמן. נסו שוב או העלו קובץ קטן יותר." }), {
+            status: 408,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw fetchError;
+      }
 
       if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "AI credits exhausted. Please add more credits." }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         const errorText = await response.text();
         console.error("AI gateway error for Excel:", response.status, errorText);
         throw new Error(`AI processing error: ${response.status}`);
@@ -288,17 +318,24 @@ Return ONLY the JSON object, nothing else.`
       // Use AI with strict structured output for image extraction
       console.log("Processing schedule image...");
       
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
-          messages: [
-            {
-              role: "system",
+       // Set timeout for AI call (85s max to stay under function limit)
+       const controller = new AbortController();
+       const timeoutId = setTimeout(() => controller.abort(), 85000);
+       
+       let response;
+       try {
+         response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+           method: "POST",
+           signal: controller.signal,
+           headers: {
+             Authorization: `Bearer ${LOVABLE_API_KEY}`,
+             "Content-Type": "application/json",
+           },
+           body: JSON.stringify({
+             model: "google/gemini-2.5-pro",
+             messages: [
+               {
+                 role: "system",
               content: `You are a precise Hebrew school schedule OCR system. Extract timetable data from images with EXACT positioning accuracy.
 
 CRITICAL TABLE STRUCTURE RULES:
@@ -348,12 +385,12 @@ OUTPUT FORMAT (STRICTLY JSON):
 ]}
 
 FINAL CHECK: Before outputting, verify that each row's lessons are correctly distributed across ALL day columns. A lesson in column 3 (from right) MUST be assigned to יום ג (Tuesday), not any other day.`
-            },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
+               },
+               {
+                 role: "user",
+                 content: [
+                   {
+                     type: "text",
                   text: `Extract the complete school schedule from this image. 
                   
 IMPORTANT: This is a Hebrew RTL table. Carefully identify:
@@ -363,20 +400,32 @@ IMPORTANT: This is a Hebrew RTL table. Carefully identify:
 
 For EACH cell in the grid, create a lesson entry with the correct day based on its COLUMN position.
 Return ONLY JSON.`
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:image/jpeg;base64,${imageBase64}`
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 12000,
-          response_format: { type: "json_object" }
-        }),
-      });
+                   },
+                   {
+                     type: "image_url",
+                     image_url: {
+                       url: `data:image/jpeg;base64,${imageBase64}`
+                     }
+                   }
+                 ]
+               }
+             ],
+             max_tokens: 12000,
+             response_format: { type: "json_object" }
+           }),
+         });
+         clearTimeout(timeoutId);
+       } catch (fetchError: any) {
+         clearTimeout(timeoutId);
+         if (fetchError.name === 'AbortError') {
+           console.error("AI processing timed out after 85 seconds");
+           return new Response(JSON.stringify({ error: "עיבוד התמונה ארך יותר מדי זמן. נסה שוב או העלה תמונה בעלת רזולוציה נמוכה יותר." }), {
+             status: 408,
+             headers: { ...corsHeaders, "Content-Type": "application/json" },
+           });
+         }
+         throw fetchError;
+       }
 
       if (!response.ok) {
         if (response.status === 429) {

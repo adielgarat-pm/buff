@@ -101,6 +101,20 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     setIsProcessing(true);
 
     try {
+     const withTimeout = async <T,>(p: Promise<T>, ms: number, message: string): Promise<T> => {
+       let t: ReturnType<typeof setTimeout> | undefined;
+       try {
+         return await Promise.race([
+           p,
+           new Promise<T>((_, reject) => {
+             t = setTimeout(() => reject(new Error(message)), ms);
+           }),
+         ]);
+       } finally {
+         if (t) clearTimeout(t);
+       }
+     };
+
       const isImage = file.type.startsWith('image/');
       const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
 
@@ -118,9 +132,13 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         });
 
         // Call edge function for AI processing
-        const { data, error } = await supabase.functions.invoke('parse-schedule', {
-          body: { imageBase64: base64, fileType: 'image' }
-        });
+       const { data, error } = await withTimeout(
+         supabase.functions.invoke('parse-schedule', {
+           body: { imageBase64: base64, fileType: 'image' },
+         }),
+         45000,
+         'התהליך ארך יותר מדי זמן. נסה שוב או העלה תמונה קטנה/חדה יותר.'
+       );
 
         if (error) throw new Error(error.message);
         if (data.error) throw new Error(data.error);
@@ -171,7 +189,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           toast.success(`Found ${periods.length} lessons in your schedule!`);
         }
 
-      } else if (isExcel) {
+       } else if (isExcel) {
         // Parse Excel file
         const arrayBuffer = await file.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -179,9 +197,13 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
         // Call edge function for processing
-        const { data, error } = await supabase.functions.invoke('parse-schedule', {
-          body: { excelData: jsonData, fileType: 'excel' }
-        });
+         const { data, error } = await withTimeout(
+           supabase.functions.invoke('parse-schedule', {
+             body: { excelData: jsonData, fileType: 'excel' },
+           }),
+           45000,
+           'התהליך ארך יותר מדי זמן. נסה שוב או העלה קובץ אקסל קטן יותר.'
+         );
 
         if (error) throw new Error(error.message);
         if (data.error) throw new Error(data.error);
