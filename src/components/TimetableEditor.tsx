@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WeekDay } from '@/types/task';
+import { useEffect, useState, useMemo } from 'react';
+import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WeekDay, PeriodInfo } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -23,15 +23,13 @@ const DEFAULT_PERIOD_TIMES = [
 
 const PERIOD_LABELS_HE = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳', 'ח׳', 'ט׳', 'י׳'];
 
+// Build timetable preserving existing data - no default empty slots
 const buildInitialTimetable = (timetable: Timetable, includeFriday: boolean): Timetable => {
   const initial: Timetable = {};
   const days = includeFriday ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
   days.forEach(day => {
-    initial[day] = timetable[day] || DEFAULT_PERIOD_TIMES.map((time) => ({
-      subject: '',
-      startTime: time,
-      equipment: '',
-    }));
+    // Only keep existing lessons from DB, don't create empty placeholders
+    initial[day] = timetable[day] || [];
   });
   return initial;
 };
@@ -42,6 +40,8 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
   const [selectedDay, setSelectedDay] = useState<WeekDay>('sunday');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  // Track indices of newly added lessons (by day) that should be shown even if empty
+  const [newlyAddedIndices, setNewlyAddedIndices] = useState<Record<WeekDay, number[]>>({} as Record<WeekDay, number[]>);
 
   // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
   useEffect(() => {
@@ -49,6 +49,8 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     setLocalTimetable(buildInitialTimetable(timetable, fridayEnabled));
     setSelectedDay('sunday');
     setShowSuccess(false);
+    // Reset newly added tracking when dialog reopens
+    setNewlyAddedIndices({} as Record<WeekDay, number[]>);
   }, [open, timetable]);
 
   const handleSubjectChange = (periodIndex: number, subject: string) => {
@@ -101,12 +103,20 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
       ? incrementTime(lastLesson.startTime, 50) 
       : '08:00';
     
+    const newIndex = currentDay.length;
+    
     setLocalTimetable(prev => ({
       ...prev,
       [selectedDay]: [
         ...(prev[selectedDay] || []),
         { subject: '', startTime: nextTime, equipment: '' }
       ]
+    }));
+    
+    // Track this as a newly added lesson so it shows even without subject
+    setNewlyAddedIndices(prev => ({
+      ...prev,
+      [selectedDay]: [...(prev[selectedDay] || []), newIndex]
     }));
   };
 
@@ -115,6 +125,17 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
       ...prev,
       [selectedDay]: prev[selectedDay].filter((_, i) => i !== periodIndex)
     }));
+    
+    // Update newly added indices to account for deleted item
+    setNewlyAddedIndices(prev => {
+      const dayIndices = prev[selectedDay] || [];
+      return {
+        ...prev,
+        [selectedDay]: dayIndices
+          .filter(i => i !== periodIndex) // Remove the deleted index
+          .map(i => i > periodIndex ? i - 1 : i) // Shift indices after deleted item
+      };
+    });
   };
 
   const handleApplyToAll = (periodIndex: number) => {
@@ -178,7 +199,17 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
         {/* Periods Grid */}
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-3">
-            {localTimetable[selectedDay]?.map((period, index) => (
+            {localTimetable[selectedDay]?.map((period, index) => {
+              // Subject-First Policy: Only show if has subject OR is a newly added lesson
+              const hasSubject = period.subject && period.subject.trim().length > 0;
+              const isNewlyAdded = (newlyAddedIndices[selectedDay] || []).includes(index);
+              
+              // Hide empty rows unless newly added via "Add Lesson" button
+              if (!hasSubject && !isNewlyAdded) {
+                return null;
+              }
+              
+              return (
               <div
                 key={index}
                 className="p-3 rounded-xl bg-secondary/30 border border-border space-y-2"
@@ -250,7 +281,8 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                   החל זמן על כל הימים
                 </Button>
               </div>
-            ))}
+              );
+            })}
             
             {/* Add Lesson Button */}
             <Button
