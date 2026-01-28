@@ -98,14 +98,27 @@ export function useSmartPhase(
 ): SmartPhaseResult {
   const schoolEndTime = useMemo(() => {
     if (!isSchoolDay || !schoolQuestEnabled) return null;
-    return calculateSchoolEndTime(todaySchedule);
+    const endTime = calculateSchoolEndTime(todaySchedule);
+    console.log('[SmartPhase] Schedule:', todaySchedule.length, 'lessons, endTime:', endTime, 'isSchoolDay:', isSchoolDay);
+    return endTime;
   }, [todaySchedule, isSchoolDay, schoolQuestEnabled]);
 
-  const [currentPhase, setCurrentPhase] = useState<Phase>(() => 
-    getSmartPhase(schoolEndTime, isSchoolDay && schoolQuestEnabled)
-  );
+  // Calculate initial phase based on schoolEndTime (calculated synchronously in useMemo)
+  const initialPhase = useMemo(() => {
+    const phase = getSmartPhase(schoolEndTime, isSchoolDay && schoolQuestEnabled);
+    console.log('[SmartPhase] Calculated phase:', phase, 'schoolEndTime:', schoolEndTime, 'currentTime:', new Date().toLocaleTimeString());
+    return phase;
+  }, [schoolEndTime, isSchoolDay, schoolQuestEnabled]);
+
+  const [currentPhase, setCurrentPhase] = useState<Phase>(initialPhase);
   const [phaseJustTransitioned, setPhaseJustTransitioned] = useState(false);
-  const [lastPhase, setLastPhase] = useState<Phase>(currentPhase);
+  const [lastPhase, setLastPhase] = useState<Phase>(initialPhase);
+
+  // Sync currentPhase when initialPhase changes (e.g., schedule loads)
+  useEffect(() => {
+    setCurrentPhase(initialPhase);
+    setLastPhase(initialPhase);
+  }, [initialPhase]);
 
   // Calculate time until next phase
   const timeUntilNextPhase = useMemo(() => {
@@ -138,6 +151,7 @@ export function useSmartPhase(
       
       if (newPhase !== lastPhase) {
         // Phase transition detected!
+        console.log('[SmartPhase] Phase transition:', lastPhase, '->', newPhase);
         setCurrentPhase(newPhase);
         setLastPhase(newPhase);
         
@@ -153,21 +167,11 @@ export function useSmartPhase(
       }
     };
 
-    // Initial check
-    checkPhase();
-
     // Set up interval to check every minute
     const interval = setInterval(checkPhase, CHECK_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [schoolEndTime, isSchoolDay, schoolQuestEnabled, lastPhase]);
-
-  // Update when schedule changes
-  useEffect(() => {
-    const newPhase = getSmartPhase(schoolEndTime, isSchoolDay && schoolQuestEnabled);
-    setCurrentPhase(newPhase);
-    setLastPhase(newPhase);
-  }, [schoolEndTime, isSchoolDay, schoolQuestEnabled]);
 
   return {
     currentPhase,
