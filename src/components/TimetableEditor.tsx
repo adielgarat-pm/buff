@@ -17,19 +17,30 @@ interface TimetableEditorProps {
   fridayEnabled?: boolean;
 }
 
-const DEFAULT_PERIOD_TIMES = [
-  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00', '14:50', '15:40'
-];
-
 const PERIOD_LABELS_HE = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳', 'ח׳', 'ט׳', 'י׳'];
 
-// Build timetable preserving existing data - no default empty slots
+// Format time to HH:mm (strip seconds if present)
+const formatTime = (time: string): string => {
+  if (!time) return '08:00';
+  // Handle HH:mm:ss format by trimming to HH:mm
+  const parts = time.split(':');
+  if (parts.length >= 2) {
+    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+  }
+  return time;
+};
+
+// Build timetable preserving EXACT data from database - no modifications
 const buildInitialTimetable = (timetable: Timetable, includeFriday: boolean): Timetable => {
   const initial: Timetable = {};
   const days = includeFriday ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
   days.forEach(day => {
-    // Only keep existing lessons from DB, don't create empty placeholders
-    initial[day] = timetable[day] || [];
+    // Preserve exact DB data, only format times for display
+    const dayData = timetable[day] || [];
+    initial[day] = dayData.map(period => ({
+      ...period,
+      startTime: formatTime(period.startTime),
+    }));
   });
   return initial;
 };
