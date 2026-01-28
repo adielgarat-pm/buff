@@ -8,7 +8,7 @@ import { Save, Clock, Backpack, Plus, Check, Loader2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { cn } from '@/lib/utils';
-
+import { toast } from '@/hooks/use-toast';
 interface TimetableEditorProps {
   open: boolean;
   onClose: () => void;
@@ -97,12 +97,23 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     try {
       await onSave(localTimetable);
       setShowSuccess(true);
+      toast({
+        title: "✅ נשמר בהצלחה!",
+        description: "המערכת והציוד נשמרו בהצלחה!",
+        duration: 4000,
+      });
       setTimeout(() => {
         onClose();
         setShowSuccess(false);
       }, 800);
     } catch (error) {
       console.error('Error saving timetable:', error);
+      toast({
+        title: "שגיאה בשמירה",
+        description: "לא הצלחנו לשמור את השינויים. נסו שוב.",
+        variant: "destructive",
+        duration: 4000,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -308,31 +319,32 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
           </div>
         </ScrollArea>
 
-        {/* Save Button */}
-        <div className="flex justify-end pt-2 border-t border-border">
+        {/* Save Button - Sticky Footer */}
+        <div className="sticky bottom-0 bg-card pt-4 pb-2 border-t border-border -mx-6 px-6 -mb-6">
           <Button 
             onClick={handleSave} 
             disabled={isSaving}
+            size="lg"
             className={cn(
-              "min-w-[140px] transition-all",
+              "w-full h-14 text-lg font-bold transition-all shadow-lg",
               showSuccess 
                 ? "bg-green-600 hover:bg-green-600" 
-                : "bg-primary text-primary-foreground"
+                : "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                <Loader2 className="w-5 h-5 ml-2 animate-spin" />
                 שומר...
               </>
             ) : showSuccess ? (
               <>
-                <Check className="w-4 h-4 ml-2" />
-                המערכת והציוד עודכנו!
+                <Check className="w-5 h-5 ml-2" />
+                נשמר בהצלחה!
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 ml-2" />
+                <Save className="w-5 h-5 ml-2" />
                 שמירת שינויים
               </>
             )}
