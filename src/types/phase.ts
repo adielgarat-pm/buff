@@ -68,6 +68,45 @@ export function getCurrentPhase(): Phase {
   return 'evening';
 }
 
+/**
+ * Get current phase with custom school end time
+ * @param schoolEndTime Optional school end time in HH:MM format
+ * @param isSchoolDay Whether today is a school day
+ */
+export function getSmartCurrentPhase(schoolEndTime: string | null, isSchoolDay: boolean): Phase {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  
+  // Morning phase: 6:00 AM - 9:00 AM
+  if (currentMinutes >= 360 && currentMinutes < 540) {
+    return 'morning';
+  }
+  
+  // Evening phase: 8:00 PM - midnight
+  if (currentMinutes >= 1200) {
+    return 'evening';
+  }
+  
+  // Parse school end time or use default
+  let schoolEndMinutes = 840; // Default 14:00
+  if (schoolEndTime) {
+    const [hours, minutes] = schoolEndTime.split(':').map(Number);
+    schoolEndMinutes = hours * 60 + minutes;
+  }
+  
+  // School phase: 9:00 AM until school ends
+  if (isSchoolDay && currentMinutes >= 540 && currentMinutes < schoolEndMinutes) {
+    return 'school';
+  }
+  
+  // Afternoon phase: after school ends until 8:00 PM
+  if (currentMinutes >= Math.min(schoolEndMinutes, 540) && currentMinutes < 1200) {
+    return 'afternoon';
+  }
+  
+  return getCurrentPhase();
+}
+
 export function getPhaseConfig(phase: Phase): PhaseConfig {
   return PHASES.find(p => p.id === phase) || PHASES[0];
 }

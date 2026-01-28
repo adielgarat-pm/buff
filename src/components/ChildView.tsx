@@ -1,7 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { useMidnightReset } from '@/hooks/useMidnightReset';
+import { useSmartPhase } from '@/hooks/useSmartPhase';
 import { Header } from './Header';
 import { ProgressBar } from './ProgressBar';
 import { PhaseNavigation } from './PhaseNavigation';
@@ -13,8 +14,9 @@ import { InstallPrompt } from './InstallPrompt';
 import { NotificationPrompt } from './NotificationPrompt';
 import { NewDayBanner } from './NewDayBanner';
 import { WelcomeBanner } from './WelcomeBanner';
+import { PhaseTransitionBanner } from './PhaseTransitionBanner';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Phase, getCurrentPhase, getPhaseForTime } from '@/types/phase';
+import { Phase, getPhaseForTime } from '@/types/phase';
 
 interface ChildViewProps {
   isViewingAsChild?: boolean;
@@ -23,9 +25,7 @@ interface ChildViewProps {
 
 export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) {
   const { profile, signOut } = useAuth();
-  const [activePhase, setActivePhase] = useState<Phase>(getCurrentPhase());
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
-  const currentPhase = getCurrentPhase();
 
   // Pass viewingChildId to the store so it loads the correct child's data
   const {
@@ -57,6 +57,24 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     lessons,
     refetch,
   } = useSyncedTaskStore(viewingChildId);
+
+  // Smart phase transitions based on school schedule
+  const isSchoolDay = !isCurrentlyWeekend;
+  const {
+    currentPhase,
+    schoolEndTime,
+    phaseJustTransitioned,
+    dismissTransition,
+    timeUntilNextPhase,
+  } = useSmartPhase(todaySchedule, isSchoolDay, schoolQuestEnabled);
+
+  // Active phase state (user can manually switch)
+  const [activePhase, setActivePhase] = useState<Phase>(currentPhase);
+
+  // Auto-switch to current phase when it changes
+  useEffect(() => {
+    setActivePhase(currentPhase);
+  }, [currentPhase]);
 
   // Midnight reset - refresh data when day changes
   const handleMidnightReset = useCallback(() => {
@@ -131,6 +149,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
       {/* New Day Banner - shows at midnight */}
       <NewDayBanner show={showNewDayMessage} onDismiss={dismissNewDayMessage} />
+      
+      {/* Phase Transition Banner - shows when school ends */}
+      <PhaseTransitionBanner 
+        show={phaseJustTransitioned} 
+        fromPhase="school"
+        toPhase="afternoon"
+        onDismiss={dismissTransition}
+      />
       
       {/* Neon gradient glow - Gamer style */}
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
