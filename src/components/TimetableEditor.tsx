@@ -17,7 +17,8 @@ interface TimetableEditorProps {
   fridayEnabled?: boolean;
 }
 
-const PERIOD_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+// Dynamic period labels - no cap, generate on demand
+const getPeriodLabel = (index: number): string => String(index + 1);
 
 // Format time to HH:mm (strip seconds if present)
 const formatTime = (time: string): string => {
@@ -228,7 +229,7 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/20 text-primary font-bold text-sm">
-                      {PERIOD_LABELS[index] || index + 1}
+                      {getPeriodLabel(index)}
                     </span>
                     <Label className="text-foreground font-medium">שיעור {index + 1}</Label>
                   </div>
