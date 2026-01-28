@@ -295,52 +295,74 @@ Return ONLY the JSON object, nothing else.`
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-pro",
           messages: [
             {
               role: "system",
-              content: `You are a precise Hebrew school schedule OCR system. Extract timetable data from images.
+              content: `You are a precise Hebrew school schedule OCR system. Extract timetable data from images with EXACT positioning accuracy.
 
-CRITICAL EXTRACTION RULES:
-1. Return ONLY a valid JSON object - NO markdown, NO explanation, NO conversation.
-2. Hebrew tables are often RTL (Right-to-Left). Days may appear right-to-left.
-3. IMPORTANT: Israeli schools have a 6-DAY week (Sunday-Friday). Always look for 6 day columns.
-4. Hebrew day identification:
-   - ראשון / יום ראשון / א' = Sunday
-   - שני / יום שני / ב' = Monday  
-   - שלישי / יום שלישי / ג' = Tuesday
-   - רביעי / יום רביעי / ד' = Wednesday
-   - חמישי / יום חמישי / ה' = Thursday
-   - שישי / יום שישי / ו' = Friday (MUST BE INCLUDED IF PRESENT)
+CRITICAL TABLE STRUCTURE RULES:
+1. Hebrew tables are RTL (Right-to-Left). The RIGHTMOST column is typically Sunday (יום א'), and columns go LEFT toward Friday (יום ו').
+2. Israeli schools have a 6-DAY week (Sunday-Friday). Count the columns carefully - there should be 5 or 6 day columns.
+3. The FIRST column (usually leftmost in RTL) often contains TIME values.
+4. Each ROW represents ONE time slot. All cells in the same row share the SAME time.
+5. Each COLUMN represents ONE specific day. All cells in the same column belong to the SAME day.
 
-5. TIME EXTRACTION:
-   - Times are in HH:MM 24-hour format
-   - If time is missing but grid position is clear, infer from adjacent rows
-   - Common school times: 08:00, 08:45, 09:30, 10:15, 11:00, 11:45, 12:30, 13:15, 14:00, 14:45
+COLUMN-TO-DAY MAPPING (RTL - RIGHT TO LEFT):
+- Rightmost day column = יום א' (Sunday)
+- 2nd from right = יום ב' (Monday)
+- 3rd from right = יום ג' (Tuesday)
+- 4th from right = יום ד' (Wednesday)
+- 5th from right = יום ה' (Thursday)
+- 6th from right (leftmost day) = יום ו' (Friday) - if present
 
-6. LESSON NAME EXTRACTION:
-   - Extract Hebrew text exactly as shown
-   - If text is blurry/unclear, provide best guess with [?] suffix
-   - If cell is completely empty, set lesson_name to null
-   - Do NOT skip empty cells - include them with null
+STEP-BY-STEP EXTRACTION PROCESS:
+1. FIRST: Identify the day header row. Count how many day columns exist.
+2. SECOND: Identify time values in the time column (usually leftmost).
+3. THIRD: For EACH cell, determine its exact (row, column) position.
+4. FOURTH: Map the column to the correct day using RTL ordering.
+5. FIFTH: Assign the row's time to this cell's start_time.
 
-7. COMPLETENESS:
-   - Extract ALL visible rows and columns
-   - If a schedule shows 6 days (including Friday), include ALL 6 days
-   - Maintain grid structure - every cell becomes a lesson entry
-   - If a lesson spans multiple periods, create separate entries for each time slot
+VALIDATION RULES:
+- Each row should produce exactly N lessons (one per day column)
+- If a schedule has 7 rows × 6 days = 42 lesson entries (including nulls)
+- NEVER assign a lesson to the wrong day - the column position determines the day
+- If the same lesson name appears in different columns, they are DIFFERENT entries for DIFFERENT days
+
+TIME EXTRACTION:
+- Times are in HH:MM 24-hour format
+- Common school times: 08:00, 08:45, 09:30, 10:15, 11:00, 11:45, 12:30, 13:15, 14:00, 14:45
+- Each row typically adds ~45-50 minutes from the previous row
+
+LESSON NAME EXTRACTION:
+- Extract Hebrew text exactly as shown
+- Teacher names may appear after subject (e.g., "חשבון להט רות" = Math, teacher Lehat Rut)
+- If text is blurry/unclear, provide best guess with [?] suffix
+- If cell is completely empty, set lesson_name to null but STILL include the entry
 
 OUTPUT FORMAT (STRICTLY JSON):
-{"lessons":[{"day":"ראשון","start_time":"08:00","end_time":"08:45","lesson_name":"מתמטיקה"},{"day":"ראשון","start_time":"08:45","end_time":"09:30","lesson_name":null},...]}
+{"lessons":[
+  {"day":"יום א","start_time":"08:00","end_time":"08:45","lesson_name":"חשבון"},
+  {"day":"יום ב","start_time":"08:00","end_time":"08:45","lesson_name":"שפה"},
+  ...
+]}
 
-The same image must always produce the exact same JSON output. Be deterministic.`
+FINAL CHECK: Before outputting, verify that each row's lessons are correctly distributed across ALL day columns. A lesson in column 3 (from right) MUST be assigned to יום ג (Tuesday), not any other day.`
             },
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: "Extract the complete school schedule from this image. Return ONLY JSON."
+                  text: `Extract the complete school schedule from this image. 
+                  
+IMPORTANT: This is a Hebrew RTL table. Carefully identify:
+1. How many day columns exist (5 or 6)
+2. Which column corresponds to which day (rightmost = Sunday, leftmost = Friday if 6 days)
+3. The time for each row
+
+For EACH cell in the grid, create a lesson entry with the correct day based on its COLUMN position.
+Return ONLY JSON.`
                 },
                 {
                   type: "image_url",
@@ -351,7 +373,7 @@ The same image must always produce the exact same JSON output. Be deterministic.
               ]
             }
           ],
-          max_tokens: 8000,
+          max_tokens: 12000,
           response_format: { type: "json_object" }
         }),
       });
