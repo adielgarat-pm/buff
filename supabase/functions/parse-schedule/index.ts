@@ -336,7 +336,7 @@ Return ONLY the JSON object, nothing else.`
              messages: [
                {
                  role: "system",
-              content: `You are a precise Hebrew school schedule OCR system. Extract timetable data from images with EXACT positioning accuracy.
+               content: `You are a precise Hebrew school schedule OCR system. Extract timetable data from images with EXACT positioning accuracy.
 
 CRITICAL TABLE STRUCTURE RULES:
 1. Hebrew tables are RTL (Right-to-Left). The RIGHTMOST column is typically Sunday (יום א'), and columns go LEFT toward Friday (יום ו').
@@ -353,18 +353,26 @@ COLUMN-TO-DAY MAPPING (RTL - RIGHT TO LEFT):
 - 5th from right = יום ה' (Thursday)
 - 6th from right (leftmost day) = יום ו' (Friday) - if present
 
+STRICT HORIZONTAL ALIGNMENT RULES (CRITICAL FOR LATE LESSONS):
+- A lesson MUST be assigned to a day ONLY if its horizontal CENTER falls within that day's column boundaries.
+- Draw imaginary vertical lines between each day header. A lesson belongs to the column it physically sits in.
+- For rows with fewer cells (like a 7th period that only some days have), ONLY include entries for days that actually have a cell in that row.
+- If a day's column is EMPTY in a row (no cell exists), DO NOT create an entry for that day+time. Skip it entirely.
+- NEVER "fill in" missing slots by shifting lessons horizontally. Late lessons often appear in only 1-2 columns.
+
 STEP-BY-STEP EXTRACTION PROCESS:
-1. FIRST: Identify the day header row. Count how many day columns exist.
+1. FIRST: Identify the day header row. Note the exact X-coordinate boundaries of each column.
 2. SECOND: Identify time values in the time column (usually leftmost).
-3. THIRD: For EACH cell, determine its exact (row, column) position.
+3. THIRD: For EACH cell, determine its horizontal center point. Match it to the column whose boundaries contain that center.
 4. FOURTH: Map the column to the correct day using RTL ordering.
 5. FIFTH: Assign the row's time to this cell's start_time.
+6. SIXTH: If a row has fewer cells than days (common for 7th+ periods), only output entries for days that have cells.
 
 VALIDATION RULES:
-- Each row should produce exactly N lessons (one per day column)
-- If a schedule has 7 rows × 6 days = 42 lesson entries (including nulls)
-- NEVER assign a lesson to the wrong day - the column position determines the day
-- If the same lesson name appears in different columns, they are DIFFERENT entries for DIFFERENT days
+- Early rows (periods 1-5) typically have 5-6 entries (one per day).
+- Later rows (periods 6-7+) may have only 1-4 entries. This is NORMAL - some days end earlier.
+- NEVER assume a lesson belongs to Monday just because it's "the next column" - verify its actual position.
+- If lesson text appears to span or straddle a column boundary, flag it with [?] and assign to the column containing most of the text.
 
 TIME EXTRACTION:
 - Times are in HH:MM 24-hour format
@@ -375,16 +383,21 @@ LESSON NAME EXTRACTION:
 - Extract Hebrew text exactly as shown
 - Teacher names may appear after subject (e.g., "חשבון להט רות" = Math, teacher Lehat Rut)
 - If text is blurry/unclear, provide best guess with [?] suffix
-- If cell is completely empty, set lesson_name to null but STILL include the entry
+- If cell is completely empty or doesn't exist for that day, DO NOT include an entry
 
 OUTPUT FORMAT (STRICTLY JSON):
 {"lessons":[
   {"day":"יום א","start_time":"08:00","end_time":"08:45","lesson_name":"חשבון"},
   {"day":"יום ב","start_time":"08:00","end_time":"08:45","lesson_name":"שפה"},
   ...
-]}
+],
+"column_analysis": {
+  "num_day_columns": 6,
+  "days_detected": ["יום א", "יום ב", "יום ג", "יום ד", "יום ה", "יום ו"],
+  "rows_per_day": {"יום א": 6, "יום ב": 7, "יום ג": 6, "יום ד": 7, "יום ה": 6, "יום ו": 4}
+}}
 
-FINAL CHECK: Before outputting, verify that each row's lessons are correctly distributed across ALL day columns. A lesson in column 3 (from right) MUST be assigned to יום ג (Tuesday), not any other day.`
+FINAL CHECK: Count lessons per day. If one day has significantly more late-period lessons than others, verify the column alignment is correct. A 7th period lesson in column 3 (from right) MUST be assigned to יום ג (Tuesday), not יום ב.`
                },
                {
                  role: "user",
@@ -460,6 +473,11 @@ Return ONLY JSON.`
         
         console.log(`Raw lessons extracted: ${rawLessons.length}`);
         
+        // Log column analysis if available (for debugging)
+        if (parsed.column_analysis) {
+          console.log("Column analysis:", JSON.stringify(parsed.column_analysis));
+        }
+        
         // Validate each lesson and filter out invalid ones
         const validatedLessons: ParsedLesson[] = [];
         for (let i = 0; i < rawLessons.length; i++) {
@@ -470,6 +488,28 @@ Return ONLY JSON.`
         }
         
         console.log(`Validated lessons: ${validatedLessons.length}`);
+        
+        // Sanity check: detect potential misalignment by analyzing lesson distribution
+        const lessonsByDay: Record<string, number> = {};
+        const lateLessonsByDay: Record<string, number> = {}; // lessons after 11:45
+        validatedLessons.forEach(l => {
+          lessonsByDay[l.day] = (lessonsByDay[l.day] || 0) + 1;
+          if (l.start_time >= '11:45') {
+            lateLessonsByDay[l.day] = (lateLessonsByDay[l.day] || 0) + 1;
+          }
+        });
+        console.log("Lessons per day:", JSON.stringify(lessonsByDay));
+        console.log("Late lessons (after 11:45) per day:", JSON.stringify(lateLessonsByDay));
+        
+        // Flag potential misalignment: if one day has 3+ more late lessons than average
+        const lateCounts = Object.values(lateLessonsByDay);
+        if (lateCounts.length > 0) {
+          const avgLate = lateCounts.reduce((a, b) => a + b, 0) / lateCounts.length;
+          const maxLate = Math.max(...lateCounts);
+          if (maxLate >= avgLate + 2) {
+            console.warn("[SANITY CHECK] Potential column misalignment detected: one day has significantly more late lessons than others");
+          }
+        }
         
         parsedTasks = lessonsToTasks(validatedLessons);
         console.log(`Successfully parsed ${parsedTasks.length} tasks from image (${rawLessons.length - validatedLessons.length} discarded)`);

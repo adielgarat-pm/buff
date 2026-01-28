@@ -4,9 +4,10 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Save, Clock, Backpack, Plus, Check, Loader2 } from 'lucide-react';
+import { Save, Clock, Backpack, Plus, Check, Loader2, ArrowRightLeft } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 interface TimetableEditorProps {
@@ -178,6 +179,38 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     });
   };
 
+  // Move lesson to a different day (for fixing OCR mistakes)
+  const handleMoveToDay = (periodIndex: number, targetDay: WeekDay) => {
+    if (targetDay === selectedDay) return;
+    
+    const lessonToMove = localTimetable[selectedDay][periodIndex];
+    
+    setLocalTimetable(prev => {
+      const updated = { ...prev };
+      
+      // Remove from current day
+      updated[selectedDay] = updated[selectedDay].filter((_, i) => i !== periodIndex);
+      
+      // Add to target day (insert at the correct position based on time)
+      const targetLessons = [...(updated[targetDay] || [])];
+      const insertIndex = targetLessons.findIndex(l => l.startTime > lessonToMove.startTime);
+      if (insertIndex === -1) {
+        targetLessons.push(lessonToMove);
+      } else {
+        targetLessons.splice(insertIndex, 0, lessonToMove);
+      }
+      updated[targetDay] = targetLessons;
+      
+      return updated;
+    });
+    
+    toast({
+      title: "✓ שיעור הועבר",
+      description: `השיעור "${lessonToMove.subject}" הועבר ל${WEEK_DAY_LABELS[targetDay]}`,
+      duration: 3000,
+    });
+  };
+
   // Helper to increment time
   function incrementTime(time: string, minutes: number): string {
     const [hours, mins] = time.split(':').map(Number);
@@ -295,14 +328,35 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                   </div>
                 )}
                 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleApplyToAll(index)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  החל זמן על כל הימים
-                </Button>
+                {/* Action buttons row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleApplyToAll(index)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    החל זמן על כל הימים
+                  </Button>
+                  
+                  {/* Move to Day dropdown */}
+                  <Select
+                    value=""
+                    onValueChange={(targetDay) => handleMoveToDay(index, targetDay as WeekDay)}
+                  >
+                    <SelectTrigger className="h-8 w-auto px-2 gap-1 text-xs text-muted-foreground hover:text-foreground border-none bg-transparent">
+                      <ArrowRightLeft className="w-3 h-3" />
+                      <span>העבר ליום...</span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {displayDays.filter(d => d !== selectedDay).map(day => (
+                        <SelectItem key={day} value={day}>
+                          {WEEK_DAY_LABELS[day]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               );
             })}
