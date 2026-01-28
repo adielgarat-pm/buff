@@ -846,8 +846,9 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
                   onClick={() => setTimetableEditorOpen(true)}
                   className="border-primary text-primary hover:bg-primary/10"
                 >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Edit
+                  <Calendar className="w-4 h-4 ml-1" />
+                  <span className="text-lg ml-1">🎒</span>
+                  ניהול מערכת וציוד
                 </Button>
               </div>
             </div>

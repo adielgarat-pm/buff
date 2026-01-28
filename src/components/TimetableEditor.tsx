@@ -184,9 +184,9 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-foreground">מערכת שעות שבועית</DialogTitle>
+          <DialogTitle className="text-foreground font-bold">ניהול מערכת וציוד נדרש</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            הגדירו מקצועות וזמני שיעורים לכל יום.
+            הגדירו מקצועות, זמני שיעורים וציוד נדרש לכל יום.
           </DialogDescription>
         </DialogHeader>
 
@@ -268,13 +268,13 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
 
                 {/* Equipment Field - Only show when subject exists */}
                 {period.subject && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <Backpack className="w-3 h-3" />
-                      ציוד נדרש
+                  <div className="bg-secondary/30 rounded-lg p-3 border border-border/50">
+                    <Label className="text-sm text-foreground font-semibold mb-2 flex items-center gap-2">
+                      <span className="text-lg">🎒</span>
+                      ציוד נדרש לשיעור
                     </Label>
                     <Textarea
-                      placeholder="מחברת, ספר לימוד, מחשבון..."
+                      placeholder="מה להכניס לתיק? (למשל: נעלי ספורט, תיקיית אמנות)"
                       value={period.equipment || ''}
                       onChange={(e) => handleEquipmentChange(index, e.target.value)}
                       className="bg-background border-border text-foreground min-h-[60px] text-sm"
@@ -302,7 +302,7 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
               className="w-full gap-2 border-dashed border-2 text-muted-foreground hover:text-foreground hover:border-primary/50"
             >
               <Plus className="w-4 h-4" />
-              + הוספת שיעור
+              + הוספת שיעור וציוד
             </Button>
           </div>
         </ScrollArea>
@@ -327,7 +327,7 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
             ) : showSuccess ? (
               <>
                 <Check className="w-4 h-4 ml-2" />
-                נשמר בהצלחה!
+                המערכת והציוד עודכנו!
               </>
             ) : (
               <>

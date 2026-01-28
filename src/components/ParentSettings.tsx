@@ -639,8 +639,9 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
                 onClick={() => setTimetableEditorOpen(true)}
                 className="w-full touch-target"
               >
-                <Calendar className="w-4 h-4 ml-2" />
-                עריכה ידנית
+                <Calendar className="w-4 h-4 ml-1" />
+                <span className="text-lg ml-1">🎒</span>
+                ניהול מערכת וציוד
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center">

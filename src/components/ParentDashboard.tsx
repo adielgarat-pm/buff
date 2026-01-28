@@ -374,8 +374,9 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
                 onClick={() => setTimetableEditorOpen(true)}
                 className="flex-1 touch-target"
               >
-                <Calendar className="w-4 h-4 mr-2" />
-                Edit
+                <Calendar className="w-4 h-4 ml-1" />
+                <span className="text-lg ml-1">🎒</span>
+                ניהול מערכת וציוד
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center">
