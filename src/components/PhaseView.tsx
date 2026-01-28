@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Task, Lesson, PeriodInfo } from '@/types/task';
-import { Phase, getPhaseConfig, getPhaseForTime } from '@/types/phase';
+import { Phase, getPhaseConfig, getSmartPhaseForTime } from '@/types/phase';
 import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
 import { SchoolDaySection } from './SchoolDaySection';
@@ -22,6 +22,8 @@ interface PhaseViewProps {
   onBuffActivated?: () => void;
   fridayEnabled?: boolean;
   schoolQuestEnabled?: boolean;
+  schoolEndTime?: string | null;
+  isSchoolDay?: boolean;
 }
 
 export function PhaseView({
@@ -36,15 +38,19 @@ export function PhaseView({
   onBuffActivated,
   fridayEnabled = false,
   schoolQuestEnabled = true,
+  schoolEndTime = null,
+  isSchoolDay = true,
 }: PhaseViewProps) {
   const { language, t } = useLanguage();
   const [focusMode, setFocusMode] = useState(false);
   const phaseConfig = getPhaseConfig(phase);
   
-  // Filter tasks by phase
+  // Filter tasks by phase using smart logic that considers actual school end time
   const phaseTasks = useMemo(() => {
-    return tasks.filter(task => getPhaseForTime(task.time) === phase);
-  }, [tasks, phase]);
+    return tasks.filter(task => 
+      getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay && schoolQuestEnabled) === phase
+    );
+  }, [tasks, phase, schoolEndTime, isSchoolDay, schoolQuestEnabled]);
   
   // Get the next incomplete task for focus mode
   const nextTask = useMemo(() => {
