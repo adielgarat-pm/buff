@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ScrollArea } from './ui/scroll-area';
+import { Progress } from './ui/progress';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -13,8 +14,11 @@ import {
   Loader2, 
   Clock,
   Calendar,
-  Info
+  Info,
+  RefreshCw,
+  X
 } from 'lucide-react';
+import { optimizeImage, isImageFile } from '@/utils/imageOptimizer';
 import { cn } from '@/lib/utils';
 import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
 import { supabase } from '@/integrations/supabase/client';
@@ -90,94 +94,170 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
   const [isProcessing, setIsProcessing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [defaultTimesApplied, setDefaultTimesApplied] = useState(false);
+  
+  // Progress tracking state
+  const [processingStatus, setProcessingStatus] = useState<'optimizing' | 'uploading' | 'analyzing' | 'parsing'>('optimizing');
+  const [retryCount, setRetryCount] = useState(0);
+  const [maxRetries] = useState(2);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Determine which days to display based on Friday setting
   const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
+  // Cancel current processing
+  const handleCancelProcessing = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setStep('upload');
+    setIsProcessing(false);
+    setRetryCount(0);
+    setProcessingStatus('optimizing');
+  }, []);
+
+  // Process parsed tasks into periods with default times
+  const processTasksIntoPeriods = useCallback((tasks: any[]) => {
+    // Group tasks by day to apply default times per-day
+    const tasksByDay: Record<string, any[]> = {};
+    (tasks || []).forEach((t: any) => {
+      const day = t.day || 'sunday';
+      if (!tasksByDay[day]) tasksByDay[day] = [];
+      tasksByDay[day].push(t);
+    });
+
+    let appliedDefaults = false;
+    const periods: ParsedPeriod[] = [];
+    
+    // Process each day and apply default times if missing
+    Object.entries(tasksByDay).forEach(([day, dayTasks]) => {
+      // Sort by existing time if available
+      dayTasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+      
+      dayTasks.forEach((t, index) => {
+        let time = t.time;
+        
+        // Apply default time if missing
+        if (isMissingTime(time)) {
+          const defaults = generateDefaultTime(index);
+          time = defaults.startTime;
+          appliedDefaults = true;
+        }
+        
+        periods.push({
+          id: generateId(),
+          subject: t.title,
+          time: time,
+          day: day as WeekDay,
+          selected: true,
+        });
+      });
+    });
+
+    return { periods, appliedDefaults };
+  }, []);
+
+  // Core API call with retry logic
+  const callOCRWithRetry = useCallback(async (
+    body: { imageBase64?: string; excelData?: any; fileType: string },
+    attempt: number = 1
+  ): Promise<{ data: any; error: string | null }> => {
+    setRetryCount(attempt);
+    setProcessingStatus('analyzing');
+    
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    // Timeout: 50s for first attempt, 60s for retry
+    const timeout = attempt === 1 ? 50000 : 60000;
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-schedule`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      
+      // If aborted by user, don't retry
+      if (err.name === 'AbortError' && !controller.signal.aborted) {
+        // Timeout - try again if we have retries left
+        if (attempt < maxRetries) {
+          console.log(`[OCR] Attempt ${attempt} timed out, retrying...`);
+          return callOCRWithRetry(body, attempt + 1);
+        }
+        return { data: null, error: 'התהליך ארך יותר מדי זמן. נסה שוב או העלה תמונה קטנה/חדה יותר.' };
+      }
+      
+      if (controller.signal.aborted) {
+        return { data: null, error: 'בוטל על ידי המשתמש' };
+      }
+
+      // Other errors - retry if we have attempts left
+      if (attempt < maxRetries && !err.message.includes('Rate limit') && !err.message.includes('credits')) {
+        console.log(`[OCR] Attempt ${attempt} failed: ${err.message}, retrying...`);
+        return callOCRWithRetry(body, attempt + 1);
+      }
+      
+      return { data: null, error: err.message };
+    }
+  }, [maxRetries]);
+
   const handleFileUpload = useCallback(async (file: File) => {
     setStep('processing');
     setIsProcessing(true);
+    setRetryCount(0);
+    setProcessingStatus('optimizing');
 
     try {
-     const withTimeout = async <T,>(p: Promise<T>, ms: number, message: string): Promise<T> => {
-       let t: ReturnType<typeof setTimeout> | undefined;
-       try {
-         return await Promise.race([
-           p,
-           new Promise<T>((_, reject) => {
-             t = setTimeout(() => reject(new Error(message)), ms);
-           }),
-         ]);
-       } finally {
-         if (t) clearTimeout(t);
-       }
-     };
-
-      const isImage = file.type.startsWith('image/');
+      const isImage = isImageFile(file);
       const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
 
       if (isImage) {
-        // Convert image to base64
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
-            const base64Data = result.split(',')[1];
-            resolve(base64Data);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+        // Step 1: Optimize image (resize & compress)
+        setProcessingStatus('optimizing');
+        const optimized = await optimizeImage(file);
+        console.log(`[TimetableImporter] Image optimized: ${optimized.width}x${optimized.height}, ${(optimized.optimizedSize / 1024).toFixed(1)}KB`);
 
-        // Call edge function for AI processing
-       const { data, error } = await withTimeout(
-         supabase.functions.invoke('parse-schedule', {
-           body: { imageBase64: base64, fileType: 'image' },
-         }),
-         45000,
-         'התהליך ארך יותר מדי זמן. נסה שוב או העלה תמונה קטנה/חדה יותר.'
-       );
-
-        if (error) throw new Error(error.message);
-        if (data.error) throw new Error(data.error);
-
-        // Group tasks by day to apply default times per-day
-        const tasksByDay: Record<string, any[]> = {};
-        (data.tasks || []).forEach((t: any) => {
-          const day = t.day || 'sunday';
-          if (!tasksByDay[day]) tasksByDay[day] = [];
-          tasksByDay[day].push(t);
-        });
-
-        let appliedDefaults = false;
-        const periods: ParsedPeriod[] = [];
+        // Step 2: Upload & analyze
+        setProcessingStatus('uploading');
         
-        // Process each day and apply default times if missing
-        Object.entries(tasksByDay).forEach(([day, dayTasks]) => {
-          // Sort by existing time if available
-          dayTasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-          
-          dayTasks.forEach((t, index) => {
-            let time = t.time;
-            
-            // Apply default time if missing
-            if (isMissingTime(time)) {
-              const defaults = generateDefaultTime(index);
-              time = defaults.startTime;
-              appliedDefaults = true;
-            }
-            
-            periods.push({
-              id: generateId(),
-              subject: t.title,
-              time: time,
-              day: day as WeekDay,
-              selected: true,
-            });
-          });
+        const { data, error } = await callOCRWithRetry({
+          imageBase64: optimized.base64,
+          fileType: 'image',
         });
+
+        if (error) {
+          throw new Error(error);
+        }
+
+        // Step 3: Parse results
+        setProcessingStatus('parsing');
+        const { periods, appliedDefaults } = processTasksIntoPeriods(data.tasks);
 
         setDefaultTimesApplied(appliedDefaults);
         setParsedPeriods(periods);
@@ -189,69 +269,36 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           toast.success(`Found ${periods.length} lessons in your schedule!`);
         }
 
-       } else if (isExcel) {
+      } else if (isExcel) {
         // Parse Excel file
+        setProcessingStatus('uploading');
         const arrayBuffer = await file.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
         // Call edge function for processing
-         const { data, error } = await withTimeout(
-           supabase.functions.invoke('parse-schedule', {
-             body: { excelData: jsonData, fileType: 'excel' },
-           }),
-           45000,
-           'התהליך ארך יותר מדי זמן. נסה שוב או העלה קובץ אקסל קטן יותר.'
-         );
-
-        if (error) throw new Error(error.message);
-        if (data.error) throw new Error(data.error);
-
-        // Group tasks by day to apply default times per-day
-        const excelTasksByDay: Record<string, any[]> = {};
-        (data.tasks || []).forEach((t: any) => {
-          const day = t.day || 'sunday';
-          if (!excelTasksByDay[day]) excelTasksByDay[day] = [];
-          excelTasksByDay[day].push(t);
+        const { data, error } = await callOCRWithRetry({
+          excelData: jsonData,
+          fileType: 'excel',
         });
 
-        let excelAppliedDefaults = false;
-        const excelPeriods: ParsedPeriod[] = [];
-        
-        // Process each day and apply default times if missing
-        Object.entries(excelTasksByDay).forEach(([day, dayTasks]) => {
-          // Sort by existing time if available
-          dayTasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-          
-          dayTasks.forEach((t, index) => {
-            let time = t.time;
-            
-            // Apply default time if missing
-            if (isMissingTime(time)) {
-              const defaults = generateDefaultTime(index);
-              time = defaults.startTime;
-              excelAppliedDefaults = true;
-            }
-            
-            excelPeriods.push({
-              id: generateId(),
-              subject: t.title,
-              time: time,
-              day: day as WeekDay,
-              selected: true,
-            });
-          });
-        });
+        if (error) {
+          throw new Error(error);
+        }
 
-        setDefaultTimesApplied(excelAppliedDefaults);
-        setParsedPeriods(excelPeriods);
+        // Parse results
+        setProcessingStatus('parsing');
+        const { periods, appliedDefaults } = processTasksIntoPeriods(data.tasks);
+
+        setDefaultTimesApplied(appliedDefaults);
+        setParsedPeriods(periods);
         setStep('review');
         
-        if (excelAppliedDefaults) {
-          toast.success(`נמצאו ${excelPeriods.length} שיעורים! הוספנו שעות ברירת מחדל לשיעורים ללא זמן.`);
+        if (appliedDefaults) {
+          toast.success(`נמצאו ${periods.length} שיעורים! הוספנו שעות ברירת מחדל לשיעורים ללא זמן.`);
         } else {
-          toast.success(`Found ${excelPeriods.length} lessons in your spreadsheet!`);
+          toast.success(`Found ${periods.length} lessons in your spreadsheet!`);
         }
 
       } else {
@@ -263,8 +310,10 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       setStep('upload');
     } finally {
       setIsProcessing(false);
+      setRetryCount(0);
+      abortControllerRef.current = null;
     }
-  }, []);
+  }, [callOCRWithRetry, processTasksIntoPeriods]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -412,22 +461,61 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     );
   }
 
-  // Processing Step
+  // Processing Step with detailed progress
   if (step === 'processing') {
+    const statusLabels: Record<typeof processingStatus, { label: string; progress: number }> = {
+      optimizing: { label: 'מכווץ את התמונה...', progress: 15 },
+      uploading: { label: 'מעלה לשרת...', progress: 35 },
+      analyzing: { label: `מעבד את התמונה... (${retryCount}/${maxRetries})`, progress: 65 },
+      parsing: { label: 'מארגן את השיעורים...', progress: 90 },
+    };
+    
+    const currentStatus = statusLabels[processingStatus];
+
     return (
-      <div className="py-12 text-center space-y-4">
+      <div className="py-8 text-center space-y-6">
         <div className="relative mx-auto w-20 h-20">
           <Loader2 className="w-20 h-20 animate-spin text-primary" />
           <Zap className="absolute inset-0 m-auto w-8 h-8 text-buff animate-pulse" />
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-1">
+        
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-foreground">
             מנתח את המערכת... ⚡
           </h3>
           <p className="text-sm text-muted-foreground">
-            מזהה שיעורים, שעות וימים באמצעות AI
+            {currentStatus.label}
           </p>
         </div>
+
+        {/* Progress bar */}
+        <div className="max-w-xs mx-auto space-y-2">
+          <Progress value={currentStatus.progress} className="h-2" />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>התחלה</span>
+            <span>{currentStatus.progress}%</span>
+            <span>סיום</span>
+          </div>
+        </div>
+
+        {/* Retry indicator */}
+        {retryCount > 1 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-warning-foreground">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>ניסיון {retryCount} מתוך {maxRetries}</span>
+          </div>
+        )}
+
+        {/* Cancel button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleCancelProcessing}
+          className="gap-2"
+        >
+          <X className="w-4 h-4" />
+          ביטול
+        </Button>
       </div>
     );
   }
