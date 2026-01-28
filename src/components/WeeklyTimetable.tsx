@@ -1,18 +1,21 @@
 import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WeekDay, PeriodInfo } from '@/types/task';
-import { Clock, BookOpen, Settings2, Check, X } from 'lucide-react';
+import { Clock, BookOpen, Settings2, Check, X, Backpack } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
 import { TimetableEditor } from './TimetableEditor';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface WeeklyTimetableProps {
   timetable: Timetable;
   onUpdateTimetable: (timetable: Timetable) => void;
   fridayEnabled?: boolean;
+  isParentView?: boolean; // Zen styling for parent
 }
 
-export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = false }: WeeklyTimetableProps) {
+export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = false, isParentView = false }: WeeklyTimetableProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   
   // Determine which days to show
@@ -34,6 +37,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   const [editingPeriod, setEditingPeriod] = useState<{ day: WeekDay; index: number } | null>(null);
   const [editingSubject, setEditingSubject] = useState('');
   const [editingTime, setEditingTime] = useState('');
+  const [editingEquipment, setEditingEquipment] = useState('');
 
   const todayIndex = new Date().getDay();
   const isToday = (day: WeekDay) => {
@@ -42,11 +46,16 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   };
 
   const selectedSchedule = timetable[selectedDay] || [];
+  // Filter to only show lessons with subjects (for cleaner view)
+  const filteredSchedule = isParentView 
+    ? selectedSchedule.filter(p => p.subject) 
+    : selectedSchedule;
 
   const handleStartEdit = (day: WeekDay, index: number, period: PeriodInfo) => {
     setEditingPeriod({ day, index });
     setEditingSubject(period.subject);
     setEditingTime(period.startTime);
+    setEditingEquipment(period.equipment || '');
   };
 
   const handleSaveEdit = () => {
@@ -59,6 +68,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
       daySchedule[editingPeriod.index] = {
         subject: editingSubject,
         startTime: editingTime,
+        equipment: editingEquipment || undefined,
       };
       updatedTimetable[editingPeriod.day] = daySchedule;
       onUpdateTimetable(updatedTimetable);
@@ -71,6 +81,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
     setEditingPeriod(null);
     setEditingSubject('');
     setEditingTime('');
+    setEditingEquipment('');
   };
 
   const handleAddPeriod = () => {
@@ -83,13 +94,15 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
       ? incrementTime(lastPeriod.startTime, 50) 
       : '08:00';
     
-    daySchedule.push({ subject: '', startTime: nextTime });
+    daySchedule.push({ subject: '', startTime: nextTime, equipment: '' });
     updatedTimetable[selectedDay] = daySchedule;
     
     // Start editing the new period
-    setEditingPeriod({ day: selectedDay, index: daySchedule.length - 1 });
+    const newIndex = daySchedule.length - 1;
+    setEditingPeriod({ day: selectedDay, index: newIndex });
     setEditingSubject('');
     setEditingTime(nextTime);
+    setEditingEquipment('');
     
     onUpdateTimetable(updatedTimetable);
   };
@@ -205,57 +218,74 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-3 p-3 bg-primary/5"
+                    className="p-3 bg-primary/5 space-y-3"
                   >
-                    {/* Period Number */}
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary">
-                        {index + 1}
-                      </span>
-                    </div>
+                    <div className="flex items-center gap-3">
+                      {/* Period Number */}
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {index + 1}
+                        </span>
+                      </div>
 
-                    {/* Time Input */}
-                    <div className="flex items-center gap-1.5 w-24">
-                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                      {/* Time Input */}
+                      <div className="flex items-center gap-1.5 w-24">
+                        <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                        <Input
+                          type="time"
+                          value={editingTime}
+                          onChange={(e) => setEditingTime(e.target.value)}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+
+                      {/* Subject Input */}
                       <Input
-                        type="time"
-                        value={editingTime}
-                        onChange={(e) => setEditingTime(e.target.value)}
-                        className="h-8 text-sm"
+                        value={editingSubject}
+                        onChange={(e) => setEditingSubject(e.target.value)}
+                        placeholder="שם המקצוע"
+                        className="flex-1 h-8"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveEdit();
+                          if (e.key === 'Escape') handleCancelEdit();
+                        }}
                       />
+
+                      {/* Actions */}
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleSaveEdit}
+                          className="h-8 w-8 text-primary"
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleCancelEdit}
+                          className="h-8 w-8 text-muted-foreground"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
 
-                    {/* Subject Input */}
-                    <Input
-                      value={editingSubject}
-                      onChange={(e) => setEditingSubject(e.target.value)}
-                      placeholder="Subject name"
-                      className="flex-1 h-8"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSaveEdit();
-                        if (e.key === 'Escape') handleCancelEdit();
-                      }}
-                    />
-
-                    {/* Actions */}
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleSaveEdit}
-                        className="h-8 w-8 text-primary"
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleCancelEdit}
-                        className="h-8 w-8 text-muted-foreground"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                    {/* Equipment Input - Show when editing */}
+                    <div className="mr-11">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                        <Backpack className="w-3 h-3" />
+                        ציוד נדרש
+                      </div>
+                      <Textarea
+                        value={editingEquipment}
+                        onChange={(e) => setEditingEquipment(e.target.value)}
+                        placeholder="מחברת, ספר לימוד..."
+                        className="min-h-[50px] text-sm"
+                        rows={2}
+                      />
                     </div>
                   </div>
                 );
@@ -289,6 +319,33 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                       {period.subject || 'לחצו להוספת מקצוע...'}
                     </span>
                   </div>
+
+                  {/* Equipment indicator */}
+                  {period.equipment && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-10 w-10 text-buff hover:text-buff/80 flex-shrink-0"
+                        >
+                          <Backpack className="w-5 h-5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-3" align="end">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <Backpack className="w-4 h-4 text-buff" />
+                            ציוד נדרש
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                            {period.equipment}
+                          </p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
 
                   {/* Delete button - always visible on mobile for touch */}
                   <Button

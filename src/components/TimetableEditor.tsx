@@ -4,8 +4,9 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Save, Clock } from 'lucide-react';
+import { Save, Clock, Backpack } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
+import { Textarea } from './ui/textarea';
 
 interface TimetableEditorProps {
   open: boolean;
@@ -28,6 +29,7 @@ const buildInitialTimetable = (timetable: Timetable, includeFriday: boolean): Ti
     initial[day] = timetable[day] || DEFAULT_PERIOD_TIMES.map((time) => ({
       subject: '',
       startTime: time,
+      equipment: '',
     }));
   });
   return initial;
@@ -60,6 +62,15 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
       ...prev,
       [selectedDay]: prev[selectedDay].map((period, i) =>
         i === periodIndex ? { ...period, startTime } : period
+      ),
+    }));
+  };
+
+  const handleEquipmentChange = (periodIndex: number, equipment: string) => {
+    setLocalTimetable(prev => ({
+      ...prev,
+      [selectedDay]: prev[selectedDay].map((period, i) =>
+        i === periodIndex ? { ...period, equipment } : period
       ),
     }));
   };
@@ -156,6 +167,23 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                     </div>
                   </div>
                 </div>
+
+                {/* Equipment Field - Only show when subject exists */}
+                {period.subject && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Backpack className="w-3 h-3" />
+                      ציוד נדרש
+                    </Label>
+                    <Textarea
+                      placeholder="מחברת, ספר לימוד, מחשבון..."
+                      value={period.equipment || ''}
+                      onChange={(e) => handleEquipmentChange(index, e.target.value)}
+                      className="bg-background border-border text-foreground min-h-[60px] text-sm"
+                      rows={2}
+                    />
+                  </div>
+                )}
                 
                 <Button
                   size="sm"

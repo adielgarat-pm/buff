@@ -9,6 +9,7 @@ import { PhaseNavigation } from './PhaseNavigation';
 import { PhaseView } from './PhaseView';
 import { RewardsStore } from './RewardsStore';
 import { WeeklyTimetable } from './WeeklyTimetable';
+import { TomorrowsPrep } from './TomorrowsPrep';
 import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
 import { InstallPrompt } from './InstallPrompt';
 import { NotificationPrompt } from './NotificationPrompt';
@@ -213,6 +214,12 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           
           {activeTab === 'timetable' && (
             <div className="space-y-6">
+              {/* Tomorrow's Prep - Evening feature */}
+              <TomorrowsPrep 
+                timetable={timetable} 
+                fridayEnabled={fridayEnabled} 
+              />
+              
               <WeeklyTimetable 
                 timetable={timetable} 
                 onUpdateTimetable={updateTimetable} 

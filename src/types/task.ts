@@ -34,6 +34,7 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
 export interface PeriodInfo {
   subject: string;
   startTime: string; // HH:MM format
+  equipment?: string; // Required equipment for this lesson
 }
 
 export interface Timetable {
