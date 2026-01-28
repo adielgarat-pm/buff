@@ -55,6 +55,9 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const [lessonRemindersEnabled, setLessonRemindersEnabled] = useState(true);
   const [fridayEnabled, setFridayEnabled] = useState(false);
   const [schoolQuestEnabled, setSchoolQuestEnabled] = useState(true);
+  const [bagPrepEnabled, setBagPrepEnabled] = useState(true);
+  const [bagPrepCredits, setBagPrepCredits] = useState(20);
+  const [bagPrepCompleted, setBagPrepCompleted] = useState(false);
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,15 +174,32 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         .eq('family_id', familyId)
         .maybeSingle();
 
-      // Fetch child's school quest setting from profile (if viewing as child)
+      // Fetch child's settings from profile (if viewing as child)
       if (isViewingAsChild && effectiveChildId) {
         const { data: childProfileData } = await supabase
           .from('profiles')
-          .select('school_quest_enabled')
+          .select('school_quest_enabled, bag_prep_enabled, bag_prep_credits')
           .eq('id', effectiveChildId)
           .single();
         
         setSchoolQuestEnabled(childProfileData?.school_quest_enabled ?? true);
+        setBagPrepEnabled(childProfileData?.bag_prep_enabled ?? true);
+        setBagPrepCredits(childProfileData?.bag_prep_credits ?? 20);
+      }
+
+      // Check if bag prep is completed today
+      if (isViewingAsChild && effectiveChildId) {
+        const bagPrepTaskId = `bag_prep_${effectiveChildId}`;
+        const { data: bagPrepProgress } = await supabase
+          .from('daily_progress')
+          .select('completed')
+          .eq('family_id', familyId)
+          .eq('task_id', bagPrepTaskId)
+          .eq('date', todayKey)
+          .eq('child_id', effectiveChildId)
+          .maybeSingle();
+        
+        setBagPrepCompleted(bagPrepProgress?.completed ?? false);
       }
 
       // Map tasks with completion status
@@ -976,6 +996,77 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       .eq('family_id', familyId);
   }, [familyId]);
 
+  // Complete bag prep task
+  const completeBagPrep = useCallback(async () => {
+    if (!familyId || !effectiveChildId) return;
+    
+    const bagPrepTaskId = `bag_prep_${effectiveChildId}`;
+    
+    // Optimistic update
+    setBagPrepCompleted(true);
+    setTotalBalance(prev => prev + bagPrepCredits);
+    
+    try {
+      // Record the completion
+      await supabase
+        .from('daily_progress')
+        .upsert({
+          family_id: familyId,
+          task_id: bagPrepTaskId,
+          date: todayKey,
+          child_id: effectiveChildId,
+          completed: true,
+          completed_at: new Date().toISOString(),
+        }, { onConflict: 'family_id,task_id,date,child_id' });
+      
+      // Update credits using the RPC
+      await supabase.rpc('update_child_credits', {
+        p_child_id: effectiveChildId,
+        p_credit_change: bagPrepCredits,
+        p_is_completion: true,
+      });
+    } catch (error) {
+      console.error('Error completing bag prep:', error);
+      // Revert on error
+      setBagPrepCompleted(false);
+      setTotalBalance(prev => prev - bagPrepCredits);
+    }
+  }, [familyId, effectiveChildId, todayKey, bagPrepCredits]);
+
+  // Undo bag prep completion
+  const undoBagPrep = useCallback(async () => {
+    if (!familyId || !effectiveChildId) return;
+    
+    const bagPrepTaskId = `bag_prep_${effectiveChildId}`;
+    
+    // Optimistic update
+    setBagPrepCompleted(false);
+    setTotalBalance(prev => Math.max(0, prev - bagPrepCredits));
+    
+    try {
+      // Remove the completion record
+      await supabase
+        .from('daily_progress')
+        .delete()
+        .eq('family_id', familyId)
+        .eq('task_id', bagPrepTaskId)
+        .eq('date', todayKey)
+        .eq('child_id', effectiveChildId);
+      
+      // Deduct credits using the RPC
+      await supabase.rpc('update_child_credits', {
+        p_child_id: effectiveChildId,
+        p_credit_change: -bagPrepCredits,
+        p_is_completion: false,
+      });
+    } catch (error) {
+      console.error('Error undoing bag prep:', error);
+      // Revert on error
+      setBagPrepCompleted(true);
+      setTotalBalance(prev => prev + bagPrepCredits);
+    }
+  }, [familyId, effectiveChildId, todayKey, bagPrepCredits]);
+
   return {
     loading,
     tasks: visibleTasks,
@@ -996,6 +1087,9 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     lessonRemindersEnabled,
     fridayEnabled,
     schoolQuestEnabled,
+    bagPrepEnabled,
+    bagPrepCredits,
+    bagPrepCompleted,
     totalBalance,
     storeRewards,
     buffsActivatedToday,
@@ -1013,6 +1107,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     redeemStoreReward,
     updateStoreRewards,
     activateBuff,
+    completeBagPrep,
+    undoBagPrep,
     refetch: fetchFamilyData,
   };
 }

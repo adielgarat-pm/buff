@@ -262,6 +262,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bag_prep_credits: number
+          bag_prep_enabled: boolean
           birth_date: string | null
           created_at: string
           daily_goal: number
@@ -274,6 +276,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bag_prep_credits?: number
+          bag_prep_enabled?: boolean
           birth_date?: string | null
           created_at?: string
           daily_goal?: number
@@ -286,6 +290,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bag_prep_credits?: number
+          bag_prep_enabled?: boolean
           birth_date?: string | null
           created_at?: string
           daily_goal?: number
