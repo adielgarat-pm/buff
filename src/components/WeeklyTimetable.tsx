@@ -46,10 +46,10 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   };
 
   const selectedSchedule = timetable[selectedDay] || [];
-  // Filter to only show lessons with subjects (for cleaner view)
-  const filteredSchedule = isParentView 
-    ? selectedSchedule.filter(p => p.subject) 
-    : selectedSchedule;
+  
+  // Filter to only show lessons with subjects in view mode
+  // This hides empty/placeholder slots for a cleaner view
+  const displaySchedule = selectedSchedule.filter(p => p.subject && p.subject.trim() !== '');
 
   const handleStartEdit = (day: WeekDay, index: number, period: PeriodInfo) => {
     setEditingPeriod({ day, index });
@@ -171,7 +171,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
               <div>
                 <h3 className="font-semibold text-foreground capitalize">{WEEK_DAY_LABELS[selectedDay]}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {selectedSchedule.filter(p => p.subject).length} שיעורים מתוכננים
+                  {displaySchedule.length} שיעורים מתוכננים
                 </p>
               </div>
             </div>
@@ -198,26 +198,30 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
         </div>
 
         <div className="divide-y divide-border">
-          {selectedSchedule.length === 0 ? (
+          {displaySchedule.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              <p>אין מערכת ליום זה</p>
+              <p>אין שיעורים ליום זה</p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleAddPeriod}
-                className="mt-4"
+                className="mt-4 gap-2"
               >
                 + הוסף שיעור ראשון
               </Button>
             </div>
           ) : (
-            selectedSchedule.map((period, index) => {
-              const isEditing = editingPeriod?.day === selectedDay && editingPeriod?.index === index;
+            displaySchedule.map((period, index) => {
+              // Find the original index in selectedSchedule for editing
+              const originalIndex = selectedSchedule.findIndex(
+                p => p.subject === period.subject && p.startTime === period.startTime
+              );
+              const isEditing = editingPeriod?.day === selectedDay && editingPeriod?.index === originalIndex;
               
               if (isEditing) {
                 return (
                   <div
-                    key={index}
+                    key={`editing-${originalIndex}`}
                     className="p-3 bg-primary/5 space-y-3"
                   >
                     <div className="flex items-center gap-3">
@@ -293,8 +297,8 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
 
               return (
                 <div
-                  key={index}
-                  onClick={() => handleStartEdit(selectedDay, index, period)}
+                  key={`${period.startTime}-${period.subject}`}
+                  onClick={() => handleStartEdit(selectedDay, originalIndex, period)}
                   className="flex items-center gap-3 sm:gap-4 p-4 active:bg-secondary/50 transition-colors cursor-pointer group touch-feedback"
                 >
                   {/* Period Number */}
@@ -353,7 +357,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                     size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeletePeriod(index);
+                      handleDeletePeriod(originalIndex);
                     }}
                     className="h-10 w-10 text-destructive/70 active:text-destructive touch-target flex-shrink-0"
                   >

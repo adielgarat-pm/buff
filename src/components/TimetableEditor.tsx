@@ -4,9 +4,10 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Save, Clock, Backpack } from 'lucide-react';
+import { Save, Clock, Backpack, Plus, Check, Loader2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
+import { cn } from '@/lib/utils';
 
 interface TimetableEditorProps {
   open: boolean;
@@ -38,14 +39,16 @@ const buildInitialTimetable = (timetable: Timetable, includeFriday: boolean): Ti
 export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnabled = false }: TimetableEditorProps) {
   const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
   const [localTimetable, setLocalTimetable] = useState<Timetable>(() => buildInitialTimetable(timetable, fridayEnabled));
-
   const [selectedDay, setSelectedDay] = useState<WeekDay>('sunday');
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
   useEffect(() => {
     if (!open) return;
     setLocalTimetable(buildInitialTimetable(timetable, fridayEnabled));
     setSelectedDay('sunday');
+    setShowSuccess(false);
   }, [open, timetable]);
 
   const handleSubjectChange = (periodIndex: number, subject: string) => {
@@ -75,9 +78,43 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     }));
   };
 
-  const handleSave = () => {
-    onSave(localTimetable);
-    onClose();
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave(localTimetable);
+      setShowSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setShowSuccess(false);
+      }, 800);
+    } catch (error) {
+      console.error('Error saving timetable:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddLesson = () => {
+    const currentDay = localTimetable[selectedDay] || [];
+    const lastLesson = currentDay[currentDay.length - 1];
+    const nextTime = lastLesson 
+      ? incrementTime(lastLesson.startTime, 50) 
+      : '08:00';
+    
+    setLocalTimetable(prev => ({
+      ...prev,
+      [selectedDay]: [
+        ...(prev[selectedDay] || []),
+        { subject: '', startTime: nextTime, equipment: '' }
+      ]
+    }));
+  };
+
+  const handleDeleteLesson = (periodIndex: number) => {
+    setLocalTimetable(prev => ({
+      ...prev,
+      [selectedDay]: prev[selectedDay].filter((_, i) => i !== periodIndex)
+    }));
   };
 
   const handleApplyToAll = (periodIndex: number) => {
@@ -96,6 +133,15 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
       return updated;
     });
   };
+
+  // Helper to increment time
+  function incrementTime(time: string, minutes: number): string {
+    const [hours, mins] = time.split(':').map(Number);
+    const totalMins = hours * 60 + mins + minutes;
+    const newHours = Math.floor(totalMins / 60) % 24;
+    const newMins = totalMins % 60;
+    return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
+  }
 
   return (
     <Dialog
@@ -137,11 +183,21 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                 key={index}
                 className="p-3 rounded-xl bg-secondary/30 border border-border space-y-2"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/20 text-primary font-bold text-sm">
-                    {PERIOD_LABELS_HE[index] || index + 1}
-                  </span>
-                  <Label className="text-foreground font-medium">שיעור {PERIOD_LABELS_HE[index] || index + 1}</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/20 text-primary font-bold text-sm">
+                      {PERIOD_LABELS_HE[index] || index + 1}
+                    </span>
+                    <Label className="text-foreground font-medium">שיעור {PERIOD_LABELS_HE[index] || index + 1}</Label>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDeleteLesson(index)}
+                    className="h-8 w-8 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <span className="text-lg">×</span>
+                  </Button>
                 </div>
                 
                 <div className="flex gap-3">
@@ -195,14 +251,47 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                 </Button>
               </div>
             ))}
+            
+            {/* Add Lesson Button */}
+            <Button
+              variant="outline"
+              onClick={handleAddLesson}
+              className="w-full gap-2 border-dashed border-2 text-muted-foreground hover:text-foreground hover:border-primary/50"
+            >
+              <Plus className="w-4 h-4" />
+              + הוספת שיעור
+            </Button>
           </div>
         </ScrollArea>
 
         {/* Save Button */}
-        <div className="flex justify-end pt-2">
-          <Button onClick={handleSave} className="bg-primary text-primary-foreground">
-            <Save className="w-4 h-4 ml-2" />
-            שמור מערכת
+        <div className="flex justify-end pt-2 border-t border-border">
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            className={cn(
+              "min-w-[140px] transition-all",
+              showSuccess 
+                ? "bg-green-600 hover:bg-green-600" 
+                : "bg-primary text-primary-foreground"
+            )}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                שומר...
+              </>
+            ) : showSuccess ? (
+              <>
+                <Check className="w-4 h-4 ml-2" />
+                נשמר בהצלחה!
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 ml-2" />
+                שמירת שינויים
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>
