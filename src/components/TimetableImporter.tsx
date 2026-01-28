@@ -12,7 +12,8 @@ import {
   Check, 
   Loader2, 
   Clock,
-  Calendar
+  Calendar,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
@@ -36,15 +37,51 @@ interface TimetableImporterProps {
   fridayEnabled?: boolean;
 }
 
-const DEFAULT_PERIOD_TIMES = [
-  '08:00', '08:50', '09:40', '10:40', '11:30', '12:20', '13:10', '14:00', '14:50', '15:40'
-];
+// Generate default times using the "Buff Standard" algorithm:
+// - Lesson 1 starts at 08:00
+// - Each lesson is 50 minutes
+// - 20-minute break after every 2nd lesson
+const generateDefaultTime = (lessonIndex: number): { startTime: string; endTime: string } => {
+  const LESSON_DURATION = 50; // minutes
+  const BREAK_DURATION = 20; // minutes after every 2nd lesson
+  
+  let currentMinutes = 8 * 60; // Start at 08:00
+  
+  for (let i = 0; i < lessonIndex; i++) {
+    currentMinutes += LESSON_DURATION;
+    // Add break after every 2nd lesson (after indices 1, 3, 5, etc.)
+    if ((i + 1) % 2 === 0) {
+      currentMinutes += BREAK_DURATION;
+    }
+  }
+  
+  const startHours = Math.floor(currentMinutes / 60);
+  const startMins = currentMinutes % 60;
+  const endMinutes = currentMinutes + LESSON_DURATION;
+  const endHours = Math.floor(endMinutes / 60);
+  const endMins = endMinutes % 60;
+  
+  return {
+    startTime: `${startHours.toString().padStart(2, '0')}:${startMins.toString().padStart(2, '0')}`,
+    endTime: `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`,
+  };
+};
+
+// Check if a time value is missing/invalid
+const isMissingTime = (time: string | undefined | null): boolean => {
+  if (!time) return true;
+  const trimmed = time.trim();
+  if (trimmed === '' || trimmed === '00:00' || trimmed === 'null') return true;
+  // Check if it's a valid HH:MM format
+  return !/^\d{1,2}:\d{2}$/.test(trimmed);
+};
 
 export function TimetableImporter({ onImport, onClose, currentTimetable, childName, fridayEnabled = false }: TimetableImporterProps) {
   const [step, setStep] = useState<'upload' | 'processing' | 'review'>('upload');
   const [parsedPeriods, setParsedPeriods] = useState<ParsedPeriod[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [defaultTimesApplied, setDefaultTimesApplied] = useState(false);
 
   // Determine which days to display based on Friday setting
   const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
@@ -80,17 +117,51 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         if (error) throw new Error(error.message);
         if (data.error) throw new Error(data.error);
 
-        const periods: ParsedPeriod[] = (data.tasks || []).map((t: any) => ({
-          id: generateId(),
-          subject: t.title,
-          time: t.time,
-          day: t.day as WeekDay,
-          selected: true,
-        }));
+        // Group tasks by day to apply default times per-day
+        const tasksByDay: Record<string, any[]> = {};
+        (data.tasks || []).forEach((t: any) => {
+          const day = t.day || 'sunday';
+          if (!tasksByDay[day]) tasksByDay[day] = [];
+          tasksByDay[day].push(t);
+        });
 
+        let appliedDefaults = false;
+        const periods: ParsedPeriod[] = [];
+        
+        // Process each day and apply default times if missing
+        Object.entries(tasksByDay).forEach(([day, dayTasks]) => {
+          // Sort by existing time if available
+          dayTasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+          
+          dayTasks.forEach((t, index) => {
+            let time = t.time;
+            
+            // Apply default time if missing
+            if (isMissingTime(time)) {
+              const defaults = generateDefaultTime(index);
+              time = defaults.startTime;
+              appliedDefaults = true;
+            }
+            
+            periods.push({
+              id: generateId(),
+              subject: t.title,
+              time: time,
+              day: day as WeekDay,
+              selected: true,
+            });
+          });
+        });
+
+        setDefaultTimesApplied(appliedDefaults);
         setParsedPeriods(periods);
         setStep('review');
-        toast.success(`Found ${periods.length} lessons in your schedule!`);
+        
+        if (appliedDefaults) {
+          toast.success(`נמצאו ${periods.length} שיעורים! הוספנו שעות ברירת מחדל לשיעורים ללא זמן.`);
+        } else {
+          toast.success(`Found ${periods.length} lessons in your schedule!`);
+        }
 
       } else if (isExcel) {
         // Parse Excel file
@@ -107,17 +178,51 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         if (error) throw new Error(error.message);
         if (data.error) throw new Error(data.error);
 
-        const periods: ParsedPeriod[] = (data.tasks || []).map((t: any) => ({
-          id: generateId(),
-          subject: t.title,
-          time: t.time,
-          day: t.day as WeekDay,
-          selected: true,
-        }));
+        // Group tasks by day to apply default times per-day
+        const excelTasksByDay: Record<string, any[]> = {};
+        (data.tasks || []).forEach((t: any) => {
+          const day = t.day || 'sunday';
+          if (!excelTasksByDay[day]) excelTasksByDay[day] = [];
+          excelTasksByDay[day].push(t);
+        });
 
-        setParsedPeriods(periods);
+        let excelAppliedDefaults = false;
+        const excelPeriods: ParsedPeriod[] = [];
+        
+        // Process each day and apply default times if missing
+        Object.entries(excelTasksByDay).forEach(([day, dayTasks]) => {
+          // Sort by existing time if available
+          dayTasks.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+          
+          dayTasks.forEach((t, index) => {
+            let time = t.time;
+            
+            // Apply default time if missing
+            if (isMissingTime(time)) {
+              const defaults = generateDefaultTime(index);
+              time = defaults.startTime;
+              excelAppliedDefaults = true;
+            }
+            
+            excelPeriods.push({
+              id: generateId(),
+              subject: t.title,
+              time: time,
+              day: day as WeekDay,
+              selected: true,
+            });
+          });
+        });
+
+        setDefaultTimesApplied(excelAppliedDefaults);
+        setParsedPeriods(excelPeriods);
         setStep('review');
-        toast.success(`Found ${periods.length} lessons in your spreadsheet!`);
+        
+        if (excelAppliedDefaults) {
+          toast.success(`נמצאו ${excelPeriods.length} שיעורים! הוספנו שעות ברירת מחדל לשיעורים ללא זמן.`);
+        } else {
+          toast.success(`Found ${excelPeriods.length} lessons in your spreadsheet!`);
+        }
 
       } else {
         throw new Error('Unsupported file type. Please upload an image or Excel file.');
@@ -172,15 +277,12 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     // Build new timetable from selected periods
     const newTimetable: Timetable = {};
     
-    // Initialize with default structure (including Friday if enabled)
+    // Initialize with empty arrays for each day
     displayDays.forEach(day => {
-      newTimetable[day] = DEFAULT_PERIOD_TIMES.map(time => ({
-        subject: '',
-        startTime: time,
-      }));
+      newTimetable[day] = [];
     });
 
-    // Group periods by day and sort by time
+    // Group periods by day
     const periodsByDay: Partial<Record<WeekDay, ParsedPeriod[]>> = {
       sunday: [],
       monday: [],
@@ -196,21 +298,17 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       }
     });
 
-    // Sort each day by time and assign to timetable slots
+    // Sort each day by time and build timetable entries
     Object.keys(periodsByDay).forEach(day => {
       const weekDay = day as WeekDay;
       if (!newTimetable[weekDay]) return;
       
       const dayPeriods = (periodsByDay[weekDay] || []).sort((a, b) => a.time.localeCompare(b.time));
       
-      dayPeriods.forEach((period, index) => {
-        if (index < newTimetable[weekDay].length) {
-          newTimetable[weekDay][index] = {
-            subject: period.subject,
-            startTime: period.time,
-          };
-        }
-      });
+      newTimetable[weekDay] = dayPeriods.map(period => ({
+        subject: period.subject,
+        startTime: period.time,
+      }));
     });
 
     onImport(newTimetable);
@@ -329,6 +427,16 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           העלאה אחרת
         </Button>
       </div>
+
+      {/* Visual hint when default times were applied */}
+      {defaultTimesApplied && (
+        <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 flex items-start gap-2">
+          <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-primary">
+            הוספנו שעות ברירת מחדל (50 דקות לשיעור). ניתן לערוך אותן כאן.
+          </p>
+        </div>
+      )}
 
       <ScrollArea className="h-[400px] pr-4">
         <div className="space-y-4">
