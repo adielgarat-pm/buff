@@ -840,32 +840,61 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     const reward = storeRewards.find(r => r.id === rewardId);
     if (!reward || reward.claimed || totalBalance < reward.price) return;
 
-    const newBalance = totalBalance - reward.price;
-
     // Optimistic update
+    const newBalance = totalBalance - reward.price;
     setTotalBalance(newBalance);
     setStoreRewards(prev => prev.map(r =>
       r.id === rewardId ? { ...r, claimed: true, claimedAt: new Date().toISOString() } : r
     ));
 
-    // Update database
-    await supabase
-      .from('store_rewards')
-      .update({ claimed: true, claimed_at: new Date().toISOString() })
-      .eq('id', rewardId);
+    try {
+      // Update store_rewards to mark as claimed
+      const { error: rewardError } = await supabase
+        .from('store_rewards')
+        .update({ claimed: true, claimed_at: new Date().toISOString() })
+        .eq('id', rewardId);
 
-    if (isParent) {
-      await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance })
-        .eq('family_id', familyId)
-        .is('child_id', null);
-    } else {
-      await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance })
-        .eq('family_id', familyId)
-        .eq('child_id', profileId);
+      if (rewardError) {
+        console.error('Error claiming reward:', rewardError);
+        // Revert optimistic update
+        setTotalBalance(totalBalance);
+        setStoreRewards(prev => prev.map(r =>
+          r.id === rewardId ? { ...r, claimed: false, claimedAt: undefined } : r
+        ));
+        return;
+      }
+
+      // Use the secure RPC function to deduct credits (works for both parents and children)
+      // The RPC handles RLS bypass via SECURITY DEFINER
+      const targetChildId = isParent ? (reward.assignedTo || profileId) : profileId;
+      
+      const { data: updatedBalance, error: creditError } = await supabase
+        .rpc('update_child_credits', {
+          p_child_id: targetChildId,
+          p_credit_change: -reward.price,
+          p_is_completion: false
+        });
+
+      if (creditError) {
+        console.error('Error deducting credits:', creditError);
+        // Revert optimistic update - but keep reward as claimed since that succeeded
+        setTotalBalance(totalBalance);
+        return;
+      }
+
+      // Sync with actual balance from server
+      if (typeof updatedBalance === 'number') {
+        setTotalBalance(updatedBalance);
+      }
+
+      console.log(`Reward redeemed: ${reward.title}, new balance: ${updatedBalance}`);
+    } catch (err) {
+      console.error('Unexpected error redeeming reward:', err);
+      // Revert optimistic updates
+      setTotalBalance(totalBalance);
+      setStoreRewards(prev => prev.map(r =>
+        r.id === rewardId ? { ...r, claimed: false, claimedAt: undefined } : r
+      ));
     }
   }, [familyId, profileId, isParent, storeRewards, totalBalance]);
 
