@@ -208,6 +208,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 onBuffActivated={activateBuff}
                 fridayEnabled={fridayEnabled}
                 schoolQuestEnabled={schoolQuestEnabled}
+                schoolEndTime={schoolEndTime}
+                isSchoolDay={isSchoolDay}
               />
             </div>
           )}
