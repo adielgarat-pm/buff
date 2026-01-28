@@ -23,6 +23,8 @@ interface ChildData {
   dailyGoal: number;
   totalBalance: number;
   schoolQuestEnabled: boolean;
+  bagPrepEnabled: boolean;
+  bagPrepCredits: number;
 }
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
@@ -183,6 +185,8 @@ export function useChildData(childId: string | null) {
   const [totalBalance, setTotalBalance] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(100);
   const [schoolQuestEnabled, setSchoolQuestEnabled] = useState(true);
+  const [bagPrepEnabled, setBagPrepEnabled] = useState(true);
+  const [bagPrepCredits, setBagPrepCredits] = useState(20);
   const [birthDate, setBirthDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -234,10 +238,10 @@ export function useChildData(childId: string | null) {
         .eq('child_id', childId)
         .maybeSingle();
 
-      // Fetch child's daily goal, school quest setting, and birth_date from profile
+      // Fetch child's daily goal, school quest setting, bag prep settings, and birth_date from profile
       const { data: childProfile } = await supabase
         .from('profiles')
-        .select('daily_goal, school_quest_enabled, birth_date')
+        .select('daily_goal, school_quest_enabled, bag_prep_enabled, bag_prep_credits, birth_date')
         .eq('id', childId)
         .single();
 
@@ -280,9 +284,11 @@ export function useChildData(childId: string | null) {
         setTotalBalance(vaultData.total_balance);
       }
 
-      // Set child's daily goal, school quest setting, and birth date
+      // Set child's daily goal, school quest setting, bag prep settings, and birth date
       setDailyGoal(childProfile?.daily_goal || 100);
       setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);
+      setBagPrepEnabled(childProfile?.bag_prep_enabled ?? true);
+      setBagPrepCredits(childProfile?.bag_prep_credits ?? 20);
       setBirthDate(childProfile?.birth_date || null);
     } catch (error) {
       console.error('Error fetching child data:', error);
@@ -493,6 +499,34 @@ export function useChildData(childId: string | null) {
     if (error) throw error;
   }, [childId]);
 
+  // Toggle bag prep module for child
+  const toggleBagPrepEnabled = useCallback(async (enabled: boolean) => {
+    if (!childId) throw new Error('Missing childId');
+
+    setBagPrepEnabled(enabled);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ bag_prep_enabled: enabled })
+      .eq('id', childId);
+    
+    if (error) throw error;
+  }, [childId]);
+
+  // Update bag prep credits for child
+  const updateBagPrepCredits = useCallback(async (credits: number) => {
+    if (!childId) throw new Error('Missing childId');
+
+    setBagPrepCredits(credits);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ bag_prep_credits: credits })
+      .eq('id', childId);
+    
+    if (error) throw error;
+  }, [childId]);
+
   // Update child's birth date
   const updateBirthDate = useCallback(async (date: string | null) => {
     if (!childId) throw new Error('Missing childId');
@@ -552,6 +586,8 @@ export function useChildData(childId: string | null) {
     totalBalance,
     dailyGoal,
     schoolQuestEnabled,
+    bagPrepEnabled,
+    bagPrepCredits,
     birthDate,
     loading,
     addTask,
@@ -562,6 +598,8 @@ export function useChildData(childId: string | null) {
     updateDailyGoal,
     updateTotalBalance,
     toggleSchoolQuestEnabled,
+    toggleBagPrepEnabled,
+    updateBagPrepCredits,
     updateBirthDate,
     initializeChildData,
     refetch: fetchChildData,

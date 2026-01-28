@@ -286,6 +286,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     dailyGoal,
     totalBalance,
     schoolQuestEnabled,
+    bagPrepEnabled,
+    bagPrepCredits,
     birthDate,
     loading,
     addTask,
@@ -296,6 +298,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     updateDailyGoal,
     updateTotalBalance,
     toggleSchoolQuestEnabled,
+    toggleBagPrepEnabled,
+    updateBagPrepCredits,
     updateBirthDate,
     initializeChildData,
   } = useChildData(childId);
@@ -318,8 +322,12 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   );
   const [savingBirthDate, setSavingBirthDate] = useState(false);
 
+  const [localBagPrepCredits, setLocalBagPrepCredits] = useState(bagPrepCredits);
+  const [savingBagPrepCredits, setSavingBagPrepCredits] = useState(false);
+
   const dailyGoalSchema = z.coerce.number().int().min(10).max(1000);
   const balanceSchema = z.coerce.number().int().min(0).max(1_000_000);
+  const bagPrepCreditsSchema = z.coerce.number().int().min(5).max(100);
 
   useEffect(() => {
     setLocalBalance(totalBalance);
@@ -332,6 +340,10 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   useEffect(() => {
     setLocalBirthDate(birthDate ? parseISO(birthDate) : undefined);
   }, [birthDate]);
+
+  useEffect(() => {
+    setLocalBagPrepCredits(bagPrepCredits);
+  }, [bagPrepCredits]);
 
   useEffect(() => {
     initializeChildData();
@@ -417,6 +429,24 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
       toast.error('שגיאה בשמירת תאריך הלידה');
     } finally {
       setSavingBirthDate(false);
+    }
+  };
+
+  const handleSaveBagPrepCredits = async () => {
+    const parsed = bagPrepCreditsSchema.safeParse(localBagPrepCredits);
+    if (!parsed.success) {
+      toast.error('אנא הזן כמות תקינה (5 עד 100)');
+      return;
+    }
+
+    setSavingBagPrepCredits(true);
+    try {
+      await updateBagPrepCredits(parsed.data);
+      toast.success('קרדיטים להכנת תיק עודכנו!');
+    } catch {
+      toast.error('שגיאה בעדכון');
+    } finally {
+      setSavingBagPrepCredits(false);
     }
   };
 
@@ -573,6 +603,47 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
           </Button>
         </div>
       )}
+
+      {/* Bag Prep Toggle */}
+      <div className="rounded-xl bg-card border border-border overflow-hidden">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🎒</span>
+            <span className="text-sm text-foreground">הפעל משימת הכנת תיק בערב</span>
+          </div>
+          <Switch
+            checked={bagPrepEnabled}
+            onCheckedChange={toggleBagPrepEnabled}
+            className="touch-target"
+          />
+        </div>
+        
+        {/* Bag Prep Credits (only show when enabled) */}
+        {bagPrepEnabled && (
+          <div className="flex items-center justify-between p-3 pt-0 border-t border-border/50">
+            <span className="text-xs text-muted-foreground">קרדיטים לביצוע</span>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                value={localBagPrepCredits}
+                onChange={(e) => setLocalBagPrepCredits(Number(e.target.value))}
+                className="w-16 h-8 bg-background border-border text-center text-sm"
+                min={5}
+                max={100}
+                dir="ltr"
+              />
+              <Button
+                size="sm"
+                className="h-8 px-3"
+                onClick={handleSaveBagPrepCredits}
+                disabled={savingBagPrepCredits || localBagPrepCredits === bagPrepCredits}
+              >
+                {savingBagPrepCredits ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Section Tabs */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar">

@@ -10,6 +10,8 @@ import { PhaseView } from './PhaseView';
 import { RewardsStore } from './RewardsStore';
 import { WeeklyTimetable } from './WeeklyTimetable';
 import { TomorrowsPrep } from './TomorrowsPrep';
+import { BagPrepChecklist } from './BagPrepChecklist';
+import { BagPrepTask } from './BagPrepTask';
 import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
 import { InstallPrompt } from './InstallPrompt';
 import { NotificationPrompt } from './NotificationPrompt';
@@ -27,6 +29,7 @@ interface ChildViewProps {
 export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) {
   const { profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
+  const [showBagPrepChecklist, setShowBagPrepChecklist] = useState(false);
 
   // Pass viewingChildId to the store so it loads the correct child's data
   const {
@@ -45,6 +48,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     lessonRemindersEnabled,
     fridayEnabled,
     schoolQuestEnabled,
+    bagPrepEnabled,
+    bagPrepCredits,
+    bagPrepCompleted,
     isCurrentlyWeekend,
     totalBalance,
     storeRewards,
@@ -55,6 +61,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     activateBuff,
     redeemStoreReward,
     updateTimetable,
+    completeBagPrep,
+    undoBagPrep,
     lessons,
     refetch,
   } = useSyncedTaskStore(viewingChildId);
@@ -195,6 +203,15 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 buffsActivated={buffsActivatedToday}
               />
 
+              {/* Bag Prep Task - Evening phase only */}
+              {bagPrepEnabled && activePhase === 'evening' && !isCurrentlyWeekend && (
+                <BagPrepTask
+                  credits={bagPrepCredits}
+                  isCompleted={bagPrepCompleted}
+                  onClick={() => setShowBagPrepChecklist(true)}
+                />
+              )}
+
               {/* Phase Content */}
               <PhaseView
                 phase={activePhase}
@@ -216,11 +233,17 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           
           {activeTab === 'timetable' && (
             <div className="space-y-6">
-              {/* Tomorrow's Prep - Evening feature */}
-              <TomorrowsPrep 
-                timetable={timetable} 
-                fridayEnabled={fridayEnabled} 
-              />
+              {/* Bag Prep Checklist - Full interactive version */}
+              {bagPrepEnabled && !isCurrentlyWeekend && (
+                <BagPrepChecklist 
+                  timetable={timetable}
+                  fridayEnabled={fridayEnabled}
+                  bagPrepCredits={bagPrepCredits}
+                  isCompleted={bagPrepCompleted}
+                  onComplete={completeBagPrep}
+                  onUndo={undoBagPrep}
+                />
+              )}
               
               <WeeklyTimetable 
                 timetable={timetable} 
@@ -230,6 +253,31 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
             </div>
           )}
         </div>
+
+        {/* Bag Prep Checklist Modal - when opened from task card */}
+        {showBagPrepChecklist && (
+          <div className="fixed inset-0 z-50 bg-background/95 p-4 overflow-y-auto">
+            <div className="max-w-lg mx-auto pt-4">
+              <button
+                onClick={() => setShowBagPrepChecklist(false)}
+                className="mb-4 text-sm text-muted-foreground hover:text-foreground"
+              >
+                ← חזרה למשימות
+              </button>
+              <BagPrepChecklist 
+                timetable={timetable}
+                fridayEnabled={fridayEnabled}
+                bagPrepCredits={bagPrepCredits}
+                isCompleted={bagPrepCompleted}
+                onComplete={() => {
+                  completeBagPrep();
+                  setTimeout(() => setShowBagPrepChecklist(false), 2000);
+                }}
+                onUndo={undoBagPrep}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Navigation */}
