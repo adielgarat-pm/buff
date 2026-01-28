@@ -98,16 +98,11 @@ export function useSmartPhase(
 ): SmartPhaseResult {
   const schoolEndTime = useMemo(() => {
     if (!isSchoolDay || !schoolQuestEnabled) return null;
-    const endTime = calculateSchoolEndTime(todaySchedule);
-    console.log('[SmartPhase] Schedule:', todaySchedule.length, 'lessons, endTime:', endTime, 'isSchoolDay:', isSchoolDay);
-    return endTime;
+    return calculateSchoolEndTime(todaySchedule);
   }, [todaySchedule, isSchoolDay, schoolQuestEnabled]);
 
-  // Calculate initial phase based on schoolEndTime (calculated synchronously in useMemo)
   const initialPhase = useMemo(() => {
-    const phase = getSmartPhase(schoolEndTime, isSchoolDay && schoolQuestEnabled);
-    console.log('[SmartPhase] Calculated phase:', phase, 'schoolEndTime:', schoolEndTime, 'currentTime:', new Date().toLocaleTimeString());
-    return phase;
+    return getSmartPhase(schoolEndTime, isSchoolDay && schoolQuestEnabled);
   }, [schoolEndTime, isSchoolDay, schoolQuestEnabled]);
 
   const [currentPhase, setCurrentPhase] = useState<Phase>(initialPhase);
@@ -150,8 +145,6 @@ export function useSmartPhase(
       const newPhase = getSmartPhase(schoolEndTime, isSchoolDay && schoolQuestEnabled);
       
       if (newPhase !== lastPhase) {
-        // Phase transition detected!
-        console.log('[SmartPhase] Phase transition:', lastPhase, '->', newPhase);
         setCurrentPhase(newPhase);
         setLastPhase(newPhase);
         
