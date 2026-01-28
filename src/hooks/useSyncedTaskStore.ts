@@ -906,6 +906,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
           label: period.subject,
           displayLabel: period.subject,
           startTime: period.startTime,
+          equipment: period.equipment,
           credits: 10,
           completed: existingLesson?.completed || false,
         };
