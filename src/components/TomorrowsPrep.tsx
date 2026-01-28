@@ -33,19 +33,21 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
       return { day: null, lessons: [], hasEquipment: false };
     }
     
-    const lessons = (timetable[tomorrowDay] || []).filter(p => p.subject);
-    const hasEquipment = lessons.some(p => p.equipment);
+    // Only include lessons with actual subject content
+    const lessons = (timetable[tomorrowDay] || []).filter(p => p.subject && p.subject.trim() !== '');
+    // Only count equipment if it has actual content
+    const hasEquipment = lessons.some(p => p.equipment && p.equipment.trim() !== '');
     
     return { day: tomorrowDay, lessons, hasEquipment };
   }, [timetable, fridayEnabled]);
 
-  // Group equipment by lesson
+  // Group equipment by lesson - only include items with actual equipment content
   const equipmentList = useMemo(() => {
     return tomorrowData.lessons
-      .filter(lesson => lesson.equipment)
+      .filter(lesson => lesson.equipment && lesson.equipment.trim() !== '')
       .map(lesson => ({
         subject: lesson.subject,
-        equipment: lesson.equipment!,
+        equipment: lesson.equipment!.trim(),
         time: lesson.startTime,
       }));
   }, [tomorrowData.lessons]);
