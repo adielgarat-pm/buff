@@ -79,7 +79,8 @@ export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson, frida
         {lessons.map((lesson) => {
           // Use the lesson's displayLabel directly - it already contains the subject name
           const subject = lesson.displayLabel || lesson.label;
-          const hasEquipment = !!lesson.equipment;
+          // Only show equipment icon if there's actual content (not empty/whitespace)
+          const hasEquipment = !!(lesson.equipment && lesson.equipment.trim());
           
           return (
             <div key={lesson.id} className="relative">

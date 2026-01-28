@@ -895,18 +895,21 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const todaySchedule: PeriodInfo[] = todayWeekDay ? (timetable[todayWeekDay] || []) : [];
 
   // Create dynamic lessons based on today's actual schedule
+  // Only include lessons where subject has actual content (not empty/whitespace)
   const todayLessons = useMemo(() => {
     return todaySchedule
-      .filter(period => period.subject)
+      .filter(period => period.subject && period.subject.trim() !== '')
       .map((period, index) => {
         const lessonId = `lesson_${index}`;
         const existingLesson = lessons.find(l => l.id === lessonId);
+        // Only include equipment if it has actual content
+        const equipment = period.equipment?.trim() || '';
         return {
           id: lessonId,
           label: period.subject,
           displayLabel: period.subject,
           startTime: period.startTime,
-          equipment: period.equipment,
+          equipment: equipment || undefined, // undefined if empty so hasEquipment check works
           credits: 10,
           completed: existingLesson?.completed || false,
         };
