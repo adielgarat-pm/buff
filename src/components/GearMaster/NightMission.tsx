@@ -54,16 +54,20 @@ export function NightMission({
     
     const tomorrowDay = dayMap[tomorrowIndex];
     if (!tomorrowDay) {
-      return { day: null, lessons: [], dayLabel: '' };
+      return { day: null, lessons: [], dayLabel: '', hasSchedule: false };
     }
     
     // Only include lessons with actual subject content
     const lessons = (timetable[tomorrowDay] || []).filter(p => p.subject && p.subject.trim() !== '');
     
+    // Smart Context Guard: Check if there's actually a schedule uploaded for tomorrow
+    const hasSchedule = lessons.length > 0;
+    
     return { 
       day: tomorrowDay, 
       lessons, 
-      dayLabel: WEEK_DAY_LABELS[tomorrowDay] 
+      dayLabel: WEEK_DAY_LABELS[tomorrowDay],
+      hasSchedule 
     };
   }, [timetable, fridayEnabled]);
 
@@ -149,18 +153,20 @@ export function NightMission({
     });
   };
 
-  // If tomorrow is not a school day
-  if (!tomorrowData.day) {
+  // Smart Context Guard: If tomorrow is not a school day OR no schedule uploaded
+  if (!tomorrowData.day || !tomorrowData.hasSchedule) {
     return (
       <div className="rounded-2xl bg-card border border-border p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-buff/10 flex items-center justify-center mx-auto mb-4">
           <Moon className="w-8 h-8 text-buff" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          מחר יום חופש! 🎉
+          {!tomorrowData.day ? 'מחר יום חופש! 🎉' : 'אין מערכת למחר 📋'}
         </h3>
         <p className="text-sm text-muted-foreground">
-          אין צורך להכין תיק - תהנה מהמנוחה!
+          {!tomorrowData.day 
+            ? 'אין צורך להכין תיק - תהנה מהמנוחה!' 
+            : 'הוסיפו מערכת שעות דרך הגדרות ההורה כדי להפעיל את משימת הערב.'}
         </p>
       </div>
     );

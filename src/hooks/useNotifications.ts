@@ -251,12 +251,15 @@ export function useNotifications() {
   }, [permission, scheduleNotification]);
 
   // Schedule Gear Master Evening Mission notification (19:00)
+  // Smart Context Guard: Only schedule if tomorrow is a school day with lessons
   const scheduleGearMasterNotification = useCallback((
     bagPrepEnabled: boolean,
     bagPrepCompleted: boolean,
-    credits: number
+    credits: number,
+    tomorrowHasSchedule: boolean = true
   ): void => {
-    if (permission !== 'granted' || !bagPrepEnabled || bagPrepCompleted) return;
+    // Smart Context Guard: No notification if disabled, completed, or no schedule for tomorrow
+    if (permission !== 'granted' || !bagPrepEnabled || bagPrepCompleted || !tomorrowHasSchedule) return;
 
     const today = new Date();
     const notifyTime = new Date(today);

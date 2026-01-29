@@ -7,6 +7,7 @@ import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { ChildView } from '@/components/ChildView';
 import { ParentView } from '@/components/ParentView';
 import { Loader2 } from 'lucide-react';
+import { WeekDay } from '@/types/task';
 
 const Index = () => {
   const { profile } = useAuth();
@@ -31,6 +32,8 @@ const Index = () => {
     bagPrepCompleted,
     bagPrepCredits,
     isCurrentlyWeekend,
+    timetable,
+    fridayEnabled,
   } = useSyncedTaskStore();
 
   // Notification system
@@ -66,12 +69,37 @@ const Index = () => {
     }
   }, [permission, todaySchedule, lessonRemindersEnabled, scheduleLessonNotifications]);
 
-  // Schedule Gear Master evening notification (19:00) - only on school days
+  // Smart Context Guard: Check if tomorrow has a schedule
+  const tomorrowHasSchedule = useMemo(() => {
+    const today = new Date();
+    const todayIndex = today.getDay();
+    const tomorrowIndex = (todayIndex + 1) % 7;
+    
+    const dayMap: Record<number, WeekDay | null> = {
+      0: 'sunday',
+      1: 'monday',
+      2: 'tuesday',
+      3: 'wednesday',
+      4: 'thursday',
+      5: fridayEnabled ? 'friday' : null,
+      6: null, // Saturday
+    };
+    
+    const tomorrowDay = dayMap[tomorrowIndex];
+    if (!tomorrowDay || !timetable) return false;
+    
+    const tomorrowLessons = (timetable[tomorrowDay] || []).filter(
+      (p: { subject?: string }) => p.subject && p.subject.trim() !== ''
+    );
+    return tomorrowLessons.length > 0;
+  }, [timetable, fridayEnabled]);
+
+  // Schedule Gear Master evening notification (19:00) - only on school days with schedule
   useEffect(() => {
     if (permission === 'granted' && !isCurrentlyWeekend) {
-      scheduleGearMasterNotification(bagPrepEnabled, bagPrepCompleted, bagPrepCredits);
+      scheduleGearMasterNotification(bagPrepEnabled, bagPrepCompleted, bagPrepCredits, tomorrowHasSchedule);
     }
-  }, [permission, bagPrepEnabled, bagPrepCompleted, bagPrepCredits, isCurrentlyWeekend, scheduleGearMasterNotification]);
+  }, [permission, bagPrepEnabled, bagPrepCompleted, bagPrepCredits, isCurrentlyWeekend, tomorrowHasSchedule, scheduleGearMasterNotification]);
 
   // Listen for task completion from service worker
   useEffect(() => {
