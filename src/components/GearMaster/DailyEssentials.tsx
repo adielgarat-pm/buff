@@ -34,7 +34,7 @@ export function DailyEssentials({}: DailyEssentialsProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-lg">✨</span>
-          <h3 className="font-bold text-foreground text-sm">לפני שיוצאים</h3>
+          <h3 className="font-bold text-foreground text-sm">לפני היציאה מהבית</h3>
         </div>
         <div className="px-2 py-1 rounded-full bg-muted text-xs text-muted-foreground">
           ללא נקודות
@@ -72,7 +72,7 @@ export function DailyEssentials({}: DailyEssentialsProps) {
       {/* Status */}
       {allChecked && (
         <div className="text-center py-2 bg-primary/10 rounded-lg">
-          <p className="text-sm font-bold text-primary">מוכנים לצאת! 🚀</p>
+          <p className="text-sm font-bold text-primary">הכל מוכן ליציאה! 🚀</p>
         </div>
       )}
     </div>

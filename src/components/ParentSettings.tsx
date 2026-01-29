@@ -609,7 +609,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
             <span className="text-lg">🎒</span>
-            <span className="text-sm text-foreground">הפעל משימת הכנת תיק בערב</span>
+            <span className="text-sm text-foreground">משימת ערב - בונוס מוכנות (19:00)</span>
           </div>
           <Switch
             checked={bagPrepEnabled}
@@ -621,7 +621,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
         {/* Bag Prep Credits (only show when enabled) */}
         {bagPrepEnabled && (
           <div className="flex items-center justify-between p-3 pt-0 border-t border-border/50">
-            <span className="text-xs text-muted-foreground">קרדיטים לביצוע</span>
+            <span className="text-xs text-muted-foreground">נקודות Buff לביצוע</span>
             <div className="flex items-center gap-2">
               <Input
                 type="number"
