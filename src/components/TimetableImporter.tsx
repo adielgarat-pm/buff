@@ -31,8 +31,9 @@ interface ParsedPeriod {
   time: string;
   day: WeekDay;
   selected: boolean;
-  autoTime?: boolean; // Flag for auto-filled time (Buff Standard)
-  missingSubject?: boolean; // Flag for rows with time but no subject
+  autoTime?: boolean;
+  missingSubject?: boolean;
+  lessonNumber?: number; // Lesson slot number (1-10)
 }
 
 interface TimetableImporterProps {
@@ -140,7 +141,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
   }, []);
 
   // Process API response into periods
-  // ZERO DATA LOSS: Keep rows with Subject OR Time
+  // Now includes cleanup by lesson_number - no duplicates per day+lesson_number
   const processApiResponse = useCallback((tasks: any[]) => {
     const periods: ParsedPeriod[] = [];
     let hasAuto = false;
@@ -151,21 +152,33 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       if (t.autoTime) hasAuto = true;
       if (t.missingSubject) hasMissingSubjects = true;
       
+      // Skip entries with empty subjects (already purged server-side, but double-check)
+      const subject = t.title || '';
+      if (!subject.trim() || subject === '[שיעור ללא שם]') return;
+      
       periods.push({
         id: generateId(),
-        subject: t.title || '[שיעור ללא שם]',
+        subject: subject,
         time: t.time || '08:00',
         day,
         selected: true,
         autoTime: t.autoTime,
         missingSubject: t.missingSubject,
+        lessonNumber: t.lessonNumber || 0,
       });
+    });
+    
+    // Sort by day and lesson number
+    periods.sort((a, b) => {
+      const dayOrder = displayDays.indexOf(a.day) - displayDays.indexOf(b.day);
+      if (dayOrder !== 0) return dayOrder;
+      return (a.lessonNumber || 0) - (b.lessonNumber || 0);
     });
     
     setHasAutoFilledTimes(hasAuto || hasMissingSubjects);
     setParsedPeriods(periods);
     setMode('review');
-  }, []);
+  }, [displayDays]);
 
   // Call API for image processing
   const processImage = useCallback(async (file: File) => {
@@ -614,7 +627,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
                       </span>
                     </h4>
                     
-                    {dayPeriods.sort((a, b) => a.time.localeCompare(b.time)).map((period) => (
+                    {dayPeriods.sort((a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0) || a.time.localeCompare(b.time)).map((period) => (
                       <div
                         key={period.id}
                         className={cn(
@@ -631,6 +644,13 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
                         >
                           {period.selected && <Check className="w-4 h-4" />}
                         </button>
+
+                        {/* Lesson number badge */}
+                        {period.lessonNumber && period.lessonNumber > 0 && (
+                          <span className="w-6 h-6 flex items-center justify-center rounded bg-primary/20 text-primary font-bold text-xs flex-shrink-0">
+                            {period.lessonNumber}
+                          </span>
+                        )}
 
                         <div className={cn(
                           "flex items-center gap-1 w-24",

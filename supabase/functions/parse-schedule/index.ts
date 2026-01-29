@@ -20,7 +20,8 @@ interface ParsedTask {
   category: string;
   credits: number;
   autoTime?: boolean;
-  missingSubject?: boolean; // Flag for rows with time but no subject
+  missingSubject?: boolean;
+  lessonNumber?: number; // Lesson slot number (1-10)
 }
 
 // Hebrew day name mapping (RTL aware)
@@ -171,18 +172,84 @@ function guessCredits(title: string): number {
   return 10;
 }
 
+// CLEANUP & DEDUPLICATION using LESSON NUMBER as unique identifier
+// Rule 1: Only one entry per (day, lesson_number) - keep the one with a subject
+// Rule 2: Purge rows with empty/null/whitespace subjects AFTER deduplication
+// Rule 3: Re-apply Buff Standard times based on lesson_number
+// Rule 4: Max 10 lessons per day
+function cleanupAndDeduplicateLessons(lessons: ParsedLesson[]): ParsedLesson[] {
+  // Group by day
+  const byDay: Record<string, ParsedLesson[]> = {};
+  lessons.forEach(l => {
+    if (!byDay[l.day]) byDay[l.day] = [];
+    byDay[l.day].push(l);
+  });
+  
+  const cleanedLessons: ParsedLesson[] = [];
+  
+  Object.entries(byDay).forEach(([day, dayLessons]) => {
+    // Deduplicate by lesson_number (row_index)
+    // If multiple entries share the same slot, keep the one with a subject
+    const slotMap: Record<number, ParsedLesson & { row_index?: number }> = {};
+    
+    dayLessons.forEach((lesson, index) => {
+      // Use row_index if available, otherwise use array position + 1
+      const lessonNumber = (lesson as any).row_index || (index + 1);
+      const cappedLessonNumber = Math.min(lessonNumber, 10); // Max 10 lessons
+      
+      const hasValidSubject = lesson.lesson_name && 
+        lesson.lesson_name.trim() !== '' && 
+        lesson.lesson_name !== 'null' &&
+        lesson.lesson_name !== '[שיעור ללא שם]';
+      
+      const existing = slotMap[cappedLessonNumber];
+      
+      if (!existing) {
+        slotMap[cappedLessonNumber] = { ...lesson, row_index: cappedLessonNumber };
+      } else {
+        const existingHasSubject = existing.lesson_name && 
+          existing.lesson_name.trim() !== '' && 
+          existing.lesson_name !== 'null' &&
+          existing.lesson_name !== '[שיעור ללא שם]';
+        
+        if (hasValidSubject && !existingHasSubject) {
+          slotMap[cappedLessonNumber] = { ...lesson, row_index: cappedLessonNumber };
+        }
+      }
+    });
+    
+    // Filter out empty subjects and re-apply Buff Standard times
+    Object.entries(slotMap)
+      .filter(([_, lesson]) => {
+        const subj = lesson.lesson_name;
+        return subj && subj.trim() !== '' && subj !== 'null' && subj !== '[שיעור ללא שם]';
+      })
+      .forEach(([lessonNum, lesson]) => {
+        const idx = parseInt(lessonNum) - 1;
+        cleanedLessons.push({
+          ...lesson,
+          day,
+          start_time: generateDefaultTime(idx),
+          auto_time: true,
+        });
+      });
+  });
+  
+  return cleanedLessons;
+}
+
 // Convert validated lessons to task format
 // ZERO DATA LOSS POLICY: Keep rows with Subject OR Time (not both required)
-function lessonsToTasks(lessons: ParsedLesson[]): ParsedTask[] {
-  return lessons
-    // Only filter out completely empty rows
+function lessonsToTasks(lessons: ParsedLesson[], applyCleanup: boolean = true): ParsedTask[] {
+  const processedLessons = applyCleanup ? cleanupAndDeduplicateLessons(lessons) : lessons;
+  
+  return processedLessons
     .filter(l => {
       const hasSubject = l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null';
       const hasTime = l.start_time && l.start_time.trim() !== '';
       return hasSubject || hasTime;
     })
     .map(l => {
-      // If subject is missing but time exists, use placeholder
       const subject = (l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null')
         ? l.lesson_name.replace(/\[\?\]$/, '').trim()
         : '[שיעור ללא שם]';
@@ -195,6 +262,7 @@ function lessonsToTasks(lessons: ParsedLesson[]): ParsedTask[] {
         credits: guessCredits(subject),
         autoTime: l.auto_time,
         missingSubject: !l.lesson_name || l.lesson_name.trim() === '' || l.lesson_name === 'null',
+        lessonNumber: (l as any).row_index || 0,
       };
     });
 }
