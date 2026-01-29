@@ -20,6 +20,10 @@ interface AppPulseData {
   active_children_7d: number;
   total_tasks: number;
   total_completions: number;
+  completions_today: number;
+  completions_7d: number;
+  potential_today: number;
+  potential_7d: number;
   logins_24h: number;
   shared_device_children: number;
   separate_device_children: number;
@@ -70,9 +74,15 @@ export function useAdminAnalytics(isAdmin: boolean) {
   }, [isAdmin, fetchAnalytics]);
 
   // Calculate derived metrics
-  const completionRate = data 
-    ? data.total_tasks > 0 
-      ? Math.round((data.total_completions / (data.total_tasks * data.total_children || 1)) * 100)
+  const completionRateToday = data 
+    ? data.potential_today > 0 
+      ? Math.round((data.completions_today / data.potential_today) * 100)
+      : 0
+    : 0;
+
+  const completionRate7d = data 
+    ? data.potential_7d > 0 
+      ? Math.round((data.completions_7d / data.potential_7d) * 100)
       : 0
     : 0;
 
@@ -87,7 +97,8 @@ export function useAdminAnalytics(isAdmin: boolean) {
     loading,
     error,
     refetch: fetchAnalytics,
-    completionRate,
+    completionRateToday,
+    completionRate7d,
     conversionRate,
   };
 }
