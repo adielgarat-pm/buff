@@ -23,6 +23,8 @@ interface ParsedTask {
   autoTime?: boolean;
   missingSubject?: boolean;
   lessonNumber?: number; // Lesson slot number (1-10)
+  teacher?: string | null; // Extracted teacher name
+  adhdCategory?: string; // ADHD coaching category: Core, Physical, Creative, Social
 }
 
 // Hebrew day name mapping (RTL aware)
@@ -148,7 +150,53 @@ const COMMON_SUBJECTS = new Set([
   'ערבית', 'צרפתית', 'רוסית', 'ספרדית', 'סינית', 'יפנית',
   'math', 'english', 'hebrew', 'science', 'history', 'geography', 'art', 'music', 'pe',
   'תורת הארץ', 'מורשת', 'ידיעת הארץ', 'חקלאות', 'רובוטיקה', 'דרמה', 'תיאטרון',
+  // Additional subjects
+  'קונג פו', 'כדורגל', 'כדורסל', 'שחייה', 'התעמלות', 'יוגה',
+  'מדעי המחשב', 'תכנות', 'רובוטיקה',
 ]);
+
+// Day header strings to filter out (Header Guard)
+const DAY_HEADERS = new Set([
+  'יום ראשון', 'ראשון', 'א', "א'", 'יום א', 'sunday', 'sun',
+  'יום שני', 'שני', 'ב', "ב'", 'יום ב', 'monday', 'mon',
+  'יום שלישי', 'שלישי', 'ג', "ג'", 'יום ג', 'tuesday', 'tue',
+  'יום רביעי', 'רביעי', 'ד', "ד'", 'יום ד', 'wednesday', 'wed',
+  'יום חמישי', 'חמישי', 'ה', "ה'", 'יום ה', 'thursday', 'thu',
+  'יום שישי', 'שישי', 'ו', "ו'", 'יום ו', 'friday', 'fri',
+]);
+
+// ADHD Category mapping for school subjects
+type ADHDCategory = 'Core' | 'Physical' | 'Creative' | 'Social' | 'school';
+
+const SUBJECT_CATEGORIES: Record<string, ADHDCategory> = {
+  // Core subjects (Math, Language, Science)
+  'מתמטיקה': 'Core', 'חשבון': 'Core', 'math': 'Core', 'mathematics': 'Core',
+  'אנגלית': 'Core', 'english': 'Core',
+  'עברית': 'Core', 'hebrew': 'Core', 'עברית שפה': 'Core', 'הבעה': 'Core', 'כתיבה': 'Core', 'קריאה': 'Core',
+  'מדעים': 'Core', 'science': 'Core', 'פיזיקה': 'Core', 'כימיה': 'Core', 'ביולוגיה': 'Core',
+  'היסטוריה': 'Core', 'history': 'Core',
+  'גאוגרפיה': 'Core', 'geography': 'Core',
+  'תנ"ך': 'Core', 'ספרות': 'Core', 'literature': 'Core',
+  'גיאומטריה': 'Core', 'אזרחות': 'Core',
+  'ערבית': 'Core', 'צרפתית': 'Core', 'רוסית': 'Core', 'ספרדית': 'Core',
+  
+  // Physical subjects (PE, Sports)
+  'חנ"ג': 'Physical', 'חינוך גופני': 'Physical', 'pe': 'Physical', 'ספורט': 'Physical', 'sport': 'Physical',
+  'קונג פו': 'Physical', 'כדורגל': 'Physical', 'כדורסל': 'Physical', 'שחייה': 'Physical',
+  'התעמלות': 'Physical', 'יוגה': 'Physical',
+  
+  // Creative/Extracurricular (Music, Art, Computers)
+  'מוזיקה': 'Creative', 'music': 'Creative',
+  'אמנות': 'Creative', 'ציור': 'Creative', 'art': 'Creative',
+  'מחשבים': 'Creative', 'computer': 'Creative', 'מדעי המחשב': 'Creative', 'תכנות': 'Creative', 'רובוטיקה': 'Creative',
+  'טכנולוגיה': 'Creative', 'דרמה': 'Creative', 'תיאטרון': 'Creative',
+  
+  // Social/Wellbeing (Education, Moreshet)
+  'חברה': 'Social', 'שעת חברה': 'Social',
+  'חינוך': 'Social', 'מורשת': 'Social', 'תורה': 'Social', 'משנה': 'Social', 'גמרא': 'Social',
+  'פרשת שבוע': 'Social', 'פרשה': 'Social', 'הלכה': 'Social', 'תפילה': 'Social',
+  'תורת הארץ': 'Social', 'ידיעת הארץ': 'Social', 'מולדת': 'Social',
+};
 
 // Check if text looks like a teacher name (not a common subject)
 function isLikelyTeacherName(text: string): boolean {
@@ -180,18 +228,45 @@ function isLikelyTeacherName(text: string): boolean {
   return allWordsAreName;
 }
 
-// Merge subject and teacher name if they appear together
-function mergeSubjectAndTeacher(lessonName: string): string {
-  if (!lessonName) return lessonName;
+// HEADER GUARD: Remove day header if it appears at the start of cell content
+function applyHeaderGuard(text: string): string {
+  if (!text) return text;
+  
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return text;
+  
+  // Check if the first line is a day header
+  const firstLine = lines[0].toLowerCase();
+  if (DAY_HEADERS.has(firstLine) || DAY_HEADERS.has(lines[0])) {
+    // Remove the header and return the rest
+    return lines.slice(1).join('\n').trim();
+  }
+  
+  return text.trim();
+}
+
+// Extract subject and teacher from cell content
+interface ExtractedContent {
+  subject: string;
+  teacher: string | null;
+}
+
+function extractSubjectAndTeacher(rawText: string): ExtractedContent {
+  if (!rawText) return { subject: '', teacher: null };
+  
+  // Apply header guard first
+  const text = applyHeaderGuard(rawText);
+  if (!text) return { subject: '', teacher: null };
   
   // Split by newlines or multiple spaces (common OCR pattern for stacked text)
-  const parts = lessonName.split(/[\n\r]+|\s{2,}/).map(p => p.trim()).filter(Boolean);
+  const parts = text.split(/[\n\r]+|\s{2,}/).map(p => p.trim()).filter(Boolean);
   
-  if (parts.length < 2) return lessonName.trim();
+  if (parts.length === 0) return { subject: '', teacher: null };
+  if (parts.length === 1) return { subject: parts[0], teacher: null };
   
   // Find which part is the subject and which is the teacher
   let subject = '';
-  let teacher = '';
+  let teacher: string | null = null;
   
   for (const part of parts) {
     if (COMMON_SUBJECTS.has(part) || COMMON_SUBJECTS.has(part.toLowerCase())) {
@@ -199,23 +274,40 @@ function mergeSubjectAndTeacher(lessonName: string): string {
     } else if (isLikelyTeacherName(part)) {
       teacher = part;
     } else if (!subject) {
-      // First non-teacher part is likely the subject
+      // First non-teacher part is likely the subject (visual hierarchy: top/bold = subject)
       subject = part;
     }
   }
+  
+  // Handle multiple teachers (e.g., 'Galia/Intisar')
+  if (teacher && teacher.includes('/')) {
+    // Keep the slash format as-is for display
+  }
+  
+  return { subject: subject || parts[0], teacher };
+}
+
+// Merge subject and teacher name if they appear together
+function mergeSubjectAndTeacher(lessonName: string): string {
+  if (!lessonName) return lessonName;
+  
+  const { subject, teacher } = extractSubjectAndTeacher(lessonName);
   
   // If we found both subject and teacher, merge them
   if (subject && teacher) {
     return `${subject} (${teacher})`;
   }
   
-  // Otherwise return the first part or original
-  return subject || parts[0] || lessonName.trim();
+  return subject || lessonName.trim();
 }
 
-// Determine category based on task title
+// Determine ADHD-friendly category based on subject
 function guessCategory(title: string): string {
+  if (!title) return 'school';
+  
   const lower = title.toLowerCase();
+  
+  // Check medication/hygiene/nutrition first (for task-type detection)
   if (lower.includes('med') || lower.includes('pill') || lower.includes('tablet') || lower.includes('תרופ')) {
     return 'medication';
   }
@@ -228,16 +320,65 @@ function guessCategory(title: string): string {
       lower.includes('ארוחת') || lower.includes('אוכל')) {
     return 'nutrition';
   }
+  
+  // Check ADHD subject categories
+  for (const [keyword, category] of Object.entries(SUBJECT_CATEGORIES)) {
+    if (lower.includes(keyword.toLowerCase()) || title.includes(keyword)) {
+      // Map ADHD categories to storage format (we store as 'school' but include context)
+      return 'school'; // Keep school for DB compatibility, frontend can use ADHD category
+    }
+  }
+  
+  return 'school';
+}
+
+// Get ADHD-specific category for coaching logic
+function getADHDCategory(title: string): ADHDCategory {
+  if (!title) return 'school';
+  
+  const lower = title.toLowerCase();
+  
+  for (const [keyword, category] of Object.entries(SUBJECT_CATEGORIES)) {
+    if (lower.includes(keyword.toLowerCase()) || title.includes(keyword)) {
+      return category;
+    }
+  }
+  
   return 'school';
 }
 
 // Determine credits based on estimated effort
 function guessCredits(title: string): number {
   const lower = title.toLowerCase();
+  
+  // Higher effort tasks
   if (lower.includes('homework') || lower.includes('study') || lower.includes('test') || 
       lower.includes('exam') || lower.includes('שיעורי בית') || lower.includes('מבחן')) {
     return 30;
   }
+  
+  // Core subjects get more points (require more focus for ADHD)
+  const adhdCategory = getADHDCategory(title);
+  if (adhdCategory === 'Core') {
+    return 15;
+  }
+  
+  // Physical activities - good for ADHD, moderate points
+  if (adhdCategory === 'Physical') {
+    return 10;
+  }
+  
+  // Creative activities
+  if (adhdCategory === 'Creative') {
+    return 10;
+  }
+  
+  // Social/wellbeing
+  if (adhdCategory === 'Social') {
+    return 10;
+  }
+  
+  // Daily routine tasks
   if (lower.includes('shower') || lower.includes('breakfast') || lower.includes('dinner') ||
       lower.includes('מקלחת') || lower.includes('ארוחת')) {
     return 20;
@@ -246,6 +387,7 @@ function guessCredits(title: string): number {
       lower.includes('תרופ') || lower.includes('צחצוח')) {
     return 5;
   }
+  
   return 10;
 }
 
@@ -322,6 +464,7 @@ function cleanupAndDeduplicateLessons(lessons: ParsedLesson[]): ParsedLesson[] {
 
 // Convert validated lessons to task format
 // ZERO DATA LOSS POLICY: Keep rows with Subject OR Time (not both required)
+// Empty slots are marked as "Free Period" / "שעה פנויה"
 function lessonsToTasks(lessons: ParsedLesson[], applyCleanup: boolean = true): ParsedTask[] {
   const processedLessons = applyCleanup ? cleanupAndDeduplicateLessons(lessons) : lessons;
   
@@ -332,22 +475,36 @@ function lessonsToTasks(lessons: ParsedLesson[], applyCleanup: boolean = true): 
       return hasSubject || hasTime;
     })
     .map(l => {
-      let subject = (l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null')
-        ? l.lesson_name.replace(/\[\?\]$/, '').trim()
-        : '[שיעור ללא שם]';
+      const rawSubject = l.lesson_name?.trim() || '';
+      const isEmpty = !rawSubject || rawSubject === 'null' || rawSubject === '[שיעור ללא שם]';
       
-      // Apply subject+teacher merging
-      subject = mergeSubjectAndTeacher(subject);
+      // Extract subject and teacher separately
+      const { subject: extractedSubject, teacher } = extractSubjectAndTeacher(rawSubject);
+      
+      // If empty slot, mark as Free Period
+      let displayTitle: string;
+      if (isEmpty) {
+        displayTitle = 'שעה פנויה'; // "Free Period" in Hebrew
+      } else {
+        // Build display title with optional teacher
+        displayTitle = teacher ? `${extractedSubject} (${teacher})` : extractedSubject;
+        // Clean up any [?] markers
+        displayTitle = displayTitle.replace(/\[\?\]$/, '').trim();
+      }
+      
+      const adhdCategory = getADHDCategory(extractedSubject);
       
       return {
-        title: subject,
+        title: displayTitle,
         time: l.start_time,
         day: l.day,
-        category: guessCategory(subject),
-        credits: guessCredits(subject),
+        category: guessCategory(extractedSubject),
+        credits: isEmpty ? 0 : guessCredits(extractedSubject),
         autoTime: l.auto_time,
-        missingSubject: !l.lesson_name || l.lesson_name.trim() === '' || l.lesson_name === 'null',
+        missingSubject: isEmpty,
         lessonNumber: (l as any).row_index || 0,
+        teacher: teacher,
+        adhdCategory: adhdCategory,
       };
     });
 }
