@@ -404,9 +404,11 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       if (periodsByDay[p.day]) periodsByDay[p.day]!.push(p);
     });
 
-    Object.keys(periodsByDay).forEach(day => {
+      Object.keys(periodsByDay).forEach(day => {
       const weekDay = day as WeekDay;
-      const dayPeriods = (periodsByDay[weekDay] || []).sort((a, b) => a.time.localeCompare(b.time));
+        const dayPeriods = (periodsByDay[weekDay] || []).sort(
+          (a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0) || a.time.localeCompare(b.time)
+        );
       newTimetable[weekDay] = dayPeriods.map(period => ({
         subject: period.subject,
         startTime: period.time,
