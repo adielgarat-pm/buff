@@ -10,8 +10,7 @@ import { PhaseView } from './PhaseView';
 import { RewardsStore } from './RewardsStore';
 import { WeeklyTimetable } from './WeeklyTimetable';
 import { TomorrowsPrep } from './TomorrowsPrep';
-import { BagPrepChecklist } from './BagPrepChecklist';
-import { BagPrepTask } from './BagPrepTask';
+import { NightMission, MorningSafetyNet, DailyEssentials, GearMasterTask } from './GearMaster';
 import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
 import { InstallPrompt } from './InstallPrompt';
 import { NotificationPrompt } from './NotificationPrompt';
@@ -29,7 +28,7 @@ interface ChildViewProps {
 export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) {
   const { profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
-  const [showBagPrepChecklist, setShowBagPrepChecklist] = useState(false);
+  const [showNightMission, setShowNightMission] = useState(false);
 
   // Pass viewingChildId to the store so it loads the correct child's data
   const {
@@ -203,12 +202,28 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 buffsActivated={buffsActivatedToday}
               />
 
-              {/* Bag Prep Task - Evening phase only */}
+              {/* Gear Master - Morning Phase: Daily Essentials + Safety Net if Night Mission not done */}
+              {bagPrepEnabled && activePhase === 'morning' && !isCurrentlyWeekend && (
+                <>
+                  {/* Morning Safety Net - Only if Night Mission wasn't completed */}
+                  {!bagPrepCompleted && (
+                    <MorningSafetyNet
+                      timetable={timetable}
+                      fridayEnabled={fridayEnabled}
+                    />
+                  )}
+                  {/* Daily Essentials - Always shown in morning */}
+                  <DailyEssentials />
+                </>
+              )}
+
+              {/* Gear Master - Evening Phase: Night Mission */}
               {bagPrepEnabled && activePhase === 'evening' && !isCurrentlyWeekend && (
-                <BagPrepTask
+                <GearMasterTask
+                  type="night"
                   credits={bagPrepCredits}
                   isCompleted={bagPrepCompleted}
-                  onClick={() => setShowBagPrepChecklist(true)}
+                  onClick={() => setShowNightMission(true)}
                 />
               )}
 
@@ -233,12 +248,12 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           
           {activeTab === 'timetable' && (
             <div className="space-y-6">
-              {/* Bag Prep Checklist - Full interactive version */}
+              {/* Night Mission - Full interactive version in timetable tab */}
               {bagPrepEnabled && !isCurrentlyWeekend && (
-                <BagPrepChecklist 
+                <NightMission 
                   timetable={timetable}
                   fridayEnabled={fridayEnabled}
-                  bagPrepCredits={bagPrepCredits}
+                  credits={bagPrepCredits}
                   isCompleted={bagPrepCompleted}
                   onComplete={completeBagPrep}
                   onUndo={undoBagPrep}
@@ -254,24 +269,24 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           )}
         </div>
 
-        {/* Bag Prep Checklist Modal - when opened from task card */}
-        {showBagPrepChecklist && (
+        {/* Night Mission Modal - when opened from task card */}
+        {showNightMission && (
           <div className="fixed inset-0 z-50 bg-background/95 p-4 overflow-y-auto">
             <div className="max-w-lg mx-auto pt-4">
               <button
-                onClick={() => setShowBagPrepChecklist(false)}
+                onClick={() => setShowNightMission(false)}
                 className="mb-4 text-sm text-muted-foreground hover:text-foreground"
               >
                 ← חזרה למשימות
               </button>
-              <BagPrepChecklist 
+              <NightMission 
                 timetable={timetable}
                 fridayEnabled={fridayEnabled}
-                bagPrepCredits={bagPrepCredits}
+                credits={bagPrepCredits}
                 isCompleted={bagPrepCompleted}
                 onComplete={() => {
                   completeBagPrep();
-                  setTimeout(() => setShowBagPrepChecklist(false), 2000);
+                  setTimeout(() => setShowNightMission(false), 2000);
                 }}
                 onUndo={undoBagPrep}
               />
