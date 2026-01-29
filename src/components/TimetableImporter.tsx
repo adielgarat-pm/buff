@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -17,13 +18,16 @@ import {
   Loader2,
   Table,
   AlertCircle,
-  X
+  X,
+  ClipboardPaste,
+  AlertTriangle
 } from 'lucide-react';
 import { optimizeImage, isImageFile } from '@/utils/imageOptimizer';
 import { cn } from '@/lib/utils';
 import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ParsedPeriod {
   id: string;
@@ -33,7 +37,9 @@ interface ParsedPeriod {
   selected: boolean;
   autoTime?: boolean;
   missingSubject?: boolean;
-  lessonNumber?: number; // Lesson slot number (1-10)
+  missingDay?: boolean;
+  lessonNumber?: number;
+  equipment?: string;
 }
 
 interface TimetableImporterProps {
@@ -43,6 +49,15 @@ interface TimetableImporterProps {
   childName?: string;
   fridayEnabled?: boolean;
 }
+
+// ===== FLEXIBLE HEADER MAPPING =====
+// Hebrew and English header variants
+const HEADER_MAPPINGS = {
+  day: ['יום', 'day', 'weekday', 'ימים', 'days'],
+  subject: ['מקצוע', 'שיעור', 'subject', 'lesson', 'class', 'course', 'מקצועות', 'שיעורים'],
+  time: ['שעה', 'התחלה', 'start', 'time', 'from', 'שעות', 'זמן', 'hour'],
+  equipment: ['ציוד', 'להביא', 'equipment', 'required', 'bring', 'items', 'חומרים', 'ציוד נדרש'],
+};
 
 // Hebrew day name mapping for Excel import
 const HEBREW_DAY_MAP: Record<string, WeekDay> = {
@@ -54,12 +69,11 @@ const HEBREW_DAY_MAP: Record<string, WeekDay> = {
   'שישי': 'friday', 'ו': 'friday', "ו'": 'friday', 'יום ו': 'friday', 'יום שישי': 'friday',
   'sunday': 'sunday', 'monday': 'monday', 'tuesday': 'tuesday', 
   'wednesday': 'wednesday', 'thursday': 'thursday', 'friday': 'friday',
+  'sun': 'sunday', 'mon': 'monday', 'tue': 'tuesday', 'wed': 'wednesday', 'thu': 'thursday', 'fri': 'friday',
 };
 
 // Generate default time using "Buff Standard" algorithm
-// Supports up to 10 lessons per day
 const generateDefaultTime = (lessonIndex: number): string => {
-  // Cap at lesson 10 (index 9) to prevent runaway times
   const cappedIndex = Math.min(lessonIndex, 9);
   const LESSON_DURATION = 50;
   const BREAK_DURATION = 20;
@@ -113,13 +127,31 @@ const createEmptyTimetable = (days: WeekDay[], periodsPerDay: number = 8): Timet
   return timetable;
 };
 
+// Find matching header key (case-insensitive)
+const findHeaderKey = (headers: string[], mappingType: keyof typeof HEADER_MAPPINGS): string | null => {
+  const variants = HEADER_MAPPINGS[mappingType];
+  for (const header of headers) {
+    const lower = header.toLowerCase().trim();
+    for (const variant of variants) {
+      if (lower === variant || lower.includes(variant)) {
+        return header;
+      }
+    }
+  }
+  return null;
+};
+
 export function TimetableImporter({ onImport, onClose, currentTimetable, childName, fridayEnabled = false }: TimetableImporterProps) {
   const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
   
-  const [mode, setMode] = useState<'choose' | 'manual' | 'file' | 'processing' | 'review'>('choose');
+  const [mode, setMode] = useState<'choose' | 'manual' | 'file' | 'paste' | 'processing' | 'review'>('choose');
   const [manualTimetable, setManualTimetable] = useState<Timetable>(() => createEmptyTimetable(displayDays));
   const [selectedDay, setSelectedDay] = useState<WeekDay>('sunday');
   const [dragActive, setDragActive] = useState(false);
+  
+  // Paste mode state
+  const [pasteText, setPasteText] = useState('');
+  const [isParsing, setIsParsing] = useState(false);
   
   // Processing state
   const [processingStatus, setProcessingStatus] = useState<string>('');
@@ -129,6 +161,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
   // Review state
   const [parsedPeriods, setParsedPeriods] = useState<ParsedPeriod[]>([]);
   const [hasAutoFilledTimes, setHasAutoFilledTimes] = useState(false);
+  const [hasValidationErrors, setHasValidationErrors] = useState(false);
 
   // Cancel processing
   const handleCancel = useCallback(() => {
@@ -138,33 +171,40 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     setMode('choose');
     setProcessingStatus('');
     setProcessingProgress(0);
+    setIsParsing(false);
   }, []);
 
-  // Process API response into periods
-  // Now includes cleanup by lesson_number - no duplicates per day+lesson_number
+  // Process API response into periods with validation
   const processApiResponse = useCallback((tasks: any[]) => {
     const periods: ParsedPeriod[] = [];
     let hasAuto = false;
     let hasMissingSubjects = false;
+    let hasValidationIssues = false;
     
     (tasks || []).forEach((t: any) => {
       const day = (t.day || 'sunday') as WeekDay;
       if (t.autoTime) hasAuto = true;
       if (t.missingSubject) hasMissingSubjects = true;
       
-      // Skip entries with empty subjects (already purged server-side, but double-check)
       const subject = t.title || '';
-      if (!subject.trim() || subject === '[שיעור ללא שם]') return;
+      const isMissingSubject = !subject.trim() || subject === '[שיעור ללא שם]';
+      const isMissingDay = !t.day || !displayDays.includes(day);
+      
+      if (isMissingSubject && isMissingDay) return; // Skip completely empty rows
+      
+      if (isMissingSubject || isMissingDay) hasValidationIssues = true;
       
       periods.push({
         id: generateId(),
-        subject: subject,
+        subject: isMissingSubject ? '' : subject,
         time: t.time || '08:00',
-        day,
+        day: isMissingDay ? 'sunday' : day,
         selected: true,
         autoTime: t.autoTime,
-        missingSubject: t.missingSubject,
+        missingSubject: isMissingSubject,
+        missingDay: isMissingDay,
         lessonNumber: t.lessonNumber || 0,
+        equipment: t.equipment || '',
       });
     });
     
@@ -176,6 +216,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     });
     
     setHasAutoFilledTimes(hasAuto || hasMissingSubjects);
+    setHasValidationErrors(hasValidationIssues);
     setParsedPeriods(periods);
     setMode('review');
   }, [displayDays]);
@@ -190,14 +231,12 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     abortControllerRef.current = controller;
     
     try {
-      // Step 1: Optimize image
       const optimized = await optimizeImage(file);
       console.log(`Image optimized: ${optimized.width}x${optimized.height}, ${(optimized.optimizedSize / 1024).toFixed(1)}KB`);
       
       setProcessingStatus('מחלץ טקסט מהתמונה...');
       setProcessingProgress(30);
       
-      // Step 2: Call API
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-schedule`,
         {
@@ -234,14 +273,11 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         processApiResponse(data.tasks);
         toast.success(`נמצאו ${data.tasks.length} שיעורים!`);
       } else {
-        toast.error('לא נמצאו שיעורים בתמונה. נסו תמונה אחרת.');
+        toast.error('לא נמצאו שיעורים בתמונה. נסו תמונה אחרת או הדבקת טקסט.');
         setMode('choose');
       }
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        // User cancelled
-        return;
-      }
+      if (error.name === 'AbortError') return;
       console.error('Image processing error:', error);
       toast.error(error.message || 'שגיאה בעיבוד התמונה');
       setMode('choose');
@@ -250,50 +286,107 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     }
   }, [processApiResponse]);
 
-  // Process Excel file locally (simple format)
+  // Process Excel file locally with FLEXIBLE HEADER MAPPING
   const processExcelLocally = useCallback(async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData: any[] = XLSX.utils.sheet_to_json(firstSheet);
+      
+      // Get raw data as array of arrays (for fallback to column index)
+      const rawData: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+      
+      if (rawData.length === 0) {
+        toast.error('הקובץ ריק');
+        return;
+      }
+      
+      // Try to detect headers from first row
+      const firstRow = rawData[0] || [];
+      const headers = firstRow.map((h: any) => String(h || '').trim());
+      
+      // Find header columns using flexible mapping
+      const dayCol = findHeaderKey(headers, 'day');
+      const subjectCol = findHeaderKey(headers, 'subject');
+      const timeCol = findHeaderKey(headers, 'time');
+      const equipmentCol = findHeaderKey(headers, 'equipment');
+      
+      const hasHeaders = dayCol || subjectCol || timeCol;
+      
+      let dataRows: any[];
+      let dayIndex: number, timeIndex: number, subjectIndex: number, equipmentIndex: number;
+      
+      if (hasHeaders) {
+        // Use header-based parsing
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        dataRows = jsonData.map((row: any) => ({
+          day: dayCol ? row[dayCol] : '',
+          time: timeCol ? row[timeCol] : '',
+          subject: subjectCol ? row[subjectCol] : '',
+          equipment: equipmentCol ? row[equipmentCol] : '',
+        }));
+      } else {
+        // FALLBACK: Assume standard structure Day | Time | Subject | Equipment
+        // Skip header row if it seems like headers (no valid day/time in first row)
+        const startIndex = rawData.length > 1 && !parseDay(String(rawData[0][0] || '')) ? 1 : 0;
+        
+        dataRows = rawData.slice(startIndex).map((row: any[]) => ({
+          day: row[0] || '',
+          time: row[1] || '',
+          subject: row[2] || '',
+          equipment: row[3] || '',
+        }));
+        
+        toast.info('לא זוהו כותרות - משתמש במבנה ברירת מחדל: יום | שעה | מקצוע | ציוד');
+      }
       
       const periods: ParsedPeriod[] = [];
       const lessonCountByDay: Record<WeekDay, number> = {
         sunday: 0, monday: 0, tuesday: 0, wednesday: 0, thursday: 0, friday: 0
       };
       let hasAuto = false;
+      let hasValidationIssues = false;
       
-      jsonData.forEach((row: any) => {
-        const dayValue = row['יום'] || row['day'] || row['Day'] || '';
+      dataRows.forEach((row: any) => {
+        const dayValue = String(row.day || '').trim();
+        const subject = String(row.subject || '').trim();
+        const rawTime = row.time;
+        const equipment = String(row.equipment || '').trim();
+        
+        // Skip completely empty rows
+        if (!dayValue && !subject && !rawTime) return;
+        
         const day = parseDay(dayValue);
-        if (!day || !displayDays.includes(day)) return;
+        const isMissingDay = !day || !displayDays.includes(day);
+        const isMissingSubject = !subject;
         
-        const subject = row['מקצוע'] || row['subject'] || row['Subject'] || row['שיעור'] || '';
-        if (!subject || !subject.toString().trim()) return;
+        if (isMissingDay || isMissingSubject) hasValidationIssues = true;
         
-        const rawTime = row['שעה'] || row['time'] || row['Time'] || '';
         let time = parseTime(rawTime);
+        const validDay = day && displayDays.includes(day) ? day : 'sunday';
         
         if (!time) {
-          time = generateDefaultTime(lessonCountByDay[day]);
+          time = generateDefaultTime(lessonCountByDay[validDay]);
           hasAuto = true;
         }
         
         periods.push({
           id: generateId(),
-          subject: subject.toString().trim(),
+          subject: subject || '',
           time,
-          day,
+          day: validDay,
           selected: true,
           autoTime: !parseTime(rawTime),
+          missingSubject: isMissingSubject,
+          missingDay: isMissingDay,
+          equipment,
         });
         
-        lessonCountByDay[day]++;
+        lessonCountByDay[validDay]++;
       });
       
       if (periods.length === 0) {
-        toast.error('לא נמצאו שיעורים בקובץ. ודאו שיש עמודות: יום, שעה, מקצוע');
+        toast.error('לא נמצאו שיעורים בקובץ. נסו להדביק טקסט ישירות.');
         return;
       }
       
@@ -305,15 +398,61 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       });
       
       setHasAutoFilledTimes(hasAuto);
+      setHasValidationErrors(hasValidationIssues);
       setParsedPeriods(periods);
       setMode('review');
-      toast.success(`נמצאו ${periods.length} שיעורים!`);
+      
+      const validCount = periods.filter(p => !p.missingSubject && !p.missingDay).length;
+      const issueCount = periods.length - validCount;
+      
+      if (issueCount > 0) {
+        toast.warning(`נמצאו ${periods.length} שורות, ${issueCount} דורשות תיקון`);
+      } else {
+        toast.success(`נמצאו ${periods.length} שיעורים!`);
+      }
       
     } catch (error) {
       console.error('Excel processing error:', error);
-      toast.error('שגיאה בקריאת הקובץ');
+      toast.error('שגיאה בקריאת הקובץ. נסו להדביק טקסט ישירות.');
     }
   }, [displayDays]);
+
+  // Parse pasted text using AI
+  const processPastedText = useCallback(async () => {
+    if (!pasteText.trim()) {
+      toast.error('נא להזין טקסט');
+      return;
+    }
+    
+    setIsParsing(true);
+    
+    try {
+      const response = await supabase.functions.invoke('parse-schedule', {
+        body: {
+          extractedText: pasteText,
+          fileType: 'text',
+        },
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message || 'שגיאה בעיבוד הטקסט');
+      }
+      
+      const data = response.data;
+      
+      if (data.tasks && data.tasks.length > 0) {
+        processApiResponse(data.tasks);
+        toast.success(`נמצאו ${data.tasks.length} שיעורים!`);
+      } else {
+        toast.error('לא הצלחנו לזהות שיעורים בטקסט. נסו פורמט אחר.');
+      }
+    } catch (error: any) {
+      console.error('Text parsing error:', error);
+      toast.error(error.message || 'שגיאה בעיבוד הטקסט');
+    } finally {
+      setIsParsing(false);
+    }
+  }, [pasteText, processApiResponse]);
 
   // Handle file upload
   const handleFileUpload = useCallback(async (file: File) => {
@@ -376,7 +515,14 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
   // Review handlers
   const updatePeriod = (id: string, updates: Partial<ParsedPeriod>) => {
-    setParsedPeriods(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    setParsedPeriods(prev => prev.map(p => {
+      if (p.id !== id) return p;
+      const updated = { ...p, ...updates };
+      // Clear validation flags if user fixed the issue
+      if (updates.subject && updates.subject.trim()) updated.missingSubject = false;
+      if (updates.day) updated.missingDay = false;
+      return updated;
+    }));
   };
 
   const deletePeriod = (id: string) => {
@@ -389,6 +535,14 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
   const handleConfirmImport = () => {
     const selectedPeriods = parsedPeriods.filter(p => p.selected);
+    
+    // Check for validation issues in selected periods
+    const invalidPeriods = selectedPeriods.filter(p => p.missingSubject || p.missingDay);
+    if (invalidPeriods.length > 0) {
+      toast.error(`יש ${invalidPeriods.length} שיעורים עם שגיאות (מסומנים באדום). נא לתקן או לבטל בחירתם.`);
+      return;
+    }
+    
     if (selectedPeriods.length === 0) {
       toast.error('נא לבחור לפחות שיעור אחד');
       return;
@@ -404,14 +558,15 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       if (periodsByDay[p.day]) periodsByDay[p.day]!.push(p);
     });
 
-      Object.keys(periodsByDay).forEach(day => {
+    Object.keys(periodsByDay).forEach(day => {
       const weekDay = day as WeekDay;
-        const dayPeriods = (periodsByDay[weekDay] || []).sort(
-          (a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0) || a.time.localeCompare(b.time)
-        );
+      const dayPeriods = (periodsByDay[weekDay] || []).sort(
+        (a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0) || a.time.localeCompare(b.time)
+      );
       newTimetable[weekDay] = dayPeriods.map(period => ({
         subject: period.subject,
         startTime: period.time,
+        equipment: period.equipment,
       }));
     });
 
@@ -434,7 +589,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     if (file) handleFileUpload(file);
   };
 
-  // Choose Mode Screen
+  // ===== CHOOSE MODE SCREEN =====
   if (mode === 'choose') {
     return (
       <div className="space-y-6">
@@ -448,32 +603,44 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => setMode('manual')}
             className={cn(
-              "p-6 rounded-xl border-2 border-dashed transition-all text-center",
+              "p-4 rounded-xl border-2 border-dashed transition-all text-center",
               "hover:border-primary hover:bg-primary/5 border-border"
             )}
           >
-            <Table className="w-10 h-10 text-primary mx-auto mb-3" />
-            <p className="font-medium text-foreground mb-1">הזנה ידנית</p>
-            <p className="text-xs text-muted-foreground">מלאו את המערכת ישירות</p>
+            <Table className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="font-medium text-foreground text-sm mb-1">הזנה ידנית</p>
+            <p className="text-xs text-muted-foreground">מלאו ישירות</p>
           </button>
 
           <button
             onClick={() => setMode('file')}
             className={cn(
-              "p-6 rounded-xl border-2 border-dashed transition-all text-center",
+              "p-4 rounded-xl border-2 border-dashed transition-all text-center",
               "hover:border-primary hover:bg-primary/5 border-border"
             )}
           >
-            <div className="flex justify-center gap-2 mb-3">
-              <Camera className="w-8 h-8 text-primary" />
-              <FileSpreadsheet className="w-8 h-8 text-primary" />
+            <div className="flex justify-center gap-1 mb-2">
+              <Camera className="w-6 h-6 text-primary" />
+              <FileSpreadsheet className="w-6 h-6 text-primary" />
             </div>
-            <p className="font-medium text-foreground mb-1">ייבוא מקובץ</p>
-            <p className="text-xs text-muted-foreground">תמונה או אקסל</p>
+            <p className="font-medium text-foreground text-sm mb-1">ייבוא מקובץ</p>
+            <p className="text-xs text-muted-foreground">תמונה/אקסל</p>
+          </button>
+
+          <button
+            onClick={() => setMode('paste')}
+            className={cn(
+              "p-4 rounded-xl border-2 border-dashed transition-all text-center",
+              "hover:border-primary hover:bg-primary/5 border-border"
+            )}
+          >
+            <ClipboardPaste className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="font-medium text-foreground text-sm mb-1">הדבקת טקסט</p>
+            <p className="text-xs text-muted-foreground">מוואטסאפ/אקסל</p>
           </button>
         </div>
 
@@ -484,7 +651,66 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     );
   }
 
-  // File Upload Screen
+  // ===== PASTE MODE SCREEN =====
+  if (mode === 'paste') {
+    return (
+      <div className="space-y-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            הדבקת טקסט
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            העתיקו שורות מאקסל, וואטסאפ או כל מקור אחר
+          </p>
+        </div>
+
+        <div className="bg-secondary/50 rounded-lg p-3 border border-border">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">דוגמאות לפורמטים נתמכים:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>יום א: מתמטיקה 08:00, אנגלית 09:00</li>
+                <li>ראשון | 08:00 | חשבון</li>
+                <li>שני - היסטוריה, גאוגרפיה, מדעים</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <Textarea
+          value={pasteText}
+          onChange={(e) => setPasteText(e.target.value)}
+          placeholder="הדביקו כאן את מערכת השעות..."
+          className="min-h-[200px] text-sm font-mono"
+          dir="rtl"
+        />
+
+        <div className="flex justify-between gap-2">
+          <Button variant="outline" onClick={() => setMode('choose')}>חזרה</Button>
+          <Button 
+            onClick={processPastedText} 
+            disabled={!pasteText.trim() || isParsing}
+            className="gap-2"
+          >
+            {isParsing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                מעבד...
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4" />
+                ניתוח הטקסט
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== FILE UPLOAD SCREEN =====
   if (mode === 'file') {
     return (
       <div className="space-y-6">
@@ -504,7 +730,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
               <p className="font-medium text-foreground mb-1">פורמטים נתמכים:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li><strong>תמונה:</strong> JPG, PNG (צילום של המערכת)</li>
-                <li><strong>אקסל:</strong> עמודות: יום, שעה, מקצוע</li>
+                <li><strong>אקסל/CSV:</strong> עמודות יום, שעה, מקצוע (עברית/אנגלית)</li>
               </ul>
             </div>
           </div>
@@ -540,6 +766,15 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           </label>
         </div>
 
+        <div className="text-center">
+          <button 
+            onClick={() => setMode('paste')}
+            className="text-sm text-primary hover:underline"
+          >
+            או הדביקו טקסט ידנית ←
+          </button>
+        </div>
+
         <div className="flex justify-between">
           <Button variant="outline" onClick={() => setMode('choose')}>חזרה</Button>
           <Button variant="outline" onClick={onClose}>ביטול</Button>
@@ -548,7 +783,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     );
   }
 
-  // Processing Screen
+  // ===== PROCESSING SCREEN =====
   if (mode === 'processing') {
     return (
       <div className="py-8 text-center space-y-6">
@@ -577,9 +812,10 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     );
   }
 
-  // Review Screen
+  // ===== REVIEW SCREEN WITH VISUAL VALIDATION =====
   if (mode === 'review') {
     const selectedCount = parsedPeriods.filter(p => p.selected).length;
+    const errorCount = parsedPeriods.filter(p => p.selected && (p.missingSubject || p.missingDay)).length;
     const groupedByDay = WEEK_DAYS_WITH_FRIDAY.reduce((acc, day) => {
       acc[day] = parsedPeriods.filter(p => p.day === day);
       return acc;
@@ -608,6 +844,15 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           </div>
         )}
 
+        {hasValidationErrors && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-destructive">
+              שורות עם מסגרת אדומה חסר בהן יום או מקצוע. נא לתקן או לבטל בחירתן.
+            </p>
+          </div>
+        )}
+
         <ScrollArea className="h-[350px] pr-4">
           <div className="space-y-4">
             {parsedPeriods.length === 0 ? (
@@ -629,75 +874,89 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
                       </span>
                     </h4>
                     
-                    {dayPeriods.sort((a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0) || a.time.localeCompare(b.time)).map((period) => (
-                      <div
-                        key={period.id}
-                        className={cn(
-                          "p-3 rounded-xl border transition-all flex items-center gap-3",
-                          period.selected ? "bg-card border-primary/50" : "bg-secondary/30 border-border opacity-60"
-                        )}
-                      >
-                        <button
-                          onClick={() => togglePeriodSelection(period.id)}
+                    {dayPeriods.sort((a, b) => (a.lessonNumber || 0) - (b.lessonNumber || 0) || a.time.localeCompare(b.time)).map((period) => {
+                      const hasError = period.selected && (period.missingSubject || period.missingDay);
+                      
+                      return (
+                        <div
+                          key={period.id}
                           className={cn(
-                            "w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                            period.selected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground"
+                            "p-3 rounded-xl border-2 transition-all flex items-center gap-3",
+                            hasError 
+                              ? "bg-destructive/5 border-destructive/50 ring-2 ring-destructive/20" 
+                              : period.selected 
+                                ? "bg-card border-primary/50" 
+                                : "bg-secondary/30 border-border opacity-60"
                           )}
                         >
-                          {period.selected && <Check className="w-4 h-4" />}
-                        </button>
+                          <button
+                            onClick={() => togglePeriodSelection(period.id)}
+                            className={cn(
+                              "w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                              period.selected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground"
+                            )}
+                          >
+                            {period.selected && <Check className="w-4 h-4" />}
+                          </button>
 
-                        {/* Lesson number badge */}
-                        {period.lessonNumber && period.lessonNumber > 0 && (
-                          <span className="w-6 h-6 flex items-center justify-center rounded bg-primary/20 text-primary font-bold text-xs flex-shrink-0">
-                            {period.lessonNumber}
-                          </span>
-                        )}
+                          {/* Lesson number badge */}
+                          {period.lessonNumber && period.lessonNumber > 0 && (
+                            <span className="w-6 h-6 flex items-center justify-center rounded bg-primary/20 text-primary font-bold text-xs flex-shrink-0">
+                              {period.lessonNumber}
+                            </span>
+                          )}
 
-                        <div className={cn(
-                          "flex items-center gap-1 w-24",
-                          period.autoTime && "ring-2 ring-warning/50 rounded-md"
-                        )}>
-                          <Clock className={cn("w-4 h-4", period.autoTime ? "text-warning" : "text-muted-foreground")} />
+                          <div className={cn(
+                            "flex items-center gap-1 w-24",
+                            period.autoTime && "ring-2 ring-warning/50 rounded-md"
+                          )}>
+                            <Clock className={cn("w-4 h-4", period.autoTime ? "text-warning" : "text-muted-foreground")} />
+                            <Input
+                              type="time"
+                              value={period.time}
+                              onChange={(e) => updatePeriod(period.id, { time: e.target.value, autoTime: false })}
+                              className={cn("text-sm h-8", period.autoTime && "border-warning/50")}
+                            />
+                          </div>
+
                           <Input
-                            type="time"
-                            value={period.time}
-                            onChange={(e) => updatePeriod(period.id, { time: e.target.value, autoTime: false })}
-                            className={cn("text-sm h-8", period.autoTime && "border-warning/50")}
+                            value={period.subject}
+                            onChange={(e) => updatePeriod(period.id, { subject: e.target.value })}
+                            className={cn(
+                              "flex-1", 
+                              period.missingSubject && "border-destructive ring-2 ring-destructive/50 bg-destructive/5"
+                            )}
+                            placeholder="שם המקצוע"
                           />
+
+                          <Select
+                            value={period.day}
+                            onValueChange={(val) => updatePeriod(period.id, { day: val as WeekDay })}
+                          >
+                            <SelectTrigger className={cn(
+                              "w-24 text-sm h-8",
+                              period.missingDay && "border-destructive ring-2 ring-destructive/50 bg-destructive/5"
+                            )}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {WEEK_DAYS_WITH_FRIDAY.map(d => (
+                                <SelectItem key={d} value={d}>{WEEK_DAY_LABELS[d]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deletePeriod(period.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0 h-8 w-8"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
-
-                        <Input
-                          value={period.subject}
-                          onChange={(e) => updatePeriod(period.id, { subject: e.target.value, missingSubject: false })}
-                          className={cn("flex-1", period.missingSubject && "border-warning/50 ring-2 ring-warning/50")}
-                          placeholder="שם המקצוע"
-                        />
-
-                        <Select
-                          value={period.day}
-                          onValueChange={(val) => updatePeriod(period.id, { day: val as WeekDay })}
-                        >
-                          <SelectTrigger className="w-24 text-sm h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {WEEK_DAYS_WITH_FRIDAY.map(d => (
-                              <SelectItem key={d} value={d}>{WEEK_DAY_LABELS[d]}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deletePeriod(period.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0 h-8 w-8"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })
@@ -707,16 +966,20 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
         <div className="flex justify-between pt-4 border-t border-border sticky bottom-0 bg-background">
           <Button variant="outline" onClick={onClose}>ביטול</Button>
-          <Button onClick={handleConfirmImport} disabled={selectedCount === 0} className="gap-2">
+          <Button 
+            onClick={handleConfirmImport} 
+            disabled={selectedCount === 0 || errorCount > 0} 
+            className="gap-2"
+          >
             <Check className="w-4 h-4" />
-            שמירת {selectedCount} שיעורים
+            {errorCount > 0 ? `תקנו ${errorCount} שגיאות` : `שמירת ${selectedCount} שיעורים`}
           </Button>
         </div>
       </div>
     );
   }
 
-  // Manual Entry Screen
+  // ===== MANUAL ENTRY SCREEN =====
   const currentDayLessons = manualTimetable[selectedDay] || [];
   const filledLessons = Object.values(manualTimetable).reduce(
     (sum, lessons) => sum + lessons.filter(l => l.subject.trim()).length, 0
