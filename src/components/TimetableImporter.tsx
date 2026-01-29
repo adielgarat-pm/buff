@@ -51,12 +51,26 @@ interface TimetableImporterProps {
 }
 
 // ===== FLEXIBLE HEADER MAPPING =====
-// Hebrew and English header variants
+// Hebrew and English header variants - expanded for maximum compatibility
 const HEADER_MAPPINGS = {
   day: ['יום', 'day', 'weekday', 'ימים', 'days'],
-  subject: ['מקצוע', 'שיעור', 'subject', 'lesson', 'class', 'course', 'מקצועות', 'שיעורים'],
-  time: ['שעה', 'התחלה', 'start', 'time', 'from', 'שעות', 'זמן', 'hour'],
+  subject: ['מקצוע', 'שיעור', 'נושא', 'subject', 'lesson', 'activity', 'class', 'course', 'מקצועות', 'שיעורים', 'פעילות', 'תוכן'],
+  time: ['שעה', 'זמן', 'התחלה', 'time', 'start', 'hour', 'from', 'שעות'],
   equipment: ['ציוד', 'להביא', 'equipment', 'required', 'bring', 'items', 'חומרים', 'ציוד נדרש'],
+};
+
+// Helper to check if a value looks like a day
+const looksLikeDay = (val: string): boolean => {
+  if (!val) return false;
+  const normalized = val.toString().toLowerCase().trim();
+  return Object.keys(HEBREW_DAY_MAP).some(d => normalized.includes(d) || d.includes(normalized));
+};
+
+// Helper to check if a value looks like a time
+const looksLikeTime = (val: string): boolean => {
+  if (!val) return false;
+  const str = val.toString().trim();
+  return /^\d{1,2}(:\d{2})?$/.test(str) || (!isNaN(parseFloat(str)) && parseFloat(str) >= 0 && parseFloat(str) < 1);
 };
 
 // Hebrew day name mapping for Excel import
@@ -141,6 +155,20 @@ const findHeaderKey = (headers: string[], mappingType: keyof typeof HEADER_MAPPI
   return null;
 };
 
+// Smart fallback: find first column that has text content and isn't a day or time
+const findSubjectColumnFallback = (headers: string[], dayCol: string | null, timeCol: string | null): string | null => {
+  for (const header of headers) {
+    if (header === dayCol || header === timeCol) continue;
+    // Skip if header looks like day or time
+    if (looksLikeDay(header) || looksLikeTime(header)) continue;
+    // First remaining column with actual text is likely the subject
+    if (header && header.trim().length > 0) {
+      return header;
+    }
+  }
+  return null;
+};
+
 export function TimetableImporter({ onImport, onClose, currentTimetable, childName, fridayEnabled = false }: TimetableImporterProps) {
   const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
   
@@ -174,12 +202,17 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     setIsParsing(false);
   }, []);
 
-  // Process API response into periods with validation
+  // Process API response into periods with validation + Buff Standard times
   const processApiResponse = useCallback((tasks: any[]) => {
     const periods: ParsedPeriod[] = [];
     let hasAuto = false;
     let hasMissingSubjects = false;
     let hasValidationIssues = false;
+    
+    // Track lesson count per day for Buff Standard time generation
+    const lessonCountByDay: Record<WeekDay, number> = {
+      sunday: 0, monday: 0, tuesday: 0, wednesday: 0, thursday: 0, friday: 0
+    };
     
     (tasks || []).forEach((t: any) => {
       const day = (t.day || 'sunday') as WeekDay;
@@ -194,18 +227,33 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       
       if (isMissingSubject || isMissingDay) hasValidationIssues = true;
       
+      const validDay = isMissingDay ? 'sunday' : day;
+      
+      // Apply "Buff Standard" times if subject exists but time is missing
+      let time = t.time || '';
+      let isAutoTime = !!t.autoTime;
+      if (!time && subject.trim()) {
+        time = generateDefaultTime(lessonCountByDay[validDay]);
+        isAutoTime = true;
+        hasAuto = true;
+      } else if (!time) {
+        time = '08:00';
+      }
+      
       periods.push({
         id: generateId(),
         subject: isMissingSubject ? '' : subject,
-        time: t.time || '08:00',
-        day: isMissingDay ? 'sunday' : day,
+        time,
+        day: validDay,
         selected: true,
-        autoTime: t.autoTime,
+        autoTime: isAutoTime,
         missingSubject: isMissingSubject,
         missingDay: isMissingDay,
-        lessonNumber: t.lessonNumber || 0,
+        lessonNumber: t.lessonNumber || lessonCountByDay[validDay] + 1,
         equipment: t.equipment || '',
       });
+      
+      lessonCountByDay[validDay]++;
     });
     
     // Sort by day and lesson number
@@ -307,14 +355,21 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       
       // Find header columns using flexible mapping
       const dayCol = findHeaderKey(headers, 'day');
-      const subjectCol = findHeaderKey(headers, 'subject');
+      let subjectCol = findHeaderKey(headers, 'subject');
       const timeCol = findHeaderKey(headers, 'time');
       const equipmentCol = findHeaderKey(headers, 'equipment');
+      
+      // SMART FALLBACK: If no subject column found, find first text column that isn't day/time
+      if (!subjectCol && headers.length > 0) {
+        subjectCol = findSubjectColumnFallback(headers, dayCol, timeCol);
+        if (subjectCol) {
+          console.log(`Using fallback subject column: "${subjectCol}"`);
+        }
+      }
       
       const hasHeaders = dayCol || subjectCol || timeCol;
       
       let dataRows: any[];
-      let dayIndex: number, timeIndex: number, subjectIndex: number, equipmentIndex: number;
       
       if (hasHeaders) {
         // Use header-based parsing
@@ -325,6 +380,20 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           subject: subjectCol ? row[subjectCol] : '',
           equipment: equipmentCol ? row[equipmentCol] : '',
         }));
+        
+        // If still missing subjects, try to find content in any non-mapped column
+        if (!subjectCol) {
+          dataRows = jsonData.map((row: any) => {
+            const keys = Object.keys(row);
+            const subjectKey = keys.find(k => k !== dayCol && k !== timeCol && k !== equipmentCol);
+            return {
+              day: dayCol ? row[dayCol] : '',
+              time: timeCol ? row[timeCol] : '',
+              subject: subjectKey ? row[subjectKey] : '',
+              equipment: equipmentCol ? row[equipmentCol] : '',
+            };
+          });
+        }
       } else {
         // FALLBACK: Assume standard structure Day | Time | Subject | Equipment
         // Skip header row if it seems like headers (no valid day/time in first row)
@@ -515,22 +584,42 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
   // Review handlers
   const updatePeriod = (id: string, updates: Partial<ParsedPeriod>) => {
-    setParsedPeriods(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      const updated = { ...p, ...updates };
-      // Clear validation flags if user fixed the issue
-      if (updates.subject && updates.subject.trim()) updated.missingSubject = false;
-      if (updates.day) updated.missingDay = false;
+    setParsedPeriods(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== id) return p;
+        const newPeriod = { ...p, ...updates };
+        // Clear validation flags if user fixed the issue
+        if (updates.subject !== undefined && updates.subject.trim()) newPeriod.missingSubject = false;
+        if (updates.day !== undefined) newPeriod.missingDay = false;
+        return newPeriod;
+      });
+      
+      // Recalculate validation errors state
+      const stillHasErrors = updated.some(p => p.selected && (p.missingSubject || p.missingDay));
+      setHasValidationErrors(stillHasErrors);
+      
       return updated;
-    }));
+    });
   };
 
   const deletePeriod = (id: string) => {
-    setParsedPeriods(prev => prev.filter(p => p.id !== id));
+    setParsedPeriods(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      // Recalculate validation errors state
+      const stillHasErrors = updated.some(p => p.selected && (p.missingSubject || p.missingDay));
+      setHasValidationErrors(stillHasErrors);
+      return updated;
+    });
   };
 
   const togglePeriodSelection = (id: string) => {
-    setParsedPeriods(prev => prev.map(p => p.id === id ? { ...p, selected: !p.selected } : p));
+    setParsedPeriods(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, selected: !p.selected } : p);
+      // Recalculate validation errors state based on selected items
+      const stillHasErrors = updated.some(p => p.selected && (p.missingSubject || p.missingDay));
+      setHasValidationErrors(stillHasErrors);
+      return updated;
+    });
   };
 
   const handleConfirmImport = () => {
@@ -710,10 +799,10 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     );
   }
 
-  // ===== FILE UPLOAD SCREEN =====
+  // ===== FILE UPLOAD SCREEN WITH INLINE PASTE FALLBACK =====
   if (mode === 'file') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-foreground mb-1">
             טעינת מערכת (תמונה/אקסל)
@@ -723,12 +812,12 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           </p>
         </div>
 
-        <div className="bg-secondary/50 rounded-lg p-4 border border-border">
-          <div className="flex items-start gap-2 mb-3">
+        <div className="bg-secondary/50 rounded-lg p-3 border border-border">
+          <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
             <div className="text-sm text-muted-foreground">
               <p className="font-medium text-foreground mb-1">פורמטים נתמכים:</p>
-              <ul className="list-disc list-inside space-y-1">
+              <ul className="list-disc list-inside space-y-0.5 text-xs">
                 <li><strong>תמונה:</strong> JPG, PNG (צילום של המערכת)</li>
                 <li><strong>אקסל/CSV:</strong> עמודות יום, שעה, מקצוע (עברית/אנגלית)</li>
               </ul>
@@ -741,7 +830,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           className={cn(
-            "border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer",
+            "border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer",
             dragActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-secondary/50"
           )}
         >
@@ -753,7 +842,7 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
             id="timetable-file-input"
           />
           <label htmlFor="timetable-file-input" className="cursor-pointer">
-            <Upload className="w-10 h-10 text-primary mx-auto mb-3" />
+            <Upload className="w-8 h-8 text-primary mx-auto mb-2" />
             <p className="font-medium text-foreground mb-2">לחצו כאן או גררו קובץ</p>
             <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1 bg-secondary/50 px-2 py-1 rounded-full">
@@ -766,16 +855,41 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
           </label>
         </div>
 
-        <div className="text-center">
-          <button 
-            onClick={() => setMode('paste')}
-            className="text-sm text-primary hover:underline"
-          >
-            או הדביקו טקסט ידנית ←
-          </button>
+        {/* INLINE PASTE FALLBACK - Large text area for copy-paste from Excel/WhatsApp */}
+        <div className="border-t border-border pt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <ClipboardPaste className="w-4 h-4 text-primary" />
+            <p className="text-sm font-medium text-foreground">או הדביקו טקסט כאן (העתק-הדבק מהאקסל)</p>
+          </div>
+          <Textarea
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder="הדביקו שורות מאקסל או וואטסאפ כאן...&#10;דוגמה: יום א | 08:00 | מתמטיקה&#10;יום ב | 09:00 | אנגלית"
+            className="min-h-[100px] text-sm font-mono"
+            dir="rtl"
+          />
+          {pasteText.trim() && (
+            <Button 
+              onClick={processPastedText} 
+              disabled={isParsing}
+              className="w-full mt-2 gap-2"
+            >
+              {isParsing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  מעבד את הטקסט...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  ניתוח הטקסט ({pasteText.split('\n').filter(l => l.trim()).length} שורות)
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-2">
           <Button variant="outline" onClick={() => setMode('choose')}>חזרה</Button>
           <Button variant="outline" onClick={onClose}>ביטול</Button>
         </div>
