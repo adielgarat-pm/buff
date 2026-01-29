@@ -87,9 +87,9 @@ export function NightMission({
     return { lessonsWithEquipment: withEquip, lessonsWithoutEquipment: withoutEquip };
   }, [tomorrowData.lessons]);
 
-  // Static evening prep items (always shown)
+  // Static evening prep items (always shown) - Daily Reset prerequisite
   const EVENING_PREP_ITEMS = [
-    { id: 'remove_lunch_bag', label: 'הוצאת תיק אוכל משומש', icon: '🍱' },
+    { id: 'lunchbox_reset', label: 'איפוס יומי: פינוי וניקוי תיק האוכל (קופסה למדיח/פח)', icon: '🧹' },
   ];
 
   // Generate all checkbox items (static prep + equipment from lessons)
