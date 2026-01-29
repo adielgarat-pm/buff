@@ -311,16 +311,19 @@ serve(async (req) => {
                 role: "system",
                 content: `You are a Hebrew school schedule parser. Parse extracted OCR text into a structured schedule.
 
+CRITICAL: ISRAELI 6-DAY SCHOOL WEEK (Sunday-Friday)
+Friday (יום ו' / שישי) is a STANDARD school day - often shorter with 4-5 lessons. Do NOT skip Friday lessons!
+
 RULES:
 1. Return ONLY valid JSON - no markdown, no explanation.
-2. Israeli schools use a 6-DAY week (Sunday-Friday).
-3. Hebrew days: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
+2. Hebrew days: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
+3. Friday variants: ו', יום ו, יום שישי, שישי, ו
 4. Group lessons by day based on context clues in the text.
 5. If time is missing, set start_time to null (we'll auto-fill later).
-6. If a lesson seems unclear, include it with [?] suffix.
+6. Include ALL Friday lessons even if fewer than other days.
 
 OUTPUT:
-{"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},...]}`
+{"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},{"day":"יום ו","start_time":"08:00","lesson_name":"אנגלית"},...]}`
               },
               {
                 role: "user",
@@ -417,20 +420,36 @@ OUTPUT:
                 role: "system",
                 content: `You are a Hebrew school schedule OCR system with a ZERO DATA LOSS policy. Extract ALL visible data.
 
-ZERO DATA LOSS RULES (CRITICAL):
+CRITICAL: ISRAELI 6-DAY SCHOOL WEEK
+Israeli schools operate Sunday through Friday (6 days). Friday (יום ו' / שישי) is a STANDARD school day - typically shorter with 4-5 lessons but MUST be extracted. Do NOT skip Friday!
+
+COLUMN MAPPING (RTL - Right to Left):
+- Column 1 (rightmost): יום א' / Sunday
+- Column 2: יום ב' / Monday  
+- Column 3: יום ג' / Tuesday
+- Column 4: יום ד' / Wednesday
+- Column 5: יום ה' / Thursday
+- Column 6 (leftmost): יום ו' / Friday - THIS IS OFTEN THE LAST/LEFTMOST COLUMN!
+
+FRIDAY EXTRACTION (CRITICAL):
+1. Look for the LEFTMOST column - it's usually Friday (יום ו' / שישי).
+2. Friday often has FEWER lessons (4-5) compared to other days (6-8) - this is NORMAL.
+3. Even if Friday's column appears narrower or has fewer entries, EXTRACT ALL ITS LESSONS.
+4. Common Friday labels: ו', יום ו, יום שישי, שישי, Friday, ו
+
+ZERO DATA LOSS RULES:
 1. If you find a Subject OR a Time, KEEP THE ROW. Do NOT discard rows missing one value.
 2. If subject text is unclear, include it with a [?] suffix. Better to include than lose data.
 3. If time is not visible, set start_time to null (system will auto-fill).
 4. If a row has a time but no subject, include it with lesson_name as empty string "".
 
 RELAXED COLUMN MAPPING:
-1. Hebrew tables are RTL: Rightmost column = Sunday (יום א'), second = Monday (יום ב'), etc.
-2. If a text block is MOSTLY under a day's column (>50% overlap), assign it to that day.
-3. For small/short text like "חנ"ג", assign to the column it's most centered under.
-4. Do NOT leave cells empty if there's any visible text - include it with [?] if uncertain.
+1. If a text block is MOSTLY under a day's column (>50% overlap), assign it to that day.
+2. For small/short text like "חנ"ג", assign to the column it's most centered under.
+3. Do NOT leave cells empty if there's any visible text - include it with [?] if uncertain.
 
-HEBREW SUBJECT DICTIONARY (helps recognition):
-- חנ"ג / חינוך גופני = Physical Education (VERY common, short text)
+HEBREW SUBJECT DICTIONARY:
+- חנ"ג / חינוך גופני = Physical Education
 - מתמטיקה / חשבון = Math
 - אנגלית = English
 - עברית = Hebrew
@@ -447,10 +466,10 @@ HEBREW SUBJECT DICTIONARY (helps recognition):
 EXTRACTION FORMAT:
 1. For each cell with ANY content: extract day, row_index (1-based), start_time (HH:MM or null), lesson_name.
 2. Support up to 10 lessons per day (row_index 1-10).
-3. If uncertain about text, use dictionary matching or include as-is with [?].
+3. ALWAYS include Friday lessons even if the column has fewer entries than other days.
 4. Return ONLY valid JSON, no explanations.
 
-OUTPUT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_name":"חנ"ג"},...]}`
+OUTPUT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_name":"חנ"ג"},{"day":"יום ו'","row_index":1,"start_time":null,"lesson_name":"אנגלית"},...]}`
               },
               {
                 role: "user",
@@ -577,13 +596,17 @@ OUTPUT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_
                 role: "system",
                 content: `Parse Hebrew school schedule from spreadsheet data.
 
+CRITICAL: ISRAELI 6-DAY SCHOOL WEEK (Sunday-Friday)
+Friday (יום ו' / שישי) is a STANDARD school day. Include ALL Friday lessons even if fewer entries!
+
 RULES:
 1. Return ONLY valid JSON.
-2. 6-DAY Israeli week (Sunday-Friday).
-3. Days: ראשון=Sunday, שני=Monday, שלישי=Tuesday, רביעי=Wednesday, חמישי=Thursday, שישי=Friday
+2. Days: ראשון=Sunday, שני=Monday, שלישי=Tuesday, רביעי=Wednesday, חמישי=Thursday, שישי=Friday
+3. Friday variants: ו', יום ו, יום שישי, שישי, ו
 4. If time missing, set start_time to null.
+5. Always extract Friday column (often leftmost in RTL layout).
 
-OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},...]}`
+OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},{"day":"יום ו","start_time":"08:00","lesson_name":"אנגלית"},...]}`
               },
               {
                 role: "user",
