@@ -49,6 +49,10 @@ interface AppPulseData {
   active_children_7d: number;
   total_tasks: number;
   total_completions: number;
+  completions_today: number;
+  completions_7d: number;
+  potential_today: number;
+  potential_7d: number;
   logins_24h: number;
   shared_device_children: number;
   separate_device_children: number;
@@ -58,7 +62,8 @@ interface AppPulseData {
 interface AppPulseTabProps {
   data: AppPulseData | null;
   loading: boolean;
-  completionRate: number;
+  completionRateToday: number;
+  completionRate7d: number;
   conversionRate: number;
 }
 
@@ -118,7 +123,7 @@ function getOnboardingStatus(signup: RecentSignup): { label: string; variant: 'd
   return { label: 'הושלם', variant: 'default' };
 }
 
-export function AppPulseTab({ data, loading, completionRate, conversionRate }: AppPulseTabProps) {
+export function AppPulseTab({ data, loading, completionRateToday, completionRate7d, conversionRate }: AppPulseTabProps) {
   if (loading || !data) {
     return (
       <div className="space-y-6">
@@ -159,10 +164,16 @@ export function AppPulseTab({ data, loading, completionRate, conversionRate }: A
           subtext={`מתוך ${data.total_children} ילדים`}
         />
         <StatCard 
-          title="משימות הושלמו" 
-          value={data.total_completions.toLocaleString()} 
+          title="השלמות היום" 
+          value={data.completions_today.toLocaleString()} 
           icon={CheckCircle2}
-          subtext={`מתוך ${data.total_tasks} משימות שנוצרו`}
+          subtext={`מתוך ${data.potential_today} פוטנציאל (${completionRateToday}%)`}
+        />
+        <StatCard 
+          title="השלמות (7 ימים)" 
+          value={data.completions_7d.toLocaleString()} 
+          icon={TrendingUp}
+          subtext={`מתוך ${data.potential_7d} פוטנציאל (${completionRate7d}%)`}
         />
         <StatCard 
           title="כניסות (24 שעות)" 
@@ -174,23 +185,45 @@ export function AppPulseTab({ data, loading, completionRate, conversionRate }: A
 
       {/* Metrics & Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Completion Rate */}
+        {/* Today's Completion Rate */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Target className="w-4 h-4" />
-              שיעור השלמה
+              שיעור השלמה - היום
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold">{completionRate}%</span>
-                <TrendingUp className="w-5 h-5 text-primary" />
+                <span className="text-2xl font-bold">{completionRateToday}%</span>
+                <Calendar className="w-5 h-5 text-primary" />
               </div>
-              <Progress value={completionRate} className="h-2" />
+              <Progress value={completionRateToday} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                משימות שהושלמו מכלל המשימות
+                {data.completions_today} מתוך {data.potential_today} משימות
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 7-Day Completion Rate */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              שיעור השלמה - 7 ימים
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold">{completionRate7d}%</span>
+                <Activity className="w-5 h-5 text-success" />
+              </div>
+              <Progress value={completionRate7d} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                {data.completions_7d} מתוך {data.potential_7d} משימות
               </p>
             </div>
           </CardContent>
