@@ -83,9 +83,19 @@ export function NightMission({
     return { lessonsWithEquipment: withEquip, lessonsWithoutEquipment: withoutEquip };
   }, [tomorrowData.lessons]);
 
-  // Generate all checkbox items (equipment only - no essentials in Night Mission)
+  // Static evening prep items (always shown)
+  const EVENING_PREP_ITEMS = [
+    { id: 'remove_lunch_bag', label: 'הוצאת תיק אוכל משומש', icon: '🍱' },
+  ];
+
+  // Generate all checkbox items (static prep + equipment from lessons)
   const allCheckboxItems = useMemo(() => {
-    const items: { id: string; label: string }[] = [];
+    const items: { id: string; label: string; icon?: string }[] = [];
+    
+    // Add static evening prep items first
+    EVENING_PREP_ITEMS.forEach(item => {
+      items.push(item);
+    });
     
     // Add equipment items from lessons
     lessonsWithEquipment.forEach(lesson => {
@@ -229,48 +239,76 @@ export function NightMission({
         </div>
       </div>
 
-      {/* Equipment Checklist */}
-      <div className="space-y-3">
-        <p className="text-xs text-muted-foreground font-medium">🎒 ציוד נדרש לשיעורים:</p>
-        {lessonsWithEquipment.map((lesson, idx) => (
-          <div
-            key={idx}
-            className="p-3 rounded-xl bg-card border-2 border-buff/40"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                {lesson.startTime.slice(0, 5)}
+      {/* Static Evening Prep Items */}
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground font-medium">🧹 הכנות ערב:</p>
+        <div className="p-3 rounded-xl bg-card border border-border">
+          {EVENING_PREP_ITEMS.map((item) => (
+            <label
+              key={item.id}
+              className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+            >
+              <Checkbox
+                checked={checkedItems[item.id] || false}
+                onCheckedChange={(checked) => handleCheckItem(item.id, !!checked)}
+                className="h-5 w-5"
+              />
+              <span className="text-lg">{item.icon}</span>
+              <span className={cn(
+                "text-sm transition-all",
+                checkedItems[item.id] ? "text-muted-foreground line-through" : "text-foreground"
+              )}>
+                {item.label}
               </span>
-              <span className="font-semibold text-foreground text-sm">{lesson.subject}</span>
-            </div>
-            <div className="space-y-2">
-              {lesson.equipment!.split(/[,،\n]/).map((eq, eqIdx) => {
-                const trimmed = eq.trim();
-                if (!trimmed) return null;
-                const itemId = `lesson_${lesson.index}_eq_${eqIdx}`;
-                return (
-                  <label
-                    key={eqIdx}
-                    className="flex items-center gap-3 p-2 rounded-lg bg-background hover:bg-secondary/50 cursor-pointer transition-colors"
-                  >
-                    <Checkbox
-                      checked={checkedItems[itemId] || false}
-                      onCheckedChange={(checked) => handleCheckItem(itemId, !!checked)}
-                      className="h-5 w-5"
-                    />
-                    <span className={cn(
-                      "text-sm transition-all",
-                      checkedItems[itemId] ? "text-muted-foreground line-through" : "text-foreground"
-                    )}>
-                      {trimmed}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+            </label>
+          ))}
+        </div>
       </div>
+
+      {/* Equipment Checklist */}
+      {lessonsWithEquipment.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground font-medium">🎒 ציוד נדרש לשיעורים:</p>
+          {lessonsWithEquipment.map((lesson, idx) => (
+            <div
+              key={idx}
+              className="p-3 rounded-xl bg-card border-2 border-buff/40"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  {lesson.startTime.slice(0, 5)}
+                </span>
+                <span className="font-semibold text-foreground text-sm">{lesson.subject}</span>
+              </div>
+              <div className="space-y-2">
+                {lesson.equipment!.split(/[,،\n]/).map((eq, eqIdx) => {
+                  const trimmed = eq.trim();
+                  if (!trimmed) return null;
+                  const itemId = `lesson_${lesson.index}_eq_${eqIdx}`;
+                  return (
+                    <label
+                      key={eqIdx}
+                      className="flex items-center gap-3 p-2 rounded-lg bg-background hover:bg-secondary/50 cursor-pointer transition-colors"
+                    >
+                      <Checkbox
+                        checked={checkedItems[itemId] || false}
+                        onCheckedChange={(checked) => handleCheckItem(itemId, !!checked)}
+                        className="h-5 w-5"
+                      />
+                      <span className={cn(
+                        "text-sm transition-all",
+                        checkedItems[itemId] ? "text-muted-foreground line-through" : "text-foreground"
+                      )}>
+                        {trimmed}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Complete Button */}
       <div className="pt-2">
