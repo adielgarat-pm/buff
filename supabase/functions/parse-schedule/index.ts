@@ -11,6 +11,7 @@ interface ParsedLesson {
   end_time: string | null;
   lesson_name: string | null;
   auto_time?: boolean; // Flag for auto-filled time
+  row_index?: number; // 1-based lesson number (1-10)
 }
 
 interface ParsedTask {
@@ -194,18 +195,22 @@ function cleanupAndDeduplicateLessons(lessons: ParsedLesson[]): ParsedLesson[] {
     
     dayLessons.forEach((lesson, index) => {
       // Use row_index if available, otherwise use array position + 1
-      const lessonNumber = (lesson as any).row_index || (index + 1);
-      const cappedLessonNumber = Math.min(lessonNumber, 10); // Max 10 lessons
+      const rawLessonNumber = (lesson as any).row_index ?? (index + 1);
+      const lessonNumber = Number(rawLessonNumber);
+      if (!Number.isFinite(lessonNumber) || lessonNumber < 1 || lessonNumber > 10) {
+        // Constraint: do not allow more than 10 lessons per day
+        return;
+      }
       
       const hasValidSubject = lesson.lesson_name && 
         lesson.lesson_name.trim() !== '' && 
         lesson.lesson_name !== 'null' &&
         lesson.lesson_name !== '[שיעור ללא שם]';
       
-      const existing = slotMap[cappedLessonNumber];
+      const existing = slotMap[lessonNumber];
       
       if (!existing) {
-        slotMap[cappedLessonNumber] = { ...lesson, row_index: cappedLessonNumber };
+        slotMap[lessonNumber] = { ...lesson, row_index: lessonNumber };
       } else {
         const existingHasSubject = existing.lesson_name && 
           existing.lesson_name.trim() !== '' && 
@@ -213,7 +218,7 @@ function cleanupAndDeduplicateLessons(lessons: ParsedLesson[]): ParsedLesson[] {
           existing.lesson_name !== '[שיעור ללא שם]';
         
         if (hasValidSubject && !existingHasSubject) {
-          slotMap[cappedLessonNumber] = { ...lesson, row_index: cappedLessonNumber };
+          slotMap[lessonNumber] = { ...lesson, row_index: lessonNumber };
         }
       }
     });
@@ -231,6 +236,7 @@ function cleanupAndDeduplicateLessons(lessons: ParsedLesson[]): ParsedLesson[] {
           day,
           start_time: generateDefaultTime(idx),
           auto_time: true,
+          row_index: parseInt(lessonNum),
         });
       });
   });
@@ -364,12 +370,18 @@ OUTPUT:
           lessons.forEach((l, index) => {
             const time = normalizeTime(l.start_time);
             const autoTime = !time;
+            const rawRowIndex = l.row_index ?? (index + 1);
+            const rowIndexNum = Number(rawRowIndex);
+            const row_index = (Number.isFinite(rowIndexNum) && rowIndexNum >= 1 && rowIndexNum <= 10)
+              ? rowIndexNum
+              : Math.min(index + 1, 10);
             validatedLessons.push({
               day,
-              start_time: time || generateDefaultTime(index),
+              start_time: time || generateDefaultTime(row_index - 1),
               end_time: null,
               lesson_name: l.lesson_name || null,
               auto_time: autoTime,
+              row_index,
             });
           });
         });
@@ -515,12 +527,18 @@ OUTPUT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_
           lessons.forEach((l, index) => {
             const time = normalizeTime(l.start_time);
             const autoTime = !time;
+            const rawRowIndex = l.row_index ?? (index + 1);
+            const rowIndexNum = Number(rawRowIndex);
+            const row_index = (Number.isFinite(rowIndexNum) && rowIndexNum >= 1 && rowIndexNum <= 10)
+              ? rowIndexNum
+              : Math.min(index + 1, 10);
             validatedLessons.push({
               day,
-              start_time: time || generateDefaultTime(index),
+              start_time: time || generateDefaultTime(row_index - 1),
               end_time: null,
               lesson_name: l.lesson_name || null,
               auto_time: autoTime,
+              row_index,
             });
           });
         });
@@ -612,12 +630,18 @@ OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מת�
           lessons.forEach((l, index) => {
             const time = normalizeTime(l.start_time);
             const autoTime = !time;
+            const rawRowIndex = l.row_index ?? (index + 1);
+            const rowIndexNum = Number(rawRowIndex);
+            const row_index = (Number.isFinite(rowIndexNum) && rowIndexNum >= 1 && rowIndexNum <= 10)
+              ? rowIndexNum
+              : Math.min(index + 1, 10);
             validatedLessons.push({
               day,
-              start_time: time || generateDefaultTime(index),
+              start_time: time || generateDefaultTime(row_index - 1),
               end_time: null,
               lesson_name: l.lesson_name || null,
               auto_time: autoTime,
+              row_index,
             });
           });
         });
