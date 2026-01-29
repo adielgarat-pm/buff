@@ -4,12 +4,13 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Save, Clock, Backpack, Plus, Check, Loader2, ArrowRightLeft } from 'lucide-react';
+import { Save, Clock, Backpack, Plus, Check, Loader2, ArrowRightLeft, Merge } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+
 interface TimetableEditorProps {
   open: boolean;
   onClose: () => void;
@@ -55,6 +56,8 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
   const [showSuccess, setShowSuccess] = useState(false);
   // Track indices of newly added lessons (by day) that should be shown even if empty
   const [newlyAddedIndices, setNewlyAddedIndices] = useState<Record<WeekDay, number[]>>({} as Record<WeekDay, number[]>);
+  // Track selected lessons for merging
+  const [selectedForMerge, setSelectedForMerge] = useState<number | null>(null);
 
   // Dialog remains mounted; re-sync when (re)opened so it reflects saved data.
   useEffect(() => {
@@ -64,6 +67,7 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     setShowSuccess(false);
     // Reset newly added tracking when dialog reopens
     setNewlyAddedIndices({} as Record<WeekDay, number[]>);
+    setSelectedForMerge(null);
   }, [open, timetable]);
 
   const handleSubjectChange = (periodIndex: number, subject: string) => {
@@ -220,6 +224,106 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
     return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
   }
 
+  // Handle merge selection
+  const handleMergeSelect = (periodIndex: number) => {
+    if (selectedForMerge === null) {
+      // First selection
+      setSelectedForMerge(periodIndex);
+      toast({
+        title: "בחר/י שיעור נוסף למיזוג",
+        description: "לחץ/י על שיעור נוסף כדי לאחד אותם לשיעור אחד",
+        duration: 3000,
+      });
+    } else if (selectedForMerge === periodIndex) {
+      // Deselect
+      setSelectedForMerge(null);
+    } else {
+      // Merge the two lessons
+      const periods = localTimetable[selectedDay];
+      const firstPeriod = periods[selectedForMerge];
+      const secondPeriod = periods[periodIndex];
+      
+      if (!firstPeriod || !secondPeriod) {
+        setSelectedForMerge(null);
+        return;
+      }
+      
+      // Merge: combine subjects, keep earlier time, combine equipment
+      const [earlier, later] = selectedForMerge < periodIndex 
+        ? [firstPeriod, secondPeriod] 
+        : [secondPeriod, firstPeriod];
+      
+      const earlierIdx = selectedForMerge < periodIndex ? selectedForMerge : periodIndex;
+      const laterIdx = selectedForMerge < periodIndex ? periodIndex : selectedForMerge;
+      
+      // Smart merge: if one looks like a teacher name (2-3 words, not a subject), format as "Subject (Teacher)"
+      let mergedSubject = '';
+      const isLikelyTeacher = (text: string) => {
+        if (!text) return false;
+        const words = text.trim().split(/\s+/);
+        // Teacher names are usually 2-3 words, no special chars like ", numbers
+        return words.length >= 2 && words.length <= 3 && !/["'\d]/.test(text);
+      };
+      
+      if (earlier.subject && later.subject) {
+        if (isLikelyTeacher(later.subject) && !isLikelyTeacher(earlier.subject)) {
+          mergedSubject = `${earlier.subject} (${later.subject})`;
+        } else if (isLikelyTeacher(earlier.subject) && !isLikelyTeacher(later.subject)) {
+          mergedSubject = `${later.subject} (${earlier.subject})`;
+        } else {
+          // Both are subjects - just combine with /
+          mergedSubject = `${earlier.subject} / ${later.subject}`;
+        }
+      } else {
+        mergedSubject = earlier.subject || later.subject || '';
+      }
+      
+      const mergedEquipment = [earlier.equipment, later.equipment]
+        .filter(Boolean)
+        .join(', ');
+      
+      // Update timetable: merge into earlier slot, remove later slot
+      setLocalTimetable(prev => {
+        const newPeriods = [...prev[selectedDay]];
+        newPeriods[earlierIdx] = {
+          ...earlier,
+          subject: mergedSubject,
+          equipment: mergedEquipment,
+        };
+        // Remove the later period
+        newPeriods.splice(laterIdx, 1);
+        return {
+          ...prev,
+          [selectedDay]: newPeriods,
+        };
+      });
+      
+      // Update newly added indices to account for removed item
+      setNewlyAddedIndices(prev => {
+        const dayIndices = prev[selectedDay] || [];
+        return {
+          ...prev,
+          [selectedDay]: dayIndices
+            .filter(i => i !== laterIdx)
+            .map(i => i > laterIdx ? i - 1 : i),
+        };
+      });
+      
+      setSelectedForMerge(null);
+      
+      toast({
+        title: "✓ שיעורים אוחדו",
+        description: `"${mergedSubject}" נוצר מאיחוד שני השיעורים`,
+        duration: 3000,
+      });
+    }
+  };
+
+  // Cancel merge mode
+  const cancelMerge = () => {
+    setSelectedForMerge(null);
+  };
+
   return (
     <Dialog
       open={open}
@@ -265,10 +369,17 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                 return null;
               }
               
+              const isSelectedForMerge = selectedForMerge === index;
+              
               return (
               <div
                 key={index}
-                className="p-3 rounded-xl bg-secondary/30 border border-border space-y-2"
+                className={cn(
+                  "p-3 rounded-xl bg-secondary/30 border space-y-2 transition-all",
+                  isSelectedForMerge 
+                    ? "border-primary ring-2 ring-primary/30" 
+                    : "border-border"
+                )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -277,14 +388,31 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
                     </span>
                     <Label className="text-foreground font-medium">שיעור {index + 1}</Label>
                   </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleDeleteLesson(index)}
-                    className="h-8 w-8 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <span className="text-lg">×</span>
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {/* Merge button */}
+                    <Button
+                      size="icon"
+                      variant={isSelectedForMerge ? "default" : "ghost"}
+                      onClick={() => handleMergeSelect(index)}
+                      className={cn(
+                        "h-8 w-8",
+                        isSelectedForMerge 
+                          ? "bg-primary text-primary-foreground" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      )}
+                      title={isSelectedForMerge ? "לחץ על שיעור נוסף למיזוג" : "מזג עם שיעור אחר"}
+                    >
+                      <Merge className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteLesson(index)}
+                      className="h-8 w-8 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <span className="text-lg">×</span>
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex gap-3">
@@ -360,6 +488,23 @@ export function TimetableEditor({ open, onClose, timetable, onSave, fridayEnable
               </div>
               );
             })}
+            
+            {/* Merge mode indicator */}
+            {selectedForMerge !== null && (
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-between">
+                <span className="text-sm text-primary font-medium">
+                  בחר/י שיעור נוסף למיזוג
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={cancelMerge}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ביטול
+                </Button>
+              </div>
+            )}
             
             {/* Add Lesson Button */}
             <Button
