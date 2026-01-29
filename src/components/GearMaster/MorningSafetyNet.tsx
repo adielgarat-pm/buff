@@ -35,15 +35,19 @@ export function MorningSafetyNet({
     
     const todayDay = dayMap[todayIndex];
     if (!todayDay) {
-      return { day: null, lessons: [], dayLabel: '' };
+      return { day: null, lessons: [], dayLabel: '', hasSchedule: false };
     }
     
     const lessons = (timetable[todayDay] || []).filter(p => p.subject && p.subject.trim() !== '');
     
+    // Smart Context Guard: Check if there's actually a schedule uploaded for today
+    const hasSchedule = lessons.length > 0;
+    
     return { 
       day: todayDay, 
       lessons, 
-      dayLabel: WEEK_DAY_LABELS[todayDay] 
+      dayLabel: WEEK_DAY_LABELS[todayDay],
+      hasSchedule 
     };
   }, [timetable, fridayEnabled]);
 
@@ -54,8 +58,8 @@ export function MorningSafetyNet({
       .filter(lesson => lesson.equipment && lesson.equipment.trim() !== '');
   }, [todayData.lessons]);
 
-  // Don't show if no school day or no equipment needed
-  if (!todayData.day || lessonsWithEquipment.length === 0) {
+  // Smart Context Guard: Don't show if no school day, no schedule uploaded, or no equipment needed
+  if (!todayData.day || !todayData.hasSchedule || lessonsWithEquipment.length === 0) {
     return null;
   }
 
