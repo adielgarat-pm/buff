@@ -67,9 +67,9 @@ export function MorningSafetyNet({
           <AlertTriangle className="w-5 h-5 text-amber-500" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-foreground text-sm">תזכורת ציוד</h3>
+          <h3 className="font-bold text-foreground text-sm">תזכורת בוקר - בדיקת תיק</h3>
           <p className="text-xs text-muted-foreground">
-            בדוק שהכל בתיק לפני שיוצאים!
+            בדיקה שהכל בתיק לפני היציאה!
           </p>
         </div>
         <div className="px-2 py-1 rounded-full bg-muted text-xs text-muted-foreground">
@@ -109,7 +109,7 @@ export function MorningSafetyNet({
       </div>
 
       <p className="text-xs text-center text-muted-foreground italic">
-        💡 טיפ: הכן את התיק בערב הקודם כדי לצבור נקודות!
+        💡 טיפ: סידור תיק בערב הקודם מזכה בנקודות!
       </p>
     </div>
   );

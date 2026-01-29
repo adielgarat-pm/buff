@@ -120,8 +120,8 @@ export function NightMission({
     onComplete();
     
     toast({
-      title: "🎒 משימת הלילה הושלמה!",
-      description: `מעולה! הכנת את התיק מראש וצברת ${credits} קרדיטים`,
+      title: "🎒 משימת הערב הושלמה!",
+      description: `מעולה! סידור התיק מראש הביא ${credits} קרדיטים`,
       duration: 5000,
     });
     
@@ -134,7 +134,7 @@ export function NightMission({
     onUndo?.();
     toast({
       title: "↩️ בוטל",
-      description: "משימת הלילה בוטלה",
+      description: "משימת הערב בוטלה",
       duration: 3000,
     });
   };
@@ -164,10 +164,10 @@ export function NightMission({
           <CheckCircle2 className="w-8 h-8 text-buff" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          משימת הלילה הושלמה! 🌟
+          משימת ערב - הושלמה! 🌟
         </h3>
         <p className="text-sm text-muted-foreground">
-          התיק מוכן למחר - צברת {credits} קרדיטים
+          התיק מוכן למחר - נצברו {credits} קרדיטים
         </p>
       </div>
     );
@@ -183,7 +183,7 @@ export function NightMission({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-foreground">משימת הלילה</h3>
+              <h3 className="font-bold text-foreground">משימת ערב - בונוס מוכנות!</h3>
               <Zap className="w-4 h-4 text-buff animate-pulse" />
             </div>
             <p className="text-sm text-muted-foreground">
@@ -200,7 +200,7 @@ export function NightMission({
           className="w-full gap-2 bg-gradient-to-r from-buff to-primary text-white hover:opacity-90"
         >
           <PartyPopper className="w-5 h-5" />
-          התיק מוכן למחר! (+{credits} קרדיטים)
+          סידור תיק הושלם! (+{credits} קרדיטים)
         </Button>
       </div>
     );
@@ -217,11 +217,11 @@ export function NightMission({
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-foreground">משימת הלילה</h3>
+            <h3 className="font-bold text-foreground">משימת ערב - בונוס מוכנות!</h3>
             <Zap className="w-4 h-4 text-buff animate-pulse" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {tomorrowData.dayLabel} - הכן את הציוד עכשיו!
+            {tomorrowData.dayLabel} - סידור ציוד עכשיו!
           </p>
         </div>
         <div className="px-3 py-1.5 rounded-full bg-buff/20 border border-buff/30">
@@ -297,12 +297,12 @@ export function NightMission({
             {allChecked ? (
               <>
                 <PartyPopper className="w-5 h-5" />
-                התיק מוכן! (+{credits} קרדיטים)
+                סידור תיק הושלם! (+{credits} קרדיטים)
               </>
             ) : (
               <>
                 <Backpack className="w-5 h-5" />
-                סמן את כל הפריטים
+                סימון כל הפריטים
               </>
             )}
           </Button>

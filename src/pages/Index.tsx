@@ -27,6 +27,10 @@ const Index = () => {
     completeTask,
     todaySchedule,
     lessonRemindersEnabled,
+    bagPrepEnabled,
+    bagPrepCompleted,
+    bagPrepCredits,
+    isCurrentlyWeekend,
   } = useSyncedTaskStore();
 
   // Notification system
@@ -34,6 +38,7 @@ const Index = () => {
     permission,
     scheduleTaskNotifications,
     scheduleLessonNotifications,
+    scheduleGearMasterNotification,
   } = useNotifications();
 
   // Weekly summary data
@@ -60,6 +65,13 @@ const Index = () => {
       scheduleLessonNotifications(todaySchedule, lessonRemindersEnabled);
     }
   }, [permission, todaySchedule, lessonRemindersEnabled, scheduleLessonNotifications]);
+
+  // Schedule Gear Master evening notification (19:00) - only on school days
+  useEffect(() => {
+    if (permission === 'granted' && !isCurrentlyWeekend) {
+      scheduleGearMasterNotification(bagPrepEnabled, bagPrepCompleted, bagPrepCredits);
+    }
+  }, [permission, bagPrepEnabled, bagPrepCompleted, bagPrepCredits, isCurrentlyWeekend, scheduleGearMasterNotification]);
 
   // Listen for task completion from service worker
   useEffect(() => {

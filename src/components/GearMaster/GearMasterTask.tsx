@@ -45,7 +45,7 @@ export function GearMasterTask({ type, credits, isCompleted, onClick }: GearMast
             "font-bold text-lg",
             isCompleted ? "text-primary" : "text-foreground"
           )}>
-            {isNight ? "משימת הלילה" : "תזכורת ציוד"}
+            {isNight ? "משימת ערב - בונוס מוכנות!" : "תזכורת בוקר - בדיקת תיק"}
           </h3>
           {!isCompleted && isNight && <Zap className="w-4 h-4 text-buff animate-pulse" />}
         </div>
@@ -53,8 +53,8 @@ export function GearMasterTask({ type, credits, isCompleted, onClick }: GearMast
           {isCompleted 
             ? "התיק מוכן! ✨" 
             : isNight 
-              ? "הכן את הציוד למחר עכשיו"
-              : "בדוק שהכל בתיק לפני שיוצאים"
+              ? "סידור ציוד למחר עכשיו"
+              : "בדיקה שהכל בתיק לפני היציאה"
           }
         </p>
       </div>

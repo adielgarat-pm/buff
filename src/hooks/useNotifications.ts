@@ -242,12 +242,35 @@ export function useNotifications() {
       if (notifyTime > today) {
         scheduleNotification(
           `lesson_${index}`,
-          `🎯 Your ${period.subject} quest starts in 5 minutes!`,
-          `Get ready to Buff up! 🏆`,
+          `🎯 שיעור ${period.subject} מתחיל בעוד 5 דקות!`,
+          `הגיע הזמן להתכונן! 🏆`,
           notifyTime
         );
       }
     });
+  }, [permission, scheduleNotification]);
+
+  // Schedule Gear Master Evening Mission notification (19:00)
+  const scheduleGearMasterNotification = useCallback((
+    bagPrepEnabled: boolean,
+    bagPrepCompleted: boolean,
+    credits: number
+  ): void => {
+    if (permission !== 'granted' || !bagPrepEnabled || bagPrepCompleted) return;
+
+    const today = new Date();
+    const notifyTime = new Date(today);
+    notifyTime.setHours(19, 0, 0, 0); // 19:00
+
+    // Only schedule if 19:00 is in the future
+    if (notifyTime > today) {
+      scheduleNotification(
+        'gear_master_evening',
+        `🎒 משימת ערב - בונוס מוכנות!`,
+        `התיק למחר כבר מוכן? זה הזמן לזכות ב-${credits} נקודות Buff! ✨`,
+        notifyTime
+      );
+    }
   }, [permission, scheduleNotification]);
 
   // Cancel a scheduled notification
@@ -279,6 +302,7 @@ export function useNotifications() {
     scheduleNotification,
     scheduleTaskNotifications,
     scheduleLessonNotifications,
+    scheduleGearMasterNotification,
     cancelNotification,
     cancelAllNotifications,
   };
