@@ -64,6 +64,7 @@ interface AppPulseTabProps {
   loading: boolean;
   completionRateToday: number;
   completionRate7d: number;
+  activeChildrenRate: number;
   conversionRate: number;
 }
 
@@ -123,7 +124,7 @@ function getOnboardingStatus(signup: RecentSignup): { label: string; variant: 'd
   return { label: 'הושלם', variant: 'default' };
 }
 
-export function AppPulseTab({ data, loading, completionRateToday, completionRate7d, conversionRate }: AppPulseTabProps) {
+export function AppPulseTab({ data, loading, completionRateToday, completionRate7d, activeChildrenRate, conversionRate }: AppPulseTabProps) {
   if (loading || !data) {
     return (
       <div className="space-y-6">
@@ -159,9 +160,9 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
         />
         <StatCard 
           title="ילדים פעילים (7 ימים)" 
-          value={data.active_children_7d} 
+          value={`${data.active_children_7d} (${activeChildrenRate}%)`}
           icon={Activity}
-          subtext={`מתוך ${data.total_children} ילדים`}
+          subtext={`מתוך ${data.total_children} ילדים במערכת`}
         />
         <StatCard 
           title="השלמות היום" 

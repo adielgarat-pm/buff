@@ -86,6 +86,12 @@ export function useAdminAnalytics(isAdmin: boolean) {
       : 0
     : 0;
 
+  const activeChildrenRate = data
+    ? data.total_children > 0
+      ? Math.round((data.active_children_7d / data.total_children) * 100)
+      : 0
+    : 0;
+
   const conversionRate = data
     ? data.total_profiles > 0
       ? Math.round((data.total_children / data.total_profiles) * 100)
@@ -99,6 +105,7 @@ export function useAdminAnalytics(isAdmin: boolean) {
     refetch: fetchAnalytics,
     completionRateToday,
     completionRate7d,
+    activeChildrenRate,
     conversionRate,
   };
 }
