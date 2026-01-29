@@ -127,6 +127,18 @@ export function getPhaseForTime(timeString: string): Phase {
  * @param schoolEndTime School end time in HH:MM format (from schedule)
  * @param isSchoolDay Whether today is a school day
  */
+/**
+ * Get the phase for a specific time, using the actual school end time
+ * Tasks scheduled after school ends should appear in 'afternoon' phase
+ * 
+ * IMPORTANT: When isSchoolDay is false (weekends OR school quest disabled),
+ * tasks between 09:00-20:00 go to 'afternoon' phase - there is no 'school' phase.
+ * This ensures homework/prep tasks are visible even when School Quest is off.
+ * 
+ * @param timeString Time in HH:MM format
+ * @param schoolEndTime School end time in HH:MM format (from schedule)
+ * @param isSchoolDay Whether today is a school day AND school quest is enabled
+ */
 export function getSmartPhaseForTime(
   timeString: string, 
   schoolEndTime: string | null, 
@@ -135,16 +147,23 @@ export function getSmartPhaseForTime(
   const [hours, minutes] = timeString.split(':').map(Number);
   const taskMinutes = hours * 60 + minutes;
   
-  // Morning: 6:00 - 9:00
+  // Morning: 6:00 - 9:00 (always applies)
   if (taskMinutes >= 360 && taskMinutes < 540) {
     return 'morning';
   }
   
-  // Evening: 20:00+
+  // Evening: 20:00+ (always applies)
   if (taskMinutes >= 1200) {
     return 'evening';
   }
   
+  // If NOT a school day (weekend OR school quest disabled):
+  // All tasks between 09:00-20:00 go to 'afternoon'
+  if (!isSchoolDay) {
+    return 'afternoon';
+  }
+  
+  // School day logic - use actual school end time
   // Calculate school end in minutes (default 14:00 = 840)
   let schoolEndMinutes = 840;
   if (schoolEndTime) {
@@ -153,19 +172,10 @@ export function getSmartPhaseForTime(
   }
   
   // School phase: 9:00 until school actually ends
-  if (isSchoolDay && taskMinutes >= 540 && taskMinutes < schoolEndMinutes) {
+  if (taskMinutes >= 540 && taskMinutes < schoolEndMinutes) {
     return 'school';
   }
   
   // Afternoon: after school ends until 20:00
-  if (taskMinutes >= schoolEndMinutes && taskMinutes < 1200) {
-    return 'afternoon';
-  }
-  
-  // Fallback for edge cases
-  if (taskMinutes >= 540 && taskMinutes < 1200) {
-    return 'afternoon';
-  }
-  
-  return 'evening';
+  return 'afternoon';
 }
