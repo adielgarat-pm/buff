@@ -334,7 +334,167 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
     }
   }, [processApiResponse]);
 
-  // Process Excel file locally with FLEXIBLE HEADER MAPPING
+  // ===== PIVOT/GRID FORMAT DETECTION =====
+  // Detect if the data is in pivot/grid format (days as columns)
+  const isPivotGridFormat = (rawData: any[][]): { isPivot: boolean; headerRowIndex: number } => {
+    // Look for header row containing day names as column headers
+    // Check rows 0-5 for potential header row
+    for (let rowIdx = 0; rowIdx <= Math.min(5, rawData.length - 1); rowIdx++) {
+      const row = rawData[rowIdx] || [];
+      const rowStr = row.map((c: any) => String(c || '').trim().toLowerCase());
+      
+      // Check if this row has day names as headers (ראשון, שני, שלישי, etc.)
+      const dayHeaders = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
+      const foundDays = dayHeaders.filter(d => rowStr.some((cell: string) => cell.includes(d)));
+      
+      // Also check for "שעה/יום" or similar time/day header
+      const hasTimeHeader = rowStr.some((cell: string) => 
+        cell.includes('שעה') || cell.includes('יום') || cell.includes('שעה/יום')
+      );
+      
+      // If we find at least 3 day names in the same row, it's likely a pivot format
+      if (foundDays.length >= 3 || (foundDays.length >= 2 && hasTimeHeader)) {
+        return { isPivot: true, headerRowIndex: rowIdx };
+      }
+    }
+    
+    return { isPivot: false, headerRowIndex: 0 };
+  };
+
+  // Parse time from pivot format cell (e.g., "1. 08:15-09:00" or "08:15-09:00")
+  const parseTimeFromPivotCell = (cell: string): { startTime: string; endTime: string; lessonNumber: number } => {
+    const str = String(cell || '').trim();
+    
+    // Pattern: "1. 08:15-09:00" or "08:15-09:00" or "1. 08:15 - 09:00"
+    const timeRangeMatch = str.match(/(\d{1,2})[:\.]?\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+    if (timeRangeMatch) {
+      const lessonNum = parseInt(timeRangeMatch[1], 10);
+      return {
+        lessonNumber: lessonNum,
+        startTime: timeRangeMatch[2],
+        endTime: timeRangeMatch[3],
+      };
+    }
+    
+    // Pattern: just time range "08:15-09:00"
+    const simpleTimeMatch = str.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+    if (simpleTimeMatch) {
+      return {
+        lessonNumber: 0,
+        startTime: simpleTimeMatch[1],
+        endTime: simpleTimeMatch[2],
+      };
+    }
+    
+    // Pattern: just lesson number like "1" or "שיעור 1"
+    const lessonNumMatch = str.match(/(\d+)/);
+    if (lessonNumMatch) {
+      const lessonNum = parseInt(lessonNumMatch[1], 10);
+      return {
+        lessonNumber: lessonNum,
+        startTime: generateDefaultTime(lessonNum - 1),
+        endTime: '',
+      };
+    }
+    
+    return { lessonNumber: 0, startTime: '', endTime: '' };
+  };
+
+  // Extract subject from cell (first line only, ignore teacher names)
+  const extractSubjectFromCell = (cell: string): string => {
+    const str = String(cell || '').trim();
+    if (!str) return '';
+    
+    // Split by newline and take only the first line
+    const lines = str.split(/[\n\r]+/);
+    const firstLine = (lines[0] || '').trim();
+    
+    // Clean up common artifacts
+    return firstLine
+      .replace(/^\d+\.\s*/, '') // Remove leading lesson numbers
+      .replace(/\s*\([^)]*\)\s*$/, '') // Remove trailing parentheses (often room info)
+      .trim();
+  };
+
+  // Map column index to day based on header row
+  const mapColumnToDay = (headers: string[]): Record<number, WeekDay> => {
+    const dayMapping: Record<number, WeekDay> = {};
+    const dayPatterns: [RegExp, WeekDay][] = [
+      [/ראשון|יום\s*א|sunday|sun/i, 'sunday'],
+      [/שני|יום\s*ב|monday|mon/i, 'monday'],
+      [/שלישי|יום\s*ג|tuesday|tue/i, 'tuesday'],
+      [/רביעי|יום\s*ד|wednesday|wed/i, 'wednesday'],
+      [/חמישי|יום\s*ה|thursday|thu/i, 'thursday'],
+      [/שישי|יום\s*ו|friday|fri/i, 'friday'],
+    ];
+    
+    headers.forEach((header, colIdx) => {
+      const headerStr = String(header || '').trim().toLowerCase();
+      for (const [pattern, day] of dayPatterns) {
+        if (pattern.test(headerStr)) {
+          dayMapping[colIdx] = day;
+          break;
+        }
+      }
+    });
+    
+    return dayMapping;
+  };
+
+  // Process pivot/grid format Excel
+  const processPivotFormat = (rawData: any[][], headerRowIndex: number): ParsedPeriod[] => {
+    const periods: ParsedPeriod[] = [];
+    const headerRow = rawData[headerRowIndex] || [];
+    const headers = headerRow.map((h: any) => String(h || '').trim());
+    
+    // Map columns to days
+    const columnToDayMap = mapColumnToDay(headers);
+    const dayColumns = Object.keys(columnToDayMap).map(Number).sort((a, b) => a - b);
+    
+    console.log('Pivot format detected. Header row:', headerRowIndex, 'Day columns:', columnToDayMap);
+    
+    // Process data rows (after header row)
+    for (let rowIdx = headerRowIndex + 1; rowIdx < rawData.length; rowIdx++) {
+      const row = rawData[rowIdx] || [];
+      
+      // Column 0 is the time/lesson column
+      const timeCell = String(row[0] || '').trim();
+      if (!timeCell) continue; // Skip empty rows
+      
+      const { startTime, lessonNumber } = parseTimeFromPivotCell(timeCell);
+      const effectiveLessonNumber = lessonNumber || (rowIdx - headerRowIndex);
+      const effectiveTime = startTime || generateDefaultTime(effectiveLessonNumber - 1);
+      
+      // Process each day column
+      for (const colIdx of dayColumns) {
+        const day = columnToDayMap[colIdx];
+        if (!day) continue;
+        
+        const cellValue = String(row[colIdx] || '').trim();
+        if (!cellValue) continue; // Skip empty cells
+        
+        const subject = extractSubjectFromCell(cellValue);
+        if (!subject) continue; // Skip if no subject extracted
+        
+        periods.push({
+          id: generateId(),
+          subject,
+          time: effectiveTime,
+          day,
+          selected: true,
+          autoTime: !startTime,
+          missingSubject: false,
+          missingDay: false,
+          lessonNumber: effectiveLessonNumber,
+          equipment: '',
+        });
+      }
+    }
+    
+    return periods;
+  };
+
+  // Process Excel file locally with FLEXIBLE HEADER MAPPING + PIVOT SUPPORT
   const processExcelLocally = useCallback(async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -349,6 +509,38 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         return;
       }
       
+      // ===== CHECK FOR PIVOT/GRID FORMAT =====
+      const { isPivot, headerRowIndex } = isPivotGridFormat(rawData);
+      
+      if (isPivot) {
+        console.log(`Detected pivot/grid format. Using row ${headerRowIndex + 1} as headers (0-indexed: ${headerRowIndex})`);
+        toast.info('זוהה פורמט טבלה (ימים כעמודות)');
+        
+        const periods = processPivotFormat(rawData, headerRowIndex);
+        
+        if (periods.length === 0) {
+          toast.error('לא נמצאו שיעורים בטבלה. נסו להדביק טקסט ישירות.');
+          return;
+        }
+        
+        // Sort by day and lesson number
+        periods.sort((a, b) => {
+          const dayOrder = displayDays.indexOf(a.day) - displayDays.indexOf(b.day);
+          if (dayOrder !== 0) return dayOrder;
+          return (a.lessonNumber || 0) - (b.lessonNumber || 0);
+        });
+        
+        const hasAuto = periods.some(p => p.autoTime);
+        setHasAutoFilledTimes(hasAuto);
+        setHasValidationErrors(false);
+        setParsedPeriods(periods);
+        setMode('review');
+        
+        toast.success(`נמצאו ${periods.length} שיעורים מטבלת המערכת!`);
+        return;
+      }
+      
+      // ===== STANDARD ROW-BASED FORMAT =====
       // Try to detect headers from first row
       const firstRow = rawData[0] || [];
       const headers = firstRow.map((h: any) => String(h || '').trim());
