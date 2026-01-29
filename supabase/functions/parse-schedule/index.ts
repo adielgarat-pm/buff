@@ -297,9 +297,9 @@ OUTPUT:
     }
     // STEP 2: Handle IMAGE with lightweight OCR-first approach
     else if (fileType === 'image' && imageBase64) {
-      console.log("Processing image with lightweight OCR approach...");
+      console.log("Processing image with precision OCR approach...");
       
-      // Use a fast model with a simpler OCR-focused prompt
+      // Use a fast model with strict column-mapping rules
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
       
@@ -317,22 +317,43 @@ OUTPUT:
             messages: [
               {
                 role: "system",
-                content: `You are a fast Hebrew OCR system. Extract school schedule data from images.
+                content: `You are a PRECISION Hebrew school schedule OCR system. Extract data with STRICT column boundaries.
 
-QUICK EXTRACTION RULES:
-1. Hebrew tables are RTL. Rightmost column = Sunday (יום א), leftmost = Friday (יום ו).
-2. Extract: day, start_time (HH:MM), lesson_name for each cell.
-3. If time is unclear, set start_time to null.
-4. Return ONLY JSON, no explanations.
+CRITICAL COLUMN-MAPPING RULES:
+1. Hebrew tables are RTL: Rightmost column = Sunday (יום א'), second = Monday (יום ב'), etc.
+2. STRICT VERTICAL ANCHOR: A subject belongs to a column ONLY if its text is STRICTLY within that column's X-coordinates.
+3. DO NOT "fill" short subjects from neighboring columns. If a cell appears empty, leave it empty.
+4. Column drift is FORBIDDEN: "מחשבים" in column 4 (Wednesday) must NOT appear in column 2 (Monday).
 
-OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},...]}`
+HEBREW SUBJECT DICTIONARY (prioritize recognition):
+- חנ"ג / חינוך גופני = Physical Education
+- מתמטיקה / חשבון = Math
+- אנגלית = English
+- עברית = Hebrew
+- מדעים = Science
+- היסטוריה = History
+- גאוגרפיה = Geography
+- מחשבים = Computer Science
+- אמנות / ציור = Art
+- מוזיקה = Music
+- תנ"ך = Bible Studies
+- ספרות = Literature
+- חברה = Social Studies
+
+EXTRACTION RULES:
+1. For each cell, extract: day, row_index (1-based period number), start_time (HH:MM or null), lesson_name.
+2. If a cell has short/unclear text, use dictionary matching. "חנ"ג" is VERY common.
+3. If time is not visible, set start_time to null.
+4. Return ONLY valid JSON, no explanations.
+
+OUTPUT FORMAT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_name":"חנ"ג"},...]}`
               },
               {
                 role: "user",
                 content: [
                   {
                     type: "text",
-                    text: "Extract the school schedule. Return only JSON with lessons array."
+                    text: "Extract the school schedule with STRICT column boundaries. Each subject must be in its CORRECT day column. Return only JSON with lessons array."
                   },
                   {
                     type: "image_url",
