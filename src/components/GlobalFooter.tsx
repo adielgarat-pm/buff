@@ -12,7 +12,7 @@ export function GlobalFooter({ className }: GlobalFooterProps) {
 
   return (
     <>
-      <footer className={`w-full py-4 text-center ${className || ''}`}>
+      <footer className={`w-full py-4 text-center space-y-2 ${className || ''}`}>
         <button
           type="button"
           onClick={() => setDisclaimerOpen(true)}
@@ -20,6 +20,19 @@ export function GlobalFooter({ className }: GlobalFooterProps) {
         >
           {t('legal.footerLink')}
         </button>
+        
+        {/* Lovable Attribution */}
+        <p className="text-xs text-muted-foreground/70">
+          פותח באהבה באמצעות{' '}
+          <a
+            href="https://lovable.dev/invite/PKVK9J3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary/60 hover:text-primary hover:underline transition-colors"
+          >
+            Lovable
+          </a>
+        </p>
       </footer>
       <LegalDisclaimer open={disclaimerOpen} onOpenChange={setDisclaimerOpen} />
     </>
