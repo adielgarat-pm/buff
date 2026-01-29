@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 import { StoreReward } from '@/types/task';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -39,7 +39,8 @@ const ICON_OPTIONS = [
   { icon: '🎪', label: 'Event' },
 ];
 
-export function StoreRewardEditor({ open, onClose, rewards, onSave, dailyGoal = 100 }: StoreRewardEditorProps) {
+export const StoreRewardEditor = forwardRef<HTMLDivElement, StoreRewardEditorProps>(
+  function StoreRewardEditor({ open, onClose, rewards, onSave, dailyGoal = 100 }, ref) {
   const [localRewards, setLocalRewards] = useState<StoreReward[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -317,4 +318,6 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave, dailyGoal = 
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+StoreRewardEditor.displayName = 'StoreRewardEditor';
