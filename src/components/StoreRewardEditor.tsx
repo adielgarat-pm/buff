@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { ScrollArea } from './ui/scroll-area';
-import { Trash2, Plus, Save, Gift, Gamepad2, Headphones, Pizza, Ticket, ShoppingBag, Star, Trophy } from 'lucide-react';
+import { Trash2, Plus, Save, Gift, Gamepad2, Headphones, Pizza, Ticket, ShoppingBag, Star, Trophy, RotateCcw } from 'lucide-react';
 
 interface StoreRewardEditorProps {
   open: boolean;
@@ -286,9 +286,14 @@ export function StoreRewardEditor({ open, onClose, rewards, onSave, dailyGoal = 
                     </div>
                   </div>
                   {reward.claimed && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                      נוצל
-                    </span>
+                    <button
+                      onClick={() => handleUpdateReward(reward.id, { claimed: false, claimedAt: undefined })}
+                      className="text-xs bg-success/10 text-success px-2 py-1 rounded-full hover:bg-success/20 transition-colors flex items-center gap-1"
+                      title="החזר לחנות"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      החזר לחנות
+                    </button>
                   )}
                 </div>
               </div>
