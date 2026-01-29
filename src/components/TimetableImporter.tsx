@@ -32,6 +32,7 @@ interface ParsedPeriod {
   day: WeekDay;
   selected: boolean;
   autoTime?: boolean; // Flag for auto-filled time (Buff Standard)
+  missingSubject?: boolean; // Flag for rows with time but no subject
 }
 
 interface TimetableImporterProps {
@@ -55,11 +56,14 @@ const HEBREW_DAY_MAP: Record<string, WeekDay> = {
 };
 
 // Generate default time using "Buff Standard" algorithm
+// Supports up to 10 lessons per day
 const generateDefaultTime = (lessonIndex: number): string => {
+  // Cap at lesson 10 (index 9) to prevent runaway times
+  const cappedIndex = Math.min(lessonIndex, 9);
   const LESSON_DURATION = 50;
   const BREAK_DURATION = 20;
   let currentMinutes = 8 * 60;
-  for (let i = 0; i < lessonIndex; i++) {
+  for (let i = 0; i < cappedIndex; i++) {
     currentMinutes += LESSON_DURATION;
     if ((i + 1) % 2 === 0) currentMinutes += BREAK_DURATION;
   }
@@ -136,24 +140,29 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
   }, []);
 
   // Process API response into periods
+  // ZERO DATA LOSS: Keep rows with Subject OR Time
   const processApiResponse = useCallback((tasks: any[]) => {
     const periods: ParsedPeriod[] = [];
     let hasAuto = false;
+    let hasMissingSubjects = false;
     
     (tasks || []).forEach((t: any) => {
       const day = (t.day || 'sunday') as WeekDay;
       if (t.autoTime) hasAuto = true;
+      if (t.missingSubject) hasMissingSubjects = true;
+      
       periods.push({
         id: generateId(),
-        subject: t.title || '',
+        subject: t.title || '[שיעור ללא שם]',
         time: t.time || '08:00',
         day,
         selected: true,
         autoTime: t.autoTime,
+        missingSubject: t.missingSubject,
       });
     });
     
-    setHasAutoFilledTimes(hasAuto);
+    setHasAutoFilledTimes(hasAuto || hasMissingSubjects);
     setParsedPeriods(periods);
     setMode('review');
   }, []);
@@ -576,10 +585,10 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
         </div>
 
         {hasAutoFilledTimes && (
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              שעות מסומנות בכתום הוזנו אוטומטית (שיטת Buff). ניתן לערוך.
+          <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-warning">
+              שעות או שמות מסומנים בכתום הוזנו אוטומטית. ניתן לערוך.
             </p>
           </div>
         )}
@@ -625,21 +634,21 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
 
                         <div className={cn(
                           "flex items-center gap-1 w-24",
-                          period.autoTime && "ring-2 ring-amber-500/50 rounded-md"
+                          period.autoTime && "ring-2 ring-warning/50 rounded-md"
                         )}>
-                          <Clock className={cn("w-4 h-4", period.autoTime ? "text-amber-500" : "text-muted-foreground")} />
+                          <Clock className={cn("w-4 h-4", period.autoTime ? "text-warning" : "text-muted-foreground")} />
                           <Input
                             type="time"
                             value={period.time}
                             onChange={(e) => updatePeriod(period.id, { time: e.target.value, autoTime: false })}
-                            className={cn("text-sm h-8", period.autoTime && "border-amber-500/50")}
+                            className={cn("text-sm h-8", period.autoTime && "border-warning/50")}
                           />
                         </div>
 
                         <Input
                           value={period.subject}
-                          onChange={(e) => updatePeriod(period.id, { subject: e.target.value })}
-                          className="flex-1"
+                          onChange={(e) => updatePeriod(period.id, { subject: e.target.value, missingSubject: false })}
+                          className={cn("flex-1", period.missingSubject && "border-warning/50 ring-2 ring-warning/50")}
                           placeholder="שם המקצוע"
                         />
 

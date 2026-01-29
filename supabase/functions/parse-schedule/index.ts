@@ -20,6 +20,7 @@ interface ParsedTask {
   category: string;
   credits: number;
   autoTime?: boolean;
+  missingSubject?: boolean; // Flag for rows with time but no subject
 }
 
 // Hebrew day name mapping (RTL aware)
@@ -111,13 +112,16 @@ function normalizeTime(time: string | null | undefined): string | null {
 }
 
 // Generate default time using "Buff Standard" algorithm
+// Supports up to 10 lessons per day
 function generateDefaultTime(lessonIndex: number): string {
+  // Cap at lesson 10 (index 9) to prevent runaway times
+  const cappedIndex = Math.min(lessonIndex, 9);
   const LESSON_DURATION = 50;
   const BREAK_DURATION = 20;
   
   let currentMinutes = 8 * 60; // Start at 08:00
   
-  for (let i = 0; i < lessonIndex; i++) {
+  for (let i = 0; i < cappedIndex; i++) {
     currentMinutes += LESSON_DURATION;
     const lessonNumber = i + 1;
     if (lessonNumber % 2 === 0) {
@@ -168,17 +172,31 @@ function guessCredits(title: string): number {
 }
 
 // Convert validated lessons to task format
+// ZERO DATA LOSS POLICY: Keep rows with Subject OR Time (not both required)
 function lessonsToTasks(lessons: ParsedLesson[]): ParsedTask[] {
   return lessons
-    .filter(l => l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null')
-    .map(l => ({
-      title: l.lesson_name!.replace(/\[\?\]$/, '').trim(),
-      time: l.start_time,
-      day: l.day,
-      category: guessCategory(l.lesson_name!),
-      credits: guessCredits(l.lesson_name!),
-      autoTime: l.auto_time,
-    }));
+    // Only filter out completely empty rows
+    .filter(l => {
+      const hasSubject = l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null';
+      const hasTime = l.start_time && l.start_time.trim() !== '';
+      return hasSubject || hasTime;
+    })
+    .map(l => {
+      // If subject is missing but time exists, use placeholder
+      const subject = (l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null')
+        ? l.lesson_name.replace(/\[\?\]$/, '').trim()
+        : '[שיעור ללא שם]';
+      
+      return {
+        title: subject,
+        time: l.start_time,
+        day: l.day,
+        category: guessCategory(subject),
+        credits: guessCredits(subject),
+        autoTime: l.auto_time,
+        missingSubject: !l.lesson_name || l.lesson_name.trim() === '' || l.lesson_name === 'null',
+      };
+    });
 }
 
 serve(async (req) => {
@@ -317,16 +335,22 @@ OUTPUT:
             messages: [
               {
                 role: "system",
-                content: `You are a PRECISION Hebrew school schedule OCR system. Extract data with STRICT column boundaries.
+                content: `You are a Hebrew school schedule OCR system with a ZERO DATA LOSS policy. Extract ALL visible data.
 
-CRITICAL COLUMN-MAPPING RULES:
+ZERO DATA LOSS RULES (CRITICAL):
+1. If you find a Subject OR a Time, KEEP THE ROW. Do NOT discard rows missing one value.
+2. If subject text is unclear, include it with a [?] suffix. Better to include than lose data.
+3. If time is not visible, set start_time to null (system will auto-fill).
+4. If a row has a time but no subject, include it with lesson_name as empty string "".
+
+RELAXED COLUMN MAPPING:
 1. Hebrew tables are RTL: Rightmost column = Sunday (יום א'), second = Monday (יום ב'), etc.
-2. STRICT VERTICAL ANCHOR: A subject belongs to a column ONLY if its text is STRICTLY within that column's X-coordinates.
-3. DO NOT "fill" short subjects from neighboring columns. If a cell appears empty, leave it empty.
-4. Column drift is FORBIDDEN: "מחשבים" in column 4 (Wednesday) must NOT appear in column 2 (Monday).
+2. If a text block is MOSTLY under a day's column (>50% overlap), assign it to that day.
+3. For small/short text like "חנ"ג", assign to the column it's most centered under.
+4. Do NOT leave cells empty if there's any visible text - include it with [?] if uncertain.
 
-HEBREW SUBJECT DICTIONARY (prioritize recognition):
-- חנ"ג / חינוך גופני = Physical Education
+HEBREW SUBJECT DICTIONARY (helps recognition):
+- חנ"ג / חינוך גופני = Physical Education (VERY common, short text)
 - מתמטיקה / חשבון = Math
 - אנגלית = English
 - עברית = Hebrew
@@ -338,22 +362,22 @@ HEBREW SUBJECT DICTIONARY (prioritize recognition):
 - מוזיקה = Music
 - תנ"ך = Bible Studies
 - ספרות = Literature
-- חברה = Social Studies
+- חברה / שעת חברה = Social Studies
 
-EXTRACTION RULES:
-1. For each cell, extract: day, row_index (1-based period number), start_time (HH:MM or null), lesson_name.
-2. If a cell has short/unclear text, use dictionary matching. "חנ"ג" is VERY common.
-3. If time is not visible, set start_time to null.
+EXTRACTION FORMAT:
+1. For each cell with ANY content: extract day, row_index (1-based), start_time (HH:MM or null), lesson_name.
+2. Support up to 10 lessons per day (row_index 1-10).
+3. If uncertain about text, use dictionary matching or include as-is with [?].
 4. Return ONLY valid JSON, no explanations.
 
-OUTPUT FORMAT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_name":"חנ"ג"},...]}`
+OUTPUT: {"lessons":[{"day":"יום ב'","row_index":5,"start_time":null,"lesson_name":"חנ"ג"},...]}`
               },
               {
                 role: "user",
                 content: [
                   {
                     type: "text",
-                    text: "Extract the school schedule with STRICT column boundaries. Each subject must be in its CORRECT day column. Return only JSON with lessons array."
+                    text: "Extract the school schedule with ZERO DATA LOSS. Include ALL visible subjects and times. If uncertain about a cell, include it with [?]. Better to include extra data than miss something. Return only JSON with lessons array."
                   },
                   {
                     type: "image_url",
