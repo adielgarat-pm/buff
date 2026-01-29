@@ -137,6 +137,82 @@ function generateDefaultTime(lessonIndex: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
+// Common Hebrew school subjects for teacher name detection
+const COMMON_SUBJECTS = new Set([
+  'מתמטיקה', 'חשבון', 'אנגלית', 'עברית', 'מדעים', 'היסטוריה', 'גאוגרפיה',
+  'מחשבים', 'אמנות', 'ציור', 'מוזיקה', 'תנ"ך', 'ספרות', 'חברה', 'שעת חברה',
+  'חנ"ג', 'חינוך גופני', 'ספורט', 'טכנולוגיה', 'מולדת', 'תורה', 'משנה',
+  'גמרא', 'פרשת שבוע', 'פרשה', 'הלכה', 'תפילה', 'עברית שפה', 'הבעה',
+  'כתיבה', 'קריאה', 'חשבון מספרים', 'גיאומטריה', 'פיזיקה', 'כימיה', 'ביולוגיה',
+  'אזרחות', 'סוציולוגיה', 'פילוסופיה', 'כלכלה', 'משפטים', 'פסיכולוגיה',
+  'ערבית', 'צרפתית', 'רוסית', 'ספרדית', 'סינית', 'יפנית',
+  'math', 'english', 'hebrew', 'science', 'history', 'geography', 'art', 'music', 'pe',
+  'תורת הארץ', 'מורשת', 'ידיעת הארץ', 'חקלאות', 'רובוטיקה', 'דרמה', 'תיאטרון',
+]);
+
+// Check if text looks like a teacher name (not a common subject)
+function isLikelyTeacherName(text: string): boolean {
+  if (!text) return false;
+  const trimmed = text.trim();
+  
+  // Skip empty or too short
+  if (trimmed.length < 2) return false;
+  
+  // If it's a known subject, it's not a teacher name
+  const lower = trimmed.toLowerCase();
+  if (COMMON_SUBJECTS.has(trimmed) || COMMON_SUBJECTS.has(lower)) return false;
+  
+  // Teacher names are usually 2-3 words with Hebrew name patterns
+  const words = trimmed.split(/\s+/);
+  if (words.length < 2 || words.length > 4) return false;
+  
+  // Check if it looks like a name (Hebrew names often have 2-3 parts)
+  // Names usually don't contain numbers, special chars, or common subject keywords
+  const hasNumbers = /\d/.test(trimmed);
+  const hasSpecialSubjectChars = /["']/.test(trimmed) && (trimmed.includes('חנ"ג') || trimmed.includes('תנ"ך'));
+  
+  if (hasNumbers || hasSpecialSubjectChars) return false;
+  
+  // Common Hebrew name patterns (first name + last name)
+  // Names are usually short words (2-8 chars each)
+  const allWordsAreName = words.every(w => w.length >= 2 && w.length <= 12);
+  
+  return allWordsAreName;
+}
+
+// Merge subject and teacher name if they appear together
+function mergeSubjectAndTeacher(lessonName: string): string {
+  if (!lessonName) return lessonName;
+  
+  // Split by newlines or multiple spaces (common OCR pattern for stacked text)
+  const parts = lessonName.split(/[\n\r]+|\s{2,}/).map(p => p.trim()).filter(Boolean);
+  
+  if (parts.length < 2) return lessonName.trim();
+  
+  // Find which part is the subject and which is the teacher
+  let subject = '';
+  let teacher = '';
+  
+  for (const part of parts) {
+    if (COMMON_SUBJECTS.has(part) || COMMON_SUBJECTS.has(part.toLowerCase())) {
+      subject = part;
+    } else if (isLikelyTeacherName(part)) {
+      teacher = part;
+    } else if (!subject) {
+      // First non-teacher part is likely the subject
+      subject = part;
+    }
+  }
+  
+  // If we found both subject and teacher, merge them
+  if (subject && teacher) {
+    return `${subject} (${teacher})`;
+  }
+  
+  // Otherwise return the first part or original
+  return subject || parts[0] || lessonName.trim();
+}
+
 // Determine category based on task title
 function guessCategory(title: string): string {
   const lower = title.toLowerCase();
@@ -256,9 +332,12 @@ function lessonsToTasks(lessons: ParsedLesson[], applyCleanup: boolean = true): 
       return hasSubject || hasTime;
     })
     .map(l => {
-      const subject = (l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null')
+      let subject = (l.lesson_name && l.lesson_name.trim() !== '' && l.lesson_name !== 'null')
         ? l.lesson_name.replace(/\[\?\]$/, '').trim()
         : '[שיעור ללא שם]';
+      
+      // Apply subject+teacher merging
+      subject = mergeSubjectAndTeacher(subject);
       
       return {
         title: subject,
