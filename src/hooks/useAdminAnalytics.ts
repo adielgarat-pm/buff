@@ -14,6 +14,7 @@ interface RecentSignup {
 
 interface AppPulseData {
   total_families: number;
+  families_without_children: number;
   total_profiles: number;
   total_parents: number;
   total_children: number;
@@ -98,6 +99,12 @@ export function useAdminAnalytics(isAdmin: boolean) {
       : 0
     : 0;
 
+  const familiesWithoutChildrenRate = data
+    ? data.total_families > 0
+      ? Math.round((data.families_without_children / data.total_families) * 100)
+      : 0
+    : 0;
+
   return {
     data,
     loading,
@@ -107,5 +114,6 @@ export function useAdminAnalytics(isAdmin: boolean) {
     completionRate7d,
     activeChildrenRate,
     conversionRate,
+    familiesWithoutChildrenRate,
   };
 }

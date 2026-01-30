@@ -13,7 +13,9 @@ import {
   Monitor,
   TrendingUp,
   Target,
-  Calendar
+  Calendar,
+  Home,
+  UserX
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -43,6 +45,7 @@ interface RecentSignup {
 
 interface AppPulseData {
   total_families: number;
+  families_without_children: number;
   total_profiles: number;
   total_parents: number;
   total_children: number;
@@ -66,6 +69,7 @@ interface AppPulseTabProps {
   completionRate7d: number;
   activeChildrenRate: number;
   conversionRate: number;
+  familiesWithoutChildrenRate: number;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
@@ -124,7 +128,7 @@ function getOnboardingStatus(signup: RecentSignup): { label: string; variant: 'd
   return { label: 'הושלם', variant: 'default' };
 }
 
-export function AppPulseTab({ data, loading, completionRateToday, completionRate7d, activeChildrenRate, conversionRate }: AppPulseTabProps) {
+export function AppPulseTab({ data, loading, completionRateToday, completionRate7d, activeChildrenRate, conversionRate, familiesWithoutChildrenRate }: AppPulseTabProps) {
   if (loading || !data) {
     return (
       <div className="space-y-6">
@@ -153,10 +157,16 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
       {/* Primary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
-          title="סה״כ פרופילים" 
-          value={data.total_profiles} 
-          icon={Users}
+          title="סה״כ משפחות" 
+          value={data.total_families} 
+          icon={Home}
           subtext={`${data.total_parents} הורים, ${data.total_children} ילדים`}
+        />
+        <StatCard 
+          title="משפחות ללא ילדים" 
+          value={`${data.families_without_children} (${familiesWithoutChildrenRate}%)`}
+          icon={UserX}
+          subtext={`מתוך ${data.total_families} משפחות רשומות`}
         />
         <StatCard 
           title="ילדים פעילים (7 ימים)" 
