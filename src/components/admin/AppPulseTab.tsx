@@ -67,6 +67,7 @@ interface StarFamily {
   family_id: string;
   family_name: string;
   family_code: string;
+  parent_email: string | null;
   child_count: number;
   completion_count: number;
   completion_rate: number;
@@ -481,7 +482,7 @@ export function AppPulseTab({
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-right">משפחה</TableHead>
-                  <TableHead className="text-right">קוד</TableHead>
+                  <TableHead className="text-right">מייל</TableHead>
                   <TableHead className="text-right">ילדים</TableHead>
                   <TableHead className="text-right">השלמות (7 ימים)</TableHead>
                   <TableHead className="text-right">% השלמה</TableHead>
@@ -497,8 +498,8 @@ export function AppPulseTab({
                         {family.family_name}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{family.family_code}</Badge>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {family.parent_email || '-'}
                     </TableCell>
                     <TableCell>{family.child_count}</TableCell>
                     <TableCell className="font-bold text-primary">
