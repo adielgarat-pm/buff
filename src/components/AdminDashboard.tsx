@@ -26,7 +26,7 @@ function calculateAge(birthDate: string | null): string {
 
 export function AdminDashboard() {
   const { isAdmin, loading, families, orphanedUsers, fetchingFamilies, refetchFamilies } = useAdminAccess();
-  const { data: analyticsData, loading: analyticsLoading, refetch: refetchAnalytics, completionRateToday, completionRate7d, activeChildrenRate, conversionRate } = useAdminAnalytics(isAdmin);
+  const { data: analyticsData, loading: analyticsLoading, refetch: refetchAnalytics, completionRateToday, completionRate7d, activeChildrenRate, conversionRate, familiesWithoutChildrenRate } = useAdminAnalytics(isAdmin);
   const { forceShow, resetDismissal, deviceOS, isInstalled, canShowPrompt, isPermanentlyDismissed } = usePWAInstall();
   const { getAnalyticsReport, clearAnalytics } = usePWAAnalytics();
   const [activeTab, setActiveTab] = useState('pulse');
@@ -188,6 +188,7 @@ export function AdminDashboard() {
               completionRate7d={completionRate7d}
               activeChildrenRate={activeChildrenRate}
               conversionRate={conversionRate}
+              familiesWithoutChildrenRate={familiesWithoutChildrenRate}
             />
           </TabsContent>
 
