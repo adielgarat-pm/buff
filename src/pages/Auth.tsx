@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Loader2, Zap, Users, User, Globe } from 'lucide-react';
 import buffLogo from '@/assets/buff-logo.png';
@@ -29,6 +30,7 @@ export default function Auth() {
   const [displayName, setDisplayName] = useState('');
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [familyCode, setFamilyCode] = useState('');
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   // Track page visit
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function Auth() {
     }
 
     setLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, displayName, role, familyCode);
+    const { error } = await signUp(signupEmail, signupPassword, displayName, role, familyCode, marketingConsent);
     setLoading(false);
 
     if (error) {
@@ -335,6 +337,23 @@ export default function Auth() {
                     </p>
                   </div>
                 )}
+
+                {/* Marketing Consent Checkbox */}
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <Checkbox
+                    id="marketing-consent"
+                    checked={marketingConsent}
+                    onCheckedChange={(checked) => setMarketingConsent(checked === true)}
+                    disabled={loading}
+                    className="mt-0.5"
+                  />
+                  <Label 
+                    htmlFor="marketing-consent" 
+                    className="text-sm text-foreground leading-relaxed cursor-pointer"
+                  >
+                    אשמח לקבל ממך (עדי) טיפים קטנים לסופ"ש ועדכונים על פיצ'רים חדשים ב-BUFF
+                  </Label>
+                </div>
 
                 <Button type="submit" className="w-full rounded-2xl" disabled={loading}>
                   {loading ? (

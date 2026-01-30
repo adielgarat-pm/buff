@@ -28,6 +28,7 @@ interface StarFamily {
   family_name: string;
   family_code: string;
   parent_email: string | null;
+  parent_marketing_consent: boolean | null;
   child_count: number;
   completion_count: number;
   completion_rate: number;
@@ -57,6 +58,8 @@ interface AppPulseData {
   logins_24h: number;
   shared_device_children: number;
   separate_device_children: number;
+  marketing_consent_count: number;
+  marketing_emails: string[];
   recent_signups: RecentSignup[];
   weekly_trends: WeeklyTrend[];
   star_families: StarFamily[];

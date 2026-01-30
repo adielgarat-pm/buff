@@ -18,7 +18,7 @@ interface AuthContextType {
   familyShortCode: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, displayName: string, role: 'parent' | 'child', familyCode?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, displayName: string, role: 'parent' | 'child', familyCode?: string, marketingConsent?: boolean) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   /**
@@ -224,7 +224,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     displayName: string,
     role: 'parent' | 'child',
-    familyCode?: string
+    familyCode?: string,
+    marketingConsent?: boolean
   ) => {
     const redirectUrl = `${window.location.origin}/`;
 
@@ -280,6 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       family_id: familyId,
       display_name: displayName,
       role,
+      marketing_consent: marketingConsent ?? false,
     });
 
     if (profileError) return { error: profileError };
