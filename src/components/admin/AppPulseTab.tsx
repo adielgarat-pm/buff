@@ -343,10 +343,10 @@ export function AppPulseTab({
           subtext={`${completionRateToday}% מהפוטנציאל`}
         />
         <StatCard 
-          title="כניסות (24 שעות)" 
+          title="ילדים פעילים היום" 
           value={data.logins_24h} 
-          icon={Clock}
-          subtext="משתמשים פעילים היום"
+          icon={Users}
+          subtext="השלימו משימה או שיעור"
         />
         <StatCard 
           title="סה״כ השלמות" 
