@@ -63,6 +63,8 @@ interface ChildProfile {
   daily_goal: number;
   school_quest_enabled: boolean;
   bag_prep_enabled: boolean;
+  birth_date: string | null;
+  credit_balance: number;
 }
 
 interface FamilyData {
@@ -335,36 +337,61 @@ export function FamilyDrilldownModal({ isOpen, onClose, familyId, familyName }: 
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {data.children.map(child => (
-                      <Card key={child.id}>
-                        <CardHeader className="py-3">
-                          <CardTitle className="text-sm font-medium flex items-center gap-2">
-                            <Baby className="w-4 h-4 text-primary" />
-                            {child.display_name}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="py-2">
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">יעד יומי:</span>
-                              <span className="font-medium">{child.daily_goal} נקודות</span>
+                    {data.children.map(child => {
+                      // Calculate age from birth_date
+                      let age: number | null = null;
+                      if (child.birth_date) {
+                        const birthDate = new Date(child.birth_date);
+                        const today = new Date();
+                        age = today.getFullYear() - birthDate.getFullYear();
+                        const monthDiff = today.getMonth() - birthDate.getMonth();
+                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                          age--;
+                        }
+                      }
+                      
+                      return (
+                        <Card key={child.id}>
+                          <CardHeader className="py-3">
+                            <CardTitle className="text-sm font-medium flex items-center justify-between">
+                              <span className="flex items-center gap-2">
+                                <Baby className="w-4 h-4 text-primary" />
+                                {child.display_name}
+                                {age !== null && (
+                                  <Badge variant="outline" className="text-xs">
+                                    גיל {age}
+                                  </Badge>
+                                )}
+                              </span>
+                              <span className="flex items-center gap-1 text-primary font-bold">
+                                <Coins className="w-4 h-4" />
+                                {child.credit_balance}
+                              </span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="py-2">
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">יעד יומי:</span>
+                                <span className="font-medium">{child.daily_goal} נקודות</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">School Quest:</span>
+                                <Badge variant={child.school_quest_enabled ? 'default' : 'secondary'}>
+                                  {child.school_quest_enabled ? 'פעיל' : 'כבוי'}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">הכנת תיק:</span>
+                                <Badge variant={child.bag_prep_enabled ? 'default' : 'secondary'}>
+                                  {child.bag_prep_enabled ? 'פעיל' : 'כבוי'}
+                                </Badge>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">School Quest:</span>
-                              <Badge variant={child.school_quest_enabled ? 'default' : 'secondary'}>
-                                {child.school_quest_enabled ? 'פעיל' : 'כבוי'}
-                              </Badge>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">הכנת תיק:</span>
-                              <Badge variant={child.bag_prep_enabled ? 'default' : 'secondary'}>
-                                {child.bag_prep_enabled ? 'פעיל' : 'כבוי'}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
