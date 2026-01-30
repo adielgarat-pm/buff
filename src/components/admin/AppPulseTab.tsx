@@ -27,6 +27,7 @@ import {
   Copy,
   Sparkles,
   Eye,
+  Download,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -101,6 +102,17 @@ interface SchoolQuestStats {
   children_with_quest_enabled: number;
 }
 
+interface PWAStats {
+  total_impressions: number;
+  total_installs: number;
+  installs_7d: number;
+  impressions_7d: number;
+  dismiss_temporary: number;
+  dismiss_permanent: number;
+  by_os: Array<{ os: string; count: number }> | null;
+  by_browser: Array<{ browser: string; count: number }> | null;
+}
+
 interface AppPulseData {
   total_families: number;
   families_without_children: number;
@@ -123,6 +135,7 @@ interface AppPulseData {
   weekly_trends?: WeeklyTrend[];
   star_families?: StarFamily[];
   school_quest_stats?: SchoolQuestStats;
+  pwa_stats?: PWAStats;
 }
 
 interface AppPulseTabProps {
@@ -539,7 +552,82 @@ export function AppPulseTab({
         </Card>
       )}
 
-      {/* Star Families Table */}
+      {/* PWA Installation Stats */}
+      {data.pwa_stats && (
+        <Card className="border-accent/20 bg-accent/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Download className="w-4 h-4 text-accent" />
+              PWA Installation Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <Eye className="w-5 h-5 mx-auto mb-1 text-primary" />
+                <p className="text-2xl font-bold">{data.pwa_stats.total_impressions}</p>
+                <p className="text-xs text-muted-foreground">סה״כ הופעות</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <Download className="w-5 h-5 mx-auto mb-1 text-success" />
+                <p className="text-2xl font-bold">{data.pwa_stats.total_installs}</p>
+                <p className="text-xs text-muted-foreground">סה״כ התקנות</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <Activity className="w-5 h-5 mx-auto mb-1 text-accent" />
+                <p className="text-2xl font-bold">{data.pwa_stats.installs_7d}</p>
+                <p className="text-xs text-muted-foreground">התקנות (7 ימים)</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <Target className="w-5 h-5 mx-auto mb-1 text-primary" />
+                <p className="text-2xl font-bold">
+                  {data.pwa_stats.impressions_7d > 0 
+                    ? Math.round((data.pwa_stats.installs_7d / data.pwa_stats.impressions_7d) * 100) 
+                    : 0}%
+                </p>
+                <p className="text-xs text-muted-foreground">המרה (7 ימים)</p>
+              </div>
+            </div>
+            
+            {/* OS & Browser breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {data.pwa_stats.by_os && data.pwa_stats.by_os.length > 0 && (
+                <div className="p-3 rounded-lg bg-background/50">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">התקנות לפי מערכת הפעלה</p>
+                  <div className="space-y-1">
+                    {data.pwa_stats.by_os.map((item) => (
+                      <div key={item.os} className="flex justify-between text-sm">
+                        <span>{item.os || 'Unknown'}</span>
+                        <span className="font-medium">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {data.pwa_stats.by_browser && data.pwa_stats.by_browser.length > 0 && (
+                <div className="p-3 rounded-lg bg-background/50">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">התקנות לפי דפדפן</p>
+                  <div className="space-y-1">
+                    {data.pwa_stats.by_browser.map((item) => (
+                      <div key={item.browser} className="flex justify-between text-sm">
+                        <span>{item.browser || 'Unknown'}</span>
+                        <span className="font-medium">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Dismissal stats */}
+            <div className="mt-4 flex gap-4 text-xs text-muted-foreground">
+              <span>דחיות זמניות: {data.pwa_stats.dismiss_temporary}</span>
+              <span>דחיות קבועות: {data.pwa_stats.dismiss_permanent}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {data.star_families && data.star_families.length > 0 && (
         <Card>
           <CardHeader>

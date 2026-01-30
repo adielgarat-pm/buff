@@ -316,6 +316,53 @@ export type Database = {
           },
         ]
       }
+      pwa_events: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device_type: string | null
+          event_type: string
+          family_id: string | null
+          id: string
+          message_type: string | null
+          os: string | null
+          template_index: number | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          family_id?: string | null
+          id?: string
+          message_type?: string | null
+          os?: string | null
+          template_index?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          family_id?: string | null
+          id?: string
+          message_type?: string | null
+          os?: string | null
+          template_index?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pwa_events_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_rewards: {
         Row: {
           assigned_to: string | null

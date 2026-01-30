@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { MessageType } from './useInstallPromptMessage';
 
 // PWA analytics event types
@@ -38,7 +39,78 @@ function getSessionId(): string {
   return sessionId;
 }
 
-// Log event to console and localStorage
+// Map internal event names to database event types
+function mapEventToDbType(event: PWAAnalyticsEvent): 'impression' | 'install' | 'dismiss_temporary' | 'dismiss_permanent' | null {
+  switch (event) {
+    case 'pwa_prompt_impression':
+      return 'impression';
+    case 'pwa_install_success':
+      return 'install';
+    case 'pwa_prompt_dismissed_temp':
+      return 'dismiss_temporary';
+    case 'pwa_prompt_dismissed_perm':
+      return 'dismiss_permanent';
+    default:
+      return null; // Don't track install_started or install_cancelled in DB
+  }
+}
+
+// Detect device type
+function getDeviceType(): string {
+  const ua = navigator.userAgent;
+  if (/tablet|ipad/i.test(ua)) return 'tablet';
+  if (/mobile|iphone|android/i.test(ua)) return 'mobile';
+  return 'desktop';
+}
+
+// Save event to Supabase
+async function saveEventToBackend(data: PWAAnalyticsData) {
+  const dbEventType = mapEventToDbType(data.event);
+  if (!dbEventType) return; // Skip events we don't track in DB
+
+  try {
+    // Get current user's info if available
+    const { data: { user } } = await supabase.auth.getUser();
+    let familyId: string | null = null;
+
+    if (user) {
+      // Try to get family_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profile) {
+        familyId = profile.family_id;
+      }
+    }
+
+    // Insert event
+    const { error } = await supabase
+      .from('pwa_events')
+      .insert({
+        event_type: dbEventType,
+        user_id: user?.id || null,
+        family_id: familyId,
+        browser: data.metadata?.browser || null,
+        os: data.device_os,
+        device_type: getDeviceType(),
+        message_type: data.metadata?.message_type || null,
+        template_index: data.metadata?.template_index || null,
+      });
+
+    if (error) {
+      console.error('[PWA Analytics] Failed to save to backend:', error);
+    } else {
+      console.log('[PWA Analytics] Event saved to backend:', dbEventType);
+    }
+  } catch (e) {
+    console.error('[PWA Analytics] Backend save error:', e);
+  }
+}
+
+// Log event to console and localStorage + backend
 function logPWAEvent(data: PWAAnalyticsData) {
   const logEntry = {
     ...data,
@@ -62,6 +134,9 @@ function logPWAEvent(data: PWAAnalyticsData) {
   } catch (e) {
     console.error('Failed to store PWA analytics:', e);
   }
+
+  // Save to backend (async, don't block)
+  saveEventToBackend(data);
 }
 
 export function usePWAAnalytics() {
@@ -170,4 +245,3 @@ export function trackPWAEvent(
     metadata,
   });
 }
-

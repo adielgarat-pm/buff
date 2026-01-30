@@ -51,6 +51,17 @@ interface SchoolQuestStats {
   children_with_quest_enabled: number;
 }
 
+interface PWAStats {
+  total_impressions: number;
+  total_installs: number;
+  installs_7d: number;
+  impressions_7d: number;
+  dismiss_temporary: number;
+  dismiss_permanent: number;
+  by_os: Array<{ os: string; count: number }> | null;
+  by_browser: Array<{ browser: string; count: number }> | null;
+}
+
 interface AppPulseData {
   total_families: number;
   families_without_children: number;
@@ -73,6 +84,7 @@ interface AppPulseData {
   weekly_trends: WeeklyTrend[];
   star_families: StarFamily[];
   school_quest_stats: SchoolQuestStats;
+  pwa_stats: PWAStats;
 }
 
 export function useAdminAnalytics(isAdmin: boolean) {
