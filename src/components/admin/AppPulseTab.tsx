@@ -77,6 +77,7 @@ interface StarFamily {
   family_code: string;
   parent_email: string | null;
   parent_marketing_consent: boolean | null;
+  children_names: string[];
   child_count: number;
   completion_count: number;
   completion_rate: number;
@@ -536,7 +537,7 @@ export function AppPulseTab({
                 <TableRow>
                   <TableHead className="text-right">משפחה</TableHead>
                   <TableHead className="text-right">מייל</TableHead>
-                  <TableHead className="text-right">ילדים</TableHead>
+                  <TableHead className="text-right">שמות ילדים</TableHead>
                   <TableHead className="text-right">השלמות (7 ימים)</TableHead>
                   <TableHead className="text-right">% השלמה</TableHead>
                   <TableHead className="text-right">פרסים אחרונים</TableHead>
@@ -560,7 +561,11 @@ export function AppPulseTab({
                         {family.parent_email || '-'}
                       </div>
                     </TableCell>
-                    <TableCell>{family.child_count}</TableCell>
+                    <TableCell className="text-sm">
+                      {family.children_names && family.children_names.length > 0
+                        ? family.children_names.join(', ')
+                        : '-'}
+                    </TableCell>
                     <TableCell className="font-bold text-primary">
                       {family.completion_count}
                     </TableCell>
