@@ -270,6 +270,7 @@ export type Database = {
           display_name: string
           family_id: string | null
           id: string
+          marketing_consent: boolean
           role: string
           school_quest_enabled: boolean
           updated_at: string
@@ -284,6 +285,7 @@ export type Database = {
           display_name: string
           family_id?: string | null
           id?: string
+          marketing_consent?: boolean
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
@@ -298,6 +300,7 @@ export type Database = {
           display_name?: string
           family_id?: string | null
           id?: string
+          marketing_consent?: boolean
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string

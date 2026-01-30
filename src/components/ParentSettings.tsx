@@ -27,6 +27,7 @@ import {
   CalendarDays,
   Camera,
   FileSpreadsheet,
+  Mail,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -44,6 +45,7 @@ import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { JoinFamilySection } from './JoinFamilySection';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildData } from '@/hooks/useChildProgress';
+import { useMarketingConsent } from '@/hooks/useMarketingConsent';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -73,6 +75,7 @@ export function ParentSettings({
   onSelectChild,
 }: ParentSettingsProps) {
   const { children, loading: membersLoading } = useFamilyMembers();
+  const { marketingConsent, saving: savingConsent, updateConsent } = useMarketingConsent();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
 
   const [localTitle, setLocalTitle] = useState(appTitle);
@@ -170,6 +173,41 @@ export function ParentSettings({
                   className="touch-target"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Notifications & Updates Section */}
+          <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-foreground">עדכונים והודעות</h2>
+                <p className="text-xs text-muted-foreground">ניהול תקשורת מ-BUFF</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex-1 ml-3">
+                <span className="text-sm text-foreground">קבלת עדכונים וטיפים מעדי</span>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  טיפים קטנים לסופ"ש ועדכונים על פיצ'רים חדשים
+                </p>
+              </div>
+              <Switch
+                checked={marketingConsent}
+                onCheckedChange={async (enabled) => {
+                  try {
+                    await updateConsent(enabled);
+                    toast.success(enabled ? 'נרשמת לעדכונים!' : 'בוטלה ההרשמה לעדכונים');
+                  } catch {
+                    toast.error('שגיאה בעדכון ההגדרות');
+                  }
+                }}
+                disabled={savingConsent}
+                className="touch-target"
+              />
             </div>
           </div>
 

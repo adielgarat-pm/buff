@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { 
   Users, 
   Baby, 
@@ -19,8 +20,12 @@ import {
   GraduationCap,
   Star,
   Zap,
-  BookOpen
+  BookOpen,
+  Mail,
+  MailCheck,
+  Copy,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { 
@@ -68,6 +73,7 @@ interface StarFamily {
   family_name: string;
   family_code: string;
   parent_email: string | null;
+  parent_marketing_consent: boolean | null;
   child_count: number;
   completion_count: number;
   completion_rate: number;
@@ -97,6 +103,8 @@ interface AppPulseData {
   logins_24h: number;
   shared_device_children: number;
   separate_device_children: number;
+  marketing_consent_count?: number;
+  marketing_emails?: string[];
   recent_signups: RecentSignup[];
   weekly_trends?: WeeklyTrend[];
   star_families?: StarFamily[];
@@ -256,6 +264,41 @@ export function AppPulseTab({
           subtext={`${data.total_parents} הורים, ${data.total_children} ילדים`}
         />
       </div>
+
+      {/* Community Subscribers Card */}
+      <Card className="border-success/20 bg-success/5">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <MailCheck className="w-4 h-4 text-success" />
+            Community Subscribers
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-3xl font-bold text-success">{data.marketing_consent_count ?? 0}</p>
+              <p className="text-xs text-muted-foreground">משתמשים שאישרו קבלת עדכונים</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => {
+                if (data.marketing_emails && data.marketing_emails.length > 0) {
+                  const emailList = data.marketing_emails.join(', ');
+                  navigator.clipboard.writeText(emailList);
+                  toast.success(`${data.marketing_emails.length} כתובות הועתקו ללוח!`);
+                } else {
+                  toast.error('אין כתובות מייל להעתקה');
+                }
+              }}
+            >
+              <Copy className="w-4 h-4" />
+              העתק רשימת תפוצה
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -499,7 +542,12 @@ export function AppPulseTab({
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {family.parent_email || '-'}
+                      <div className="flex items-center gap-2">
+                        {family.parent_marketing_consent && (
+                          <Mail className="w-4 h-4 text-success" />
+                        )}
+                        {family.parent_email || '-'}
+                      </div>
                     </TableCell>
                     <TableCell>{family.child_count}</TableCell>
                     <TableCell className="font-bold text-primary">
