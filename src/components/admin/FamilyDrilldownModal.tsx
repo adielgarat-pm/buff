@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   XCircle,
   BookOpen,
+  Download,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -151,14 +153,63 @@ export function FamilyDrilldownModal({ isOpen, onClose, familyId, familyName }: 
     }
   };
 
+  const exportData = () => {
+    if (!data) return;
+    
+    const exportObj = {
+      family_name: familyName,
+      family_id: familyId,
+      exported_at: new Date().toISOString(),
+      children: data.children.map(child => {
+        let age: number | null = null;
+        if (child.birth_date) {
+          const birthDate = new Date(child.birth_date);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
+        return {
+          ...child,
+          age,
+          tasks: data.tasks.filter(t => t.assigned_to === child.id),
+          rewards: data.rewards.filter(r => r.assigned_to === child.id),
+          timetable: data.timetables.find(t => t.assigned_to === child.id)?.data || null,
+        };
+      }),
+      general_tasks: data.tasks.filter(t => !t.assigned_to),
+      general_rewards: data.rewards.filter(r => !r.assigned_to),
+    };
+
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `family-${familyName}-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Baby className="w-5 h-5 text-primary" />
-            צלילה למשפחת {familyName}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Baby className="w-5 h-5 text-primary" />
+              צלילה למשפחת {familyName}
+            </DialogTitle>
+            {data && (
+              <Button variant="outline" size="sm" onClick={exportData} className="gap-1">
+                <Download className="w-4 h-4" />
+                ייצוא
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         {loading ? (
