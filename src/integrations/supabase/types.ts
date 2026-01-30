@@ -503,6 +503,10 @@ export type Database = {
           parent_count: number
         }[]
       }
+      get_admin_family_drilldown: {
+        Args: { p_family_id: string }
+        Returns: Json
+      }
       get_admin_orphaned_users: {
         Args: never
         Returns: {
