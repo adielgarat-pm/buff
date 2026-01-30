@@ -1,6 +1,8 @@
-import { Activity, Sliders, BarChart3, Eye } from 'lucide-react';
+import { Activity, Sliders, BarChart3, Eye, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 export type ParentNavTab = 'overview' | 'settings' | 'reports';
 
@@ -18,6 +20,8 @@ export function ParentBottomNavigation({
   isViewingAsChild 
 }: ParentBottomNavigationProps) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { isAdmin } = useAdminAccess();
 
   // Clear distinction: Monitoring (Activity) vs Configuring (Sliders)
   const NAV_ITEMS = [
@@ -31,6 +35,13 @@ export function ParentBottomNavigation({
       navigator.vibrate(10);
     }
     onTabChange(tab);
+  };
+
+  const handleAdminClick = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    navigate('/admin');
   };
 
   return (
@@ -101,6 +112,22 @@ export function ParentBottomNavigation({
               )}>
                 צפה כילד
               </span>
+            </button>
+          )}
+
+          {/* Discrete Admin Button - Only visible to admins */}
+          {isAdmin && (
+            <button
+              onClick={handleAdminClick}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 min-w-[40px] min-h-[40px] py-1 px-2 rounded-xl",
+                "transition-all duration-200 touch-feedback",
+                "active:scale-95",
+                "text-muted-foreground/50 hover:text-muted-foreground/80"
+              )}
+              title="Admin"
+            >
+              <ShieldCheck className="w-4 h-4" />
             </button>
           )}
         </div>

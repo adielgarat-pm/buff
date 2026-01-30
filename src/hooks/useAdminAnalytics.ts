@@ -12,6 +12,34 @@ interface RecentSignup {
   has_family: boolean;
 }
 
+interface WeeklyTrend {
+  week_start: string;
+  completions: number;
+  active_children: number;
+}
+
+interface RecentReward {
+  title: string;
+  claimed_at: string | null;
+}
+
+interface StarFamily {
+  family_id: string;
+  family_name: string;
+  family_code: string;
+  child_count: number;
+  completion_count: number;
+  completion_rate: number;
+  recent_rewards: RecentReward[];
+}
+
+interface SchoolQuestStats {
+  families_with_timetable: number;
+  total_lesson_completions: number;
+  lesson_completions_7d: number;
+  children_with_quest_enabled: number;
+}
+
 interface AppPulseData {
   total_families: number;
   families_without_children: number;
@@ -29,6 +57,9 @@ interface AppPulseData {
   shared_device_children: number;
   separate_device_children: number;
   recent_signups: RecentSignup[];
+  weekly_trends: WeeklyTrend[];
+  star_families: StarFamily[];
+  school_quest_stats: SchoolQuestStats;
 }
 
 export function useAdminAnalytics(isAdmin: boolean) {
@@ -105,6 +136,13 @@ export function useAdminAnalytics(isAdmin: boolean) {
       : 0
     : 0;
 
+  // Points utilization rate
+  const pointsUtilization = data
+    ? data.potential_7d > 0
+      ? Math.round((data.completions_7d / data.potential_7d) * 100)
+      : 0
+    : 0;
+
   return {
     data,
     loading,
@@ -115,5 +153,6 @@ export function useAdminAnalytics(isAdmin: boolean) {
     activeChildrenRate,
     conversionRate,
     familiesWithoutChildrenRate,
+    pointsUtilization,
   };
 }

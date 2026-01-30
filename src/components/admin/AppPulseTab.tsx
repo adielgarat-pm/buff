@@ -15,7 +15,11 @@ import {
   Target,
   Calendar,
   Home,
-  UserX
+  UserX,
+  GraduationCap,
+  Star,
+  Zap,
+  BookOpen
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -29,7 +33,12 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend
+  Legend,
+  LineChart,
+  Line,
+  CartesianGrid,
+  Area,
+  AreaChart
 } from 'recharts';
 
 interface RecentSignup {
@@ -41,6 +50,34 @@ interface RecentSignup {
   profile_role: string | null;
   display_name: string | null;
   has_family: boolean;
+}
+
+interface WeeklyTrend {
+  week_start: string;
+  completions: number;
+  active_children: number;
+}
+
+interface RecentReward {
+  title: string;
+  claimed_at: string | null;
+}
+
+interface StarFamily {
+  family_id: string;
+  family_name: string;
+  family_code: string;
+  child_count: number;
+  completion_count: number;
+  completion_rate: number;
+  recent_rewards: RecentReward[];
+}
+
+interface SchoolQuestStats {
+  families_with_timetable: number;
+  total_lesson_completions: number;
+  lesson_completions_7d: number;
+  children_with_quest_enabled: number;
 }
 
 interface AppPulseData {
@@ -60,6 +97,9 @@ interface AppPulseData {
   shared_device_children: number;
   separate_device_children: number;
   recent_signups: RecentSignup[];
+  weekly_trends?: WeeklyTrend[];
+  star_families?: StarFamily[];
+  school_quest_stats?: SchoolQuestStats;
 }
 
 interface AppPulseTabProps {
@@ -70,22 +110,31 @@ interface AppPulseTabProps {
   activeChildrenRate: number;
   conversionRate: number;
   familiesWithoutChildrenRate: number;
+  pointsUtilization?: number;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+const CHART_COLORS = {
+  primary: '#6366f1',
+  accent: '#f59e0b',
+  success: '#22c55e',
+  muted: '#94a3b8'
+};
 
 function StatCard({ 
   title, 
   value, 
   icon: Icon, 
   subtext,
-  loading 
+  loading,
+  variant = 'default'
 }: { 
   title: string; 
   value: number | string; 
   icon: React.ElementType;
   subtext?: string;
   loading?: boolean;
+  variant?: 'default' | 'success' | 'warning' | 'primary';
 }) {
   if (loading) {
     return (
@@ -100,6 +149,13 @@ function StatCard({
     );
   }
 
+  const iconColors = {
+    default: 'text-primary',
+    success: 'text-success',
+    warning: 'text-warning',
+    primary: 'text-primary'
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -107,7 +163,7 @@ function StatCard({
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-primary" />
+          <Icon className={`w-5 h-5 ${iconColors[variant]}`} />
           <span className="text-3xl font-bold">{value}</span>
         </div>
         {subtext && (
@@ -128,7 +184,16 @@ function getOnboardingStatus(signup: RecentSignup): { label: string; variant: 'd
   return { label: 'הושלם', variant: 'default' };
 }
 
-export function AppPulseTab({ data, loading, completionRateToday, completionRate7d, activeChildrenRate, conversionRate, familiesWithoutChildrenRate }: AppPulseTabProps) {
+export function AppPulseTab({ 
+  data, 
+  loading, 
+  completionRateToday, 
+  completionRate7d, 
+  activeChildrenRate, 
+  conversionRate, 
+  familiesWithoutChildrenRate,
+  pointsUtilization = 0
+}: AppPulseTabProps) {
   if (loading || !data) {
     return (
       <div className="space-y-6">
@@ -143,8 +208,8 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
 
   // Prepare chart data
   const deviceTypeData = [
-    { name: 'מכשיר משותף', value: data.shared_device_children, color: 'hsl(var(--primary))' },
-    { name: 'מכשיר נפרד', value: data.separate_device_children, color: 'hsl(var(--accent))' },
+    { name: 'מכשיר משותף', value: data.shared_device_children, color: CHART_COLORS.primary },
+    { name: 'מכשיר נפרד', value: data.separate_device_children, color: CHART_COLORS.accent },
   ];
 
   const engagementData = [
@@ -152,39 +217,58 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
     { name: 'לא פעילים', value: Math.max(0, data.total_children - data.active_children_7d) },
   ];
 
+  // Format weekly trends for chart
+  const weeklyTrendsForChart = (data.weekly_trends || []).map(trend => ({
+    ...trend,
+    week_label: trend.week_start ? format(new Date(trend.week_start), 'dd/MM', { locale: he }) : ''
+  }));
+
   return (
     <div className="space-y-6">
-      {/* Primary Stats */}
+      {/* KPI Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard 
+          title="Weekly Completion %" 
+          value={`${completionRate7d}%`}
+          icon={Target}
+          subtext={`${data.completions_7d} מתוך ${data.potential_7d} משימות`}
+          variant="primary"
+        />
+        <StatCard 
+          title="Active Families (WAU)" 
+          value={data.active_children_7d} 
+          icon={Users}
+          subtext={`${activeChildrenRate}% מהילדים פעילים`}
+          variant="success"
+        />
+        <StatCard 
+          title="Points Utilization" 
+          value={`${pointsUtilization}%`}
+          icon={Zap}
+          subtext="נקודות שנצברו מפוטנציאל"
+          variant="warning"
+        />
         <StatCard 
           title="סה״כ משפחות" 
           value={data.total_families} 
           icon={Home}
           subtext={`${data.total_parents} הורים, ${data.total_children} ילדים`}
         />
+      </div>
+
+      {/* Secondary Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard 
           title="משפחות ללא ילדים" 
-          value={`${data.families_without_children} (${familiesWithoutChildrenRate}%)`}
+          value={`${data.families_without_children}`}
           icon={UserX}
-          subtext={`מתוך ${data.total_families} משפחות רשומות`}
-        />
-        <StatCard 
-          title="ילדים פעילים (7 ימים)" 
-          value={`${data.active_children_7d} (${activeChildrenRate}%)`}
-          icon={Activity}
-          subtext={`מתוך ${data.total_children} ילדים במערכת`}
+          subtext={`${familiesWithoutChildrenRate}% מהמשפחות`}
         />
         <StatCard 
           title="השלמות היום" 
           value={data.completions_today.toLocaleString()} 
           icon={CheckCircle2}
-          subtext={`מתוך ${data.potential_today} פוטנציאל (${completionRateToday}%)`}
-        />
-        <StatCard 
-          title="השלמות (7 ימים)" 
-          value={data.completions_7d.toLocaleString()} 
-          icon={TrendingUp}
-          subtext={`מתוך ${data.potential_7d} פוטנציאל (${completionRate7d}%)`}
+          subtext={`${completionRateToday}% מהפוטנציאל`}
         />
         <StatCard 
           title="כניסות (24 שעות)" 
@@ -192,9 +276,72 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
           icon={Clock}
           subtext="משתמשים פעילים היום"
         />
+        <StatCard 
+          title="סה״כ השלמות" 
+          value={data.total_completions.toLocaleString()} 
+          icon={TrendingUp}
+          subtext="מאז ההשקה"
+        />
       </div>
 
-      {/* Metrics & Charts Row */}
+      {/* Completion Trends Line Chart */}
+      {weeklyTrendsForChart.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              מגמת השלמות (30 יום אחרונים)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={weeklyTrendsForChart}>
+                  <defs>
+                    <linearGradient id="colorCompletions" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="week_label" 
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="completions" 
+                    stroke={CHART_COLORS.primary}
+                    fill="url(#colorCompletions)"
+                    strokeWidth={2}
+                    name="השלמות"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="active_children" 
+                    stroke={CHART_COLORS.accent}
+                    strokeWidth={2}
+                    dot={{ fill: CHART_COLORS.accent }}
+                    name="ילדים פעילים"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's Completion Rate */}
         <Card>
@@ -240,7 +387,7 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
           </CardContent>
         </Card>
 
-        {/* Device Type Distribution */}
+        {/* Device Type Distribution - Pie Chart */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -262,7 +409,7 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
                     dataKey="value"
                   >
                     {deviceTypeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={Object.values(CHART_COLORS)[index % 4]} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -282,34 +429,99 @@ export function AppPulseTab({ data, loading, completionRateToday, completionRate
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Engagement Distribution */}
-        <Card>
+      {/* School Quest Stats */}
+      {data.school_quest_stats && (
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Baby className="w-4 h-4" />
-              פעילות ילדים
+              <GraduationCap className="w-4 h-4 text-primary" />
+              School Quest Insights
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[140px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={engagementData} layout="vertical">
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <BookOpen className="w-5 h-5 mx-auto mb-1 text-primary" />
+                <p className="text-2xl font-bold">{data.school_quest_stats.families_with_timetable}</p>
+                <p className="text-xs text-muted-foreground">משפחות עם מערכת</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-success" />
+                <p className="text-2xl font-bold">{data.school_quest_stats.total_lesson_completions}</p>
+                <p className="text-xs text-muted-foreground">שיעורים שהושלמו</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <Activity className="w-5 h-5 mx-auto mb-1 text-accent" />
+                <p className="text-2xl font-bold">{data.school_quest_stats.lesson_completions_7d}</p>
+                <p className="text-xs text-muted-foreground">השלמות (7 ימים)</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-background/50">
+                <Baby className="w-5 h-5 mx-auto mb-1 text-primary" />
+                <p className="text-2xl font-bold">{data.school_quest_stats.children_with_quest_enabled}</p>
+                <p className="text-xs text-muted-foreground">ילדים עם Quest</p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              {data.active_children_7d > 0 
-                ? `${Math.round((data.active_children_7d / data.total_children) * 100)}% מהילדים פעילים`
-                : 'אין נתוני פעילות'}
-            </p>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {/* Star Families Table */}
+      {data.star_families && data.star_families.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-accent" />
+              Star Families - Top 10 by Engagement
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">משפחה</TableHead>
+                  <TableHead className="text-right">קוד</TableHead>
+                  <TableHead className="text-right">ילדים</TableHead>
+                  <TableHead className="text-right">השלמות (7 ימים)</TableHead>
+                  <TableHead className="text-right">% השלמה</TableHead>
+                  <TableHead className="text-right">פרסים אחרונים</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.star_families.map((family, index) => (
+                  <TableRow key={family.family_id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {index < 3 && <Star className="w-4 h-4 text-accent" />}
+                        {family.family_name}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{family.family_code}</Badge>
+                    </TableCell>
+                    <TableCell>{family.child_count}</TableCell>
+                    <TableCell className="font-bold text-primary">
+                      {family.completion_count}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Progress value={family.completion_rate} className="h-2 w-16" />
+                        <span className="text-sm">{family.completion_rate}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {family.recent_rewards && family.recent_rewards.length > 0
+                        ? family.recent_rewards.slice(0, 2).map(r => r.title).join(', ')
+                        : '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Signups */}
       <Card>
