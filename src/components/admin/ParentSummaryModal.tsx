@@ -12,6 +12,7 @@ interface ParentSummaryModalProps {
   familyId: string;
   familyName: string;
   childName?: string;
+  childId?: string;
 }
 
 export function ParentSummaryModal({
@@ -20,6 +21,7 @@ export function ParentSummaryModal({
   familyId,
   familyName,
   childName,
+  childId,
 }: ParentSummaryModalProps) {
   const [summary, setSummary] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ export function ParentSummaryModal({
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke('generate-parent-summary', {
-        body: { family_id: familyId, child_name: childName },
+        body: { family_id: familyId, child_name: childName, child_id: childId },
       });
 
       if (fnError) {
@@ -80,7 +82,7 @@ export function ParentSummaryModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            סיכום שבועי - {familyName}
+            סיכום שבועי - {childName || familyName}
           </DialogTitle>
         </DialogHeader>
 
@@ -88,7 +90,7 @@ export function ParentSummaryModal({
           {!summary && !loading && !error && (
             <div className="flex flex-col items-center justify-center py-8 gap-4">
               <p className="text-muted-foreground text-center">
-                לחץ על הכפתור כדי ליצור סיכום שבועי מותאם אישית עבור המשפחה
+                לחצי על הכפתור כדי ליצור סיכום שבועי מותאם אישית עבור {childName || 'הילד/ה'}
               </p>
               <Button onClick={generateSummary} className="gap-2">
                 <Sparkles className="w-4 h-4" />

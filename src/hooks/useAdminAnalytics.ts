@@ -23,13 +23,21 @@ interface RecentReward {
   claimed_at: string | null;
 }
 
+interface ChildStats {
+  child_id: string;
+  display_name: string;
+  completion_count: number;
+  potential_count: number;
+  completion_rate: number;
+}
+
 interface StarFamily {
   family_id: string;
   family_name: string;
   family_code: string;
   parent_email: string | null;
   parent_marketing_consent: boolean | null;
-  children_names: string[];
+  children: ChildStats[];
   child_count: number;
   completion_count: number;
   completion_rate: number;

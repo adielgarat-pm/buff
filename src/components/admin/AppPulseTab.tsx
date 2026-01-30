@@ -71,13 +71,21 @@ interface RecentReward {
   claimed_at: string | null;
 }
 
+interface ChildStats {
+  child_id: string;
+  display_name: string;
+  completion_count: number;
+  potential_count: number;
+  completion_rate: number;
+}
+
 interface StarFamily {
   family_id: string;
   family_name: string;
   family_code: string;
   parent_email: string | null;
   parent_marketing_consent: boolean | null;
-  children_names: string[];
+  children: ChildStats[];
   child_count: number;
   completion_count: number;
   completion_rate: number;
@@ -212,6 +220,7 @@ export function AppPulseTab({
     familyId: string;
     familyName: string;
     childName?: string;
+    childId?: string;
   }>({ isOpen: false, familyId: '', familyName: '' });
 
   if (loading || !data) {
@@ -537,11 +546,9 @@ export function AppPulseTab({
                 <TableRow>
                   <TableHead className="text-right">משפחה</TableHead>
                   <TableHead className="text-right">מייל</TableHead>
-                  <TableHead className="text-right">שמות ילדים</TableHead>
-                  <TableHead className="text-right">השלמות (7 ימים)</TableHead>
-                  <TableHead className="text-right">% השלמה</TableHead>
+                  <TableHead className="text-right">ילדים ואחוזי השלמה</TableHead>
+                  <TableHead className="text-right">סה״כ השלמות</TableHead>
                   <TableHead className="text-right">פרסים אחרונים</TableHead>
-                  <TableHead className="text-right">פעולות</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -561,39 +568,43 @@ export function AppPulseTab({
                         {family.parent_email || '-'}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {family.children_names && family.children_names.length > 0
-                        ? family.children_names.join(', ')
-                        : '-'}
+                    <TableCell>
+                      {family.children && family.children.length > 0 ? (
+                        <div className="space-y-2">
+                          {family.children.map((child) => (
+                            <div key={child.child_id} className="flex items-center gap-2 text-sm">
+                              <span className="font-medium min-w-[80px]">{child.display_name}</span>
+                              <Progress value={child.completion_rate} className="h-2 w-16" />
+                              <span className="text-muted-foreground w-12">{child.completion_rate}%</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 gap-1 text-primary hover:text-primary"
+                                onClick={() => setSummaryModal({
+                                  isOpen: true,
+                                  familyId: family.family_id,
+                                  familyName: family.family_name,
+                                  childName: child.display_name,
+                                  childId: child.child_id,
+                                })}
+                              >
+                                <Sparkles className="w-3 h-3" />
+                                סיכום
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                     <TableCell className="font-bold text-primary">
                       {family.completion_count}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={family.completion_rate} className="h-2 w-16" />
-                        <span className="text-sm">{family.completion_rate}%</span>
-                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {family.recent_rewards && family.recent_rewards.length > 0
                         ? family.recent_rewards.slice(0, 2).map(r => r.title).join(', ')
                         : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1.5 text-primary hover:text-primary"
-                        onClick={() => setSummaryModal({
-                          isOpen: true,
-                          familyId: family.family_id,
-                          familyName: family.family_name,
-                        })}
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        סיכום
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -666,6 +677,7 @@ export function AppPulseTab({
         familyId={summaryModal.familyId}
         familyName={summaryModal.familyName}
         childName={summaryModal.childName}
+        childId={summaryModal.childId}
       />
     </div>
   );

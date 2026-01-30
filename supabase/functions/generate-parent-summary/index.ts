@@ -19,7 +19,7 @@ serve(async (req) => {
   }
 
   try {
-    const { family_id, child_name } = await req.json();
+    const { family_id, child_name, child_id } = await req.json();
     
     if (!family_id) {
       throw new Error("family_id is required");
@@ -29,25 +29,37 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get tasks for this family
-    const { data: tasks, error: tasksError } = await supabase
+    // Get tasks for this family (filtered by child if provided)
+    let tasksQuery = supabase
       .from("tasks")
       .select("id, title, category")
       .eq("family_id", family_id);
+    
+    if (child_id) {
+      tasksQuery = tasksQuery.eq("assigned_to", child_id);
+    }
+
+    const { data: tasks, error: tasksError } = await tasksQuery;
 
     if (tasksError) throw tasksError;
 
-    // Get completions from the last 7 days
+    // Get completions from the last 7 days (filtered by child if provided)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const dateStr = sevenDaysAgo.toISOString().split("T")[0];
 
-    const { data: completions, error: completionsError } = await supabase
+    let completionsQuery = supabase
       .from("daily_progress")
-      .select("task_id, date, completed")
+      .select("task_id, date, completed, child_id")
       .eq("family_id", family_id)
       .gte("date", dateStr)
       .order("date", { ascending: true });
+    
+    if (child_id) {
+      completionsQuery = completionsQuery.eq("child_id", child_id);
+    }
+
+    const { data: completions, error: completionsError } = await completionsQuery;
 
     if (completionsError) throw completionsError;
 
