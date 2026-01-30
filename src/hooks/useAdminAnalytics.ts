@@ -29,6 +29,7 @@ interface StarFamily {
   family_code: string;
   parent_email: string | null;
   parent_marketing_consent: boolean | null;
+  children_names: string[];
   child_count: number;
   completion_count: number;
   completion_rate: number;
