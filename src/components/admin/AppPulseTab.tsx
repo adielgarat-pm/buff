@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -24,10 +25,12 @@ import {
   Mail,
   MailCheck,
   Copy,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { ParentSummaryModal } from './ParentSummaryModal';
 import { 
   PieChart, 
   Pie, 
@@ -203,6 +206,13 @@ export function AppPulseTab({
   familiesWithoutChildrenRate,
   pointsUtilization = 0
 }: AppPulseTabProps) {
+  const [summaryModal, setSummaryModal] = useState<{
+    isOpen: boolean;
+    familyId: string;
+    familyName: string;
+    childName?: string;
+  }>({ isOpen: false, familyId: '', familyName: '' });
+
   if (loading || !data) {
     return (
       <div className="space-y-6">
@@ -530,6 +540,7 @@ export function AppPulseTab({
                   <TableHead className="text-right">השלמות (7 ימים)</TableHead>
                   <TableHead className="text-right">% השלמה</TableHead>
                   <TableHead className="text-right">פרסים אחרונים</TableHead>
+                  <TableHead className="text-right">פעולות</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -563,6 +574,21 @@ export function AppPulseTab({
                       {family.recent_rewards && family.recent_rewards.length > 0
                         ? family.recent_rewards.slice(0, 2).map(r => r.title).join(', ')
                         : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-primary hover:text-primary"
+                        onClick={() => setSummaryModal({
+                          isOpen: true,
+                          familyId: family.family_id,
+                          familyName: family.family_name,
+                        })}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        סיכום
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -628,6 +654,14 @@ export function AppPulseTab({
           )}
         </CardContent>
       </Card>
+      {/* Parent Summary Modal */}
+      <ParentSummaryModal
+        isOpen={summaryModal.isOpen}
+        onClose={() => setSummaryModal({ isOpen: false, familyId: '', familyName: '' })}
+        familyId={summaryModal.familyId}
+        familyName={summaryModal.familyName}
+        childName={summaryModal.childName}
+      />
     </div>
   );
 }
