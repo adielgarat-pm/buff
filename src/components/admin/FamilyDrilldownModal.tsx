@@ -101,53 +101,47 @@ export function FamilyDrilldownModal({ isOpen, onClose, familyId, familyName }: 
   const fetchFamilyData = async () => {
     setLoading(true);
     try {
-      // Fetch children profiles
-      const { data: childrenData } = await supabase
-        .from('profiles')
-        .select('id, display_name, daily_goal, school_quest_enabled, bag_prep_enabled')
-        .eq('family_id', familyId)
-        .eq('role', 'child');
+      // Use admin RPC function to bypass RLS
+      const { data: result, error } = await supabase.rpc('get_admin_family_drilldown', {
+        p_family_id: familyId
+      });
 
-      const children = (childrenData || []) as ChildProfile[];
-      const childMap = new Map(children.map(c => [c.id, c.display_name]));
+      if (error) {
+        console.error('Error fetching family data:', error);
+        return;
+      }
 
-      // Fetch tasks
-      const { data: tasksData } = await supabase
-        .from('tasks')
-        .select('id, title, category, time, credits, icon, assigned_to')
-        .eq('family_id', familyId)
-        .order('time');
+      if (result && typeof result === 'object' && !Array.isArray(result)) {
+        const jsonResult = result as Record<string, unknown>;
+        
+        if (jsonResult.error) {
+          console.error('Admin access error:', jsonResult.error);
+          return;
+        }
 
-      const tasks: TaskData[] = (tasksData || []).map(t => ({
-        ...t,
-        child_name: t.assigned_to ? childMap.get(t.assigned_to) || 'לא משויך' : 'כללי',
-      }));
+        const children = (jsonResult.children || []) as ChildProfile[];
+        const childMap = new Map(children.map(c => [c.id, c.display_name]));
 
-      // Fetch rewards
-      const { data: rewardsData } = await supabase
-        .from('store_rewards')
-        .select('id, title, emoji, price, claimed, claimed_at, assigned_to')
-        .eq('family_id', familyId)
-        .order('price');
+        const rawTasks = (jsonResult.tasks || []) as TaskData[];
+        const tasks: TaskData[] = rawTasks.map(t => ({
+          ...t,
+          child_name: t.assigned_to ? childMap.get(t.assigned_to) || 'לא משויך' : 'כללי',
+        }));
 
-      const rewards: RewardData[] = (rewardsData || []).map(r => ({
-        ...r,
-        child_name: r.assigned_to ? childMap.get(r.assigned_to) || 'לא משויך' : 'כללי',
-      }));
+        const rawRewards = (jsonResult.rewards || []) as RewardData[];
+        const rewards: RewardData[] = rawRewards.map(r => ({
+          ...r,
+          child_name: r.assigned_to ? childMap.get(r.assigned_to) || 'לא משויך' : 'כללי',
+        }));
 
-      // Fetch timetables
-      const { data: timetablesData } = await supabase
-        .from('timetables')
-        .select('id, assigned_to, data, updated_at')
-        .eq('family_id', familyId);
+        const rawTimetables = (jsonResult.timetables || []) as TimetableData[];
+        const timetables: TimetableData[] = rawTimetables.map(t => ({
+          ...t,
+          child_name: t.assigned_to ? childMap.get(t.assigned_to) || 'לא משויך' : 'כללי',
+        }));
 
-      const timetables: TimetableData[] = (timetablesData || []).map(t => ({
-        ...t,
-        child_name: t.assigned_to ? childMap.get(t.assigned_to) || 'לא משויך' : 'כללי',
-        data: t.data as Record<string, { subject: string; startTime: string; equipment?: string }[]>,
-      }));
-
-      setData({ tasks, rewards, timetables, children });
+        setData({ tasks, rewards, timetables, children });
+      }
     } catch (error) {
       console.error('Error fetching family data:', error);
     } finally {
