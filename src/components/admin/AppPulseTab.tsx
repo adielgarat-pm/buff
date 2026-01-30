@@ -26,11 +26,13 @@ import {
   MailCheck,
   Copy,
   Sparkles,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { ParentSummaryModal } from './ParentSummaryModal';
+import { FamilyDrilldownModal } from './FamilyDrilldownModal';
 import { 
   PieChart, 
   Pie, 
@@ -221,6 +223,12 @@ export function AppPulseTab({
     familyName: string;
     childName?: string;
     childId?: string;
+  }>({ isOpen: false, familyId: '', familyName: '' });
+
+  const [drilldownModal, setDrilldownModal] = useState<{
+    isOpen: boolean;
+    familyId: string;
+    familyName: string;
   }>({ isOpen: false, familyId: '', familyName: '' });
 
   if (loading || !data) {
@@ -557,7 +565,20 @@ export function AppPulseTab({
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         {index < 3 && <Star className="w-4 h-4 text-accent" />}
-                        {family.family_name}
+                        <span>{family.family_name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => setDrilldownModal({
+                            isOpen: true,
+                            familyId: family.family_id,
+                            familyName: family.family_name,
+                          })}
+                          title="צלול לנתוני המשפחה"
+                        >
+                          <Eye className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                        </Button>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
@@ -678,6 +699,13 @@ export function AppPulseTab({
         familyName={summaryModal.familyName}
         childName={summaryModal.childName}
         childId={summaryModal.childId}
+      />
+      {/* Family Drilldown Modal */}
+      <FamilyDrilldownModal
+        isOpen={drilldownModal.isOpen}
+        onClose={() => setDrilldownModal({ isOpen: false, familyId: '', familyName: '' })}
+        familyId={drilldownModal.familyId}
+        familyName={drilldownModal.familyName}
       />
     </div>
   );
