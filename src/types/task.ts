@@ -1,4 +1,4 @@
-export type TaskCategory = 'medication' | 'hygiene' | 'nutrition' | 'school';
+export type TaskCategory = 'learning' | 'organization' | 'self-care' | 'responsibility' | 'movement';
 
 export type WeekDay = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday';
 
@@ -25,10 +25,19 @@ export const WEEK_DAY_LABELS_EN: Record<WeekDay, string> = {
 };
 
 export const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  medication: 'Medication',
-  hygiene: 'Hygiene',
-  nutrition: 'Nutrition',
-  school: 'School',
+  learning: 'Learning',
+  organization: 'Organization',
+  'self-care': 'Self-Care',
+  responsibility: 'Responsibility',
+  movement: 'Movement',
+};
+
+export const CATEGORY_LABELS_HE: Record<TaskCategory, string> = {
+  learning: 'למידה',
+  organization: 'התארגנות',
+  'self-care': 'טיפול עצמי',
+  responsibility: 'בית ואחריות',
+  movement: 'גוף ותנועה',
 };
 
 export interface PeriodInfo {

@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task, DailyProgress, Reward, Lesson, Timetable, WEEK_DAYS, PeriodInfo, WeekDay, StoreReward, VaultData } from '@/types/task';
 
 const DEFAULT_TASKS: Omit<Task, 'completed' | 'completedAt'>[] = [
-  { id: '1', title: 'Morning Meds', time: '08:00', category: 'medication', credits: 5 },
-  { id: '2', title: 'Breakfast', time: '08:30', category: 'nutrition', credits: 15 },
-  { id: '3', title: 'Hydration Check', time: '12:00', category: 'nutrition', credits: 5 },
-  { id: '4', title: 'Homework Check', time: '14:00', category: 'school', credits: 15, hideOnWeekend: true },
-  { id: '5', title: 'Study Session', time: '16:00', category: 'school', credits: 30 },
-  { id: '8', title: 'Smart Snack Selection', time: '17:00', category: 'nutrition', credits: 15, description: 'I chose one small portion/snack today and stopped there.' },
-  { id: '6', title: 'Shower', time: '20:00', category: 'hygiene', credits: 20 },
-  { id: '7', title: 'Evening Meds', time: '21:00', category: 'medication', credits: 5 },
+  { id: '1', title: 'Morning Meds', time: '08:00', category: 'self-care', credits: 5 },
+  { id: '2', title: 'Breakfast', time: '08:30', category: 'self-care', credits: 15 },
+  { id: '3', title: 'Hydration Check', time: '12:00', category: 'self-care', credits: 5 },
+  { id: '4', title: 'Homework Check', time: '14:00', category: 'learning', credits: 15, hideOnWeekend: true },
+  { id: '5', title: 'Study Session', time: '16:00', category: 'learning', credits: 30 },
+  { id: '8', title: 'Smart Snack Selection', time: '17:00', category: 'self-care', credits: 15, description: 'I chose one small portion/snack today and stopped there.' },
+  { id: '6', title: 'Shower', time: '20:00', category: 'self-care', credits: 20 },
+  { id: '7', title: 'Evening Meds', time: '21:00', category: 'self-care', credits: 5 },
 ];
 
 // Weekend is Friday (5) and Saturday (6)

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload, Camera, FileSpreadsheet } from 'lucide-react';
+import { Trash2, Plus, Save, X, Book, CalendarCheck, Sparkles, Home, Zap, Calendar, Bell, Gift, Users, User, Crown, Settings, TrendingUp, Upload, Camera, FileSpreadsheet } from 'lucide-react';
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -42,11 +42,12 @@ interface ParentModeProps {
   onUpdateStoreRewards: (rewards: StoreReward[]) => void;
 }
 
-const categoryOptions: { value: TaskCategory; label: string; icon: typeof Pill }[] = [
-  { value: 'medication', label: 'Medication', icon: Pill },
-  { value: 'hygiene', label: 'Hygiene', icon: Droplets },
-  { value: 'nutrition', label: 'Nutrition', icon: Apple },
-  { value: 'school', label: 'School', icon: BookOpen },
+const categoryOptions: { value: TaskCategory; label: string; labelHe: string; icon: typeof Book }[] = [
+  { value: 'learning', label: 'Learning', labelHe: 'למידה', icon: Book },
+  { value: 'organization', label: 'Organization', labelHe: 'התארגנות', icon: CalendarCheck },
+  { value: 'self-care', label: 'Self-Care', labelHe: 'טיפול עצמי', icon: Sparkles },
+  { value: 'responsibility', label: 'Responsibility', labelHe: 'בית ואחריות', icon: Home },
+  { value: 'movement', label: 'Movement', labelHe: 'גוף ותנועה', icon: Zap },
 ];
 
 type SettingsSection = 'overview' | 'general' | 'child';
@@ -589,7 +590,7 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
         strategyId: newTask.strategyId || undefined,
       };
       addTask(taskToAdd);
-      setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10, strategyId: '' });
+      setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, strategyId: '' });
       setShowAddForm(false);
     }
   };
@@ -640,7 +641,7 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
             Insights
           </TabsTrigger>
           <TabsTrigger value="tasks" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
+            <Book className="w-4 h-4" />
             Tasks
           </TabsTrigger>
           <TabsTrigger value="schedule" className="flex items-center gap-2">

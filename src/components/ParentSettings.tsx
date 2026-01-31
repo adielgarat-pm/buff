@@ -19,9 +19,11 @@ import {
   Pencil,
   X,
   Check,
-  Pill,
-  Droplets,
-  Apple,
+  Book,
+  CalendarCheck,
+  Sparkles,
+  Home,
+  Zap,
   ChevronRight,
   Brain,
   CalendarDays,
@@ -839,11 +841,12 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   );
 }
 
-const categoryOptions: { value: TaskCategory; label: string; icon: typeof Pill }[] = [
-  { value: 'medication', label: 'תרופות', icon: Pill },
-  { value: 'hygiene', label: 'היגיינה', icon: Droplets },
-  { value: 'nutrition', label: 'תזונה', icon: Apple },
-  { value: 'school', label: 'בית ספר', icon: BookOpen },
+const categoryOptions: { value: TaskCategory; label: string; icon: typeof Book }[] = [
+  { value: 'learning', label: 'למידה', icon: Book },
+  { value: 'organization', label: 'התארגנות', icon: CalendarCheck },
+  { value: 'self-care', label: 'טיפול עצמי', icon: Sparkles },
+  { value: 'responsibility', label: 'בית ואחריות', icon: Home },
+  { value: 'movement', label: 'גוף ותנועה', icon: Zap },
 ];
 
 function ChildTasksEditor({
@@ -862,13 +865,13 @@ function ChildTasksEditor({
   const [editForm, setEditForm] = useState({
     title: '',
     time: '12:00',
-    category: 'nutrition' as TaskCategory,
+    category: 'self-care' as TaskCategory,
     credits: 10,
   });
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
-    category: 'nutrition' as TaskCategory,
+    category: 'self-care' as TaskCategory,
     credits: 10,
   });
 
@@ -892,7 +895,7 @@ function ChildTasksEditor({
       category: newTask.category,
       credits: newTask.credits,
     });
-    setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10 });
+    setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10 });
     setShowAddForm(false);
   };
 

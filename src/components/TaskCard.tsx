@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Task, TaskCategory } from '@/types/task';
-import { Pill, Droplets, Apple, BookOpen, Check, Sparkles, Cookie, Zap, X } from 'lucide-react';
+import { Book, CalendarCheck, Sparkles as SparklesIcon, Home, Zap, Check, Cookie, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStrategyById, STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
 
@@ -10,11 +10,12 @@ interface TaskCardProps {
   onUncomplete: (id: string) => void;
 }
 
-const categoryConfig: Record<TaskCategory, { icon: typeof Pill; colorClass: string; bgClass: string }> = {
-  medication: { icon: Pill, colorClass: 'text-medication', bgClass: 'bg-medication/20' },
-  hygiene: { icon: Droplets, colorClass: 'text-hygiene', bgClass: 'bg-hygiene/20' },
-  nutrition: { icon: Apple, colorClass: 'text-nutrition', bgClass: 'bg-nutrition/20' },
-  school: { icon: BookOpen, colorClass: 'text-school', bgClass: 'bg-school/20' },
+const categoryConfig: Record<TaskCategory, { icon: typeof Book; colorClass: string; bgClass: string }> = {
+  learning: { icon: Book, colorClass: 'text-learning', bgClass: 'bg-learning/20' },
+  organization: { icon: CalendarCheck, colorClass: 'text-organization', bgClass: 'bg-organization/20' },
+  'self-care': { icon: SparklesIcon, colorClass: 'text-self-care', bgClass: 'bg-self-care/20' },
+  responsibility: { icon: Home, colorClass: 'text-responsibility', bgClass: 'bg-responsibility/20' },
+  movement: { icon: Zap, colorClass: 'text-movement', bgClass: 'bg-movement/20' },
 };
 
 // Special icons for specific tasks
@@ -75,7 +76,7 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
           {[...Array(8)].map((_, i) => (
-            <Sparkles
+            <SparklesIcon
               key={i}
               className="absolute text-primary animate-ping"
               style={{

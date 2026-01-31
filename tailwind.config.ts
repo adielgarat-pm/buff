@@ -72,10 +72,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        medication: "hsl(var(--medication))",
-        hygiene: "hsl(var(--hygiene))",
-        nutrition: "hsl(var(--nutrition))",
-        school: "hsl(var(--school))",
+        // New 5-category system
+        learning: "hsl(var(--learning))",
+        organization: "hsl(var(--organization))",
+        "self-care": "hsl(var(--self-care))",
+        responsibility: "hsl(var(--responsibility))",
+        movement: "hsl(var(--movement))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

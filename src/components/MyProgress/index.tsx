@@ -9,33 +9,52 @@ interface MyProgressProps {
   onClose?: () => void;
   // Weekly stats by category - each has 7 days of completion data
   weeklyStats?: {
-    math: boolean[];
-    coding: boolean[];
-    other: boolean[];
+    learning: boolean[];
+    organization: boolean[];
+    'self-care': boolean[];
+    responsibility: boolean[];
+    movement: boolean[];
   };
   weeklyCompletionRate?: number; // 0-100
   restTickets?: number;
 }
 
-// Category configurations with colors (HSL without hsl() wrapper)
+// 5-Category configurations with colors (HSL without hsl() wrapper)
 const CATEGORIES = [
   { 
-    id: 'math', 
-    label: 'מתמטיקה', 
-    icon: '🧮',
-    color: '183 100% 50%', // Neon Cyan
-  },
-  { 
-    id: 'coding', 
-    label: 'קוד', 
-    icon: '💻',
-    color: '112 100% 54%', // Electric Green
-  },
-  { 
-    id: 'other', 
-    label: 'אחר', 
+    id: 'learning', 
+    label: 'למידה', 
+    labelEn: 'Learning',
     icon: '📚',
-    color: '38 92% 50%', // Orange/Warning
+    color: '217 91% 60%', // Blue
+  },
+  { 
+    id: 'organization', 
+    label: 'התארגנות', 
+    labelEn: 'Organization',
+    icon: '📅',
+    color: '25 95% 53%', // Orange
+  },
+  { 
+    id: 'self-care', 
+    label: 'טיפול עצמי', 
+    labelEn: 'Self-Care',
+    icon: '✨',
+    color: '330 80% 60%', // Pink
+  },
+  { 
+    id: 'responsibility', 
+    label: 'בית ואחריות', 
+    labelEn: 'Responsibility',
+    icon: '🏠',
+    color: '271 81% 56%', // Purple
+  },
+  { 
+    id: 'movement', 
+    label: 'גוף ותנועה', 
+    labelEn: 'Movement',
+    icon: '⚡',
+    color: '142 76% 36%', // Green
   },
 ] as const;
 
@@ -45,18 +64,26 @@ export function MyProgress({
   weeklyCompletionRate = 0,
   restTickets = 2,
 }: MyProgressProps) {
-  // Default mock data if not provided
+  // Default mock data if not provided - now with 5 categories
   const stats = useMemo(() => weeklyStats || {
-    math: [true, true, false, true, true, false, false],
-    coding: [true, false, true, true, false, true, false],
-    other: [true, true, true, false, true, false, false],
+    learning: [true, true, false, true, true, false, false],
+    organization: [true, false, true, true, false, true, false],
+    'self-care': [true, true, true, false, true, false, false],
+    responsibility: [false, true, false, true, true, false, true],
+    movement: [true, false, true, false, false, true, false],
   }, [weeklyStats]);
 
   // Calculate overall completion if not provided
   const overallRate = useMemo(() => {
     if (weeklyCompletionRate > 0) return weeklyCompletionRate;
     
-    const allDays = [...stats.math, ...stats.coding, ...stats.other];
+    const allDays = [
+      ...stats.learning, 
+      ...stats.organization, 
+      ...stats['self-care'], 
+      ...stats.responsibility, 
+      ...stats.movement
+    ];
     const completedDays = allDays.filter(Boolean).length;
     return Math.round((completedDays / allDays.length) * 100);
   }, [weeklyCompletionRate, stats]);
