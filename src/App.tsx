@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Landing from "./pages/Landing";
 import ChildInvite from "./pages/ChildInvite";
+import InstallGuide from "./pages/InstallGuide";
 import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AboutPage } from "@/components/AboutPage";
@@ -118,6 +119,9 @@ const AppRoutes = () => (
     
     {/* Child Magic Link Invite */}
     <Route path="/join" element={<PublicRoute><ChildInvite /></PublicRoute>} />
+    
+    {/* Install Guide - Shows video tutorial for PWA installation */}
+    <Route path="/install" element={<PublicRoute><InstallGuide /></PublicRoute>} />
     
     {/* Protected dashboard - the main app (requires full auth + profile + family) */}
     <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
