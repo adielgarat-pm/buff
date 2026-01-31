@@ -7,7 +7,7 @@ import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Trash2, Plus, Save, X, Pill, Droplets, Apple, BookOpen, Calendar, Bell, Gift, Users, User, Crown, Settings, Sparkles, Zap, TrendingUp, Upload, ChevronRight, Camera, FileSpreadsheet } from 'lucide-react';
+import { Trash2, Plus, Save, X, Book, CalendarCheck, Sparkles, Home, Zap, Calendar, Bell, Gift, Users, User, Crown, Settings, TrendingUp, Upload, ChevronRight, Camera, FileSpreadsheet } from 'lucide-react';
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -21,11 +21,12 @@ import { PhaseCompletionChart } from './PhaseCompletionChart';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
 import { useAuth } from '@/contexts/AuthContext';
 
-const categoryOptions: { value: TaskCategory; label: string; icon: typeof Pill }[] = [
-  { value: 'medication', label: 'Medication', icon: Pill },
-  { value: 'hygiene', label: 'Hygiene', icon: Droplets },
-  { value: 'nutrition', label: 'Nutrition', icon: Apple },
-  { value: 'school', label: 'School', icon: BookOpen },
+const categoryOptions: { value: TaskCategory; label: string; labelHe: string; icon: typeof Book }[] = [
+  { value: 'learning', label: 'Learning', labelHe: 'למידה', icon: Book },
+  { value: 'organization', label: 'Organization', labelHe: 'התארגנות', icon: CalendarCheck },
+  { value: 'self-care', label: 'Self-Care', labelHe: 'טיפול עצמי', icon: Sparkles },
+  { value: 'responsibility', label: 'Responsibility', labelHe: 'בית ואחריות', icon: Home },
+  { value: 'movement', label: 'Movement', labelHe: 'גוף ותנועה', icon: Zap },
 ];
 
 interface ParentDashboardProps {
@@ -298,7 +299,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
 
   const sections = [
     { id: 'insights' as const, label: 'Insights', icon: TrendingUp },
-    { id: 'tasks' as const, label: 'Tasks', icon: BookOpen },
+    { id: 'tasks' as const, label: 'Tasks', icon: Book },
     { id: 'schedule' as const, label: 'Schedule', icon: Calendar },
     { id: 'rewards' as const, label: 'Rewards', icon: Gift },
   ];
@@ -504,14 +505,14 @@ function ChildTasks({
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
-    category: 'nutrition' as TaskCategory,
+    category: 'self-care' as TaskCategory,
     credits: 10,
   });
 
   const handleAddTask = () => {
     if (newTask.title.trim()) {
       onAddTask(newTask);
-      setNewTask({ title: '', time: '12:00', category: 'nutrition', credits: 10 });
+      setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10 });
       setShowAddForm(false);
     }
   };

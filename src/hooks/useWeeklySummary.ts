@@ -36,10 +36,11 @@ export function useWeeklySummary(tasks: Task[], storeRewards: StoreReward[]): We
 
     let totalCreditsEarned = 0;
     const tasksByCategory: Record<TaskCategory, number> = {
-      medication: 0,
-      hygiene: 0,
-      nutrition: 0,
-      school: 0,
+      learning: 0,
+      organization: 0,
+      'self-care': 0,
+      responsibility: 0,
+      movement: 0,
     };
     const dailyCredits: { day: string; credits: number }[] = [];
 
@@ -61,8 +62,8 @@ export function useWeeklySummary(tasks: Task[], storeRewards: StoreReward[]): We
           }
         });
         
-        // Also count lessons as school category
-        tasksByCategory.school += progress.completedLessons?.length || 0;
+        // Also count lessons as learning category
+        tasksByCategory.learning += progress.completedLessons?.length || 0;
         
         dailyCredits.push({
           day: getDayLabel(dateKey),

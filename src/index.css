@@ -66,11 +66,12 @@
 
     --radius: 1rem;
 
-    /* Category colors - Neon */
-    --medication: 280 85% 60%;
-    --hygiene: 183 100% 50%;
-    --nutrition: 112 100% 54%;
-    --school: 38 92% 50%;
+    /* Category colors - 5-Category System */
+    --learning: 217 91% 60%;        /* Blue - Book icon */
+    --organization: 25 95% 53%;     /* Orange - Calendar icon */
+    --self-care: 330 80% 60%;       /* Pink/Teal - Sparkles icon */
+    --responsibility: 271 81% 56%;  /* Purple - House icon */
+    --movement: 142 76% 36%;        /* Green - Lightning icon */
 
     /* GAMER Gradients - Neon Aesthetic */
     --gradient-primary: linear-gradient(135deg, hsl(183, 100%, 50%), hsl(112, 100%, 54%));

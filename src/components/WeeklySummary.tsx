@@ -15,17 +15,19 @@ interface WeeklySummaryProps {
 }
 
 const CATEGORY_COLORS: Record<TaskCategory, string> = {
-  medication: 'hsl(var(--chart-1))',
-  hygiene: 'hsl(var(--chart-2))',
-  nutrition: 'hsl(var(--chart-3))',
-  school: 'hsl(var(--chart-4))',
+  learning: 'hsl(var(--learning))',
+  organization: 'hsl(var(--organization))',
+  'self-care': 'hsl(var(--self-care))',
+  responsibility: 'hsl(var(--responsibility))',
+  movement: 'hsl(var(--movement))',
 };
 
 const CATEGORY_ICONS: Record<TaskCategory, string> = {
-  medication: '💊',
-  hygiene: '🚿',
-  nutrition: '🍎',
-  school: '📚',
+  learning: '📚',
+  organization: '📅',
+  'self-care': '✨',
+  responsibility: '🏠',
+  movement: '⚡',
 };
 
 export function WeeklySummary({ data, onClose }: WeeklySummaryProps) {

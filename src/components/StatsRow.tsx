@@ -1,16 +1,17 @@
-import { Task } from '@/types/task';
-import { Pill, Droplets, Apple, BookOpen } from 'lucide-react';
+import { Task, TaskCategory } from '@/types/task';
+import { Book, CalendarCheck, Sparkles, Home, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StatsRowProps {
   tasks: Task[];
 }
 
-const categoryConfig = {
-  medication: { icon: Pill, label: 'Meds', colorClass: 'text-medication', bgClass: 'bg-medication/20' },
-  hygiene: { icon: Droplets, label: 'Hygiene', colorClass: 'text-hygiene', bgClass: 'bg-hygiene/20' },
-  nutrition: { icon: Apple, label: 'Nutrition', colorClass: 'text-nutrition', bgClass: 'bg-nutrition/20' },
-  school: { icon: BookOpen, label: 'School', colorClass: 'text-school', bgClass: 'bg-school/20' },
+const categoryConfig: Record<TaskCategory, { icon: typeof Book; label: string; labelHe: string; colorClass: string; bgClass: string }> = {
+  learning: { icon: Book, label: 'Learning', labelHe: 'למידה', colorClass: 'text-learning', bgClass: 'bg-learning/20' },
+  organization: { icon: CalendarCheck, label: 'Organize', labelHe: 'התארגנות', colorClass: 'text-organization', bgClass: 'bg-organization/20' },
+  'self-care': { icon: Sparkles, label: 'Self-Care', labelHe: 'טיפול עצמי', colorClass: 'text-self-care', bgClass: 'bg-self-care/20' },
+  responsibility: { icon: Home, label: 'Home', labelHe: 'בית', colorClass: 'text-responsibility', bgClass: 'bg-responsibility/20' },
+  movement: { icon: Zap, label: 'Move', labelHe: 'תנועה', colorClass: 'text-movement', bgClass: 'bg-movement/20' },
 };
 
 export function StatsRow({ tasks }: StatsRowProps) {
@@ -31,7 +32,7 @@ export function StatsRow({ tasks }: StatsRowProps) {
   });
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-5 gap-2">
       {categories.map((cat) => (
         <div
           key={cat.key}
