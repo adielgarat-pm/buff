@@ -97,14 +97,14 @@ export function ParentSettings({
       </DialogContent>
     </Dialog>
 
-    <div className="space-y-6 pb-8">
+    <div className="space-y-3 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground font-display">
+        <div>
+          <h1 className="text-xl font-bold text-foreground font-display">
             {selectedChildId ? 'הגדרות Buff' : 'הגדרות'}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {selectedChildId ? 'עריכת משימות, מערכת ופרסים' : 'הגדרות כלליות וניהול ילדים'}
           </p>
         </div>
@@ -122,81 +122,71 @@ export function ParentSettings({
       ) : (
         <>
           {/* General Settings Card */}
-          <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Settings className="w-5 h-5 text-primary" />
+          <div className="rounded-xl bg-card border border-border p-3 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Settings className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="font-semibold text-foreground">הגדרות כלליות</h2>
+                <h2 className="text-sm font-semibold text-foreground">הגדרות כלליות</h2>
                 <p className="text-xs text-muted-foreground">הגדרות ברירת מחדל למשפחה</p>
               </div>
             </div>
 
             {/* App Title */}
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">שם האפליקציה</Label>
-              <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">שם האפליקציה</Label>
+              <div className="flex gap-2 flex-1">
                 <Input
                   type="text"
                   value={localTitle}
                   onChange={(e) => setLocalTitle(e.target.value)}
                   placeholder="Buff"
-                  className="flex-1 bg-background border-border"
+                  className="flex-1 h-8 text-sm bg-background border-border"
                   dir="ltr"
                 />
-                <Button size="sm" onClick={handleSaveTitle} className="bg-primary text-primary-foreground touch-target">
-                  <Save className="w-4 h-4" />
+                <Button size="sm" onClick={handleSaveTitle} className="h-8 px-2 bg-primary text-primary-foreground">
+                  <Save className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>
 
-
             {/* Toggles */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-muted-foreground" />
+                  <Bell className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-sm text-foreground">תזכורות שיעורים</span>
                 </div>
                 <Switch
                   checked={lessonRemindersEnabled}
                   onCheckedChange={onToggleLessonReminders}
-                  className="touch-target"
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-sm text-foreground">יום שישי יום לימודים</span>
                 </div>
                 <Switch
                   checked={fridayEnabled}
                   onCheckedChange={onToggleFridayEnabled}
-                  className="touch-target"
                 />
               </div>
             </div>
           </div>
 
           {/* Notifications & Updates Section */}
-          <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-foreground">עדכונים והודעות</h2>
-                <p className="text-xs text-muted-foreground">ניהול תקשורת מ-BUFF</p>
-              </div>
-            </div>
-
+          <div className="rounded-xl bg-card border border-border p-3">
             <div className="flex items-center justify-between">
-              <div className="flex-1 ml-3">
-                <span className="text-sm text-foreground">קבלת עדכונים וטיפים מעדי</span>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  טיפים קטנים לסופ"ש ועדכונים על פיצ'רים חדשים
-                </p>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Mail className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-foreground">עדכונים וטיפים מעדי</span>
+                  <p className="text-xs text-muted-foreground">טיפים לסופ"ש ופיצ'רים חדשים</p>
+                </div>
               </div>
               <Switch
                 checked={marketingConsent}
@@ -209,29 +199,28 @@ export function ParentSettings({
                   }
                 }}
                 disabled={savingConsent}
-                className="touch-target"
               />
             </div>
           </div>
 
           {/* Children Management Section */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-foreground">ניהול ילדים</h2>
+              <User className="w-3.5 h-3.5 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">ניהול ילדים</h2>
             </div>
 
             {membersLoading ? (
-              <div className="rounded-2xl bg-card border border-border p-8 text-center">
-                <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+              <div className="rounded-xl bg-card border border-border p-4 text-center">
+                <Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" />
               </div>
             ) : children.length === 0 ? (
-              <div className="rounded-2xl bg-card border border-border p-8 text-center space-y-2">
-                <User className="w-12 h-12 text-muted-foreground mx-auto" />
-                <p className="text-muted-foreground">עדיין לא הצטרפו ילדים</p>
+              <div className="rounded-xl bg-card border border-border p-4 text-center space-y-1">
+                <User className="w-8 h-8 text-muted-foreground mx-auto" />
+                <p className="text-sm text-muted-foreground">עדיין לא הצטרפו ילדים</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {children.map((child) => (
                   <ChildManagementCard
                     key={child.id}
@@ -243,41 +232,39 @@ export function ParentSettings({
               </div>
             )}
           </div>
+
           {/* Learning & Guidance Section */}
-          <div className="rounded-2xl bg-card border border-border p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Brain className="w-5 h-5 text-primary" />
+          <div className="rounded-xl bg-card border border-border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Brain className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="font-semibold text-foreground">למידה והדרכה</h2>
+                <h2 className="text-sm font-semibold text-foreground">למידה והדרכה</h2>
                 <p className="text-xs text-muted-foreground">הבנת הגישה מאחורי Buff</p>
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              onClick={() => setShowPhilosophy(true)}
-              className="w-full justify-between touch-target"
-            >
-              <div className="flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-primary" />
-                <span>קרא את תפיסת העולם של Buff</span>
-              </div>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => window.location.href = '/about'}
-              className="w-full justify-between touch-target"
-            >
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" />
-                <span>אודות - הסיפור מאחורי Buff</span>
-              </div>
-              <ChevronRight className="w-4 h-4" />
-          </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPhilosophy(true)}
+                className="flex-1 h-9 text-xs justify-start"
+              >
+                <Lightbulb className="w-3.5 h-3.5 ml-1.5 text-primary" />
+                תפיסת העולם
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.href = '/about'}
+                className="flex-1 h-9 text-xs justify-start"
+              >
+                <User className="w-3.5 h-3.5 ml-1.5 text-primary" />
+                אודות
+              </Button>
+            </div>
           </div>
 
           {/* Help & Installation Section */}
@@ -292,7 +279,7 @@ export function ParentSettings({
   );
 }
 
-// Child Management Card - Clean, no progress bars
+// Child Management Card - Compact
 function ChildManagementCard({ 
   childId, 
   childName,
@@ -305,17 +292,17 @@ function ChildManagementCard({
   return (
     <button
       onClick={onSelect}
-      className="w-full rounded-2xl bg-card border border-border p-4 hover:border-primary/50 transition-colors text-right"
+      className="w-full rounded-xl bg-card border border-border p-2.5 hover:border-primary/50 transition-colors text-right"
     >
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-          <User className="w-6 h-6 text-primary" />
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1 text-right">
-          <p className="font-semibold text-foreground">{childName}</p>
-          <p className="text-xs text-muted-foreground">לחץ כדי לערוך הגדרות Buff</p>
+          <p className="text-sm font-semibold text-foreground">{childName}</p>
+          <p className="text-xs text-muted-foreground">הגדרות Buff</p>
         </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </div>
     </button>
   );
@@ -501,146 +488,135 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {/* Child Name Header */}
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
-        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-          <User className="w-5 h-5 text-primary" />
+      <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
+        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+          <User className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <p className="font-semibold text-foreground">{childName}</p>
+          <p className="text-sm font-semibold text-foreground">{childName}</p>
           <p className="text-xs text-muted-foreground">הגדרות Buff אישיות</p>
         </div>
       </div>
 
-      {/* Credit Balance */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">💰</span>
-          <span className="text-sm font-medium text-foreground">יתרת קרדיטים</span>
-        </div>
-        <div className="flex items-center gap-2">
+      {/* Credit Balance & Daily Goal - Combined Row */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Credit Balance */}
+        <div className="flex flex-col p-2.5 rounded-lg bg-card border border-border">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="text-sm">💰</span>
+            <span className="text-xs text-muted-foreground">יתרה</span>
+          </div>
           {editingBalance ? (
-            <>
+            <div className="flex items-center gap-1">
               <Input
                 type="number"
                 value={localBalance}
                 onChange={(e) => setLocalBalance(Number(e.target.value))}
-                className="w-24 h-8 bg-background border-border text-center text-sm"
+                className="flex-1 h-7 bg-background border-border text-center text-xs"
                 min={0}
                 dir="ltr"
               />
               <Button 
                 size="sm" 
-                className="h-8 px-3"
+                className="h-7 px-2"
                 onClick={handleSaveBalance}
                 disabled={savingBalance}
               >
-                {savingBalance ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {savingBalance ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
               </Button>
               <Button 
                 size="sm" 
                 variant="ghost"
-                className="h-8 px-2"
+                className="h-7 px-1.5"
                 onClick={() => {
                   setEditingBalance(false);
                   setLocalBalance(totalBalance);
                 }}
               >
-                ×
+                <X className="w-3 h-3" />
               </Button>
-            </>
+            </div>
           ) : (
             <button
               onClick={() => setEditingBalance(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background border border-border hover:bg-secondary transition-colors"
+              className="flex items-center justify-center gap-1 px-2 py-1 rounded bg-background border border-border hover:bg-secondary transition-colors"
             >
-              <span className="font-bold text-primary">{totalBalance.toLocaleString()}</span>
-              <Pencil className="w-3 h-3 text-muted-foreground" />
+              <span className="font-bold text-sm text-primary">{totalBalance.toLocaleString()}</span>
+              <Pencil className="w-2.5 h-2.5 text-muted-foreground" />
             </button>
           )}
         </div>
+
+        {/* Daily Goal */}
+        <div className="flex flex-col p-2.5 rounded-lg bg-card border border-border">
+          <span className="text-xs text-muted-foreground mb-1.5">יעד יומי</span>
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              value={localDailyGoal}
+              onChange={(e) => setLocalDailyGoal(Number(e.target.value))}
+              className="flex-1 h-7 bg-background border-border text-center text-xs"
+              min={10}
+              max={1000}
+              dir="ltr"
+            />
+            <Button
+              size="sm"
+              className="h-7 px-2"
+              onClick={handleSaveDailyGoal}
+              disabled={savingDailyGoal || localDailyGoal === dailyGoal}
+            >
+              {savingDailyGoal ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Daily Goal */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
-        <span className="text-sm text-foreground">יעד יומי</span>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            value={localDailyGoal}
-            onChange={(e) => setLocalDailyGoal(Number(e.target.value))}
-            className="w-20 h-8 bg-background border-border text-center text-sm"
-            min={10}
-            max={1000}
-            dir="ltr"
+      {/* Birth Date & School Quest - Combined Row */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Birth Date */}
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-card border border-border">
+          <div className="flex items-center gap-1.5">
+            <CalendarDays className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs text-foreground">ת.לידה</span>
+          </div>
+          <BirthDatePicker
+            value={localBirthDate}
+            onChange={(date) => {
+              setLocalBirthDate(date);
+              handleSaveBirthDate(date);
+            }}
+            saving={savingBirthDate}
           />
-          <span className="text-xs text-muted-foreground">קרדיטים</span>
-
-          <Button
-            size="sm"
-            className="h-8 px-3"
-            onClick={handleSaveDailyGoal}
-            disabled={savingDailyGoal || localDailyGoal === dailyGoal}
-          >
-            {savingDailyGoal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 px-2"
-            onClick={() => setLocalDailyGoal(dailyGoal)}
-            disabled={savingDailyGoal || localDailyGoal === dailyGoal}
-          >
-            <X className="w-4 h-4" />
-          </Button>
         </div>
-      </div>
 
-      {/* Birth Date Picker */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-primary" />
-          <span className="text-sm text-foreground">תאריך לידה</span>
+        {/* School Quest Toggle */}
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-card border border-border">
+          <div className="flex items-center gap-1.5">
+            <GraduationCap className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs text-foreground">School Quest</span>
+          </div>
+          <Switch
+            checked={schoolQuestEnabled}
+            onCheckedChange={handleToggleSchoolQuest}
+          />
         </div>
-        <BirthDatePicker
-          value={localBirthDate}
-          onChange={(date) => {
-            setLocalBirthDate(date);
-            handleSaveBirthDate(date);
-          }}
-          saving={savingBirthDate}
-        />
-      </div>
-
-      {/* School Quest Toggle */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-primary" />
-          <span className="text-sm text-foreground">הפעל מודול School Quest</span>
-        </div>
-        <Switch
-          checked={schoolQuestEnabled}
-          onCheckedChange={handleToggleSchoolQuest}
-          className="touch-target"
-        />
       </div>
 
       {/* School Quest Activation Tip */}
       {showSchoolQuestTip && schoolQuestEnabled && (
-        <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/10 border border-primary/20">
-          <Lightbulb className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
+        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
+          <Lightbulb className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-xs flex-1">
             <p className="font-medium text-foreground">הפעלת את School Quests! 🎓</p>
-            <p className="text-muted-foreground mt-1">
-              עכשיו, מלא את מערכת השעות כדי לעזור לילד לקבל Buff במיקוד בבית הספר!
-            </p>
+            <p className="text-muted-foreground">מלא מערכת שעות למיקוד בביה"ס</p>
           </div>
           <Button
             size="sm"
             variant="ghost"
-            className="h-6 w-6 p-0 text-muted-foreground"
+            className="h-5 w-5 p-0 text-muted-foreground"
             onClick={() => setShowSchoolQuestTip(false)}
           >
             ×
@@ -649,40 +625,39 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
       )}
 
       {/* Bag Prep Toggle */}
-      <div className="rounded-xl bg-card border border-border overflow-hidden">
-        <div className="flex items-center justify-between p-3">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🎒</span>
-            <span className="text-sm text-foreground">משימת ערב - בונוס מוכנות (19:00)</span>
+      <div className="rounded-lg bg-card border border-border overflow-hidden">
+        <div className="flex items-center justify-between p-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">🎒</span>
+            <span className="text-xs text-foreground">משימת ערב - בונוס מוכנות</span>
           </div>
           <Switch
             checked={bagPrepEnabled}
             onCheckedChange={toggleBagPrepEnabled}
-            className="touch-target"
           />
         </div>
         
         {/* Bag Prep Credits (only show when enabled) */}
         {bagPrepEnabled && (
-          <div className="flex items-center justify-between p-3 pt-0 border-t border-border/50">
-            <span className="text-xs text-muted-foreground">נקודות Buff לביצוע</span>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between px-2.5 pb-2 pt-0">
+            <span className="text-xs text-muted-foreground">נקודות Buff</span>
+            <div className="flex items-center gap-1">
               <Input
                 type="number"
                 value={localBagPrepCredits}
                 onChange={(e) => setLocalBagPrepCredits(Number(e.target.value))}
-                className="w-16 h-8 bg-background border-border text-center text-sm"
+                className="w-14 h-7 bg-background border-border text-center text-xs"
                 min={5}
                 max={100}
                 dir="ltr"
               />
               <Button
                 size="sm"
-                className="h-8 px-3"
+                className="h-7 px-2"
                 onClick={handleSaveBagPrepCredits}
                 disabled={savingBagPrepCredits || localBagPrepCredits === bagPrepCredits}
               >
-                {savingBagPrepCredits ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {savingBagPrepCredits ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
               </Button>
             </div>
           </div>
@@ -690,20 +665,20 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar pt-1">
         {sections.map((section) => {
           return (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors touch-target",
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors",
                 activeSection === section.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
               )}
             >
-              <section.icon className="w-4 h-4" />
+              <section.icon className="w-3.5 h-3.5" />
               {section.label}
             </button>
           );
