@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Task, PeriodInfo } from '@/types/task';
+import { getDiscreteNotificationTitle, getDiscreteNotificationBody, getEffectiveCredits } from '@/utils/protocolTaskUtils';
 
 export type NotificationPermissionStatus = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -210,10 +211,11 @@ export function useNotifications() {
 
       // Only schedule if task time is in the future
       if (taskTime > today) {
+        // Use discrete notification title/body for privacy
         scheduleNotification(
           task.id,
-          `⚡ Buff Time: ${task.title}`,
-          `Complete this quest to earn ${task.credits} Buff Points! 🎮`,
+          getDiscreteNotificationTitle(task),
+          getDiscreteNotificationBody(task),
           taskTime
         );
       }

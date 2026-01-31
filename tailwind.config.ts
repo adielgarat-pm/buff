@@ -78,6 +78,10 @@ export default {
         "self-care": "hsl(var(--self-care))",
         responsibility: "hsl(var(--responsibility))",
         movement: "hsl(var(--movement))",
+        // Protocol/Cyberpunk theme for Bio/Meds
+        "protocol-cyan": "hsl(var(--protocol-cyan))",
+        "protocol-purple": "hsl(var(--protocol-purple))",
+        "protocol-glow": "hsl(var(--protocol-glow))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -1,12 +1,15 @@
 import { useState, useRef } from 'react';
 import { Task } from '@/types/task';
-import { Check, Clock, Pill, Droplets, Apple, BookOpen, Cookie, Zap } from 'lucide-react';
+import { Check, Clock, Zap, Book, Calendar, Sparkles, Home, Activity, Cpu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STRATEGIES, getStrategyById } from '@/data/cogFunStrategies';
 import { BuffActivationModal } from './BuffActivationModal';
 import { ConfettiEffect } from './ConfettiEffect';
 import { XPFlyAnimation } from './XPFlyAnimation';
+import { CoreSyncAnimation } from './CoreSyncAnimation';
+import { isProtocolTask, getEffectiveCredits } from '@/utils/protocolTaskUtils';
+import { CATEGORY_LABELS_HE, TaskCategory } from '@/types/task';
 
 interface PhaseTaskCardProps {
   task: Task;
@@ -15,33 +18,31 @@ interface PhaseTaskCardProps {
   onBuffActivated?: () => void;
 }
 
-const categoryIcons = {
-  medication: Pill,
-  hygiene: Droplets,
-  nutrition: Apple,
-  school: BookOpen,
+// Category icons for new 5-category system
+const categoryIcons: Record<TaskCategory, typeof Book> = {
+  learning: Book,
+  organization: Calendar,
+  'self-care': Sparkles,
+  responsibility: Home,
+  movement: Activity,
 };
 
-const categoryColors = {
-  medication: 'text-rose-400 bg-rose-500/20',
-  hygiene: 'text-sky-400 bg-sky-500/20',
-  nutrition: 'text-emerald-400 bg-emerald-500/20',
-  school: 'text-violet-400 bg-violet-500/20',
-};
-
-const categoryLabelsHe: Record<string, string> = {
-  medication: 'תרופות',
-  hygiene: 'היגיינה',
-  nutrition: 'תזונה',
-  school: 'לימודים',
+// Category color classes for new 5-category system
+const categoryColors: Record<TaskCategory, string> = {
+  learning: 'text-learning bg-learning/20',
+  organization: 'text-organization bg-organization/20',
+  'self-care': 'text-self-care bg-self-care/20',
+  responsibility: 'text-responsibility bg-responsibility/20',
+  movement: 'text-movement bg-movement/20',
 };
 
 // Special icons for specific tasks
 const getTaskIcon = (task: Task) => {
-  if (task.title.toLowerCase().includes('snack')) {
-    return Cookie;
+  // Protocol tasks get cyberpunk CPU icon
+  if (isProtocolTask(task)) {
+    return Cpu;
   }
-  return categoryIcons[task.category];
+  return categoryIcons[task.category] || Sparkles;
 };
 
 // Get a random strategy for the task
@@ -60,11 +61,18 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
   const [showConfetti, setShowConfetti] = useState(false);
   const [showXPFly, setShowXPFly] = useState(false);
   const [wasJustCompleted, setWasJustCompleted] = useState(false);
+  const [showCoreSync, setShowCoreSync] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   
+  const isProtocol = isProtocolTask(task);
+  const effectiveCredits = getEffectiveCredits(task);
   const Icon = getTaskIcon(task);
-  const colorClasses = categoryColors[task.category];
-  const categoryLabel = language === 'he' ? categoryLabelsHe[task.category] : task.category;
+  const colorClasses = isProtocol 
+    ? 'text-protocol-cyan bg-protocol-cyan/20' 
+    : categoryColors[task.category];
+  const categoryLabel = isProtocol 
+    ? (language === 'he' ? 'פרוטוקול' : 'Protocol')
+    : (language === 'he' ? CATEGORY_LABELS_HE[task.category] : task.category);
   const strategy = getRandomStrategy(task.strategyId);
 
   const handleComplete = () => {
@@ -73,6 +81,17 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
       return;
     }
 
+    // Protocol tasks use special Core Sync animation
+    if (isProtocol) {
+      setShowCoreSync(true);
+      return;
+    }
+
+    // Standard completion flow
+    completeTaskWithEffects();
+  };
+
+  const completeTaskWithEffects = () => {
     // Trigger completion
     onComplete(task.id);
     setWasJustCompleted(true);
@@ -82,8 +101,8 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
       navigator.vibrate([50, 30, 100]);
     }
 
-    // Show effects for high-value tasks (15+ credits)
-    if (task.credits >= 15) {
+    // Show effects for high-value tasks (15+ credits) or protocol tasks
+    if (effectiveCredits >= 15 || isProtocol) {
       setShowConfetti(true);
       setShowXPFly(true);
     } else {
@@ -92,6 +111,11 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
 
     // Reset animation state
     setTimeout(() => setWasJustCompleted(false), 1000);
+  };
+
+  const handleCoreSyncComplete = () => {
+    setShowCoreSync(false);
+    completeTaskWithEffects();
   };
 
   const handleBuffClick = (e: React.MouseEvent) => {
@@ -124,7 +148,9 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
           "active:scale-[0.98] touch-feedback",
           task.completed
             ? "bg-buff/10 border-buff/30"
-            : "bg-card border-border active:border-primary/50",
+            : isProtocol
+              ? "bg-protocol-cyan/5 border-protocol-cyan/40 shadow-protocol-glow"
+              : "bg-card border-border active:border-primary/50",
           wasJustCompleted && "animate-quest-complete bg-gradient-to-r from-buff/20 via-primary/20 to-buff/20"
         )}
       >
@@ -137,18 +163,25 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
                 "text-sm font-semibold transition-all leading-tight text-start truncate",
                 task.completed 
                   ? "text-muted-foreground line-through" 
-                  : "text-foreground"
+                  : isProtocol
+                    ? "text-protocol-cyan"
+                    : "text-foreground"
               )}>
                 {task.title}
               </h3>
               
               {/* Credits - Compact */}
-              <span className={cn(
-                "text-sm font-bold flex-shrink-0",
-                task.completed ? "text-buff" : "text-muted-foreground"
-              )}>
-                +{task.credits}
-              </span>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {isProtocol && !task.completed && (
+                  <span className="text-[10px] text-protocol-purple font-medium">1.5x</span>
+                )}
+                <span className={cn(
+                  "text-sm font-bold",
+                  task.completed ? "text-buff" : isProtocol ? "text-protocol-cyan" : "text-muted-foreground"
+                )}>
+                  +{effectiveCredits}
+                </span>
+              </div>
             </div>
             
             {/* Metadata row - Compact */}
@@ -173,12 +206,18 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
             <button
               onClick={handleBuffClick}
               className={cn(
-                "p-2 rounded-lg bg-buff/20 border border-buff/50 transition-all touch-target flex-shrink-0",
-                "active:scale-90 active:bg-buff/30"
+                "p-2 rounded-lg border transition-all touch-target flex-shrink-0",
+                "active:scale-90",
+                isProtocol 
+                  ? "bg-protocol-purple/20 border-protocol-purple/50 active:bg-protocol-purple/30"
+                  : "bg-buff/20 border-buff/50 active:bg-buff/30"
               )}
               title={language === 'he' ? 'הפעל באף' : 'Activate Buff'}
             >
-              <Zap className="w-4 h-4 text-buff animate-buff-lightning" />
+              <Zap className={cn(
+                "w-4 h-4 animate-buff-lightning",
+                isProtocol ? "text-protocol-purple" : "text-buff"
+              )} />
             </button>
           )}
 
@@ -190,7 +229,9 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
               "active:scale-90",
               task.completed
                 ? "bg-buff border-buff"
-                : "border-muted-foreground/50 active:border-buff active:bg-buff/10"
+                : isProtocol
+                  ? "border-protocol-cyan/50 active:border-protocol-cyan active:bg-protocol-cyan/10"
+                  : "border-muted-foreground/50 active:border-buff active:bg-buff/10"
             )}
           >
             {task.completed && (
@@ -200,6 +241,12 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
         </div>
       </div>
 
+      {/* Core Sync Animation (for Protocol tasks) */}
+      <CoreSyncAnimation
+        isActive={showCoreSync}
+        credits={effectiveCredits}
+        onComplete={handleCoreSyncComplete}
+      />
 
       {/* Buff Activation Modal */}
       {showBuffModal && (
@@ -218,7 +265,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
       {/* XP Fly Animation */}
       {showXPFly && (
         <XPFlyAnimation 
-          credits={task.credits} 
+          credits={effectiveCredits} 
           sourceRef={getCardPosition()}
           onComplete={() => setShowXPFly(false)} 
         />
