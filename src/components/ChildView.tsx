@@ -20,6 +20,7 @@ import { PhaseTransitionBanner } from './PhaseTransitionBanner';
 import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Phase, getPhaseForTime } from '@/types/phase';
+import { TaskCategory } from '@/types/task';
 
 interface ChildViewProps {
   isViewingAsChild?: boolean;
@@ -121,6 +122,16 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     }
 
     return stats;
+  }, [tasks, lessons, schoolQuestEnabled]);
+
+  // Calculate active categories (only show categories that have at least one task)
+  const activeCategories = useMemo(() => {
+    const categoriesWithTasks = new Set(tasks.map(task => task.category));
+    // Also count lessons as 'learning' category if school quest is enabled
+    if (schoolQuestEnabled && lessons.length > 0) {
+      categoriesWithTasks.add('learning');
+    }
+    return Array.from(categoriesWithTasks);
   }, [tasks, lessons, schoolQuestEnabled]);
 
   // Loading state when switching children
@@ -272,6 +283,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           {activeTab === 'progress' && (
             <MyProgress 
               onClose={() => setActiveTab('tasks')}
+              activeCategories={activeCategories}
             />
           )}
         </div>
