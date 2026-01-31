@@ -582,6 +582,7 @@ export type Database = {
       }
       update_child_profile_settings: {
         Args: {
+          p_birth_date?: string
           p_child_id: string
           p_daily_goal?: number
           p_school_quest_enabled?: boolean
