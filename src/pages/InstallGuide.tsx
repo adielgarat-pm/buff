@@ -51,16 +51,16 @@ export default function InstallGuide() {
           </p>
         </motion.div>
 
-        {/* Video Section */}
+        {/* Video Section - Centered */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="mb-8"
+          className="mb-8 flex justify-center"
         >
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 border border-border/50 bg-card">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 border border-border/50 bg-card w-fit mx-auto">
             {/* Portrait aspect ratio for mobile screen recording (9:16) */}
-            <div className="aspect-[9/16] max-h-[60vh]">
+            <div className="aspect-[9/16] max-h-[60vh] w-auto">
               <video
                 src="/videos/install-guide.mp4"
                 autoPlay
