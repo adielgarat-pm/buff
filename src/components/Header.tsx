@@ -71,9 +71,9 @@ export function Header({
         {/* Philosophy Info Icon - for parent view */}
         {showPhilosophyIcon && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
-            className="rounded-xl w-10 h-10 touch-target active:bg-primary/10"
+            className="rounded-xl w-10 h-10 touch-target border-primary/30 bg-primary/10 hover:bg-primary/20 shadow-sm hover:shadow-md transition-all"
             onClick={() => setShowPhilosophy(true)}
             title="תפיסת העולם של Buff"
           >
