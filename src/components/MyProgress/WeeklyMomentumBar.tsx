@@ -26,8 +26,8 @@ export function WeeklyMomentumBar({
           <span className="text-xl">{categoryIcon}</span>
           <span className="font-semibold text-foreground">{category}</span>
         </div>
-        <span className="text-sm text-muted-foreground">
-          {completedCount}/7 ימים
+        <span className="text-sm font-medium" style={{ color: `hsl(${color})` }}>
+          {completedCount} מתוך 7 ✓
         </span>
       </div>
 
