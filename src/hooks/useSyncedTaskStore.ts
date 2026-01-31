@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Task, DailyProgress, Reward, Lesson, Timetable, WEEK_DAYS, PeriodInfo, WeekDay, StoreReward, VaultData } from '@/types/task';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { getEffectiveCredits } from '@/utils/protocolTaskUtils';
 
 const DEFAULT_REWARDS: Reward[] = [
   { id: 'r1', title: '30 min Gaming', requiredCredits: 50, icon: '🎮' },
@@ -525,15 +526,18 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         completed_at: new Date().toISOString(),
       });
 
+    // Calculate effective credits (1.5x for protocol tasks)
+    const effectiveCredits = getEffectiveCredits(task);
+
     // Update vault balance using secure RPC function
-    const newBalance = totalBalance + task.credits;
+    const newBalance = totalBalance + effectiveCredits;
     
     if (targetChildId) {
       // Use secure RPC function for credit updates
       const { data: updatedBalance, error } = await supabase
         .rpc('update_child_credits', {
           p_child_id: targetChildId,
-          p_credit_change: task.credits,
+          p_credit_change: effectiveCredits,
           p_is_completion: true
         });
       

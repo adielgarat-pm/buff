@@ -73,6 +73,11 @@
     --responsibility: 271 81% 56%;  /* Purple - House icon */
     --movement: 142 76% 36%;        /* Green - Lightning icon */
 
+    /* Protocol/Cyberpunk Theme for Bio/Meds Tasks */
+    --protocol-cyan: 180 100% 50%;    /* Electric Cyan */
+    --protocol-purple: 280 100% 60%;  /* Neon Purple */
+    --protocol-glow: 180 100% 70%;    /* Glow variant */
+
     /* GAMER Gradients - Neon Aesthetic */
     --gradient-primary: linear-gradient(135deg, hsl(183, 100%, 50%), hsl(112, 100%, 54%));
     --gradient-success: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
@@ -87,6 +92,7 @@
     --shadow-buff-glow: 0 0 30px hsl(112, 100%, 54%, 0.6), 0 0 60px hsl(112, 100%, 54%, 0.3), 0 0 90px hsl(112, 100%, 54%, 0.15);
     --shadow-buff-glow-intense: 0 0 40px hsl(112, 100%, 54%, 0.8), 0 0 80px hsl(112, 100%, 54%, 0.5), 0 0 120px hsl(112, 100%, 54%, 0.25);
     --shadow-reward-glow: 0 0 20px hsl(183, 100%, 50%, 0.5), 0 0 40px hsl(183, 100%, 50%, 0.3);
+    --shadow-protocol-glow: 0 0 20px hsl(180, 100%, 50%, 0.5), 0 0 40px hsl(280, 100%, 60%, 0.3), 0 0 60px hsl(180, 100%, 50%, 0.2);
     --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.8);
 
     --sidebar-background: 0 0% 4%;
@@ -714,4 +720,23 @@ body.modal-open {
   filter: blur(8px);
   z-index: -1;
   animation: buff-pulse 2s ease-in-out infinite;
+}
+
+/* Protocol/Cyberpunk Glow Effect */
+.shadow-protocol-glow {
+  box-shadow: 0 0 20px hsl(180, 100%, 50%, 0.4), 0 0 40px hsl(280, 100%, 60%, 0.2), 0 0 60px hsl(180, 100%, 50%, 0.1);
+}
+
+/* Protocol Sync Animation */
+@keyframes protocol-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px hsl(180, 100%, 50%, 0.4), 0 0 40px hsl(280, 100%, 60%, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 30px hsl(180, 100%, 50%, 0.6), 0 0 60px hsl(280, 100%, 60%, 0.4);
+  }
+}
+
+.animate-protocol-pulse {
+  animation: protocol-pulse 2s ease-in-out infinite;
 }
