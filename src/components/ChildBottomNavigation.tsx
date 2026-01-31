@@ -1,8 +1,8 @@
-import { CheckSquare, Calendar, Gift } from 'lucide-react';
+import { CheckSquare, Calendar, Gift, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export type ChildNavTab = 'tasks' | 'timetable' | 'store';
+export type ChildNavTab = 'tasks' | 'timetable' | 'progress' | 'store';
 
 interface ChildBottomNavigationProps {
   activeTab: ChildNavTab;
@@ -15,6 +15,7 @@ export function ChildBottomNavigation({ activeTab, onTabChange }: ChildBottomNav
   const NAV_ITEMS = [
     { id: 'tasks' as const, labelKey: 'nav.tasks', icon: CheckSquare },
     { id: 'timetable' as const, labelKey: 'nav.timetable', icon: Calendar },
+    { id: 'progress' as const, labelKey: 'nav.progress', icon: TrendingUp },
     { id: 'store' as const, labelKey: 'nav.store', icon: Gift },
   ];
 

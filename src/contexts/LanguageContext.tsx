@@ -156,6 +156,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Navigation tabs
     'nav.tasks': 'משימות',
     'nav.timetable': 'מערכת',
+    'nav.progress': 'התקדמות',
     'nav.store': 'חנות',
     'nav.settings': 'הגדרות',
     
@@ -352,6 +353,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Navigation tabs
     'nav.tasks': 'Tasks',
     'nav.timetable': 'Timetable',
+    'nav.progress': 'Progress',
     'nav.store': 'Store',
     'nav.settings': 'Settings',
     

@@ -17,6 +17,7 @@ import { NotificationPrompt } from './NotificationPrompt';
 import { NewDayBanner } from './NewDayBanner';
 import { WelcomeBanner } from './WelcomeBanner';
 import { PhaseTransitionBanner } from './PhaseTransitionBanner';
+import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Phase, getPhaseForTime } from '@/types/phase';
 
@@ -266,6 +267,12 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 fridayEnabled={fridayEnabled} 
               />
             </div>
+          )}
+
+          {activeTab === 'progress' && (
+            <MyProgress 
+              onClose={() => setActiveTab('tasks')}
+            />
           )}
         </div>
 
