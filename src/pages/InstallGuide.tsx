@@ -60,7 +60,7 @@ export default function InstallGuide() {
         >
           <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 border border-border/50 bg-card w-fit mx-auto">
             {/* Portrait aspect ratio for mobile screen recording (9:16) */}
-            <div className="aspect-[9/16] max-h-[60vh] w-auto">
+            <div className="aspect-[9/16] max-h-[75vh] w-auto">
               <video
                 src="/videos/install-guide.mp4"
                 autoPlay
