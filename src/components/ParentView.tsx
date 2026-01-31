@@ -10,6 +10,7 @@ import { ViewAsChildBanner } from './ViewAsChildBanner';
 import { ChildPickerDialog } from './ChildPickerDialog';
 import { InstallPrompt } from './InstallPrompt';
 import { ParentWelcomeBanner } from './ParentWelcomeBanner';
+import { BrowserDetectionBanner } from './BrowserDetectionBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
 import { Loader2 } from 'lucide-react';
@@ -103,6 +104,9 @@ export function ParentView() {
 
   return (
     <div className="theme-parent-zen min-h-screen bg-background pb-24 no-horizontal-scroll">
+      {/* Browser Detection Banner - shows when not in PWA mode */}
+      <BrowserDetectionBanner />
+      
       {/* Subtle gradient - Professional for parents */}
       <div className="fixed inset-x-0 top-0 h-48 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
       

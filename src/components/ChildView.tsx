@@ -17,6 +17,7 @@ import { NotificationPrompt } from './NotificationPrompt';
 import { NewDayBanner } from './NewDayBanner';
 import { WelcomeBanner } from './WelcomeBanner';
 import { PhaseTransitionBanner } from './PhaseTransitionBanner';
+import { BrowserDetectionBanner } from './BrowserDetectionBanner';
 import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Phase, getPhaseForTime } from '@/types/phase';
@@ -167,6 +168,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
 
   return (
     <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      {/* Browser Detection Banner - shows when not in PWA mode */}
+      {!isViewingAsChild && <BrowserDetectionBanner />}
+      
       {/* New Day Banner - shows at midnight */}
       <NewDayBanner show={showNewDayMessage} onDismiss={dismissNewDayMessage} />
       

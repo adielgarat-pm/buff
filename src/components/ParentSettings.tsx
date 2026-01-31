@@ -45,6 +45,7 @@ import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { JoinFamilySection } from './JoinFamilySection';
+import { ParentHelpSection } from './ParentHelpSection';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildData } from '@/hooks/useChildProgress';
 import { useMarketingConsent } from '@/hooks/useMarketingConsent';
@@ -278,6 +279,9 @@ export function ParentSettings({
               <ChevronRight className="w-4 h-4" />
           </Button>
           </div>
+
+          {/* Help & Installation Section */}
+          <ParentHelpSection />
 
           {/* Join Family Section */}
           <JoinFamilySection />
