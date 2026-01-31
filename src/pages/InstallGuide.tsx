@@ -59,14 +59,15 @@ export default function InstallGuide() {
           className="mb-8"
         >
           <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 border border-border/50 bg-card">
-            <div className="aspect-video">
+            {/* Portrait aspect ratio for mobile screen recording (9:16) */}
+            <div className="aspect-[9/16] max-h-[60vh]">
               <video
                 src="/videos/install-guide.mp4"
                 autoPlay
                 muted
                 playsInline
                 controls
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-black"
                 poster="/placeholder.svg"
               >
                 הדפדפן שלכם לא תומך בווידאו

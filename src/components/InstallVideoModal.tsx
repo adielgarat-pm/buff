@@ -24,15 +24,15 @@ export function InstallVideoModal({ open, onClose }: InstallVideoModalProps) {
           </Button>
         </div>
 
-        {/* Video */}
-        <div className="aspect-video bg-muted">
+        {/* Video - Portrait aspect ratio for mobile screen recording */}
+        <div className="aspect-[9/16] max-h-[50vh] bg-black">
           <video
             src="/videos/install-guide.mp4"
             autoPlay
             muted
             playsInline
             controls
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           >
             הדפדפן שלכם לא תומך בווידאו
           </video>
