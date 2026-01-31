@@ -531,14 +531,16 @@ export function useChildData(childId: string | null) {
   const updateBirthDate = useCallback(async (date: string | null) => {
     if (!childId) throw new Error('Missing childId');
 
-    setBirthDate(date);
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ birth_date: date })
-      .eq('id', childId);
+    // Use secure RPC (parents can update any child in their family, including children with their own user_id)
+    const { error } = await supabase.rpc('update_child_profile_settings', {
+      p_child_id: childId,
+      p_birth_date: date,
+    });
 
     if (error) throw error;
+
+    // Only update local state after backend success to avoid UI showing a saved value when RLS blocks it.
+    setBirthDate(date);
   }, [childId]);
 
   // Update child's credit balance
