@@ -9,6 +9,7 @@ import { useParentInsights } from '@/hooks/useParentInsights';
 import { useWeeklyBuffStats, SubjectTrend, LessonReflection } from '@/hooks/useWeeklyBuffStats';
 import { PhaseCompletionChart } from './PhaseCompletionChart';
 import { InsightCardDisplay } from './InsightCardDisplay';
+import { ParentIgnitionInsights } from './ParentIgnitionInsights';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
@@ -153,6 +154,13 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         </div>
       )}
 
+      {/* NEW: Ignition Insights Section */}
+      <ParentIgnitionInsights 
+        stats={stats} 
+        phaseInsights={phaseInsights} 
+        childName={childName} 
+      />
+
       {/* Phase Performance */}
       <div className="rounded-2xl bg-card border border-border p-4">
         <div className="flex items-center gap-2 mb-4">
@@ -171,9 +179,9 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
               </div>
             )}
             {strugglePhaseInfo && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
-                <AlertTriangle className="w-4 h-4 text-rose-400" />
-                <span className="text-xs text-rose-400">לשפר: {strugglePhaseInfo.label}</span>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span className="text-xs text-amber-400">בהתנעה: {strugglePhaseInfo.label}</span>
               </div>
             )}
           </div>
