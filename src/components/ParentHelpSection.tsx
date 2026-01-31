@@ -70,15 +70,15 @@ export function ParentHelpSection() {
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
-              {/* Video Player */}
-              <div className="rounded-xl overflow-hidden bg-muted">
-                <div className="aspect-video">
+              {/* Video Player - Portrait aspect ratio for mobile screen recording */}
+              <div className="rounded-xl overflow-hidden bg-black">
+                <div className="aspect-[9/16] max-h-[50vh]">
                   <video
                     src="/videos/install-guide.mp4"
                     muted
                     playsInline
                     controls
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   >
                     הדפדפן שלכם לא תומך בווידאו
                   </video>
