@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Ticket } from 'lucide-react';
+import { Ticket, HelpCircle } from 'lucide-react';
+import { RestTicketInfoModal } from './RestTicketInfoModal';
 
 interface TicketWalletProps {
   restTickets: number;
@@ -7,23 +9,36 @@ interface TicketWalletProps {
 }
 
 export function TicketWallet({ restTickets, maxTickets = 3 }: TicketWalletProps) {
-  return (
-    <div className="bg-card/50 rounded-2xl p-5 border border-border/50 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <span>🎫</span>
-          ארנק כרטיסים
-        </h3>
-        <span className="text-sm text-muted-foreground">
-          {restTickets}/{maxTickets} זמינים
-        </span>
-      </div>
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
-      {/* Tickets Display */}
-      <div className="relative h-28 flex items-center justify-center">
-        {/* Ticket stack animation */}
-        <div className="relative flex items-center justify-center">
+  return (
+    <>
+      <div className="bg-card/50 rounded-2xl p-5 border border-border/50 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <span>🎫</span>
+              ארנק כרטיסים
+            </h3>
+            {/* Info Icon */}
+            <button
+              onClick={() => setShowInfoModal(true)}
+              className="p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all hover:scale-110 active:scale-95"
+              title="איך עובדים כרטיסי מנוחה?"
+            >
+              <HelpCircle className="w-4 h-4 text-primary" />
+            </button>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {restTickets}/{maxTickets} זמינים
+          </span>
+        </div>
+
+        {/* Tickets Display */}
+        <div className="relative h-28 flex items-center justify-center">
+          {/* Ticket stack animation */}
+          <div className="relative flex items-center justify-center">
           {Array.from({ length: maxTickets }).map((_, index) => {
             const isAvailable = index < restTickets;
             const offset = (maxTickets - 1 - index) * 6;
@@ -133,6 +148,13 @@ export function TicketWallet({ restTickets, maxTickets = 3 }: TicketWalletProps)
             : `✨ יש לך ${restTickets} כרטיסי מנוחה`
         }
       </motion.p>
-    </div>
+      </div>
+
+      {/* Info Modal */}
+      <RestTicketInfoModal 
+        isOpen={showInfoModal} 
+        onClose={() => setShowInfoModal(false)} 
+      />
+    </>
   );
 }

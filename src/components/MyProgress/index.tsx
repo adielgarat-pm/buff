@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight, TrendingUp, Sparkles } from 'lucide-react';
 import { WeeklyMomentumBar } from './WeeklyMomentumBar';
 import { WeeklyGoalRing } from './WeeklyGoalRing';
 import { TicketWallet } from './TicketWallet';
+import { TaskCategory } from '@/types/task';
 
 interface MyProgressProps {
   onClose?: () => void;
@@ -17,40 +18,42 @@ interface MyProgressProps {
   };
   weeklyCompletionRate?: number; // 0-100
   restTickets?: number;
+  // Active categories - only these will be shown
+  activeCategories?: TaskCategory[];
 }
 
 // 5-Category configurations with colors (HSL without hsl() wrapper)
 const CATEGORIES = [
   { 
-    id: 'learning', 
+    id: 'learning' as TaskCategory, 
     label: 'למידה', 
     labelEn: 'Learning',
     icon: '📚',
     color: '217 91% 60%', // Blue
   },
   { 
-    id: 'organization', 
+    id: 'organization' as TaskCategory, 
     label: 'התארגנות', 
     labelEn: 'Organization',
     icon: '📅',
     color: '25 95% 53%', // Orange
   },
   { 
-    id: 'self-care', 
+    id: 'self-care' as TaskCategory, 
     label: 'טיפול עצמי', 
     labelEn: 'Self-Care',
     icon: '✨',
     color: '330 80% 60%', // Pink
   },
   { 
-    id: 'responsibility', 
+    id: 'responsibility' as TaskCategory, 
     label: 'בית ואחריות', 
     labelEn: 'Responsibility',
     icon: '🏠',
     color: '271 81% 56%', // Purple
   },
   { 
-    id: 'movement', 
+    id: 'movement' as TaskCategory, 
     label: 'גוף ותנועה', 
     labelEn: 'Movement',
     icon: '⚡',
@@ -63,6 +66,7 @@ export function MyProgress({
   weeklyStats,
   weeklyCompletionRate = 0,
   restTickets = 2,
+  activeCategories,
 }: MyProgressProps) {
   // Default mock data if not provided - now with 5 categories
   const stats = useMemo(() => weeklyStats || {
@@ -72,6 +76,15 @@ export function MyProgress({
     responsibility: [false, true, false, true, true, false, true],
     movement: [true, false, true, false, false, true, false],
   }, [weeklyStats]);
+
+  // Filter categories to only show active ones (with at least one task)
+  const visibleCategories = useMemo(() => {
+    if (!activeCategories || activeCategories.length === 0) {
+      // If no filter provided, show all (for backwards compatibility)
+      return CATEGORIES;
+    }
+    return CATEGORIES.filter(cat => activeCategories.includes(cat.id));
+  }, [activeCategories]);
 
   // Calculate overall completion if not provided
   const overallRate = useMemo(() => {
@@ -125,7 +138,7 @@ export function MyProgress({
         <WeeklyGoalRing currentPercentage={overallRate} goalPercentage={70} />
       </motion.div>
 
-      {/* Weekly Momentum Bars */}
+      {/* Weekly Momentum Bars - Only show active categories */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,21 +147,41 @@ export function MyProgress({
       >
         <h3 className="text-lg font-bold text-foreground">מומנטום שבועי</h3>
         
-        {CATEGORIES.map((category, index) => (
+        {visibleCategories.length > 0 ? (
+          visibleCategories.map((category, index) => (
+            <motion.div
+              key={category.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + index * 0.1 }}
+            >
+              <WeeklyMomentumBar
+                category={category.label}
+                categoryIcon={category.icon}
+                completedDays={stats[category.id]}
+                color={category.color}
+              />
+            </motion.div>
+          ))
+        ) : (
+          /* Empty State - No active tasks */
           <motion.div
-            key={category.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 + index * 0.1 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="bg-card/30 rounded-2xl p-8 border border-border/30 text-center"
           >
-            <WeeklyMomentumBar
-              category={category.label}
-              categoryIcon={category.icon}
-              completedDays={stats[category.id]}
-              color={category.color}
-            />
+            <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-primary" />
+            </div>
+            <h4 className="text-lg font-bold text-foreground mb-2">
+              אין משימות פעילות כרגע
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              זמן מצוין להטעין מצברים! 🔋✨
+            </p>
           </motion.div>
-        ))}
+        )}
       </motion.div>
 
       {/* Ticket Wallet */}
