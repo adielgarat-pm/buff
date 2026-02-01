@@ -73,44 +73,44 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
   const age = calculateAge();
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh]">
-      <div className="flex-1 px-5 py-6 space-y-6 overflow-y-auto">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 px-5 py-4 space-y-4">
         {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <Users className="w-8 h-8 text-primary" />
+        <div className="text-center space-y-1">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <Users className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-xl font-bold text-foreground">
             בואו נכיר את הגיבורים שלכם
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             מי מצטרף לנבחרת BUFF?
           </p>
         </div>
 
         {/* Form */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="childName" className="text-right block">שם הילד/ה</Label>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="childName" className="text-right block text-sm">שם הילד/ה</Label>
             <Input
               id="childName"
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="לדוגמה: נועם"
-              className="text-right h-12 text-base"
+              className="text-right h-11 text-base"
               dir="rtl"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-right block">תאריך לידה</Label>
+          <div className="space-y-1.5">
+            <Label className="text-right block text-sm">תאריך לידה</Label>
             <div className="grid grid-cols-3 gap-2">
               {/* Day Select */}
               <Select
                 value={selectedDay?.toString() || ''}
                 onValueChange={(v) => setSelectedDay(parseInt(v))}
               >
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="יום" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
@@ -127,7 +127,7 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
                 value={selectedMonth?.toString() || ''}
                 onValueChange={(v) => setSelectedMonth(parseInt(v))}
               >
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="חודש" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
@@ -144,7 +144,7 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
                 value={selectedYear?.toString() || ''}
                 onValueChange={(v) => setSelectedYear(parseInt(v))}
               >
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="שנה" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
@@ -159,30 +159,28 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
 
             {/* Age display */}
             {age !== null && (
-              <p className="text-sm text-primary font-medium text-right">
+              <p className="text-xs text-primary font-medium text-right">
                 גיל: {age} שנים ✨
               </p>
             )}
           </div>
 
           {error && (
-            <p className="text-sm text-destructive text-right">{error}</p>
+            <p className="text-xs text-destructive text-right">{error}</p>
           )}
-
-          {/* Helper text */}
-          <div className="p-4 rounded-xl bg-muted/50 border border-border">
-            <p className="text-sm text-muted-foreground text-right leading-relaxed">
-              💡 תאריך הלידה עוזר לנו להתאים את המשימות והשפה בדיוק לשלב שבו הילדים נמצאים.
-            </p>
-          </div>
         </div>
+
+        {/* Helper text */}
+        <p className="text-xs text-muted-foreground/80 text-right leading-relaxed">
+          💡 תאריך הלידה עוזר לנו להתאים את המשימות והשפה לשלב שבו הילדים נמצאים.
+        </p>
       </div>
 
       {/* CTA Button */}
-      <div className="px-5 pb-8 pt-4 flex-shrink-0 bg-background">
+      <div className="px-5 pb-6 pt-3 flex-shrink-0">
         <Button 
           onClick={handleSubmit}
-          className="w-full h-14 text-lg font-bold rounded-2xl bg-gradient-to-l from-primary to-success"
+          className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-l from-primary to-success"
           size="lg"
         >
           בואו נתחיל! 🚀
