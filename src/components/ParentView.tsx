@@ -13,6 +13,7 @@ import { ParentWelcomeBanner } from './ParentWelcomeBanner';
 import { BrowserDetectionBanner } from './BrowserDetectionBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
+import { DashboardFAB } from './dashboard';
 import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { ParentOnboarding, OnboardingData } from './onboarding/ParentOnboarding';
@@ -154,6 +155,12 @@ export function ParentView() {
           <ParentFamilyOverview
             onSelectChild={handleSelectChildForSettings}
             onViewAsChild={handleViewAsChild}
+            onStartOnboarding={() => setOnboardingOpen(true)}
+            onAddTask={(childId) => {
+              // Navigate to settings for that child to add tasks
+              setSelectedChildIdForSettings(childId);
+              setActiveTab('settings');
+            }}
           />
         );
       
@@ -210,6 +217,25 @@ export function ParentView() {
           }
         } : undefined}
       />
+
+      {/* FAB - Add Child or Add Task */}
+      {activeTab === 'overview' && (
+        <DashboardFAB
+          hasChildren={children.length > 0}
+          onAddChild={() => setOnboardingOpen(true)}
+          onAddTask={() => {
+            // If only one child, go to their settings; otherwise let user pick
+            if (children.length === 1) {
+              setSelectedChildIdForSettings(children[0].id);
+              setActiveTab('settings');
+            } else if (children.length > 1) {
+              // For now, go to first child's settings
+              setSelectedChildIdForSettings(children[0].id);
+              setActiveTab('settings');
+            }
+          }}
+        />
+      )}
 
       {/* Child Picker Dialog */}
       <ChildPickerDialog
