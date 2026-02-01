@@ -90,8 +90,8 @@ export function ParentDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-background safe-area-all">
-      <div className="max-w-lg mx-auto px-5 py-6 space-y-6 pb-24">
+    <div className="min-h-[100dvh] bg-background overflow-x-hidden">
+      <div className="max-w-lg mx-auto px-5 py-6 space-y-6 pb-24 safe-area-all">
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-foreground font-display">

@@ -120,7 +120,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center p-4 overflow-x-hidden">
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/10 via-background to-buff/5 pointer-events-none" />
 

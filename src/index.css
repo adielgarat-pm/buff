@@ -199,18 +199,29 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   /* RTL by default for Hebrew */
   html {
     direction: rtl;
     text-align: right;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Heebo', system-ui, -apple-system, sans-serif;
     line-height: 1.7;
+    overflow-x: hidden;
+    min-height: 100dvh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent content from being cut off on mobile */
+  #root {
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   /* Theme-specific body styles */

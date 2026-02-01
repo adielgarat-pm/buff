@@ -116,7 +116,7 @@ const Index = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">טוען את המשימות שלך...</p>
