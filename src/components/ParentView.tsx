@@ -91,6 +91,7 @@ export function ParentView() {
             selectedChildId={selectedChildIdForSettings}
             onBackFromChild={() => setSelectedChildIdForSettings(null)}
             onSelectChild={handleSelectChildForSettings}
+            onSignOut={signOut}
           />
         );
       

@@ -30,6 +30,7 @@ import {
   Camera,
   FileSpreadsheet,
   Mail,
+  LogOut,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -64,6 +65,7 @@ interface ParentSettingsProps {
   selectedChildId?: string | null;
   onBackFromChild?: () => void;
   onSelectChild?: (childId: string) => void;
+  onSignOut?: () => void;
 }
 
 export function ParentSettings({
@@ -76,6 +78,7 @@ export function ParentSettings({
   selectedChildId,
   onBackFromChild,
   onSelectChild,
+  onSignOut,
 }: ParentSettingsProps) {
   const { children, loading: membersLoading } = useFamilyMembers();
   const { marketingConsent, saving: savingConsent, updateConsent } = useMarketingConsent();
@@ -272,6 +275,20 @@ export function ParentSettings({
 
           {/* Join Family Section */}
           <JoinFamilySection />
+
+          {/* Sign Out Section */}
+          {onSignOut && (
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                onClick={onSignOut}
+                className="w-full h-10 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut className="w-4 h-4 ml-2" />
+                התנתק מהחשבון
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
