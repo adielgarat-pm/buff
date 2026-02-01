@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
-import { Sparkles, X, BookOpen, ArrowLeft } from 'lucide-react';
+import { Sparkles, X, BookOpen, ArrowLeft, Rocket } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 
 interface ParentWelcomeBannerProps {
   userId: string;
   onNavigateToSettings?: () => void;
+  onStartOnboarding?: () => void;
 }
 
 const PARENT_WELCOME_DISMISSED_KEY = 'buff_parent_welcome_dismissed';
 
-export function ParentWelcomeBanner({ userId, onNavigateToSettings }: ParentWelcomeBannerProps) {
+export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboarding }: ParentWelcomeBannerProps) {
   const [show, setShow] = useState(false);
   const [showPhilosophy, setShowPhilosophy] = useState(false);
+  const { children } = useFamilyMembers();
+  const hasNoChildren = children.length === 0;
 
   useEffect(() => {
     // Check if this parent has already dismissed the welcome message
@@ -38,6 +42,13 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings }: ParentWelc
   const handleLearnMore = () => {
     handleDismiss();
     setShowPhilosophy(true);
+  };
+
+  const handleStartOnboarding = () => {
+    handleDismiss();
+    if (onStartOnboarding) {
+      onStartOnboarding();
+    }
   };
 
   if (!show && !showPhilosophy) return null;
@@ -74,28 +85,53 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings }: ParentWelc
 
               {/* Message */}
               <p className="text-muted-foreground text-sm leading-relaxed">
-                הכנו עבורכם את התשתית המקצועית ביותר לניהול היום. 
-                מומלץ להתחיל בקריאת "תפיסת העולם" שלנו כדי להפיק את המקסימום מהתהליך.
+                {hasNoChildren 
+                  ? 'מוכנים להתחיל? נעזור לכם להגדיר את הפרופיל הראשון של הילד, המשימות והפרסים תוך 2 דקות.'
+                  : 'הכנו עבורכם את התשתית המקצועית ביותר לניהול היום. מומלץ להתחיל בקריאת "תפיסת העולם" שלנו כדי להפיק את המקסימום מהתהליך.'
+                }
               </p>
 
               {/* CTA Buttons */}
               <div className="space-y-3 pt-2">
-                <Button
-                  onClick={handleLearnMore}
-                  className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold rounded-xl"
-                >
-                  <BookOpen className="w-5 h-5 ml-2" />
-                  למדו עוד על השיטה
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  onClick={handleDismiss}
-                  className="w-full h-10 text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="w-4 h-4 ml-1" />
-                  דלג, אתחיל לבד
-                </Button>
+                {hasNoChildren && onStartOnboarding ? (
+                  <>
+                    <Button
+                      onClick={handleStartOnboarding}
+                      className="w-full h-12 bg-gradient-to-r from-primary to-success text-primary-foreground font-bold rounded-xl"
+                    >
+                      <Rocket className="w-5 h-5 ml-2" />
+                      בואו נתחיל! 🚀
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      onClick={handleLearnMore}
+                      className="w-full h-10 text-muted-foreground hover:text-foreground"
+                    >
+                      <BookOpen className="w-4 h-4 ml-1" />
+                      קודם אקרא על השיטה
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={handleLearnMore}
+                      className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold rounded-xl"
+                    >
+                      <BookOpen className="w-5 h-5 ml-2" />
+                      למדו עוד על השיטה
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      onClick={handleDismiss}
+                      className="w-full h-10 text-muted-foreground hover:text-foreground"
+                    >
+                      <ArrowLeft className="w-4 h-4 ml-1" />
+                      דלג, אתחיל לבד
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -109,6 +145,7 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings }: ParentWelc
             isModal 
             onClose={() => setShowPhilosophy(false)}
             onNavigateToSettings={onNavigateToSettings}
+            onStartOnboarding={hasNoChildren ? onStartOnboarding : undefined}
           />
         </DialogContent>
       </Dialog>

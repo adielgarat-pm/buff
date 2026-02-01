@@ -14,15 +14,20 @@ import { BrowserDetectionBanner } from './BrowserDetectionBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
 import { Loader2 } from 'lucide-react';
+import { Dialog, DialogContent } from './ui/dialog';
+import { ParentOnboarding, OnboardingData } from './onboarding/ParentOnboarding';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export function ParentView() {
-  const { signOut, profile } = useAuth();
-  const { children } = useFamilyMembers();
+  const { signOut, profile, refreshProfile } = useAuth();
+  const { children, refetch: refetchChildren } = useFamilyMembers();
   
   const [activeTab, setActiveTab] = useState<ParentNavTab>('overview');
   const [viewingAsChildId, setViewingAsChildId] = useState<string | null>(null);
   const [selectedChildIdForSettings, setSelectedChildIdForSettings] = useState<string | null>(null);
   const [childPickerOpen, setChildPickerOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
 
   const {
     loading,
@@ -67,6 +72,79 @@ export function ParentView() {
 
   const handleViewAsChild = (childId: string) => {
     setViewingAsChildId(childId);
+  };
+
+  // Handle onboarding completion for adding a new child
+  const handleOnboardingComplete = async (onboardingData: OnboardingData) => {
+    if (!profile?.family_id) {
+      toast.error('לא נמצאה משפחה');
+      return;
+    }
+
+    try {
+      // Create child profile
+      const { data: childProfile, error: childError } = await supabase
+        .from('profiles')
+        .insert({
+          display_name: onboardingData.childName,
+          role: 'child',
+          family_id: profile.family_id,
+          daily_goal: 70,
+          school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
+          bag_prep_enabled: onboardingData.schoolFeature === 'evening_prep',
+        })
+        .select()
+        .single();
+
+      if (childError) throw childError;
+
+      // Map focus area to task category
+      const categoryMap: Record<string, string> = {
+        'homework': 'learning',
+        'project': 'responsibility',
+        'fitness': 'movement',
+        'home': 'self-care',
+      };
+
+      // Create first task for the child
+      const { error: taskError } = await supabase
+        .from('tasks')
+        .insert({
+          family_id: profile.family_id,
+          assigned_to: childProfile.id,
+          title: onboardingData.firstTask,
+          category: categoryMap[onboardingData.focusArea] || 'learning',
+          time: '16:00',
+          credits: 15,
+        });
+
+      if (taskError) console.error('Task creation error:', taskError);
+
+      // Create first reward
+      const { error: rewardError } = await supabase
+        .from('store_rewards')
+        .insert({
+          family_id: profile.family_id,
+          assigned_to: childProfile.id,
+          title: onboardingData.weekendReward,
+          emoji: '🎉',
+          price: 100,
+        });
+
+      if (rewardError) console.error('Reward creation error:', rewardError);
+
+      // Close modal and refresh
+      setOnboardingOpen(false);
+      await refetchChildren();
+      toast.success(`${onboardingData.childName} נוסף בהצלחה! 🎉`);
+      
+      // Navigate to the new child's settings
+      setSelectedChildIdForSettings(childProfile.id);
+      setActiveTab('settings');
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      toast.error('שגיאה ביצירת פרופיל הילד');
+    }
   };
 
   const renderTabContent = () => {
@@ -141,6 +219,13 @@ export function ParentView() {
         onSelectChild={(childId) => setViewingAsChildId(childId)}
       />
 
+      {/* Onboarding Dialog for adding children */}
+      <Dialog open={onboardingOpen} onOpenChange={setOnboardingOpen}>
+        <DialogContent className="max-w-lg max-h-[95vh] p-0 overflow-hidden">
+          <ParentOnboarding onComplete={handleOnboardingComplete} />
+        </DialogContent>
+      </Dialog>
+
       {/* Global Legal Footer */}
       <div className="fixed bottom-20 inset-x-0 z-10 pointer-events-none">
         <div className="max-w-lg mx-auto px-5 pointer-events-auto">
@@ -156,6 +241,7 @@ export function ParentView() {
         <ParentWelcomeBanner 
           userId={profile.id} 
           onNavigateToSettings={() => setActiveTab('settings')}
+          onStartOnboarding={() => setOnboardingOpen(true)}
         />
       )}
     </div>
