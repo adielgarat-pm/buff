@@ -366,7 +366,7 @@ export default function AuthCallback() {
           family_id: familyId,
           display_name: onboardingData.childName,
           role: 'child',
-          birth_date: calculateBirthDateFromAge(onboardingData.childAge),
+          birth_date: formatBirthDate(onboardingData.birthDate),
           school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
           daily_goal: 100,
         })
@@ -434,10 +434,11 @@ export default function AuthCallback() {
   };
 
   // Helper functions for onboarding data
-  function calculateBirthDateFromAge(age: number): string {
-    const today = new Date();
-    const birthYear = today.getFullYear() - age;
-    return `${birthYear}-01-01`;
+  function formatBirthDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   function getFocusAreaCategory(focusArea: string): string {
