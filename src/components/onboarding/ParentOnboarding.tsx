@@ -57,7 +57,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   };
 
   return (
-    <div className="theme-parent-zen min-h-[100dvh] bg-background flex flex-col" dir="rtl">
+    <div className="theme-parent-zen h-full bg-background flex flex-col" dir="rtl">
       {/* Header with Logo */}
       <div className="flex items-center justify-center pt-4 pb-2">
         <img src={buffLogo} alt="BUFF" className="h-10" />
@@ -67,7 +67,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
       <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
       {/* Step Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {currentStep === 1 && (
           <Step1Profile
             onNext={(stepData) => {

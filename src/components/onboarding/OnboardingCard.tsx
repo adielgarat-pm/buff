@@ -26,7 +26,7 @@ export function OnboardingCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full p-4 rounded-2xl border-2 text-right transition-all duration-200",
+        "w-full p-3 rounded-xl border-2 text-right transition-all duration-200",
         "hover:border-primary/50 hover:bg-primary/5",
         "active:scale-[0.98]",
         "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -35,18 +35,18 @@ export function OnboardingCard({
           : "border-border bg-card"
       )}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2.5">
         {emoji && (
-          <span className="text-2xl flex-shrink-0">{emoji}</span>
+          <span className="text-xl flex-shrink-0">{emoji}</span>
         )}
         <div className="flex-1 min-w-0">
           <h3 className={cn(
-            "font-bold text-base mb-1",
+            "font-bold text-sm mb-0.5",
             selected ? "text-primary" : "text-foreground"
           )}>
             {title}
           </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-snug">
             {description}
           </p>
           {children}
