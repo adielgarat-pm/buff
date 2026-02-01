@@ -57,7 +57,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col" dir="rtl">
+    <div className="theme-parent-zen min-h-[100dvh] bg-background flex flex-col" dir="rtl">
       {/* Header with Logo */}
       <div className="flex items-center justify-center pt-4 pb-2">
         <img src={buffLogo} alt="BUFF" className="h-10" />
