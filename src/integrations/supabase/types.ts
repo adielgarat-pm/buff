@@ -265,6 +265,8 @@ export type Database = {
           bag_prep_credits: number
           bag_prep_enabled: boolean
           birth_date: string | null
+          buff_boost_dismissed_at: string | null
+          buff_boost_supported: boolean
           created_at: string
           daily_goal: number
           display_name: string
@@ -282,6 +284,8 @@ export type Database = {
           bag_prep_credits?: number
           bag_prep_enabled?: boolean
           birth_date?: string | null
+          buff_boost_dismissed_at?: string | null
+          buff_boost_supported?: boolean
           created_at?: string
           daily_goal?: number
           display_name: string
@@ -299,6 +303,8 @@ export type Database = {
           bag_prep_credits?: number
           bag_prep_enabled?: boolean
           birth_date?: string | null
+          buff_boost_dismissed_at?: string | null
+          buff_boost_supported?: boolean
           created_at?: string
           daily_goal?: number
           display_name?: string
