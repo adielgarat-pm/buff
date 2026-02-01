@@ -10,7 +10,7 @@ import buffLogo from '@/assets/buff-logo.png';
 
 export interface OnboardingData {
   childName: string;
-  childAge: number;
+  birthDate: Date;
   focusArea: FocusArea;
   schoolFeature: SchoolFeature;
   firstTask: string;
@@ -37,7 +37,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   }, []);
 
   const handleComplete = async () => {
-    if (!data.childName || !data.focusArea || !data.schoolFeature) {
+    if (!data.childName || !data.birthDate || !data.focusArea || !data.schoolFeature) {
       return;
     }
 
@@ -45,7 +45,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
     try {
       await onComplete({
         childName: data.childName,
-        childAge: data.childAge || 12,
+        birthDate: data.birthDate,
         focusArea: data.focusArea,
         schoolFeature: data.schoolFeature,
         firstTask: data.firstTask || 'לפתור תרגיל אחד',

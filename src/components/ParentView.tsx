@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { ParentBottomNavigation, ParentNavTab } from './ParentBottomNavigation';
@@ -83,7 +84,7 @@ export function ParentView() {
     }
 
     try {
-      // Create child profile
+      // Create child profile with birth_date
       const { data: childProfile, error: childError } = await supabase
         .from('profiles')
         .insert({
@@ -91,6 +92,7 @@ export function ParentView() {
           role: 'child',
           family_id: profile.family_id,
           daily_goal: 70,
+          birth_date: format(onboardingData.birthDate, 'yyyy-MM-dd'),
           school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
           bag_prep_enabled: onboardingData.schoolFeature === 'evening_prep',
         })
