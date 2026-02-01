@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket, Copy, Check, ArrowRight, Sparkles } from 'lucide-react';
+import { Rocket, Copy, Check, Share2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -44,11 +44,17 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
     try {
       await navigator.clipboard.writeText(familyCode);
       setCopied(true);
-      toast.success('הקוד הועתק! 📋');
+      toast.success('הועתק! 📋');
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error('לא הצלחנו להעתיק');
     }
+  };
+
+  const handleShareWhatsApp = () => {
+    const message = `היי! הכל מוכן ב-BUFF 🎮\n\nהקוד המשפחתי שלנו הוא: *${familyCode}*\n\nמחכה לך שם! 🚀`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleLaunch = () => {
@@ -63,85 +69,65 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
     <div className="flex flex-col h-full">
       {showConfetti && <ConfettiEffect trigger={showConfetti} />}
       
-      <div className="flex-1 px-5 py-3 space-y-4 overflow-y-auto">
-        {/* Header with back arrow */}
-        <div className="text-center space-y-1 relative">
-          <button
-            type="button"
-            onClick={onBack}
-            disabled={isLoading}
-            className="absolute right-0 top-0 p-1.5 -mr-1.5 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
-            aria-label="חזרה"
-          >
-            <ArrowRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-success/20 flex items-center justify-center mx-auto">
-            <Rocket className="w-6 h-6 text-primary" />
+      <div className="flex-1 px-5 py-4 space-y-5 overflow-y-auto">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-success/20 flex items-center justify-center mx-auto">
+            <Rocket className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-lg font-bold text-foreground">
+          <h1 className="text-xl font-bold text-foreground">
             הכל מוכן לשיגור! 🚀
           </h1>
         </div>
 
         {/* Family Code Display */}
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-background to-success/10 border-2 border-dashed border-primary/30">
-          <p className="text-center text-sm text-muted-foreground mb-2">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-background to-success/10 border-2 border-dashed border-primary/30">
+          <p className="text-center text-sm text-muted-foreground mb-3">
             הקוד המשפחתי שלכם:
           </p>
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border-2 border-primary/50 hover:border-primary transition-colors"
-            >
-              <span className="text-2xl font-mono font-bold tracking-widest text-primary">
-                {familyCode || '------'}
-              </span>
-              {copied ? (
-                <Check className="w-5 h-5 text-success" />
-              ) : (
-                <Copy className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-          </div>
-          <p className="text-center text-xs text-muted-foreground mt-2">
-            לחצו להעתקה
-          </p>
+          <button
+            onClick={handleCopy}
+            className="w-full flex items-center justify-center gap-3 px-5 py-3 rounded-xl bg-card border-2 border-primary/50 hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98]"
+          >
+            <span className="text-2xl font-mono font-bold tracking-[0.3em] text-primary">
+              {familyCode || '------'}
+            </span>
+            {copied ? (
+              <Check className="w-5 h-5 text-success flex-shrink-0" />
+            ) : (
+              <Copy className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            )}
+          </button>
+          {copied && (
+            <p className="text-center text-xs text-success mt-2 font-medium">
+              הועתק ללוח! ✓
+            </p>
+          )}
         </div>
+
+        {/* WhatsApp Share */}
+        <button
+          onClick={handleShareWhatsApp}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
+        >
+          <Share2 className="w-4 h-4" />
+          <span className="text-sm font-medium">שלחו את הקוד והוראות ההתקנה בוואטסאפ</span>
+        </button>
 
         {/* Instructions */}
-        <div className="p-3 rounded-xl bg-card border border-border space-y-2">
+        <div className="p-4 rounded-xl bg-card border border-border">
           <p className="text-sm text-foreground text-right leading-relaxed">
-            זה הזמן לקרוא ל<strong>{childName}</strong>, להוריד את BUFF במכשיר שלהם ולהזין את הקוד המשפחתי כדי להתחבר לנבחרת.
+            זה הזמן לקרוא ל<strong className="text-primary">{childName}</strong>, להוריד את BUFF במכשיר שלהם ולהזין את הקוד המשפחתי. המשימה הראשונה כבר מחכה בפנים!
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Sparkles className="w-4 h-4 text-warning" />
-            <span>הילד/ה יוכלו מיד להתחיל לצבור נקודות!</span>
-          </div>
-        </div>
-
-        {/* Quick tips summary */}
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="p-2 rounded-lg bg-muted/50">
-            <span className="text-lg">📱</span>
-            <p className="text-xs text-muted-foreground mt-1">הורדה</p>
-          </div>
-          <div className="p-2 rounded-lg bg-muted/50">
-            <span className="text-lg">🔑</span>
-            <p className="text-xs text-muted-foreground mt-1">קוד</p>
-          </div>
-          <div className="p-2 rounded-lg bg-muted/50">
-            <span className="text-lg">🎮</span>
-            <p className="text-xs text-muted-foreground mt-1">משחק!</p>
-          </div>
         </div>
       </div>
 
       {/* Big Launch Button */}
-      <div className="px-5 pb-6 pt-3 flex-shrink-0 bg-background">
+      <div className="px-5 pb-6 pt-4 flex-shrink-0 bg-background">
         <Button 
           onClick={handleLaunch}
           disabled={isLoading}
-          className="w-full h-14 text-base font-bold rounded-2xl bg-gradient-to-l from-primary via-primary to-success shadow-lg shadow-primary/30 animate-pulse hover:animate-none transition-all hover:scale-[1.02]"
+          className="w-full h-14 text-base font-bold rounded-2xl bg-gradient-to-l from-primary via-primary to-success shadow-lg shadow-primary/30 animate-pulse hover:animate-none transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
