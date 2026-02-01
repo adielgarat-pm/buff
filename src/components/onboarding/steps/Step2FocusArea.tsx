@@ -4,6 +4,7 @@ import { Target, ArrowRight } from 'lucide-react';
 export type FocusArea = 'homework' | 'project' | 'fitness' | 'home';
 
 interface Step2FocusAreaProps {
+  initialValue?: FocusArea;
   onNext: (data: { focusArea: FocusArea }) => void;
   onBack: () => void;
 }
@@ -35,7 +36,7 @@ const FOCUS_OPTIONS: { id: FocusArea; emoji: string; title: string; description:
   }
 ];
 
-export function Step2FocusArea({ onNext, onBack }: Step2FocusAreaProps) {
+export function Step2FocusArea({ initialValue, onNext, onBack }: Step2FocusAreaProps) {
   const handleSelect = (focusArea: FocusArea) => {
     onNext({ focusArea });
   };
@@ -72,6 +73,7 @@ export function Step2FocusArea({ onNext, onBack }: Step2FocusAreaProps) {
               emoji={option.emoji}
               title={option.title}
               description={option.description}
+              selected={initialValue === option.id}
               onClick={() => handleSelect(option.id)}
             />
           ))}
