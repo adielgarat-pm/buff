@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { useMidnightReset } from '@/hooks/useMidnightReset';
 import { useSmartPhase } from '@/hooks/useSmartPhase';
+import { useBirthdayCheck } from '@/hooks/useBirthdayCheck';
 import { Header } from './Header';
 import { ProgressBar } from './ProgressBar';
 import { PhaseNavigation } from './PhaseNavigation';
@@ -18,6 +19,7 @@ import { NewDayBanner } from './NewDayBanner';
 import { WelcomeBanner } from './WelcomeBanner';
 import { PhaseTransitionBanner } from './PhaseTransitionBanner';
 import { BrowserDetectionBanner } from './BrowserDetectionBanner';
+import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Phase, getPhaseForTime } from '@/types/phase';
@@ -57,6 +59,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     totalBalance,
     storeRewards,
     buffsActivatedToday,
+    childBirthDate,
+    childDisplayName,
     completeTask,
     uncompleteTask,
     toggleLesson,
@@ -68,6 +72,12 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     lessons,
     refetch,
   } = useSyncedTaskStore(viewingChildId);
+
+  // Birthday check - use child's birth date from store (works for both child login and parent viewing as child)
+  const { isBirthday, showCelebration, dismissCelebration, age } = useBirthdayCheck({
+    birthDate: childBirthDate,
+    childName: childDisplayName || profile?.display_name,
+  });
 
   // Smart phase transitions based on school schedule
   const isSchoolDay = !isCurrentlyWeekend;
@@ -339,6 +349,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           userName={profile.display_name} 
         />
       )}
+
+      {/* Birthday Celebration */}
+      <BirthdayCelebration
+        show={showCelebration}
+        childName={childDisplayName || profile?.display_name}
+        age={age}
+        onDismiss={dismissCelebration}
+      />
     </div>
   );
 }

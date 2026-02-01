@@ -62,6 +62,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const [totalBalance, setTotalBalance] = useState(0);
   const [storeRewards, setStoreRewards] = useState<StoreReward[]>([]);
   const [loading, setLoading] = useState(true);
+  const [childBirthDate, setChildBirthDate] = useState<string | null>(null);
+  const [childDisplayName, setChildDisplayName] = useState<string | null>(null);
   const [buffsActivatedToday, setBuffsActivatedToday] = useState(() => {
     const saved = localStorage.getItem(`buffs_${getTodayKey()}`);
     return saved ? parseInt(saved, 10) : 0;
@@ -179,13 +181,15 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       if (isViewingAsChild && effectiveChildId) {
         const { data: childProfileData } = await supabase
           .from('profiles')
-          .select('school_quest_enabled, bag_prep_enabled, bag_prep_credits')
+          .select('school_quest_enabled, bag_prep_enabled, bag_prep_credits, birth_date, display_name')
           .eq('id', effectiveChildId)
           .single();
         
         setSchoolQuestEnabled(childProfileData?.school_quest_enabled ?? true);
         setBagPrepEnabled(childProfileData?.bag_prep_enabled ?? true);
         setBagPrepCredits(childProfileData?.bag_prep_credits ?? 20);
+        setChildBirthDate(childProfileData?.birth_date ?? null);
+        setChildDisplayName(childProfileData?.display_name ?? null);
       }
 
       // Check if bag prep is completed today
@@ -1097,6 +1101,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     totalBalance,
     storeRewards,
     buffsActivatedToday,
+    childBirthDate,
+    childDisplayName,
     completeTask,
     uncompleteTask,
     updateTask,
