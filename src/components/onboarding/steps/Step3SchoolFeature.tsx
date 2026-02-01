@@ -21,22 +21,22 @@ export function Step3SchoolFeature({ onNext, onBack }: Step3SchoolFeatureProps) 
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 px-5 py-6 space-y-6 overflow-y-auto">
+      <div className="flex-1 px-5 py-4 space-y-4 overflow-y-auto">
         {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <School className="w-8 h-8 text-primary" />
+        <div className="text-center space-y-1">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <School className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">
+          <h1 className="text-lg font-bold text-foreground">
             בוחרים את הכוח שלכם בבית הספר
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             מערכת השעות יכולה לעזור לכם באחת משתי דרכים. בחרו את המסלול שמתאים לכם:
           </p>
         </div>
 
         {/* Options */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <OnboardingCard
             emoji="🎯"
             title="School Quest – ניהול קשב"
@@ -44,7 +44,7 @@ export function Step3SchoolFeature({ onNext, onBack }: Step3SchoolFeatureProps) 
             selected={selected === 'school_quest'}
             onClick={() => setSelected('school_quest')}
           >
-            <div className="mt-3 flex items-center gap-2 text-xs text-success">
+            <div className="mt-2 flex items-center gap-2 text-xs text-success">
               <Focus className="w-4 h-4" />
               <span>מתאים לילדים שרוצים לשפר ריכוז בכיתה</span>
             </div>
@@ -57,7 +57,7 @@ export function Step3SchoolFeature({ onNext, onBack }: Step3SchoolFeatureProps) 
             selected={selected === 'evening_prep'}
             onClick={() => setSelected('evening_prep')}
           >
-            <div className="mt-3 flex items-center gap-2 text-xs text-success">
+            <div className="mt-2 flex items-center gap-2 text-xs text-success">
               <Moon className="w-4 h-4" />
               <span>מתאים לילדים שמתקשים להתארגן בבוקר</span>
             </div>
@@ -65,7 +65,7 @@ export function Step3SchoolFeature({ onNext, onBack }: Step3SchoolFeatureProps) 
         </div>
 
         {/* Note */}
-        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+        <div className="p-3 rounded-xl bg-muted/50 border border-border">
           <p className="text-xs text-muted-foreground text-right">
             💡 תמיד אפשר לשנות את הבחירה בהגדרות. רק אחת מהאפשרויות יכולה להיות פעילה.
           </p>
@@ -73,7 +73,7 @@ export function Step3SchoolFeature({ onNext, onBack }: Step3SchoolFeatureProps) 
       </div>
 
       {/* Buttons */}
-      <div className="px-5 pb-8 pt-4 flex gap-3">
+      <div className="px-5 pb-6 pt-3 flex gap-3 flex-shrink-0 bg-background">
         <Button 
           variant="outline"
           onClick={onBack}

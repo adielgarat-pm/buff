@@ -48,22 +48,22 @@ export function Step2FocusArea({ onNext, onBack }: Step2FocusAreaProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 px-5 py-6 space-y-6 overflow-y-auto">
+      <div className="flex-1 px-5 py-4 space-y-4 overflow-y-auto">
         {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <Target className="w-8 h-8 text-primary" />
+        <div className="text-center space-y-1">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <Target className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="text-xl font-bold text-foreground leading-tight">
+          <h1 className="text-lg font-bold text-foreground leading-tight">
             מה המקום שהכי הייתם רוצים להצליח בו השבוע?
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             בחירה של הילדים היא המנוע למוטיבציה הפנימית. שבו יחד ובחרו תחום אחד:
           </p>
         </div>
 
         {/* Options */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {FOCUS_OPTIONS.map((option) => (
             <OnboardingCard
               key={option.id}
@@ -78,7 +78,7 @@ export function Step2FocusArea({ onNext, onBack }: Step2FocusAreaProps) {
       </div>
 
       {/* Buttons */}
-      <div className="px-5 pb-8 pt-4 flex gap-3">
+      <div className="px-5 pb-6 pt-3 flex gap-3 flex-shrink-0 bg-background">
         <Button 
           variant="outline"
           onClick={onBack}
