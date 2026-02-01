@@ -10,8 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import buffLogo from '@/assets/buff-logo.png';
 import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
+import { ParentOnboarding, OnboardingData } from '@/components/onboarding';
 
-type SetupStep = 'loading' | 'role-selection' | 'family-code' | 'creating' | 'error';
+type SetupStep = 'loading' | 'role-selection' | 'parent-onboarding' | 'family-code' | 'creating' | 'error';
 
 // Helper function to wait
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -278,9 +279,186 @@ export default function AuthCallback() {
     if (role === 'child') {
       setStep('family-code');
     } else {
-      handleCreateProfile(role, null);
+      // Show parent onboarding flow instead of immediately creating profile
+      setStep('parent-onboarding');
     }
   };
+
+  // Handle parent onboarding completion
+  const handleOnboardingComplete = async (onboardingData: OnboardingData) => {
+    if (!userId) {
+      setError('לא נמצא מזהה משתמש');
+      setStep('error');
+      return;
+    }
+
+    trackRegistrationStep('profile_creation_started', { role: 'parent', method: 'google', hasOnboarding: true });
+    setStep('creating');
+
+    try {
+      // First check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      let familyId: string;
+
+      // Check if we already have a family
+      if (existingProfile?.family_id) {
+        familyId = existingProfile.family_id;
+      } else {
+        // Create new family
+        const { data: newFamily, error: familyError } = await supabase
+          .from('families')
+          .insert({ name: `משפחת ${displayName}` } as any)
+          .select()
+          .single();
+
+        if (familyError) {
+          console.error('Error creating family:', familyError);
+          setError(`שגיאה ביצירת משפחה: ${familyError.message}`);
+          setStep('error');
+          return;
+        }
+
+        familyId = newFamily.id;
+        trackRegistrationStep('family_created', { familyId, method: 'google' });
+      }
+
+      // UPSERT parent profile
+      if (existingProfile) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            family_id: familyId,
+            ...(existingProfile.display_name ? {} : { display_name: displayName })
+          })
+          .eq('id', existingProfile.id);
+
+        if (updateError) {
+          console.error('Error updating profile:', updateError);
+          setError(`שגיאה בעדכון פרופיל: ${updateError.message}`);
+          setStep('error');
+          return;
+        }
+      } else {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          user_id: userId,
+          family_id: familyId,
+          display_name: displayName,
+          role: 'parent',
+        });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          setError(`שגיאה ביצירת פרופיל: ${profileError.message}`);
+          setStep('error');
+          return;
+        }
+      }
+
+      // Create child profile with onboarding data
+      const { data: childProfile, error: childError } = await supabase
+        .from('profiles')
+        .insert({
+          family_id: familyId,
+          display_name: onboardingData.childName,
+          role: 'child',
+          birth_date: calculateBirthDateFromAge(onboardingData.childAge),
+          school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
+          daily_goal: 100,
+        })
+        .select()
+        .single();
+
+      if (childError) {
+        console.error('Error creating child profile:', childError);
+        // Non-critical - continue anyway
+      }
+
+      // Create first task from onboarding if we have child profile
+      if (childProfile && onboardingData.firstTask) {
+        try {
+          await supabase.from('tasks').insert({
+            family_id: familyId,
+            assigned_to: childProfile.id,
+            title: onboardingData.firstTask,
+            category: getFocusAreaCategory(onboardingData.focusArea),
+            time: '15:00',
+            credits: 20,
+            icon: getFocusAreaEmoji(onboardingData.focusArea),
+            description: 'המשימה הראשונה שלי - התחלה קטנה!',
+          });
+        } catch (taskErr) {
+          console.error('Error creating first task:', taskErr);
+        }
+      }
+
+      // Create weekend reward from onboarding
+      if (childProfile && onboardingData.weekendReward) {
+        try {
+          await supabase.from('store_rewards').insert({
+            family_id: familyId,
+            assigned_to: childProfile.id,
+            title: onboardingData.weekendReward,
+            emoji: '🎁',
+            price: 500, // 5 days of hitting smart goal
+          });
+        } catch (rewardErr) {
+          console.error('Error creating weekend reward:', rewardErr);
+        }
+      }
+
+      trackRegistrationStep('profile_created', { role: 'parent', method: 'google' });
+
+      // Refresh profile in context
+      await refreshProfile(userId);
+
+      // Initialize family data
+      try {
+        await initializeFamilyDataSafe(familyId);
+      } catch (initErr) {
+        console.error('Error initializing family data:', initErr);
+      }
+
+      trackRegistrationStep('onboarding_complete', { role: 'parent', method: 'google' });
+      toast.success('ברוך הבא! המשפחה נוצרה בהצלחה 🎉');
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      console.error('Onboarding completion error:', err);
+      setError('שגיאה ביצירת החשבון');
+      setStep('error');
+    }
+  };
+
+  // Helper functions for onboarding data
+  function calculateBirthDateFromAge(age: number): string {
+    const today = new Date();
+    const birthYear = today.getFullYear() - age;
+    return `${birthYear}-01-01`;
+  }
+
+  function getFocusAreaCategory(focusArea: string): string {
+    switch (focusArea) {
+      case 'homework': return 'learning';
+      case 'project': return 'learning';
+      case 'fitness': return 'movement';
+      case 'home': return 'organization';
+      default: return 'learning';
+    }
+  }
+
+  function getFocusAreaEmoji(focusArea: string): string {
+    switch (focusArea) {
+      case 'homework': return '📚';
+      case 'project': return '🚀';
+      case 'fitness': return '⚡';
+      case 'home': return '🏠';
+      default: return '✨';
+    }
+  }
 
   const handleJoinFamily = async () => {
     if (!familyCode.trim()) {
@@ -542,8 +720,15 @@ export default function AuthCallback() {
     );
   }
 
+  // Parent onboarding flow
+  if (step === 'parent-onboarding') {
+    return (
+      <ParentOnboarding onComplete={handleOnboardingComplete} />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center p-4">
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/10 via-background to-buff/5 pointer-events-none" />
 
