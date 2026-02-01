@@ -271,6 +271,8 @@ export type Database = {
           family_id: string | null
           id: string
           marketing_consent: boolean
+          onboarding_data: Json | null
+          onboarding_step: number | null
           role: string
           school_quest_enabled: boolean
           updated_at: string
@@ -286,6 +288,8 @@ export type Database = {
           family_id?: string | null
           id?: string
           marketing_consent?: boolean
+          onboarding_data?: Json | null
+          onboarding_step?: number | null
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
@@ -301,6 +305,8 @@ export type Database = {
           family_id?: string | null
           id?: string
           marketing_consent?: boolean
+          onboarding_data?: Json | null
+          onboarding_step?: number | null
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
