@@ -15,7 +15,7 @@ import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
 import { DashboardFAB } from './dashboard';
 import { Loader2 } from 'lucide-react';
-import { Dialog, DialogContent } from './ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { ParentOnboarding, OnboardingData } from './onboarding/ParentOnboarding';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -99,12 +99,12 @@ export function ParentView() {
 
       if (childError) throw childError;
 
-      // Map focus area to task category
+      // Map focus area to valid task categories (5-category system)
       const categoryMap: Record<string, string> = {
         'homework': 'learning',
-        'project': 'responsibility',
+        'project': 'learning',
         'fitness': 'movement',
-        'home': 'self-care',
+        'home': 'responsibility',
       };
 
       // Create first task for the child
@@ -247,7 +247,11 @@ export function ParentView() {
 
       {/* Onboarding Dialog for adding children */}
       <Dialog open={onboardingOpen} onOpenChange={setOnboardingOpen}>
-        <DialogContent className="max-w-lg max-h-[95vh] p-0 overflow-hidden">
+        <DialogContent 
+          className="max-w-lg max-h-[95vh] p-0 overflow-hidden"
+          aria-describedby={undefined}
+        >
+          <DialogTitle className="sr-only">הוספת ילד חדש</DialogTitle>
           <ParentOnboarding onComplete={handleOnboardingComplete} />
         </DialogContent>
       </Dialog>
