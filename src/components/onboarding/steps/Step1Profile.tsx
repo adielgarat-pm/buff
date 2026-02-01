@@ -73,8 +73,8 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
   const age = calculateAge();
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-5 py-6 space-y-6">
+    <div className="flex flex-col h-full max-h-[80vh]">
+      <div className="flex-1 px-5 py-6 space-y-6 overflow-y-auto">
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
@@ -179,7 +179,7 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
       </div>
 
       {/* CTA Button */}
-      <div className="px-5 pb-8 pt-4">
+      <div className="px-5 pb-8 pt-4 flex-shrink-0 bg-background">
         <Button 
           onClick={handleSubmit}
           className="w-full h-14 text-lg font-bold rounded-2xl bg-gradient-to-l from-primary to-success"
