@@ -1,25 +1,44 @@
 import { useState } from 'react';
-import { format, differenceInYears } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { differenceInYears } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Users, CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users } from 'lucide-react';
 
 interface Step1ProfileProps {
   onNext: (data: { childName: string; birthDate: Date }) => void;
 }
 
+const months = [
+  { value: 0, label: 'ינואר' },
+  { value: 1, label: 'פברואר' },
+  { value: 2, label: 'מרץ' },
+  { value: 3, label: 'אפריל' },
+  { value: 4, label: 'מאי' },
+  { value: 5, label: 'יוני' },
+  { value: 6, label: 'יולי' },
+  { value: 7, label: 'אוגוסט' },
+  { value: 8, label: 'ספטמבר' },
+  { value: 9, label: 'אוקטובר' },
+  { value: 10, label: 'נובמבר' },
+  { value: 11, label: 'דצמבר' },
+];
+
 export function Step1Profile({ onNext }: Step1ProfileProps) {
   const [childName, setChildName] = useState('');
-  const [birthDate, setBirthDate] = useState<Date | undefined>();
+  const [selectedYear, setSelectedYear] = useState<number | undefined>();
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
   const [error, setError] = useState('');
 
-  const calculateAge = (date: Date): number => {
-    return differenceInYears(new Date(), date);
+  // Generate years (ages 5-25)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 21 }, (_, i) => currentYear - 5 - i);
+
+  const calculateAge = (): number | null => {
+    if (selectedYear === undefined || selectedMonth === undefined) return null;
+    const birthDate = new Date(selectedYear, selectedMonth, 15);
+    return differenceInYears(new Date(), birthDate);
   };
 
   const handleSubmit = () => {
@@ -27,11 +46,12 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
       setError('אנא הזינו את שם הילד/ה');
       return;
     }
-    if (!birthDate) {
-      setError('אנא בחרו תאריך לידה');
+    if (selectedYear === undefined || selectedMonth === undefined) {
+      setError('אנא בחרו שנה וחודש לידה');
       return;
     }
-    const age = calculateAge(birthDate);
+    const birthDate = new Date(selectedYear, selectedMonth, 15);
+    const age = differenceInYears(new Date(), birthDate);
     if (age < 5 || age > 25) {
       setError('הגיל צריך להיות בין 5 ל-25');
       return;
@@ -40,12 +60,7 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
     onNext({ childName: childName.trim(), birthDate });
   };
 
-  const age = birthDate ? calculateAge(birthDate) : null;
-
-  // Date range for birth dates (ages 5-25)
-  const today = new Date();
-  const minDate = new Date(today.getFullYear() - 25, today.getMonth(), today.getDate());
-  const maxDate = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate());
+  const age = calculateAge();
 
   return (
     <div className="flex flex-col h-full">
@@ -79,46 +94,48 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
 
           <div className="space-y-2">
             <Label className="text-right block">תאריך לידה</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full h-12 justify-start text-right font-normal",
-                    !birthDate && "text-muted-foreground"
-                  )}
-                  dir="rtl"
-                >
-                  <CalendarIcon className="ml-2 h-4 w-4" />
-                  {birthDate ? (
-                    <span className="flex-1 text-right">
-                      {format(birthDate, "dd/MM/yyyy")}
-                      {age !== null && (
-                        <span className="text-muted-foreground mr-2">
-                          (גיל {age})
-                        </span>
-                      )}
-                    </span>
-                  ) : (
-                    <span>בחרו תאריך לידה</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={birthDate}
-                  onSelect={setBirthDate}
-                  disabled={(date) => date > maxDate || date < minDate}
-                  defaultMonth={new Date(today.getFullYear() - 10, 0)}
-                  captionLayout="dropdown-buttons"
-                  fromYear={today.getFullYear() - 25}
-                  toYear={today.getFullYear() - 5}
-                  locale={he}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Year Select */}
+              <Select
+                value={selectedYear?.toString() || ''}
+                onValueChange={(v) => setSelectedYear(parseInt(v))}
+              >
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="שנה" />
+                </SelectTrigger>
+                <SelectContent className="max-h-48">
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Month Select */}
+              <Select
+                value={selectedMonth?.toString() || ''}
+                onValueChange={(v) => setSelectedMonth(parseInt(v))}
+              >
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="חודש" />
+                </SelectTrigger>
+                <SelectContent className="max-h-48">
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Age display */}
+            {age !== null && (
+              <p className="text-sm text-primary font-medium text-right">
+                גיל: {age} שנים ✨
+              </p>
+            )}
           </div>
 
           {error && (
