@@ -250,7 +250,7 @@ export function ParentView() {
       {/* Onboarding Dialog for adding children */}
       <Dialog open={onboardingOpen} onOpenChange={setOnboardingOpen}>
         <DialogContent 
-          className="max-w-lg max-h-[95vh] p-0 overflow-hidden"
+          className="max-w-lg h-[85vh] p-0"
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">הוספת ילד חדש</DialogTitle>
