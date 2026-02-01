@@ -37,7 +37,7 @@ export function ParentView() {
   // Loading state
   if (loading) {
     return (
-      <div className="theme-parent-zen min-h-screen bg-background flex items-center justify-center">
+      <div className="theme-parent-zen min-h-[100dvh] bg-background flex items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">טוען...</p>
@@ -103,7 +103,7 @@ export function ParentView() {
   };
 
   return (
-    <div className="theme-parent-zen min-h-screen bg-background pb-24 no-horizontal-scroll">
+    <div className="theme-parent-zen min-h-[100dvh] bg-background pb-24 overflow-x-hidden">
       {/* Browser Detection Banner - shows when not in PWA mode */}
       <BrowserDetectionBanner />
       

@@ -167,7 +167,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   }
 
   return (
-    <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+    <div className={`theme-child-gamer min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
       {/* Browser Detection Banner - shows when not in PWA mode */}
       {!isViewingAsChild && <BrowserDetectionBanner />}
       

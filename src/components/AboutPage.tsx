@@ -32,11 +32,11 @@ export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: 
 
   const containerClass = isModal 
     ? 'max-h-[80vh] overflow-y-auto' 
-    : 'min-h-screen bg-background safe-area-all';
+    : 'min-h-[100dvh] bg-background overflow-x-hidden';
 
   return (
     <div className={`theme-parent-zen ${containerClass}`}>
-      <div className={isModal ? 'p-6' : 'max-w-2xl mx-auto px-5 py-6 pb-24'}>
+      <div className={isModal ? 'p-6' : 'max-w-2xl mx-auto px-5 py-6 pb-24 safe-area-all'}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="space-y-1">

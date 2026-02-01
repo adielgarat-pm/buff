@@ -26,11 +26,11 @@ export default function InstallGuide() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+    <div className="min-h-[100dvh] bg-background text-foreground overflow-x-hidden">
       {/* Gradient background */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/10 pointer-events-none" />
       
-      <div className="relative max-w-lg mx-auto px-6 py-8 safe-area-px">
+      <div className="relative max-w-lg mx-auto px-5 py-6 pb-24 safe-area-all">
         {/* Logo and Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
