@@ -29,15 +29,25 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
   const [childName, setChildName] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
+  const [selectedDay, setSelectedDay] = useState<number | undefined>();
   const [error, setError] = useState('');
 
   // Generate years (ages 5-25)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 21 }, (_, i) => currentYear - 5 - i);
 
+  // Generate days based on selected month/year
+  const getDaysInMonth = (): number[] => {
+    if (selectedYear === undefined || selectedMonth === undefined) {
+      return Array.from({ length: 31 }, (_, i) => i + 1);
+    }
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  };
+
   const calculateAge = (): number | null => {
-    if (selectedYear === undefined || selectedMonth === undefined) return null;
-    const birthDate = new Date(selectedYear, selectedMonth, 15);
+    if (selectedYear === undefined || selectedMonth === undefined || selectedDay === undefined) return null;
+    const birthDate = new Date(selectedYear, selectedMonth, selectedDay);
     return differenceInYears(new Date(), birthDate);
   };
 
@@ -46,11 +56,11 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
       setError('אנא הזינו את שם הילד/ה');
       return;
     }
-    if (selectedYear === undefined || selectedMonth === undefined) {
-      setError('אנא בחרו שנה וחודש לידה');
+    if (selectedYear === undefined || selectedMonth === undefined || selectedDay === undefined) {
+      setError('אנא בחרו תאריך לידה מלא');
       return;
     }
-    const birthDate = new Date(selectedYear, selectedMonth, 15);
+    const birthDate = new Date(selectedYear, selectedMonth, selectedDay);
     const age = differenceInYears(new Date(), birthDate);
     if (age < 5 || age > 25) {
       setError('הגיל צריך להיות בין 5 ל-25');
@@ -94,19 +104,19 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
 
           <div className="space-y-2">
             <Label className="text-right block">תאריך לידה</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Year Select */}
+            <div className="grid grid-cols-3 gap-2">
+              {/* Day Select */}
               <Select
-                value={selectedYear?.toString() || ''}
-                onValueChange={(v) => setSelectedYear(parseInt(v))}
+                value={selectedDay?.toString() || ''}
+                onValueChange={(v) => setSelectedDay(parseInt(v))}
               >
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="שנה" />
+                  <SelectValue placeholder="יום" />
                 </SelectTrigger>
                 <SelectContent className="max-h-48">
-                  {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
+                  {getDaysInMonth().map((day) => (
+                    <SelectItem key={day} value={day.toString()}>
+                      {day}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -124,6 +134,23 @@ export function Step1Profile({ onNext }: Step1ProfileProps) {
                   {months.map((month) => (
                     <SelectItem key={month.value} value={month.value.toString()}>
                       {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Year Select */}
+              <Select
+                value={selectedYear?.toString() || ''}
+                onValueChange={(v) => setSelectedYear(parseInt(v))}
+              >
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="שנה" />
+                </SelectTrigger>
+                <SelectContent className="max-h-48">
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
                     </SelectItem>
                   ))}
                 </SelectContent>
