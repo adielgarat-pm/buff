@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { differenceInYears } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users } from 'lucide-react';
 
 interface Step1ProfileProps {
+  initialData?: {
+    childName?: string;
+    birthDate?: Date;
+  };
   onNext: (data: { childName: string; birthDate: Date }) => void;
 }
 
@@ -25,12 +29,28 @@ const months = [
   { value: 11, label: 'דצמבר' },
 ];
 
-export function Step1Profile({ onNext }: Step1ProfileProps) {
-  const [childName, setChildName] = useState('');
-  const [selectedYear, setSelectedYear] = useState<number | undefined>();
-  const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
-  const [selectedDay, setSelectedDay] = useState<number | undefined>();
+export function Step1Profile({ initialData, onNext }: Step1ProfileProps) {
+  const [childName, setChildName] = useState(initialData?.childName || '');
+  const [selectedYear, setSelectedYear] = useState<number | undefined>(
+    initialData?.birthDate?.getFullYear()
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>(
+    initialData?.birthDate?.getMonth()
+  );
+  const [selectedDay, setSelectedDay] = useState<number | undefined>(
+    initialData?.birthDate?.getDate()
+  );
   const [error, setError] = useState('');
+
+  // Update state if initialData changes (when returning to this step)
+  useEffect(() => {
+    if (initialData?.childName) setChildName(initialData.childName);
+    if (initialData?.birthDate) {
+      setSelectedYear(initialData.birthDate.getFullYear());
+      setSelectedMonth(initialData.birthDate.getMonth());
+      setSelectedDay(initialData.birthDate.getDate());
+    }
+  }, [initialData]);
 
   // Generate years (ages 5-25)
   const currentYear = new Date().getFullYear();

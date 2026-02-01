@@ -70,6 +70,10 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
       <div className="flex-1 overflow-y-auto min-h-0">
         {currentStep === 1 && (
           <Step1Profile
+            initialData={{
+              childName: data.childName,
+              birthDate: data.birthDate,
+            }}
             onNext={(stepData) => {
               updateData(stepData);
               goToStep(2);
@@ -79,6 +83,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         
         {currentStep === 2 && (
           <Step2FocusArea
+            initialValue={data.focusArea}
             onNext={(stepData) => {
               updateData(stepData);
               goToStep(3);
@@ -89,6 +94,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         
         {currentStep === 3 && (
           <Step3SchoolFeature
+            initialValue={data.schoolFeature}
             onNext={(stepData) => {
               updateData(stepData);
               goToStep(4);
@@ -99,6 +105,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         
         {currentStep === 4 && (
           <Step4FirstTask
+            initialValue={data.firstTask}
             onNext={(stepData) => {
               updateData(stepData);
               goToStep(5);
@@ -109,6 +116,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         
         {currentStep === 5 && (
           <Step5Rewards
+            initialValue={data.weekendReward}
             onNext={(stepData) => {
               updateData(stepData);
               goToStep(6);
