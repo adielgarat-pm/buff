@@ -127,6 +127,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         
         {currentStep === 6 && (
           <Step6ParentTip
+            childName={data.childName || 'הילד/ה'}
             onComplete={handleComplete}
             onBack={() => goToStep(5)}
             isLoading={isLoading}
