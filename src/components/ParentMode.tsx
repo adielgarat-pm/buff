@@ -10,13 +10,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Trash2, Plus, Save, X, Book, CalendarCheck, Sparkles, Home, Zap, Calendar, Bell, Gift, Users, User, Crown, Settings, TrendingUp, Upload, Camera, FileSpreadsheet } from 'lucide-react';
+import { Trash2, Plus, Save, X, Book, CalendarCheck, Sparkles, Home, Zap, Calendar, Bell, Gift, Users, User, Crown, Settings, TrendingUp, Upload, Camera, FileSpreadsheet, Copy } from 'lucide-react';
+import { CopyTaskDialog } from './CopyTaskDialog';
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { DayScheduleToggles } from './DayScheduleToggles';
 import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
 import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { STRATEGIES, STRATEGY_CATEGORIES, getStrategyById, StrategyCategory } from '@/data/cogFunStrategies';
 import { useParentInsights } from '@/hooks/useParentInsights';
@@ -74,6 +77,7 @@ export function ParentMode({
   onToggleFridayEnabled,
   onUpdateStoreRewards,
 }: ParentModeProps) {
+  const { familyId } = useAuth();
   const { members, children, loading: membersLoading } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   const [activeSection, setActiveSection] = useState<SettingsSection>('overview');
@@ -300,6 +304,25 @@ export function ParentMode({
                     child={selectedChild}
                     progress={selectedChildProgress}
                     fridayEnabled={fridayEnabled}
+                    allChildren={children}
+                    onCopyTaskToChild={async (task, targetChildId) => {
+                      // Use supabase to add task directly to target child
+                      const { error } = await supabase.from('tasks').insert({
+                        family_id: familyId,
+                        assigned_to: targetChildId,
+                        title: task.title,
+                        category: task.category,
+                        time: task.time,
+                        credits: task.credits,
+                        icon: task.icon,
+                        description: task.description,
+                        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+                        strategy_id: task.strategyId,
+                      });
+                      if (error) {
+                        console.error('Error copying task:', error);
+                      }
+                    }}
                   />
                 )}
               </div>
@@ -548,9 +571,11 @@ interface ChildConfigurationProps {
     tasksTotal: number;
   };
   fridayEnabled: boolean;
+  allChildren: FamilyMember[];
+  onCopyTaskToChild: (task: Task, targetChildId: string) => void;
 }
 
-function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurationProps) {
+function ChildConfiguration({ child, progress, fridayEnabled, allChildren, onCopyTaskToChild }: ChildConfigurationProps) {
   const {
     tasks,
     timetable,
@@ -572,6 +597,7 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
   const [scheduleImporterOpen, setScheduleImporterOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [copyingTask, setCopyingTask] = useState<Task | null>(null);
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
@@ -843,10 +869,25 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
                   onSave={handleSaveTask}
                   onCancel={() => setEditingTask(null)}
                   onDelete={() => deleteTask(task.id)}
+                  onCopy={() => setCopyingTask(task)}
+                  showCopyButton={allChildren.length > 1}
                 />
               ))
             )}
           </div>
+
+          {/* Copy Task Dialog */}
+          <CopyTaskDialog
+            open={!!copyingTask}
+            onClose={() => setCopyingTask(null)}
+            task={copyingTask}
+            children={allChildren}
+            currentChildId={child.id}
+            onCopy={(task, targetChildId) => {
+              onCopyTaskToChild(task, targetChildId);
+              setCopyingTask(null);
+            }}
+          />
         </TabsContent>
 
         {/* Schedule Tab */}
@@ -1086,9 +1127,11 @@ interface TaskEditRowProps {
   onSave: (task: Task) => void;
   onCancel: () => void;
   onDelete: () => void;
+  onCopy?: () => void;
+  showCopyButton?: boolean;
 }
 
-function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: TaskEditRowProps) {
+function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete, onCopy, showCopyButton }: TaskEditRowProps) {
   const [editedTask, setEditedTask] = useState(task);
   const strategy = task.strategyId ? getStrategyById(task.strategyId) : null;
 
@@ -1220,6 +1263,20 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
           </p>
         )}
       </div>
+      {showCopyButton && onCopy && (
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation();
+            onCopy();
+          }}
+          className="text-primary hover:bg-primary/10 h-8 w-8"
+          title="Copy to another child"
+        >
+          <Copy className="w-4 h-4" />
+        </Button>
+      )}
       <Button
         size="icon"
         variant="ghost"
