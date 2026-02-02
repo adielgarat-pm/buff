@@ -128,6 +128,8 @@ export function useBuffBoost() {
         // Determine if we should show the prompt
         const shouldShow = streakDays >= 5 || eveningMissionCount >= 3;
 
+        console.log('[BuffBoost] Stats:', { streakDays, eveningMissionCount, shouldShow, hasSupported, isDismissedRecently });
+
         setState({
           isLoading: false,
           shouldShow,
