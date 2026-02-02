@@ -5,11 +5,21 @@ import { useBuffBoost } from '@/hooks/useBuffBoost';
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Helper to format multiple children names nicely
+function formatChildrenNames(names: string[]): string {
+  if (names.length === 0) return 'הילדים';
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} ו${names[1]}`;
+  // For 3+ names: "name1, name2 ו-name3"
+  const lastNameWithVav = `ו${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(', ')} ${lastNameWithVav}`;
+}
+
 export function BuffBoostCard() {
   const {
     isLoading,
     shouldShow,
-    childName,
+    childrenNames,
     handleSupport,
     handleDismiss,
   } = useBuffBoost();
@@ -19,6 +29,8 @@ export function BuffBoostCard() {
   if (isLoading || !shouldShow || !isVisible) {
     return null;
   }
+
+  const formattedNames = formatChildrenNames(childrenNames);
 
   const onSupportClick = async () => {
     const supported = await handleSupport();
@@ -71,7 +83,7 @@ export function BuffBoostCard() {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-foreground leading-tight">
-                  זה עובד! {childName} בדרך להצלחה 🌟
+                  זה עובד! {formattedNames} בדרך להצלחה 🌟
                 </h3>
               </div>
             </div>

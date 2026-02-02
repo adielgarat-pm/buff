@@ -12,7 +12,7 @@ interface BuffBoostState {
   streakDays: number;
   eveningMissionCount: number;
   hasSupported: boolean;
-  childName: string;
+  childrenNames: string[];
 }
 
 /**
@@ -27,7 +27,7 @@ export function useBuffBoost() {
     streakDays: 0,
     eveningMissionCount: 0,
     hasSupported: false,
-    childName: '',
+    childrenNames: [],
   });
 
   // Fetch engagement metrics and check if we should show the prompt
@@ -67,15 +67,15 @@ export function useBuffBoost() {
           return;
         }
 
-        // Get child name for the first child in family
+        // Get all children names in family
         const { data: children } = await supabase
           .from('profiles')
           .select('display_name')
           .eq('family_id', familyId)
           .eq('role', 'child')
-          .limit(1);
+          .order('created_at');
 
-        const childName = children?.[0]?.display_name || 'הילד/ה';
+        const childrenNames = children?.map(c => c.display_name) || [];
 
         // Calculate streak (consecutive days with completed tasks)
         const today = new Date();
@@ -136,7 +136,7 @@ export function useBuffBoost() {
           streakDays,
           eveningMissionCount,
           hasSupported,
-          childName,
+          childrenNames,
         });
       } catch (error) {
         console.error('Error fetching BuffBoost data:', error);
