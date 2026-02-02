@@ -273,14 +273,69 @@ export default function AuthCallback() {
     setIsRetrying(false);
   };
 
-  const handleRoleSelect = (role: 'parent' | 'child') => {
+  const handleRoleSelect = async (role: 'parent' | 'child') => {
     trackRegistrationStep('role_selected', { role, method: 'google' });
     setSelectedRole(role);
     if (role === 'child') {
       setStep('family-code');
     } else {
-      // Show parent onboarding flow instead of immediately creating profile
+      // For parents: Create family and profile FIRST so family code is available in Step 6
+      await ensureParentFamilyExists();
       setStep('parent-onboarding');
+    }
+  };
+
+  // Create parent profile and family upfront so family code is available during onboarding
+  const ensureParentFamilyExists = async () => {
+    if (!userId) return;
+
+    try {
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, family_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existingProfile?.family_id) {
+        // Already has family, just refresh profile
+        await refreshProfile(userId);
+        return;
+      }
+
+      // Create new family
+      const { data: newFamily, error: familyError } = await supabase
+        .from('families')
+        .insert({ name: `משפחת ${displayName}` } as any)
+        .select()
+        .single();
+
+      if (familyError) {
+        console.error('Error creating family during role select:', familyError);
+        return;
+      }
+
+      if (existingProfile) {
+        // Update existing profile with family_id
+        await supabase
+          .from('profiles')
+          .update({ family_id: newFamily.id })
+          .eq('id', existingProfile.id);
+      } else {
+        // Create new parent profile
+        await supabase.from('profiles').insert({
+          user_id: userId,
+          family_id: newFamily.id,
+          display_name: displayName,
+          role: 'parent',
+        });
+      }
+
+      // Refresh profile in context so Step6 can access family_id
+      await refreshProfile(userId);
+      console.log('[EnsureFamily] Created family and parent profile, code:', newFamily.short_code);
+    } catch (err) {
+      console.error('Error ensuring parent family exists:', err);
     }
   };
 
