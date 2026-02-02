@@ -156,7 +156,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
       >
         {/* Compact single-row layout */}
         <div className="flex items-center gap-2.5 flex-row-reverse">
-          {/* Main Content */}
+        {/* Main Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <h3 className={cn(
@@ -183,6 +183,13 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
                 </span>
               </div>
             </div>
+            
+            {/* Task Notes - Only show if present */}
+            {task.description && !task.completed && (
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5 leading-tight line-clamp-1 text-start" dir="rtl">
+                📝 {task.description}
+              </p>
+            )}
             
             {/* Metadata row - Compact */}
             <div className="flex items-center gap-2 mt-1 flex-row-reverse justify-end">
