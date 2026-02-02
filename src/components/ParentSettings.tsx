@@ -31,6 +31,7 @@ import {
   FileSpreadsheet,
   Mail,
   LogOut,
+  Copy,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -49,7 +50,10 @@ import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { JoinFamilySection } from './JoinFamilySection';
 import { ParentHelpSection } from './ParentHelpSection';
 import { DayScheduleToggles } from './DayScheduleToggles';
+import { DuplicateToChildModal } from './DuplicateToChildModal';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useChildData } from '@/hooks/useChildProgress';
 import { useMarketingConsent } from '@/hooks/useMarketingConsent';
 import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
@@ -329,6 +333,8 @@ function ChildManagementCard({
 
 // Child Configuration Panel - Focus on Configuration
 function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: string; childName: string; fridayEnabled: boolean }) {
+  const { familyId } = useAuth();
+  const { children: familyChildren } = useFamilyMembers();
   const {
     tasks,
     timetable,
@@ -359,6 +365,10 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   const [storeEditorOpen, setStoreEditorOpen] = useState(false);
   const [scheduleImporterOpen, setScheduleImporterOpen] = useState(false);
   const [showSchoolQuestTip, setShowSchoolQuestTip] = useState(false);
+
+  // Duplicate modal state
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [duplicatingItem, setDuplicatingItem] = useState<{ type: 'task' | 'reward'; item: any } | null>(null);
   
   const [editingBalance, setEditingBalance] = useState(false);
   const [localBalance, setLocalBalance] = useState(totalBalance);
@@ -496,7 +506,69 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     } catch {
       toast.error('שגיאה בעדכון');
     } finally {
-      setSavingBagPrepCredits(false);
+    setSavingBagPrepCredits(false);
+    }
+  };
+
+  // Duplicate task to other children
+  const handleDuplicateTask = (task: Task) => {
+    setDuplicatingItem({ type: 'task', item: task });
+    setDuplicateModalOpen(true);
+  };
+
+  // Duplicate reward to other children  
+  const handleDuplicateReward = (reward: StoreReward) => {
+    setDuplicatingItem({ type: 'reward', item: reward });
+    setDuplicateModalOpen(true);
+  };
+
+  // Execute the duplication
+  const handleDuplicateToChildren = async (targetChildIds: string[]) => {
+    if (!duplicatingItem || !familyId) return;
+
+    try {
+      if (duplicatingItem.type === 'task') {
+        const task = duplicatingItem.item as Task;
+        // Insert tasks for each target child
+        const tasksToInsert = targetChildIds.map(targetChildId => ({
+          family_id: familyId,
+          assigned_to: targetChildId,
+          title: task.title,
+          time: task.time,
+          category: task.category,
+          credits: task.credits,
+          description: task.description || null,
+          icon: task.icon || null,
+          strategy_id: task.strategyId || null,
+          schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+        }));
+
+        const { error } = await supabase.from('tasks').insert(tasksToInsert);
+        if (error) throw error;
+
+        const count = targetChildIds.length;
+        toast.success(`המשימה "${task.title}" הועתקה ל-${count} ${count === 1 ? 'ילד' : 'ילדים'}!`);
+      } else {
+        const reward = duplicatingItem.item as StoreReward;
+        // Insert rewards for each target child
+        const rewardsToInsert = targetChildIds.map(targetChildId => ({
+          family_id: familyId,
+          assigned_to: targetChildId,
+          title: reward.title,
+          emoji: reward.icon,
+          price: reward.price,
+          claimed: false,
+        }));
+
+        const { error } = await supabase.from('store_rewards').insert(rewardsToInsert);
+        if (error) throw error;
+
+        const count = targetChildIds.length;
+        toast.success(`הפרס "${reward.title}" הועתק ל-${count} ${count === 1 ? 'ילד' : 'ילדים'}!`);
+      }
+    } catch (error) {
+      console.error('Error duplicating item:', error);
+      toast.error('שגיאה בהעתקה');
     }
   };
 
@@ -712,6 +784,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
             onAddTask={addTask}
             onUpdateTask={updateTask}
             onDeleteTask={deleteTask}
+            onDuplicateTask={handleDuplicateTask}
+            showDuplicateButton={familyChildren.length > 1}
           />
         )}
 
@@ -781,22 +855,41 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {storeRewards.map((reward) => (
-                  <button
+                  <div
                     key={reward.id}
-                    onClick={() => setStoreEditorOpen(true)}
                     className={cn(
-                      "p-3 rounded-xl bg-card border border-border flex flex-col items-center gap-2 text-center transition-all",
-                      "hover:border-primary/50 hover:shadow-md cursor-pointer active:scale-95",
+                      "relative p-3 rounded-xl bg-card border border-border flex flex-col items-center gap-2 text-center transition-all",
+                      "hover:border-primary/50 hover:shadow-md",
                       reward.claimed && "opacity-60"
                     )}
                   >
-                    <span className="text-2xl">{reward.icon}</span>
-                    <span className="text-sm font-medium text-foreground line-clamp-2">{reward.title}</span>
-                    <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
-                    {reward.claimed && (
-                      <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">נמכר</span>
+                    {/* Copy button - only show if there are other children */}
+                    {familyChildren.length > 1 && !reward.claimed && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicateReward(reward);
+                        }}
+                        className="absolute top-1 left-1 w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        title="העתק לילד אחר"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </Button>
                     )}
-                  </button>
+                    <button
+                      onClick={() => setStoreEditorOpen(true)}
+                      className="flex flex-col items-center gap-2 w-full"
+                    >
+                      <span className="text-2xl">{reward.icon}</span>
+                      <span className="text-sm font-medium text-foreground line-clamp-2">{reward.title}</span>
+                      <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
+                      {reward.claimed && (
+                        <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">נמכר</span>
+                      )}
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -835,6 +928,22 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
         onClose={() => setStoreEditorOpen(false)}
         dailyGoal={dailyGoal}
       />
+
+      {/* Duplicate Modal */}
+      <DuplicateToChildModal
+        open={duplicateModalOpen}
+        onClose={() => {
+          setDuplicateModalOpen(false);
+          setDuplicatingItem(null);
+        }}
+        children={familyChildren.map(c => ({ id: c.id, displayName: c.displayName }))}
+        currentChildId={childId}
+        itemType={duplicatingItem?.type || 'task'}
+        itemTitle={duplicatingItem?.type === 'task' 
+          ? (duplicatingItem.item as Task).title 
+          : (duplicatingItem?.item as StoreReward)?.title || ''}
+        onDuplicate={handleDuplicateToChildren}
+      />
     </div>
   );
 }
@@ -852,11 +961,15 @@ function ChildTasksEditor({
   onAddTask,
   onUpdateTask,
   onDeleteTask,
+  onDuplicateTask,
+  showDuplicateButton = false,
 }: {
   tasks: Task[];
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
+  onDuplicateTask?: (task: Task) => void;
+  showDuplicateButton?: boolean;
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -1109,6 +1222,18 @@ function ChildTasksEditor({
                       {task.time} • {task.credits} קרדיטים • {categoryOptions.find(c => c.value === task.category)?.label || task.category}
                     </p>
                   </div>
+                  {/* Copy/Duplicate button */}
+                  {showDuplicateButton && onDuplicateTask && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => onDuplicateTask(task)}
+                      className="text-muted-foreground hover:text-primary hover:bg-primary/10 touch-target"
+                      title="העתק לילד אחר"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Button
                     size="icon"
                     variant="ghost"
