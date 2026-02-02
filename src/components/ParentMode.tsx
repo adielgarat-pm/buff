@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
+import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { ScrollArea } from './ui/scroll-area';
@@ -13,6 +14,7 @@ import { Trash2, Plus, Save, X, Book, CalendarCheck, Sparkles, Home, Zap, Calend
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
+import { DayScheduleToggles } from './DayScheduleToggles';
 import { useFamilyMembers, FamilyMember } from '@/hooks/useFamilyMembers';
 import { useChildProgress, useChildData } from '@/hooks/useChildProgress';
 import { cn } from '@/lib/utils';
@@ -573,9 +575,11 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
-    category: 'nutrition' as TaskCategory,
+    category: 'self-care' as TaskCategory,
     credits: 10,
     strategyId: '' as string,
+    description: '',
+    scheduleDays: [0, 1, 2, 3, 4] as number[], // Sun-Thu default
   });
 
   // Initialize child data on mount
@@ -586,11 +590,17 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
   const handleAddTask = () => {
     if (newTask.title.trim()) {
       const taskToAdd = {
-        ...newTask,
+        title: newTask.title,
+        time: newTask.time,
+        category: newTask.category,
+        credits: newTask.credits,
         strategyId: newTask.strategyId || undefined,
+        description: newTask.description || undefined,
+        scheduleDays: newTask.scheduleDays,
+        assignedTo: child.id,
       };
       addTask(taskToAdd);
-      setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, strategyId: '' });
+      setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, strategyId: '', description: '', scheduleDays: [0, 1, 2, 3, 4] });
       setShowAddForm(false);
     }
   };
@@ -747,8 +757,27 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
                 </Select>
               </div>
               <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Schedule Days</Label>
+                <DayScheduleToggles
+                  selectedDays={newTask.scheduleDays}
+                  onChange={(days) => setNewTask({ ...newTask, scheduleDays: days })}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">
+                  Additional details or gear (optional)
+                </Label>
+                <Textarea
+                  placeholder="e.g. Bring art folder, Don't forget water bottle"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  className="bg-background border-border text-foreground min-h-[60px] resize-none"
+                  rows={2}
+                />
+              </div>
+              <div>
                 <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-yellow-500" />
+                  <Zap className="w-3 h-3 text-buff" />
                   Daily Buff
                 </Label>
                 <Select
@@ -1091,8 +1120,27 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
           />
         </div>
         <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Schedule Days</Label>
+          <DayScheduleToggles
+            selectedDays={editedTask.scheduleDays || [0, 1, 2, 3, 4]}
+            onChange={(days) => setEditedTask({ ...editedTask, scheduleDays: days })}
+          />
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">
+            Notes (optional)
+          </Label>
+          <Textarea
+            placeholder="Additional details or gear"
+            value={editedTask.description || ''}
+            onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+            className="bg-background border-border text-foreground min-h-[50px] resize-none text-sm"
+            rows={2}
+          />
+        </div>
+        <div>
           <Label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1">
-            <Zap className="w-3 h-3 text-yellow-500" />
+            <Zap className="w-3 h-3 text-buff" />
             Daily Buff
           </Label>
           <Select
@@ -1134,22 +1182,43 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
     );
   }
 
+  // Format schedule days for display
+  const formatScheduleDays = (days: number[]) => {
+    const dayLabels = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+    return days.map(d => dayLabels[d]).join('');
+  };
+
+  const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4];
+  const isDefaultSchedule = JSON.stringify(scheduleDays.sort()) === JSON.stringify([0, 1, 2, 3, 4]);
+
   return (
     <div
       className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border hover:border-primary/30 cursor-pointer transition-colors"
       onClick={onEdit}
     >
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="font-medium text-foreground text-sm">{task.title}</p>
+          <p className="font-medium text-foreground text-sm truncate">{task.title}</p>
           {strategy && (
-            <span className="text-xs bg-yellow-500/20 text-yellow-500 px-1.5 py-0.5 rounded flex items-center gap-1">
+            <span className="text-xs bg-buff/20 text-buff px-1.5 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
               <Zap className="w-3 h-3" />
               {strategy.icon}
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">{task.time} • {task.credits} credits</p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+          <span>{task.time} • {task.credits} credits</span>
+          {!isDefaultSchedule && (
+            <span className="bg-secondary px-1.5 py-0.5 rounded text-[10px]">
+              {formatScheduleDays(scheduleDays)}
+            </span>
+          )}
+        </div>
+        {task.description && (
+          <p className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">
+            📝 {task.description}
+          </p>
+        )}
       </div>
       <Button
         size="icon"

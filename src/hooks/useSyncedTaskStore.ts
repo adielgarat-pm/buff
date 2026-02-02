@@ -223,6 +223,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         completed: completedTaskIds.has(t.id),
         assignedTo: t.assigned_to || undefined,
         strategyId: t.strategy_id || undefined,
+        scheduleDays: t.schedule_days || [0, 1, 2, 3, 4],
       }));
 
       setTasks(mappedTasks);
@@ -759,6 +760,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         description: updates.description,
         icon: updates.icon,
         strategy_id: updates.strategyId || null,
+        schedule_days: updates.scheduleDays || [0, 1, 2, 3, 4],
       })
       .eq('id', taskId);
   }, [familyId]);
@@ -778,6 +780,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         description: task.description,
         icon: task.icon,
         strategy_id: task.strategyId || null,
+        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+        assigned_to: task.assignedTo || null,
       })
       .select()
       .single();
@@ -792,6 +796,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         description: data.description || undefined,
         completed: false,
         strategyId: data.strategy_id || undefined,
+        scheduleDays: data.schedule_days || [0, 1, 2, 3, 4],
+        assignedTo: data.assigned_to || undefined,
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId]);

@@ -46,10 +46,20 @@ export function PhaseView({
   const phaseConfig = getPhaseConfig(phase);
   
   // Filter tasks by phase using smart logic that considers actual school end time
+  // Also filter by the current day of the week
   const phaseTasks = useMemo(() => {
-    return tasks.filter(task => 
-      getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay && schoolQuestEnabled) === phase
-    );
+    const currentDayOfWeek = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+    
+    return tasks.filter(task => {
+      // Check if task is scheduled for today
+      const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4]; // Default Sun-Thu
+      if (!scheduleDays.includes(currentDayOfWeek)) {
+        return false;
+      }
+      
+      // Check if task belongs to this phase
+      return getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay && schoolQuestEnabled) === phase;
+    });
   }, [tasks, phase, schoolEndTime, isSchoolDay, schoolQuestEnabled]);
   
   // Get the next incomplete task for focus mode
