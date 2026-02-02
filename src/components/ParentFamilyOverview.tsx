@@ -13,6 +13,7 @@ import { NewDayBanner } from './NewDayBanner';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
+import { BuffBoostCard } from './BuffBoostCard';
 
 interface ParentFamilyOverviewProps {
   onSelectChild: (childId: string) => void;
@@ -104,6 +105,9 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
           onContinueSetup={onStartOnboarding}
         />
       )}
+
+       {/* BuffBoost Community Support Card */}
+       <BuffBoostCard />
       
       {/* Header with Info Button */}
       <div className="flex items-start justify-between">
