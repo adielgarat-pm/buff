@@ -36,6 +36,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
+import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -47,6 +48,7 @@ import { StoreRewardEditor } from './StoreRewardEditor';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { JoinFamilySection } from './JoinFamilySection';
 import { ParentHelpSection } from './ParentHelpSection';
+import { DayScheduleToggles } from './DayScheduleToggles';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildData } from '@/hooks/useChildProgress';
 import { useMarketingConsent } from '@/hooks/useMarketingConsent';
@@ -863,12 +865,16 @@ function ChildTasksEditor({
     time: '12:00',
     category: 'self-care' as TaskCategory,
     credits: 10,
+    description: '',
+    scheduleDays: [0, 1, 2, 3, 4] as number[],
   });
   const [newTask, setNewTask] = useState({
     title: '',
     time: '12:00',
     category: 'self-care' as TaskCategory,
     credits: 10,
+    description: '',
+    scheduleDays: [0, 1, 2, 3, 4] as number[],
   });
 
   // Sort tasks chronologically by time for the management view only
@@ -890,8 +896,10 @@ function ChildTasksEditor({
       time: newTask.time,
       category: newTask.category,
       credits: newTask.credits,
+      description: newTask.description || undefined,
+      scheduleDays: newTask.scheduleDays,
     });
-    setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10 });
+    setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, description: '', scheduleDays: [0, 1, 2, 3, 4] });
     setShowAddForm(false);
   };
 
@@ -902,6 +910,8 @@ function ChildTasksEditor({
       time: task.time,
       category: task.category,
       credits: task.credits,
+      description: task.description || '',
+      scheduleDays: task.scheduleDays || [0, 1, 2, 3, 4],
     });
   };
 
@@ -912,6 +922,8 @@ function ChildTasksEditor({
       time: editForm.time,
       category: editForm.category,
       credits: editForm.credits,
+      description: editForm.description || undefined,
+      scheduleDays: editForm.scheduleDays,
     });
     setEditingTaskId(null);
   };
@@ -975,6 +987,27 @@ function ChildTasksEditor({
               ))}
             </SelectContent>
           </Select>
+          
+          {/* Day Schedule Toggles */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">ימים פעילים</Label>
+            <DayScheduleToggles
+              selectedDays={newTask.scheduleDays}
+              onChange={(days) => setNewTask({ ...newTask, scheduleDays: days })}
+            />
+          </div>
+          
+          {/* Notes Field */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">פרטים נוספים או ציוד (אופציונלי)</Label>
+            <Textarea
+              placeholder="למשל: להביא תיקיית אומנות, לא לשכוח בקבוק מים..."
+              value={newTask.description}
+              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+              className="bg-background min-h-[60px] text-sm resize-none"
+            />
+          </div>
+          
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAddTask} className="flex-1 touch-target">
               <Save className="w-4 h-4 ml-1" />
@@ -1035,6 +1068,27 @@ function ChildTasksEditor({
                       ))}
                     </SelectContent>
                   </Select>
+                  
+                  {/* Day Schedule Toggles */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">ימים פעילים</Label>
+                    <DayScheduleToggles
+                      selectedDays={editForm.scheduleDays}
+                      onChange={(days) => setEditForm({ ...editForm, scheduleDays: days })}
+                    />
+                  </div>
+                  
+                  {/* Notes Field */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">פרטים נוספים או ציוד (אופציונלי)</Label>
+                    <Textarea
+                      placeholder="למשל: להביא תיקיית אומנות, לא לשכוח בקבוק מים..."
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                      className="bg-background min-h-[60px] text-sm resize-none"
+                    />
+                  </div>
+                  
                   <div className="flex gap-2">
                     <Button size="sm" onClick={handleSaveEdit} className="flex-1 touch-target">
                       <Check className="w-4 h-4 ml-1" />
