@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { User, Users, Check, Loader2 } from 'lucide-react';
@@ -33,6 +33,13 @@ export function DuplicateToChildModal({
 
   // Filter out the current child
   const otherChildren = children.filter(c => c.id !== currentChildId);
+
+  // Auto-select if there's only one other child
+  useEffect(() => {
+    if (open && otherChildren.length === 1) {
+      setSelectedChildIds([otherChildren[0].id]);
+    }
+  }, [open, otherChildren.length]);
 
   const handleToggleChild = (childId: string) => {
     setSelectedChildIds(prev => 
