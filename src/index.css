@@ -107,92 +107,104 @@
 
   /* ========================================
      PARENT ZEN THEME
-     Soft Light with Professional Accents
+     Soft Pastel with Warm, Calm Aesthetic
      ======================================== */
   .theme-parent-zen {
-    /* Soft Slate Background - #F8FAFC */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* Warm Off-White Background - #FAFAF9 */
+    --background: 40 20% 98%;
+    /* Dark Grey Text (not pure black) - #374151 */
+    --foreground: 220 13% 26%;
 
     /* Clean White Cards */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 13% 26%;
 
+    /* White Popovers/Modals */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 13% 26%;
 
-    /* Professional Indigo - Primary - #4F46E5 */
-    --primary: 239 84% 59%;
+    /* Soft Pastel Purple - Primary - #A78BFA */
+    --primary: 258 73% 76%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Light Grey Secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 26%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Soft Muted */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    /* Sage Green - Accent - #10B981 */
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
+    /* Soft Mint/Teal - Accent - #6EE7B7 */
+    --accent: 156 64% 67%;
+    --accent-foreground: 220 13% 18%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Sage Green - Success states */
-    --success: 160 84% 39%;
-    --success-foreground: 0 0% 100%;
+    /* Soft Mint - Success states - #6EE7B7 */
+    --success: 156 64% 67%;
+    --success-foreground: 220 13% 18%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
+    --warning: 38 70% 60%;
+    --warning-foreground: 220 13% 18%;
 
-    /* Sage Green for buffs */
-    --buff: 160 84% 39%;
-    --buff-foreground: 0 0% 100%;
+    /* Soft Mint for buffs */
+    --buff: 156 64% 67%;
+    --buff-foreground: 220 13% 18%;
 
-    /* Warm Orange for streaks */
-    --streak: 24 95% 53%;
-    --streak-foreground: 0 0% 100%;
+    /* Soft Coral for streaks - #FCA5A5 */
+    --streak: 0 91% 82%;
+    --streak-foreground: 220 13% 18%;
 
-    /* Professional Indigo for rewards */
-    --reward: 239 84% 59%;
+    /* Soft Pastel Purple for rewards */
+    --reward: 258 73% 76%;
     --reward-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 239 84% 59%;
+    /* Soft Borders */
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 258 73% 76%;
 
     --radius: 0.75rem;
 
-    /* Category colors - Professional */
-    --medication: 280 60% 50%;
-    --hygiene: 200 80% 45%;
-    --nutrition: 160 84% 39%;
-    --school: 38 80% 50%;
+    /* Category colors - Soft Pastels */
+    --medication: 280 45% 70%;
+    --hygiene: 200 55% 70%;
+    --nutrition: 156 50% 60%;
+    --school: 38 60% 65%;
 
-    /* ZEN Gradients - Subtle and Professional */
-    --gradient-primary: linear-gradient(135deg, hsl(239, 84%, 59%), hsl(239, 84%, 50%));
-    --gradient-success: linear-gradient(135deg, hsl(160, 84%, 39%), hsl(160, 84%, 32%));
-    --gradient-xp: linear-gradient(90deg, hsl(160, 84%, 35%), hsl(160, 84%, 39%), hsl(160, 84%, 45%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(210, 40%, 98%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(239, 84%, 59%, 0.05), transparent 50%);
-    --gradient-buff: linear-gradient(135deg, hsl(160, 84%, 39%), hsl(160, 84%, 32%));
-    --gradient-reward: linear-gradient(135deg, hsl(239, 84%, 59%), hsl(239, 84%, 50%));
+    /* Category colors - 5-Category System (Soft Pastels) */
+    --learning: 217 60% 70%;        /* Soft Blue */
+    --organization: 25 70% 70%;     /* Soft Orange */
+    --self-care: 330 50% 75%;       /* Soft Pink */
+    --responsibility: 258 50% 75%;  /* Soft Purple */
+    --movement: 156 50% 60%;        /* Soft Green */
 
-    /* ZEN Shadows - Subtle and Clean */
-    --shadow-glow: 0 4px 12px hsl(239, 84%, 59%, 0.1);
-    --shadow-buff-glow: 0 4px 16px hsl(160, 84%, 39%, 0.15);
-    --shadow-buff-glow-intense: 0 8px 24px hsl(160, 84%, 39%, 0.2);
-    --shadow-reward-glow: 0 4px 12px hsl(239, 84%, 59%, 0.15);
-    --shadow-card: 0 1px 3px hsl(0, 0%, 0%, 0.08), 0 4px 12px hsl(0, 0%, 0%, 0.05);
+    /* ZEN Gradients - Very Subtle and Soft */
+    --gradient-primary: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+    --gradient-success: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 60%), hsl(156, 64%, 67%), hsl(156, 70%, 72%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(40, 20%, 98%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.08), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+
+    /* ZEN Shadows - Very Soft */
+    --shadow-glow: 0 2px 8px hsl(258, 73%, 76%, 0.12);
+    --shadow-buff-glow: 0 2px 10px hsl(156, 64%, 67%, 0.15);
+    --shadow-buff-glow-intense: 0 4px 16px hsl(156, 64%, 67%, 0.2);
+    --shadow-reward-glow: 0 2px 8px hsl(258, 73%, 76%, 0.15);
+    --shadow-card: 0 1px 3px hsl(220, 13%, 26%, 0.04), 0 2px 8px hsl(220, 13%, 26%, 0.06);
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 239 84% 59%;
+    --sidebar-foreground: 220 13% 26%;
+    --sidebar-primary: 258 73% 76%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 239 84% 59%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 13% 26%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 258 73% 76%;
   }
 }
 
