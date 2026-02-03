@@ -32,6 +32,7 @@ import {
   Mail,
   LogOut,
   Copy,
+  Info,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -41,6 +42,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { Calendar as CalendarComponent } from './ui/calendar';
 import { BirthDatePicker } from './BirthDatePicker';
 import { TimetableEditor } from './TimetableEditor';
@@ -513,6 +515,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     schoolQuestEnabled,
     bagPrepEnabled,
     bagPrepCredits,
+    dailyWinReward,
     birthDate,
     loading,
     addTask,
@@ -525,6 +528,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     toggleSchoolQuestEnabled,
     toggleBagPrepEnabled,
     updateBagPrepCredits,
+    updateDailyWinReward,
     updateBirthDate,
     initializeChildData,
   } = useChildData(childId);
@@ -554,9 +558,13 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   const [localBagPrepCredits, setLocalBagPrepCredits] = useState(bagPrepCredits);
   const [savingBagPrepCredits, setSavingBagPrepCredits] = useState(false);
 
+  const [localDailyWinReward, setLocalDailyWinReward] = useState(dailyWinReward);
+  const [savingDailyWinReward, setSavingDailyWinReward] = useState(false);
+
   const dailyGoalSchema = z.coerce.number().int().min(10).max(1000);
   const balanceSchema = z.coerce.number().int().min(0).max(1_000_000);
   const bagPrepCreditsSchema = z.coerce.number().int().min(5).max(100);
+  const dailyWinRewardSchema = z.coerce.number().int().min(5).max(100);
 
   useEffect(() => {
     setLocalBalance(totalBalance);
@@ -573,6 +581,10 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   useEffect(() => {
     setLocalBagPrepCredits(bagPrepCredits);
   }, [bagPrepCredits]);
+
+  useEffect(() => {
+    setLocalDailyWinReward(dailyWinReward);
+  }, [dailyWinReward]);
 
   useEffect(() => {
     initializeChildData();
@@ -676,6 +688,24 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
       toast.error('שגיאה בעדכון');
     } finally {
     setSavingBagPrepCredits(false);
+    }
+  };
+
+  const handleSaveDailyWinReward = async () => {
+    const parsed = dailyWinRewardSchema.safeParse(localDailyWinReward);
+    if (!parsed.success) {
+      toast.error('אנא הזן כמות תקינה (5 עד 100)');
+      return;
+    }
+
+    setSavingDailyWinReward(true);
+    try {
+      await updateDailyWinReward(parsed.data);
+      toast.success('בונוס יום מוצלח עודכן!');
+    } catch {
+      toast.error('שגיאה בעדכון');
+    } finally {
+      setSavingDailyWinReward(false);
     }
   };
 
@@ -922,6 +952,52 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
             </div>
           </div>
         )}
+      </div>
+
+      {/* Daily Win Reward - Purple themed */}
+      <div className="rounded-lg bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20 overflow-hidden">
+        <div className="flex items-center justify-between p-2.5">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-violet-500" />
+            <div className="flex items-center gap-1.5">
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-foreground">בונוס יום מוצלח</span>
+                <span className="text-[10px] text-muted-foreground">נקודות כשמגיעים ל-70% מהיעד</span>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                      <Info className="w-3.5 h-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px] text-center">
+                    <p className="text-xs">זהו מספר נקודות ה-Buff שמוענקות לילד כשהוא מגיע ליעד 70% ההצלחה היומי</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              value={localDailyWinReward}
+              onChange={(e) => setLocalDailyWinReward(Number(e.target.value))}
+              className="w-14 h-7 bg-background border-violet-500/30 text-center text-xs"
+              min={5}
+              max={100}
+              dir="ltr"
+            />
+            <Button
+              size="sm"
+              className="h-7 px-2 bg-violet-500 hover:bg-violet-600 text-white"
+              onClick={handleSaveDailyWinReward}
+              disabled={savingDailyWinReward || localDailyWinReward === dailyWinReward}
+            >
+              {savingDailyWinReward ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Section Tabs */}

@@ -65,8 +65,8 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
     hasTimetable,
   });
 
-  const handleAwardBonus = async (childId: string, childName: string) => {
-    const success = await awardCleanDayBonus(childId, childName);
+  const handleAwardBonus = async (childId: string, childName: string, bonusAmount: number) => {
+    const success = await awardCleanDayBonus(childId, childName, bonusAmount);
     if (success) {
       refetch(); // Refresh progress data to show updated balance
     }
@@ -160,6 +160,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
             const bonusAwarded = wasBonusAwardedToday(child.id);
             const isAwarding = awarding === child.id;
             const hasNoTasks = progress && progress.tasksTotal === 0;
+            const dailyWinReward = progress?.dailyWinReward ?? 20;
 
             return (
               <div
@@ -229,13 +230,13 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
 
                       {/* Clean Day Bonus Button - Prominent */}
                       <Button
-                        onClick={() => handleAwardBonus(child.id, child.displayName)}
+                        onClick={() => handleAwardBonus(child.id, child.displayName, dailyWinReward)}
                         disabled={bonusAwarded || isAwarding}
                         className={cn(
                           "w-full h-12 text-base font-semibold transition-all touch-target",
                           bonusAwarded
                             ? "bg-secondary text-muted-foreground border border-border"
-                            : "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-glow hover:shadow-lg"
+                            : "bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-glow hover:shadow-lg"
                         )}
                       >
                         {isAwarding ? (
@@ -251,7 +252,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                         ) : (
                           <>
                             <Sparkles className="w-5 h-5 mr-2" />
-                            🌟 יום מוצלח במיוחד! (+20)
+                            🌟 יום מוצלח במיוחד! (+{dailyWinReward})
                           </>
                         )}
                       </Button>

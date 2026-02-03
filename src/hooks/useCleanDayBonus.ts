@@ -9,12 +9,12 @@ export function useCleanDayBonus() {
   const { familyId } = useAuth();
   const [awarding, setAwarding] = useState<string | null>(null);
 
-  const awardCleanDayBonus = useCallback(async (childId: string, childName: string) => {
+  const awardCleanDayBonus = useCallback(async (childId: string, childName: string, customBonusAmount?: number) => {
     if (!familyId) return false;
 
     setAwarding(childId);
     const todayKey = getTodayKey();
-    const bonusCredits = 20;
+    const bonusCredits = customBonusAmount ?? 20;
 
     try {
       // Check if bonus was already awarded today

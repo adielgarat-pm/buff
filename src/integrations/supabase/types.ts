@@ -269,6 +269,7 @@ export type Database = {
           buff_boost_supported: boolean
           created_at: string
           daily_goal: number
+          daily_win_reward: number
           display_name: string
           family_id: string | null
           id: string
@@ -288,6 +289,7 @@ export type Database = {
           buff_boost_supported?: boolean
           created_at?: string
           daily_goal?: number
+          daily_win_reward?: number
           display_name: string
           family_id?: string | null
           id?: string
@@ -307,6 +309,7 @@ export type Database = {
           buff_boost_supported?: boolean
           created_at?: string
           daily_goal?: number
+          daily_win_reward?: number
           display_name?: string
           family_id?: string | null
           id?: string
