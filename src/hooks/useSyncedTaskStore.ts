@@ -490,6 +490,24 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `family_id=eq.${familyId}` },
+        (payload: RealtimePostgresChangesPayload<{ id: string; avatar: string | null; display_name: string }>) => {
+          if (payload.new && 'id' in payload.new) {
+            const newData = payload.new as { id: string; avatar: string | null; display_name: string };
+            // Update avatar if viewing this specific child
+            if (targetChildId && newData.id === targetChildId) {
+              setChildAvatar(newData.avatar || '🚀');
+              setChildDisplayName(newData.display_name);
+            }
+            // For parents not viewing as child, trigger a refetch to update overview
+            if (isParent && !targetChildId) {
+              fetchFamilyData();
+            }
+          }
+        }
+      )
       .subscribe();
 
     return () => {
