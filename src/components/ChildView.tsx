@@ -210,7 +210,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           onSignOut={signOut}
           userName={profile?.display_name}
           childAvatar={childAvatar}
-          onChangeAvatar={!isViewingAsChild ? updateChildAvatar : undefined}
+          onChangeAvatar={updateChildAvatar}
         />
         
         <div className="tab-content">
