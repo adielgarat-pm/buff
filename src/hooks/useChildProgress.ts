@@ -546,18 +546,20 @@ export function useChildData(childId: string | null) {
     setBirthDate(date);
   }, [childId]);
 
-  // Update child's avatar
+  // Update child's avatar (via secure RPC - works for children with user_id too)
   const updateAvatar = useCallback(async (newAvatar: string) => {
     if (!childId) throw new Error('Missing childId');
 
-    setAvatar(newAvatar);
+    // Use secure RPC (parents can update any child in their family)
+    const { error } = await supabase.rpc('update_child_profile_settings', {
+      p_child_id: childId,
+      p_avatar: newAvatar,
+    });
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ avatar: newAvatar })
-      .eq('id', childId);
-    
     if (error) throw error;
+
+    // Only update local state after backend success
+    setAvatar(newAvatar);
   }, [childId]);
 
   // Update child's credit balance
