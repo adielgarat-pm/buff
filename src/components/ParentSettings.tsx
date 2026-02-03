@@ -290,7 +290,7 @@ export function ParentSettings({
   );
 }
 
-// Child Management Card - Compact with Edit/Delete Options
+// Child Management Card - Compact with Delete Option
 function ChildManagementCard({ 
   childId, 
   childName,
@@ -304,9 +304,6 @@ function ChildManagementCard({
 }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(childName);
-  const [saving, setSaving] = useState(false);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -333,41 +330,6 @@ function ChildManagementCard({
     } finally {
       setDeleting(false);
     }
-  };
-
-  const handleSaveName = async () => {
-    const trimmedName = editedName.trim();
-    if (!trimmedName) {
-      toast.error('שם לא יכול להיות ריק');
-      return;
-    }
-    if (trimmedName === childName) {
-      setIsEditing(false);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ display_name: trimmedName })
-        .eq('id', childId);
-
-      if (error) throw error;
-
-      toast.success('השם עודכן בהצלחה');
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating name:', error);
-      toast.error('שגיאה בעדכון השם');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditedName(childName);
-    setIsEditing(false);
   };
 
   return (
@@ -421,81 +383,29 @@ function ChildManagementCard({
       <div className="w-full rounded-xl bg-card border border-border p-2.5 hover:border-primary/50 transition-colors">
         <div className="flex items-center gap-2.5">
           <button
-            onClick={isEditing ? undefined : onSelect}
-            className={cn(
-              "flex items-center gap-2.5 flex-1 text-right",
-              isEditing && "pointer-events-none"
-            )}
+            onClick={onSelect}
+            className="flex items-center gap-2.5 flex-1 text-right"
           >
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
               <User className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1 text-right">
-              {isEditing ? (
-                <Input
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  className="h-7 text-sm"
-                  autoFocus
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveName();
-                    if (e.key === 'Escape') handleCancelEdit();
-                  }}
-                />
-              ) : (
-                <>
-                  <p className="text-sm font-semibold text-foreground">{childName}</p>
-                  <p className="text-xs text-muted-foreground">הגדרות Buff</p>
-                </>
-              )}
+              <p className="text-sm font-semibold text-foreground">{childName}</p>
+              <p className="text-xs text-muted-foreground">הגדרות Buff</p>
             </div>
           </button>
           
-          {isEditing ? (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSaveName}
-                disabled={saving}
-                className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCancelEdit}
-                disabled={saving}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsEditing(true)}
-                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-              <button onClick={onSelect}>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+          <button onClick={onSelect}>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
         </div>
       </div>
     </>
