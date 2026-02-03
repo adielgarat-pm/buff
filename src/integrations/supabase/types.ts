@@ -269,7 +269,6 @@ export type Database = {
           buff_boost_supported: boolean
           created_at: string
           daily_goal: number
-          daily_win_reward: number
           display_name: string
           family_id: string | null
           id: string
@@ -289,7 +288,6 @@ export type Database = {
           buff_boost_supported?: boolean
           created_at?: string
           daily_goal?: number
-          daily_win_reward?: number
           display_name: string
           family_id?: string | null
           id?: string
@@ -309,7 +307,6 @@ export type Database = {
           buff_boost_supported?: boolean
           created_at?: string
           daily_goal?: number
-          daily_win_reward?: number
           display_name?: string
           family_id?: string | null
           id?: string
@@ -554,7 +551,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      delete_child_profile: { Args: { p_child_id: string }; Returns: Json }
       generate_family_short_code: { Args: never; Returns: string }
       get_admin_app_pulse: { Args: never; Returns: Json }
       get_admin_families_overview: {

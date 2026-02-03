@@ -180,7 +180,6 @@ export function ParentView() {
             onBackFromChild={() => setSelectedChildIdForSettings(null)}
             onSelectChild={handleSelectChildForSettings}
             onSignOut={signOut}
-            onAddChild={() => setOnboardingOpen(true)}
           />
         );
       
