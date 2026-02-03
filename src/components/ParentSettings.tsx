@@ -142,23 +142,6 @@ export function ParentSettings({
               </div>
             </div>
 
-            {/* App Title */}
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground whitespace-nowrap">שם האפליקציה</Label>
-              <div className="flex gap-2 flex-1">
-                <Input
-                  type="text"
-                  value={localTitle}
-                  onChange={(e) => setLocalTitle(e.target.value)}
-                  placeholder="Buff"
-                  className="flex-1 h-8 text-sm bg-background border-border"
-                  dir="ltr"
-                />
-                <Button size="sm" onClick={handleSaveTitle} className="h-8 px-2 bg-primary text-primary-foreground">
-                  <Save className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            </div>
 
             {/* Toggles */}
             <div className="space-y-1.5 pt-1">
