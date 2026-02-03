@@ -74,6 +74,7 @@ interface ParentSettingsProps {
   onBackFromChild?: () => void;
   onSelectChild?: (childId: string) => void;
   onSignOut?: () => void;
+  onAddChild?: () => void;
 }
 
 export function ParentSettings({
@@ -87,6 +88,7 @@ export function ParentSettings({
   onBackFromChild,
   onSelectChild,
   onSignOut,
+  onAddChild,
 }: ParentSettingsProps) {
   const { children, loading: membersLoading } = useFamilyMembers();
   const { marketingConsent, saving: savingConsent, updateConsent } = useMarketingConsent();
@@ -199,9 +201,22 @@ export function ParentSettings({
 
           {/* Children Management Section */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <User className="w-3.5 h-3.5 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">ניהול ילדים</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">ניהול ילדים</h2>
+              </div>
+              {onAddChild && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAddChild}
+                  className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                >
+                  <Plus className="w-4 h-4 ml-1" />
+                  הוספת ילד
+                </Button>
+              )}
             </div>
 
             {membersLoading ? (
@@ -209,9 +224,18 @@ export function ParentSettings({
                 <Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" />
               </div>
             ) : children.length === 0 ? (
-              <div className="rounded-xl bg-card border border-border p-4 text-center space-y-1">
+              <div className="rounded-xl bg-card border border-border p-4 text-center space-y-3">
                 <User className="w-8 h-8 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">עדיין לא הצטרפו ילדים</p>
+                {onAddChild && (
+                  <Button
+                    onClick={onAddChild}
+                    className="bg-primary text-primary-foreground"
+                  >
+                    <Plus className="w-4 h-4 ml-2" />
+                    הוספת ילד ראשון
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
