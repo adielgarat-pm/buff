@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket, Copy, Check, Share2 } from 'lucide-react';
+import { Rocket, Copy, Check, Share2, ClipboardCopy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -13,10 +13,29 @@ interface Step6ParentTipProps {
   isLoading?: boolean;
 }
 
+/**
+ * Generate full connection instructions text
+ */
+function getConnectionInstructions(childName: string, familyCode: string): string {
+  const appUrl = 'https://buff.lovable.app';
+  return `🎮 היי ${childName}! הכל מוכן ב-BUFF!
+
+📱 איך להצטרף:
+1. היכנס/י לאפליקציה: ${appUrl}
+2. לחץ/י על "הרשמה"
+3. בחר/י "אני נער/ה"
+4. הזן/י את הקוד המשפחתי:
+
+🔑 ${familyCode}
+
+מחכים לך באפליקציה! 🚀`;
+}
+
 export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Step6ParentTipProps) {
   const { profile } = useAuth();
   const [familyCode, setFamilyCode] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [instructionsCopied, setInstructionsCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Fetch family code on mount
@@ -51,10 +70,30 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
     }
   };
 
+  // Copy full instructions as fallback
+  const handleCopyInstructions = async () => {
+    if (!familyCode) return;
+    
+    try {
+      const instructions = getConnectionInstructions(childName, familyCode);
+      await navigator.clipboard.writeText(instructions);
+      setInstructionsCopied(true);
+      toast.success('ההוראות הועתקו! 📋 עכשיו אפשר להדביק בוואטסאפ או בכל מקום אחר');
+      setTimeout(() => setInstructionsCopied(false), 3000);
+    } catch {
+      toast.error('לא הצלחנו להעתיק');
+    }
+  };
+
   const handleShareWhatsApp = () => {
-    const message = `היי! הכל מוכן ב-BUFF 🎮\n\nהקוד המשפחתי שלנו הוא: *${familyCode}*\n\nמחכה לך שם! 🚀`;
+    if (!familyCode) return;
+    
+    const message = getConnectionInstructions(childName, familyCode);
+    // Use wa.me with proper URL encoding - works on mobile Safari
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    
+    // Use window.location for better Safari compatibility instead of window.open
+    window.location.href = whatsappUrl;
   };
 
   const handleLaunch = () => {
@@ -108,10 +147,30 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
         {/* WhatsApp Share */}
         <button
           onClick={handleShareWhatsApp}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
+          disabled={!familyCode}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20 transition-colors active:scale-[0.98] disabled:opacity-50"
         >
           <Share2 className="w-4 h-4" />
-          <span className="text-sm font-medium">שלחו את הקוד והוראות ההתקנה בוואטסאפ</span>
+          <span className="text-sm font-medium">שלחו ל{childName} בוואטסאפ</span>
+        </button>
+
+        {/* Copy Instructions Fallback */}
+        <button
+          onClick={handleCopyInstructions}
+          disabled={!familyCode}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/50 border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors active:scale-[0.98] disabled:opacity-50"
+        >
+          {instructionsCopied ? (
+            <>
+              <Check className="w-4 h-4 text-success" />
+              <span className="text-sm">ההוראות הועתקו! ✓</span>
+            </>
+          ) : (
+            <>
+              <ClipboardCopy className="w-4 h-4" />
+              <span className="text-sm">העתק הוראות חיבור (אם וואטסאפ לא נפתח)</span>
+            </>
+          )}
         </button>
 
         {/* Instructions */}
