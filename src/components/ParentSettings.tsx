@@ -127,7 +127,12 @@ export function ParentSettings({
 
       {/* If child selected, show child config only */}
       {selectedChildId ? (
-        <ChildConfigPanel childId={selectedChildId} childName={children.find(c => c.id === selectedChildId)?.displayName || ''} fridayEnabled={fridayEnabled} />
+        <ChildConfigPanel 
+          childId={selectedChildId} 
+          childName={children.find(c => c.id === selectedChildId)?.displayName || ''} 
+          fridayEnabled={fridayEnabled}
+          onBackAfterDelete={onBackFromChild}
+        />
       ) : (
         <>
           {/* General Settings Card */}
@@ -235,6 +240,7 @@ export function ParentSettings({
                     key={child.id}
                     childId={child.id}
                     childName={child.displayName}
+                    avatar={child.avatar}
                     onSelect={() => onSelectChild?.(child.id)}
                   />
                 ))}
@@ -306,10 +312,12 @@ export function ParentSettings({
 function ChildManagementCard({ 
   childId, 
   childName,
+  avatar,
   onSelect 
 }: { 
   childId: string; 
   childName: string;
+  avatar?: string;
   onSelect: () => void;
 }) {
   return (
@@ -318,8 +326,8 @@ function ChildManagementCard({
       className="w-full rounded-xl bg-card border border-border p-2.5 hover:border-primary/50 transition-colors text-right"
     >
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-          <User className="w-4 h-4 text-primary" />
+        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+          {avatar || '🚀'}
         </div>
         <div className="flex-1 text-right">
           <p className="text-sm font-semibold text-foreground">{childName}</p>
@@ -332,9 +340,12 @@ function ChildManagementCard({
 }
 
 // Child Configuration Panel - Focus on Configuration
-function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: string; childName: string; fridayEnabled: boolean }) {
+// Avatar options for children
+const AVATAR_OPTIONS = ['🚀', '🦄', '🎮', '🎨', '⚽', '🦸', '🐉', '🌟', '🎵', '🦊'];
+
+function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete }: { childId: string; childName: string; fridayEnabled: boolean; onBackAfterDelete?: () => void }) {
   const { familyId } = useAuth();
-  const { children: familyChildren } = useFamilyMembers();
+  const { children: familyChildren, refetch: refetchMembers } = useFamilyMembers();
   const {
     tasks,
     timetable,
@@ -345,6 +356,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     bagPrepEnabled,
     bagPrepCredits,
     birthDate,
+    avatar,
     loading,
     addTask,
     updateTask,
@@ -357,6 +369,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
     toggleBagPrepEnabled,
     updateBagPrepCredits,
     updateBirthDate,
+    updateAvatar,
+    deleteChildProfile,
     initializeChildData,
   } = useChildData(childId);
 
@@ -365,6 +379,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   const [storeEditorOpen, setStoreEditorOpen] = useState(false);
   const [scheduleImporterOpen, setScheduleImporterOpen] = useState(false);
   const [showSchoolQuestTip, setShowSchoolQuestTip] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Duplicate modal state
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
@@ -408,6 +424,31 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
   useEffect(() => {
     initializeChildData();
   }, [initializeChildData]);
+
+  const handleDeleteChild = async () => {
+    setDeleting(true);
+    try {
+      await deleteChildProfile();
+      toast.success(`${childName} נמחק בהצלחה`);
+      setDeleteDialogOpen(false);
+      await refetchMembers();
+      onBackAfterDelete?.();
+    } catch (error) {
+      console.error('Error deleting child:', error);
+      toast.error('שגיאה במחיקת הילד');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleAvatarChange = async (newAvatar: string) => {
+    try {
+      await updateAvatar(newAvatar);
+      toast.success('האווטאר עודכן!');
+    } catch {
+      toast.error('שגיאה בעדכון האווטאר');
+    }
+  };
 
   if (loading) {
     return (
@@ -580,12 +621,35 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
 
   return (
     <div className="space-y-2.5">
-      {/* Child Name Header */}
+      {/* Child Name Header with Avatar */}
       <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
-        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-          <User className="w-4 h-4 text-primary" />
-        </div>
-        <div>
+        {/* Avatar Selector */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl hover:bg-primary/30 transition-colors cursor-pointer">
+              {avatar}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="start">
+            <div className="grid grid-cols-5 gap-1.5">
+              {AVATAR_OPTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleAvatarChange(emoji)}
+                  className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-colors",
+                    avatar === emoji 
+                      ? "bg-primary/20 ring-2 ring-primary" 
+                      : "hover:bg-secondary"
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <div className="flex-1">
           <p className="text-sm font-semibold text-foreground">{childName}</p>
           <p className="text-xs text-muted-foreground">הגדרות Buff אישיות</p>
         </div>
@@ -944,6 +1008,69 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
           : (duplicatingItem?.item as StoreReward)?.title || ''}
         onDuplicate={handleDuplicateToChildren}
       />
+
+      {/* Delete Child Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <div className="text-center space-y-4 py-4">
+            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6 text-destructive" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">מחיקת {childName}?</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                פעולה זו תמחק את כל המשימות, הנקודות והפרסים של הילד. לא ניתן לבטל פעולה זו.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={deleting}
+              >
+                ביטול
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleDeleteChild}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 ml-1" />
+                    מחק
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Child Section */}
+      <div className="rounded-xl bg-destructive/5 border border-destructive/20 p-3 mt-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Trash2 className="w-4 h-4 text-destructive" />
+            <div>
+              <p className="text-sm font-medium text-foreground">מחיקת ילד</p>
+              <p className="text-xs text-muted-foreground">מחיקת הפרופיל וכל הנתונים</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            מחק
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

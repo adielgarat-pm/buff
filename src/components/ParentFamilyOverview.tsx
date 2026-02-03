@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { User, Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info } from 'lucide-react';
+import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -170,8 +170,8 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                 <div className="p-4 space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                        <User className="w-7 h-7 text-primary" />
+                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-3xl">
+                        {child.avatar || '🚀'}
                       </div>
                       <div>
                         <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
