@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Button } from './ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -17,13 +16,13 @@ const AVATAR_OPTIONS = [
 interface ChildAvatarPickerProps {
   currentAvatar: string;
   onChangeAvatar: (newAvatar: string) => Promise<void>;
-  size?: 'sm' | 'md' | 'lg';
+  userName?: string;
 }
 
 export function ChildAvatarPicker({ 
   currentAvatar, 
   onChangeAvatar,
-  size = 'md' 
+  userName,
 }: ChildAvatarPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -47,62 +46,147 @@ export function ChildAvatarPicker({
     }
   };
 
-  const sizeClasses = {
-    sm: 'w-10 h-10 text-xl',
-    md: 'w-12 h-12 text-2xl',
-    lg: 'w-14 h-14 text-3xl',
-  };
+  // Default fallback: show first initial or hero icon
+  const displayAvatar = currentAvatar || (userName ? userName.charAt(0) : null);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "rounded-full bg-primary/20 flex items-center justify-center",
-            "hover:bg-primary/30 hover:scale-105 transition-all duration-200",
-            "ring-2 ring-primary/30 hover:ring-primary/50",
-            "focus:outline-none focus:ring-primary",
-            sizeClasses[size]
+            // Size and shape
+            "w-12 h-12 rounded-full flex items-center justify-center",
+            // Gamer-style gradient border with glow
+            "relative overflow-hidden",
+            // Background
+            "bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm",
+            // Animated glow ring
+            "ring-2 ring-primary/50 hover:ring-primary",
+            "shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)]",
+            // Transition
+            "transition-all duration-300 ease-out",
+            "hover:scale-105 active:scale-95",
+            // Touch target
+            "touch-target cursor-pointer"
           )}
           disabled={isUpdating}
+          aria-label="שנה אווטאר"
         >
-          {isUpdating ? (
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          ) : (
-            currentAvatar
-          )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-72 p-3 bg-card border-border" 
-        align="start"
-        side="bottom"
-      >
-        <div className="space-y-3">
-          <div className="text-sm font-medium text-foreground text-center">
-            בחר אווטאר חדש ✨
+          {/* Gradient border effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary via-accent to-primary opacity-30" />
+          
+          {/* Inner circle */}
+          <div className={cn(
+            "absolute inset-[2px] rounded-full",
+            "bg-gradient-to-br from-card via-card/95 to-card/90",
+            "flex items-center justify-center"
+          )}>
+            {isUpdating ? (
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            ) : displayAvatar ? (
+              <span className="text-2xl leading-none">{displayAvatar}</span>
+            ) : (
+              <User className="w-6 h-6 text-primary" />
+            )}
           </div>
           
-          <div className="grid grid-cols-7 gap-2">
-            {AVATAR_OPTIONS.map((avatar) => (
-              <button
-                key={avatar}
-                onClick={() => handleSelect(avatar)}
-                disabled={isUpdating}
-                className={cn(
-                  "w-8 h-8 flex items-center justify-center rounded-lg text-lg",
-                  "transition-all duration-150 hover:scale-110",
-                  avatar === currentAvatar
-                    ? "bg-primary/30 ring-2 ring-primary"
-                    : "bg-secondary/50 hover:bg-primary/20"
-                )}
-              >
-                {avatar}
-              </button>
-            ))}
+          {/* Subtle shine effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
+        </button>
+      </PopoverTrigger>
+      
+      <PopoverContent 
+        className="w-80 p-4 bg-card/95 backdrop-blur-md border-primary/20 shadow-xl shadow-primary/10" 
+        align="start"
+        side="bottom"
+        sideOffset={8}
+      >
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="text-center space-y-1">
+            <h3 className="text-sm font-bold text-foreground">בחר אווטאר חדש</h3>
+            <p className="text-xs text-muted-foreground">לחץ על האימוג'י שאתה רוצה ✨</p>
+          </div>
+          
+          {/* Category: Heroes */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">🦸 גיבורים</p>
+            <div className="grid grid-cols-8 gap-1.5">
+              {AVATAR_OPTIONS.slice(0, 8).map((avatar) => (
+                <AvatarOption
+                  key={avatar}
+                  avatar={avatar}
+                  isSelected={avatar === currentAvatar}
+                  isUpdating={isUpdating}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
+          </div>
+          
+          {/* Category: Science & Space */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">🚀 מדע וחלל</p>
+            <div className="grid grid-cols-8 gap-1.5">
+              {AVATAR_OPTIONS.slice(8, 16).map((avatar) => (
+                <AvatarOption
+                  key={avatar}
+                  avatar={avatar}
+                  isSelected={avatar === currentAvatar}
+                  isUpdating={isUpdating}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
+          </div>
+          
+          {/* Category: Animals */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">🦄 חיות</p>
+            <div className="grid grid-cols-8 gap-1.5">
+              {AVATAR_OPTIONS.slice(16).map((avatar) => (
+                <AvatarOption
+                  key={avatar}
+                  avatar={avatar}
+                  isSelected={avatar === currentAvatar}
+                  isUpdating={isUpdating}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+// Extracted avatar option button for cleaner code
+function AvatarOption({ 
+  avatar, 
+  isSelected, 
+  isUpdating, 
+  onSelect 
+}: { 
+  avatar: string; 
+  isSelected: boolean; 
+  isUpdating: boolean;
+  onSelect: (avatar: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(avatar)}
+      disabled={isUpdating}
+      className={cn(
+        "w-8 h-8 flex items-center justify-center rounded-lg text-lg",
+        "transition-all duration-150",
+        "hover:scale-110 active:scale-95",
+        isSelected
+          ? "bg-gradient-to-br from-primary/40 to-accent/40 ring-2 ring-primary shadow-md shadow-primary/20"
+          : "bg-secondary/50 hover:bg-primary/20 hover:shadow-sm"
+      )}
+    >
+      {avatar}
+    </button>
   );
 }

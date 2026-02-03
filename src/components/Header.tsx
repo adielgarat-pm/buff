@@ -29,14 +29,33 @@ interface HeaderProps {
   onChangeAvatar?: (newAvatar: string) => Promise<void>;
 }
 
-// BUFF Logo Component with image
-function BuffLogo() {
+// BUFF Logo Component with image and optional avatar
+function BuffLogo({ 
+  childAvatar, 
+  onChangeAvatar,
+  userName 
+}: { 
+  childAvatar?: string; 
+  onChangeAvatar?: (newAvatar: string) => Promise<void>;
+  userName?: string;
+}) {
+  const hasAvatarPicker = childAvatar !== undefined && onChangeAvatar;
+  
   return (
     <div className="flex items-center gap-3">
+      {/* Child Avatar - positioned next to logo */}
+      {hasAvatarPicker && (
+        <ChildAvatarPicker
+          currentAvatar={childAvatar || '🚀'}
+          onChangeAvatar={onChangeAvatar}
+          userName={userName}
+        />
+      )}
+      
       <img 
         src={buffLogo} 
         alt="BUFF Logo" 
-        className="h-14 w-14 object-contain"
+        className="h-12 w-12 object-contain"
       />
       <span className="font-display text-2xl font-bold tracking-wide text-glow-green">
         BUFF
@@ -65,21 +84,15 @@ export function Header({
 
   return (
     <header className="flex items-center justify-between py-4 sm:py-6">
-      <div className="min-w-0 flex items-center gap-3">
-        {/* Child Avatar Picker - only shown when avatar and handler are provided */}
-        {childAvatar && onChangeAvatar && (
-          <ChildAvatarPicker
-            currentAvatar={childAvatar}
-            onChangeAvatar={onChangeAvatar}
-            size="lg"
-          />
-        )}
-        <div>
-          <BuffLogo />
-          <p className="text-muted-foreground text-sm mt-1 truncate">
-            {dayName}, {dateStr}
-          </p>
-        </div>
+      <div className="min-w-0">
+        <BuffLogo 
+          childAvatar={childAvatar} 
+          onChangeAvatar={onChangeAvatar}
+          userName={userName}
+        />
+        <p className="text-muted-foreground text-sm mt-1 truncate">
+          {dayName}, {dateStr}
+        </p>
       </div>
       
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
