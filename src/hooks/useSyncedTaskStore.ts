@@ -598,13 +598,21 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     ));
 
     // Delete and re-insert with completed=false
-    await supabase
+    // Handle null child_id properly - use .is() for null, .eq() for non-null
+    let deleteQuery = supabase
       .from('daily_progress')
       .delete()
       .eq('family_id', familyId)
       .eq('date', todayKey)
-      .eq('task_id', taskId)
-      .eq('child_id', targetChildId);
+      .eq('task_id', taskId);
+    
+    if (targetChildId) {
+      deleteQuery = deleteQuery.eq('child_id', targetChildId);
+    } else {
+      deleteQuery = deleteQuery.is('child_id', null);
+    }
+    
+    await deleteQuery;
 
     await supabase
       .from('daily_progress')
