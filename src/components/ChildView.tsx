@@ -72,6 +72,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     undoBagPrep,
     lessons,
     refetch,
+    childAvatar,
+    updateChildAvatar,
   } = useSyncedTaskStore(viewingChildId);
 
   // Birthday check - use child's birth date from store (works for both child login and parent viewing as child)
@@ -207,6 +209,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           appTitle={appTitle}
           onSignOut={signOut}
           userName={profile?.display_name}
+          childAvatar={!isViewingAsChild ? childAvatar : undefined}
+          onChangeAvatar={!isViewingAsChild ? updateChildAvatar : undefined}
         />
         
         <div className="tab-content">

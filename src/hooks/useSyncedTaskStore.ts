@@ -64,6 +64,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
   const [loading, setLoading] = useState(true);
   const [childBirthDate, setChildBirthDate] = useState<string | null>(null);
   const [childDisplayName, setChildDisplayName] = useState<string | null>(null);
+  const [childAvatar, setChildAvatar] = useState<string>('🚀');
   const [buffsActivatedToday, setBuffsActivatedToday] = useState(() => {
     const saved = localStorage.getItem(`buffs_${getTodayKey()}`);
     return saved ? parseInt(saved, 10) : 0;
@@ -181,7 +182,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       if (isViewingAsChild && effectiveChildId) {
         const { data: childProfileData } = await supabase
           .from('profiles')
-          .select('school_quest_enabled, bag_prep_enabled, bag_prep_credits, birth_date, display_name')
+          .select('school_quest_enabled, bag_prep_enabled, bag_prep_credits, birth_date, display_name, avatar')
           .eq('id', effectiveChildId)
           .single();
         
@@ -190,6 +191,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         setBagPrepCredits(childProfileData?.bag_prep_credits ?? 20);
         setChildBirthDate(childProfileData?.birth_date ?? null);
         setChildDisplayName(childProfileData?.display_name ?? null);
+        setChildAvatar(childProfileData?.avatar ?? '🚀');
       }
 
       // Check if bag prep is completed today
@@ -1089,6 +1091,30 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     }
   }, [familyId, effectiveChildId, todayKey, bagPrepCredits]);
 
+  // Update child's avatar (child can update their own)
+  const updateChildAvatar = useCallback(async (newAvatar: string) => {
+    if (!effectiveChildId) return;
+
+    // Optimistic update
+    const previousAvatar = childAvatar;
+    setChildAvatar(newAvatar);
+
+    try {
+      // Children can directly update their own profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar: newAvatar, updated_at: new Date().toISOString() })
+        .eq('id', effectiveChildId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      // Revert on error
+      setChildAvatar(previousAvatar);
+      throw error;
+    }
+  }, [effectiveChildId, childAvatar]);
+
   return {
     loading,
     tasks: visibleTasks,
@@ -1117,6 +1143,8 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     buffsActivatedToday,
     childBirthDate,
     childDisplayName,
+    childAvatar,
+    updateChildAvatar,
     completeTask,
     uncompleteTask,
     updateTask,

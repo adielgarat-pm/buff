@@ -13,6 +13,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from './ui/dropdown-menu';
+import { ChildAvatarPicker } from './ChildAvatarPicker';
 import buffLogo from '@/assets/buff-logo.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -24,6 +25,8 @@ interface HeaderProps {
   onSignOut?: () => void;
   userName?: string;
   showPhilosophyIcon?: boolean;
+  childAvatar?: string;
+  onChangeAvatar?: (newAvatar: string) => Promise<void>;
 }
 
 // BUFF Logo Component with image
@@ -50,6 +53,8 @@ export function Header({
   onSignOut,
   userName,
   showPhilosophyIcon,
+  childAvatar,
+  onChangeAvatar,
 }: HeaderProps) {
   const { language, setLanguage, t, isRTL } = useLanguage();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
@@ -60,11 +65,21 @@ export function Header({
 
   return (
     <header className="flex items-center justify-between py-4 sm:py-6">
-      <div className="min-w-0">
-        <BuffLogo />
-        <p className="text-muted-foreground text-sm mt-1 truncate">
-          {dayName}, {dateStr}
-        </p>
+      <div className="min-w-0 flex items-center gap-3">
+        {/* Child Avatar Picker - only shown when avatar and handler are provided */}
+        {childAvatar && onChangeAvatar && (
+          <ChildAvatarPicker
+            currentAvatar={childAvatar}
+            onChangeAvatar={onChangeAvatar}
+            size="lg"
+          />
+        )}
+        <div>
+          <BuffLogo />
+          <p className="text-muted-foreground text-sm mt-1 truncate">
+            {dayName}, {dateStr}
+          </p>
+        </div>
       </div>
       
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
