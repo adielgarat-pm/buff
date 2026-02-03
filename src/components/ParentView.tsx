@@ -12,6 +12,7 @@ import { ChildPickerDialog } from './ChildPickerDialog';
 import { InstallPrompt } from './InstallPrompt';
 import { ParentWelcomeBanner } from './ParentWelcomeBanner';
 import { BrowserDetectionBanner } from './BrowserDetectionBanner';
+import { IOSInstallBanner } from './IOSInstallBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
 import { DashboardFAB } from './dashboard';
@@ -192,6 +193,9 @@ export function ParentView() {
 
   return (
     <div className="theme-parent-zen min-h-[100dvh] bg-background pb-24 overflow-x-hidden">
+      {/* iOS-specific Install Banner */}
+      <IOSInstallBanner />
+      
       {/* Browser Detection Banner - shows when not in PWA mode */}
       <BrowserDetectionBanner />
       

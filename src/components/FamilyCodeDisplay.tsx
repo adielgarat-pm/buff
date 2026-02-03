@@ -148,19 +148,20 @@ ${magicLink}
 
   const handleLegacyShare = async () => {
     const appUrl = 'https://buff.lovable.app';
+    const displayName = childName.trim() || 'הילד/ה';
     const shareText = language === 'he' 
-      ? `🎮 הצטרף/י למשפחה שלנו ב-BUFF!
+      ? `🎮 היי ${displayName}! הצטרף/י למשפחה שלנו ב-BUFF!
 
 📱 איך להצטרף:
 1. היכנס/י לאפליקציה: ${appUrl}
 2. לחץ/י על "הרשמה"
-3. בחר/י "נער/ה"
-4. הזן/י את קוד המשפחה:
+3. בחר/י "אני נער/ה"
+4. הזן/י את הקוד המשפחתי:
 
 🔑 ${shortCode}
 
 נתראה באפליקציה! ✨`
-      : `🎮 Join our family on BUFF!
+      : `🎮 Hey ${displayName}! Join our family on BUFF!
 
 📱 How to join:
 1. Go to: ${appUrl}
@@ -172,6 +173,7 @@ ${magicLink}
 
 See you in the app! ✨`;
 
+    // Try native share if available
     if (navigator.share) {
       try {
         await navigator.share({
@@ -182,14 +184,22 @@ See you in the app! ✨`;
         return;
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
+        // Fall through to WhatsApp or clipboard
       }
     }
 
+    // Fallback: Try WhatsApp directly using location.href for Safari compatibility
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     try {
-      await navigator.clipboard.writeText(shareText);
-      toast.success(language === 'he' ? 'ההודעה הועתקה! שלח לילד דרך וואטסאפ' : 'Message copied! Send via WhatsApp');
+      window.location.href = whatsappUrl;
     } catch {
-      toast.error(language === 'he' ? 'שגיאה בשיתוף' : 'Failed to share');
+      // Last resort: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast.success(language === 'he' ? 'ההודעה הועתקה! שלח לילד דרך וואטסאפ' : 'Message copied! Send via WhatsApp');
+      } catch {
+        toast.error(language === 'he' ? 'שגיאה בשיתוף' : 'Failed to share');
+      }
     }
   };
 

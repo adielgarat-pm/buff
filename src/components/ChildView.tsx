@@ -19,6 +19,7 @@ import { NewDayBanner } from './NewDayBanner';
 import { WelcomeBanner } from './WelcomeBanner';
 import { PhaseTransitionBanner } from './PhaseTransitionBanner';
 import { BrowserDetectionBanner } from './BrowserDetectionBanner';
+import { IOSInstallBanner } from './IOSInstallBanner';
 import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -178,6 +179,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
 
   return (
     <div className={`theme-child-gamer min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
+      {/* iOS Install Banner - shows for iOS users not in standalone mode */}
+      {!isViewingAsChild && <IOSInstallBanner />}
+      
       {/* Browser Detection Banner - shows when not in PWA mode */}
       {!isViewingAsChild && <BrowserDetectionBanner />}
       
