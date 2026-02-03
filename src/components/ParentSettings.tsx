@@ -341,7 +341,14 @@ function ChildManagementCard({
 
 // Child Configuration Panel - Focus on Configuration
 // Avatar options for children
-const AVATAR_OPTIONS = ['🚀', '🦄', '🎮', '🎨', '⚽', '🦸', '🐉', '🌟', '🎵', '🦊'];
+const AVATAR_OPTIONS = [
+  // גיבורים
+  '🦸', '🦹', '🧙', '🧚', '👑', '🎭', '🥷', '🦾',
+  // מדע וחלל
+  '🚀', '🌙', '🪐', '👾', '🤖', '🔬', '🛸', '⭐',
+  // חיות
+  '🦄', '🐉', '🦊', '🐱', '🐶', '🦁', '🐼', '🦋', '🐬', '🦉', '🐧', '🦈',
+];
 
 function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete }: { childId: string; childName: string; fridayEnabled: boolean; onBackAfterDelete?: () => void }) {
   const { familyId } = useAuth();
