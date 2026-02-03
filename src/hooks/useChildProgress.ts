@@ -188,6 +188,7 @@ export function useChildData(childId: string | null) {
   const [bagPrepEnabled, setBagPrepEnabled] = useState(true);
   const [bagPrepCredits, setBagPrepCredits] = useState(20);
   const [birthDate, setBirthDate] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string>('🚀');
   const [loading, setLoading] = useState(true);
 
   const todayKey = getTodayKey();
@@ -238,10 +239,10 @@ export function useChildData(childId: string | null) {
         .eq('child_id', childId)
         .maybeSingle();
 
-      // Fetch child's daily goal, school quest setting, bag prep settings, and birth_date from profile
+      // Fetch child's daily goal, school quest setting, bag prep settings, birth_date and avatar from profile
       const { data: childProfile } = await supabase
         .from('profiles')
-        .select('daily_goal, school_quest_enabled, bag_prep_enabled, bag_prep_credits, birth_date')
+        .select('daily_goal, school_quest_enabled, bag_prep_enabled, bag_prep_credits, birth_date, avatar')
         .eq('id', childId)
         .single();
 
@@ -284,12 +285,13 @@ export function useChildData(childId: string | null) {
         setTotalBalance(vaultData.total_balance);
       }
 
-      // Set child's daily goal, school quest setting, bag prep settings, and birth date
+      // Set child's daily goal, school quest setting, bag prep settings, birth date and avatar
       setDailyGoal(childProfile?.daily_goal || 100);
       setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);
       setBagPrepEnabled(childProfile?.bag_prep_enabled ?? true);
       setBagPrepCredits(childProfile?.bag_prep_credits ?? 20);
       setBirthDate(childProfile?.birth_date || null);
+      setAvatar(childProfile?.avatar || '🚀');
     } catch (error) {
       console.error('Error fetching child data:', error);
     } finally {
@@ -354,6 +356,7 @@ export function useChildData(childId: string | null) {
         description: updates.description,
         icon: updates.icon,
         strategy_id: updates.strategyId || null,
+        schedule_days: updates.scheduleDays,
       })
       .eq('id', taskId);
   }, [familyId]);
@@ -543,6 +546,20 @@ export function useChildData(childId: string | null) {
     setBirthDate(date);
   }, [childId]);
 
+  // Update child's avatar
+  const updateAvatar = useCallback(async (newAvatar: string) => {
+    if (!childId) throw new Error('Missing childId');
+
+    setAvatar(newAvatar);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar: newAvatar })
+      .eq('id', childId);
+    
+    if (error) throw error;
+  }, [childId]);
+
   // Update child's credit balance
   const updateTotalBalance = useCallback(async (balance: number) => {
     if (!familyId || !childId) {
@@ -581,6 +598,24 @@ export function useChildData(childId: string | null) {
     }
   }, [familyId, childId]);
 
+  // Delete child profile (calls secure RPC)
+  const deleteChildProfile = useCallback(async () => {
+    if (!childId) throw new Error('Missing childId');
+
+    const { data, error } = await supabase.rpc('delete_child_profile', {
+      p_child_id: childId,
+    });
+
+    if (error) throw error;
+    
+    const result = data as { success: boolean; error?: string; deleted_name?: string };
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to delete child');
+    }
+    
+    return result.deleted_name;
+  }, [childId]);
+
   return {
     tasks,
     timetable,
@@ -591,6 +626,7 @@ export function useChildData(childId: string | null) {
     bagPrepEnabled,
     bagPrepCredits,
     birthDate,
+    avatar,
     loading,
     addTask,
     updateTask,
@@ -603,6 +639,8 @@ export function useChildData(childId: string | null) {
     toggleBagPrepEnabled,
     updateBagPrepCredits,
     updateBirthDate,
+    updateAvatar,
+    deleteChildProfile,
     initializeChildData,
     refetch: fetchChildData,
   };

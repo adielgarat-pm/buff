@@ -1,10 +1,11 @@
-import { User, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { cn } from '@/lib/utils';
 
 interface Child {
   id: string;
   displayName: string;
+  avatar?: string;
 }
 
 interface ChildPickerDialogProps {
@@ -55,8 +56,8 @@ export function ChildPickerDialog({
                 "active:scale-[0.98]"
               )}
             >
-              <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-                <User className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-2xl">
+                {child.avatar || '🚀'}
               </div>
               <div className="flex-1 text-right">
                 <p className="font-semibold text-foreground">{child.displayName}</p>

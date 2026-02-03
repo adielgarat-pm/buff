@@ -8,6 +8,7 @@ export interface FamilyMember {
   displayName: string;
   role: 'parent' | 'child';
   createdAt: string;
+  avatar?: string;
 }
 
 export function useFamilyMembers() {
@@ -42,6 +43,7 @@ export function useFamilyMembers() {
           displayName: p.display_name,
           role: p.role as 'parent' | 'child',
           createdAt: p.created_at,
+          avatar: p.avatar || '🚀',
         }))
       );
     } catch (error) {

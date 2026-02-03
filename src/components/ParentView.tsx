@@ -247,7 +247,7 @@ export function ParentView() {
       <ChildPickerDialog
         open={childPickerOpen}
         onClose={() => setChildPickerOpen(false)}
-        children={children.map(c => ({ id: c.id, displayName: c.displayName }))}
+        children={children.map(c => ({ id: c.id, displayName: c.displayName, avatar: c.avatar }))}
         onSelectChild={(childId) => setViewingAsChildId(childId)}
       />
 
