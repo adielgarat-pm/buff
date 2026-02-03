@@ -209,7 +209,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           appTitle={appTitle}
           onSignOut={signOut}
           userName={profile?.display_name}
-          childAvatar={!isViewingAsChild ? childAvatar : undefined}
+          childAvatar={childAvatar}
           onChangeAvatar={!isViewingAsChild ? updateChildAvatar : undefined}
         />
         

@@ -39,12 +39,12 @@ function BuffLogo({
   onChangeAvatar?: (newAvatar: string) => Promise<void>;
   userName?: string;
 }) {
-  const hasAvatarPicker = childAvatar !== undefined && onChangeAvatar;
+  const showAvatar = childAvatar !== undefined;
   
   return (
     <div className="flex items-center gap-3">
       {/* Child Avatar - positioned next to logo */}
-      {hasAvatarPicker && (
+      {showAvatar && (
         <ChildAvatarPicker
           currentAvatar={childAvatar || '🚀'}
           onChangeAvatar={onChangeAvatar}
