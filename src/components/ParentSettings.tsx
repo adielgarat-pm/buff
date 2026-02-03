@@ -236,6 +236,9 @@ export function ParentSettings({
                     childId={child.id}
                     childName={child.displayName}
                     onSelect={() => onSelectChild?.(child.id)}
+                    onDeleted={() => {
+                      // The realtime subscription will handle the UI update
+                    }}
                   />
                 ))}
               </div>
@@ -302,32 +305,124 @@ export function ParentSettings({
   );
 }
 
-// Child Management Card - Compact
+// Child Management Card - Compact with Delete Option
 function ChildManagementCard({ 
   childId, 
   childName,
-  onSelect 
+  onSelect,
+  onDeleted,
 }: { 
   childId: string; 
   childName: string;
   onSelect: () => void;
+  onDeleted?: () => void;
 }) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.rpc('delete_child_profile', {
+        p_child_id: childId,
+      });
+
+      if (error) throw error;
+      
+      const result = data as { success: boolean; error?: string; deleted_name?: string };
+      
+      if (!result.success) {
+        toast.error(result.error || 'שגיאה במחיקת הילד');
+        return;
+      }
+
+      toast.success(`${result.deleted_name || childName} נמחק בהצלחה`);
+      setShowDeleteConfirm(false);
+      onDeleted?.();
+    } catch (error) {
+      console.error('Error deleting child:', error);
+      toast.error('שגיאה במחיקת הילד');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <button
-      onClick={onSelect}
-      className="w-full rounded-xl bg-card border border-border p-2.5 hover:border-primary/50 transition-colors text-right"
-    >
-      <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-          <User className="w-4 h-4 text-primary" />
+    <>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-sm">
+          <div className="space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6 text-destructive" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground">מחיקת {childName}?</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                פעולה זו תמחק את כל הנתונים של הילד: משימות, קרדיטים, פרסים ומערכת שעות. 
+                <span className="text-destructive font-medium"> לא ניתן לבטל פעולה זו.</span>
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1"
+                disabled={deleting}
+              >
+                ביטול
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                className="flex-1"
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    מוחק...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 ml-2" />
+                    מחק לצמיתות
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="w-full rounded-xl bg-card border border-border p-2.5 hover:border-primary/50 transition-colors">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={onSelect}
+            className="flex items-center gap-2.5 flex-1 text-right"
+          >
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 text-right">
+              <p className="text-sm font-semibold text-foreground">{childName}</p>
+              <p className="text-xs text-muted-foreground">הגדרות Buff</p>
+            </div>
+          </button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+          <button onClick={onSelect}>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
         </div>
-        <div className="flex-1 text-right">
-          <p className="text-sm font-semibold text-foreground">{childName}</p>
-          <p className="text-xs text-muted-foreground">הגדרות Buff</p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </div>
-    </button>
+    </>
   );
 }
 
