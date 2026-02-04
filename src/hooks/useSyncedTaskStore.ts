@@ -770,27 +770,31 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     setTotalBalance(newBalance);
   }, [familyId, profileId, effectiveChildId, todayKey, lessons, totalBalance]);
 
-  // Update task (parent only)
-  const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    if (!familyId) return;
+  // Update task (parent only) - returns true if successful
+  const updateTask = useCallback(async (taskId: string, updates: Partial<Task>): Promise<boolean> => {
+    if (!familyId) return false;
 
     setTasks(prev => prev.map(task =>
       task.id === taskId ? { ...task, ...updates } : task
     ));
 
-    await supabase
+    // Only include fields that are actually being updated to avoid overwriting with defaults
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.time !== undefined) dbUpdates.time = updates.time;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.credits !== undefined) dbUpdates.credits = updates.credits;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
+    if (updates.strategyId !== undefined) dbUpdates.strategy_id = updates.strategyId || null;
+    if (updates.scheduleDays !== undefined) dbUpdates.schedule_days = updates.scheduleDays;
+
+    const { error } = await supabase
       .from('tasks')
-      .update({
-        title: updates.title,
-        time: updates.time,
-        category: updates.category,
-        credits: updates.credits,
-        description: updates.description,
-        icon: updates.icon,
-        strategy_id: updates.strategyId || null,
-        schedule_days: updates.scheduleDays || [0, 1, 2, 3, 4],
-      })
+      .update(dbUpdates)
       .eq('id', taskId);
+    
+    return !error;
   }, [familyId]);
 
   // Add task (parent only)

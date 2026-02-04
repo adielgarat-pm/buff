@@ -43,7 +43,7 @@ export const PHASES: PhaseConfig[] = [
     shortLabelHe: 'צהריים',
     icon: '📖', 
     startHour: 16, 
-    endHour: 20,
+    endHour: 18,
     color: 'hsl(var(--chart-3))'
   },
   { 
@@ -53,7 +53,7 @@ export const PHASES: PhaseConfig[] = [
     shortLabel: 'Evening',
     shortLabelHe: 'ערב',
     icon: '🌙', 
-    startHour: 20, 
+    startHour: 18, 
     endHour: 24,
     color: 'hsl(var(--chart-4))'
   },
@@ -64,8 +64,8 @@ export function getCurrentPhase(): Phase {
   
   if (hour >= 6 && hour < 9) return 'morning';
   if (hour >= 9 && hour < 16) return 'school';
-  if (hour >= 16 && hour < 20) return 'afternoon';
-  return 'evening';
+  if (hour >= 16 && hour < 18) return 'afternoon';
+  return 'evening'; // 18:00+ is evening
 }
 
 /**
@@ -82,8 +82,8 @@ export function getSmartCurrentPhase(schoolEndTime: string | null, isSchoolDay: 
     return 'morning';
   }
   
-  // Evening phase: 8:00 PM - midnight
-  if (currentMinutes >= 1200) {
+  // Evening phase: 6:00 PM (18:00) - midnight (1080 = 18*60)
+  if (currentMinutes >= 1080) {
     return 'evening';
   }
   
@@ -99,8 +99,8 @@ export function getSmartCurrentPhase(schoolEndTime: string | null, isSchoolDay: 
     return 'school';
   }
   
-  // Afternoon phase: after school ends until 8:00 PM
-  if (currentMinutes >= Math.min(schoolEndMinutes, 540) && currentMinutes < 1200) {
+  // Afternoon phase: after school ends until 6:00 PM (18:00)
+  if (currentMinutes >= Math.min(schoolEndMinutes, 540) && currentMinutes < 1080) {
     return 'afternoon';
   }
   
@@ -116,8 +116,8 @@ export function getPhaseForTime(timeString: string): Phase {
   
   if (hours >= 6 && hours < 9) return 'morning';
   if (hours >= 9 && hours < 16) return 'school';
-  if (hours >= 16 && hours < 20) return 'afternoon';
-  return 'evening';
+  if (hours >= 16 && hours < 18) return 'afternoon';
+  return 'evening'; // 18:00+ is evening
 }
 
 /**
@@ -152,8 +152,8 @@ export function getSmartPhaseForTime(
     return 'morning';
   }
   
-  // Evening: 20:00+ (always applies)
-  if (taskMinutes >= 1200) {
+  // Evening: 18:00+ (1080 minutes) (always applies)
+  if (taskMinutes >= 1080) {
     return 'evening';
   }
   
@@ -176,6 +176,6 @@ export function getSmartPhaseForTime(
     return 'school';
   }
   
-  // Afternoon: after school ends until 20:00
+  // Afternoon: after school ends until 18:00
   return 'afternoon';
 }
