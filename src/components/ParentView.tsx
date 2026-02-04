@@ -224,10 +224,10 @@ export function ParentView() {
         } : undefined}
       />
 
-      {/* FAB - Add Child or Add Task */}
-      {activeTab === 'overview' && (
+      {/* FAB - Only show when children exist (0-kids state has its own prominent CTA) */}
+      {activeTab === 'overview' && children.length > 0 && (
         <DashboardFAB
-          hasChildren={children.length > 0}
+          hasChildren={true}
           onAddChild={() => setOnboardingOpen(true)}
           onAddTask={() => {
             // If only one child, go to their settings; otherwise let user pick
