@@ -1100,7 +1100,7 @@ function ChildTasksEditor({
 }: {
   tasks: Task[];
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
-  onUpdateTask: (id: string, updates: Partial<Task>) => void;
+  onUpdateTask: (id: string, updates: Partial<Task>) => Promise<boolean> | void;
   onDeleteTask: (id: string) => void;
   onDuplicateTask?: (task: Task) => void;
   showDuplicateButton?: boolean;
@@ -1162,9 +1162,9 @@ function ChildTasksEditor({
     });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingTaskId || !editForm.title.trim()) return;
-    onUpdateTask(editingTaskId, {
+    const result = onUpdateTask(editingTaskId, {
       title: editForm.title,
       time: editForm.time,
       category: editForm.category,
@@ -1172,6 +1172,11 @@ function ChildTasksEditor({
       description: editForm.description || undefined,
       scheduleDays: editForm.scheduleDays,
     });
+    // Handle both Promise<boolean> and void returns
+    const success = result instanceof Promise ? await result : true;
+    if (success) {
+      toast.success('המשימה עודכנה בהצלחה');
+    }
     setEditingTaskId(null);
   };
 
