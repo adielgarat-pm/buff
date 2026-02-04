@@ -513,6 +513,22 @@ body.modal-open {
   }
 }
 
+/* Subtle pulse animation for CTA buttons - Parent Zen friendly */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.15);
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.5s ease-in-out infinite;
+}
+
 @keyframes buff-pulse {
   0%, 100% {
     box-shadow: 0 0 15px hsl(112, 100%, 54%, 0.4);

@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
-import { Rocket, Sparkles, Heart } from 'lucide-react';
+import { Plus, TrendingUp, BarChart3, Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface WelcomeHomeScreenProps {
   onStartOnboarding: () => void;
@@ -7,45 +7,89 @@ interface WelcomeHomeScreenProps {
 
 export function WelcomeHomeScreen({ onStartOnboarding }: WelcomeHomeScreenProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center" dir="rtl">
-      {/* Calm illustration area */}
-      <div className="relative mb-8">
-        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 via-accent/20 to-success/20 flex items-center justify-center animate-pulse-soft">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
-            <Heart className="w-12 h-12 text-primary" />
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center" dir="rtl">
+      {/* Main CTA - Large Pulsing Plus Button */}
+      <div className="relative mb-6">
+        {/* Outer pulse ring */}
+        <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-soft scale-125" />
+        
+        {/* Main button */}
+        <button
+          onClick={onStartOnboarding}
+          className={cn(
+            "relative w-28 h-28 rounded-full",
+            "bg-gradient-to-br from-primary to-primary/80",
+            "flex items-center justify-center",
+            "shadow-lg hover:shadow-xl",
+            "transition-transform hover:scale-105 active:scale-95",
+            "focus:outline-none focus:ring-4 focus:ring-primary/30"
+          )}
+          aria-label="הוספת ילד ראשון"
+        >
+          <Plus className="w-14 h-14 text-primary-foreground" strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* CTA Text */}
+      <div className="space-y-2 max-w-xs mb-10">
+        <h1 className="text-xl font-bold text-foreground font-display">
+          הוסיפו את הילד הראשון שלכם
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          כדי להתחיל במסע המשותף
+        </p>
+      </div>
+
+      {/* Insights Teaser - Blurred Preview */}
+      <div className="w-full max-w-sm">
+        <div className="relative rounded-2xl border border-primary/20 bg-card/50 p-5 overflow-hidden">
+          {/* Blur overlay */}
+          <div className="absolute inset-0 backdrop-blur-sm bg-card/60 z-10 flex flex-col items-center justify-center">
+            <Lock className="w-8 h-8 text-primary/60 mb-2" />
+            <p className="text-sm font-medium text-foreground">
+              חברו ילד כדי לפתוח תובנות אלו
+            </p>
+          </div>
+          
+          {/* Placeholder chart content */}
+          <div className="space-y-4 opacity-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <span className="font-semibold text-foreground">אחוז הצלחה שבועי</span>
+              </div>
+              <span className="text-2xl font-bold text-primary">78%</span>
+            </div>
+            
+            {/* Fake bar chart */}
+            <div className="flex items-end gap-2 h-20 justify-center">
+              {[65, 80, 45, 90, 70, 85, 75].map((height, i) => (
+                <div
+                  key={i}
+                  className="w-6 rounded-t-md bg-gradient-to-t from-primary/40 to-primary/20"
+                  style={{ height: `${height}%` }}
+                />
+              ))}
+            </div>
+            
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>א</span>
+              <span>ב</span>
+              <span>ג</span>
+              <span>ד</span>
+              <span>ה</span>
+              <span>ו</span>
+              <span>ש</span>
+            </div>
           </div>
         </div>
         
-        {/* Floating sparkles */}
-        <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-accent animate-bounce" />
-        <Sparkles className="absolute -bottom-1 -left-3 w-5 h-5 text-primary/60 animate-bounce delay-150" />
-      </div>
-
-      {/* Welcome text */}
-      <div className="space-y-4 max-w-sm">
-        <h1 className="text-2xl font-bold text-foreground font-display leading-tight">
-          ברוכים הבאים ל-BUFF!
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          הבית החדש של השגרה שלכם.
-        </p>
-        
-        <p className="text-sm text-muted-foreground/80 leading-relaxed pt-2">
-          כדי להתחיל, אנחנו צריכים להכיר את הגיבורים שלכם.
-          <br />
-          <span className="text-primary font-medium">זה לוקח פחות מ-2 דקות.</span>
+        {/* Caption */}
+        <p className="mt-3 text-xs text-muted-foreground flex items-center justify-center gap-1">
+          <BarChart3 className="w-3 h-3" />
+          תובנות והתקדמות - בקרוב אצלכם
         </p>
       </div>
-
-      {/* CTA Button */}
-      <Button
-        onClick={onStartOnboarding}
-        size="lg"
-        className="mt-8 h-14 px-8 text-lg font-bold rounded-2xl bg-gradient-to-r from-primary to-success text-primary-foreground shadow-lg hover:shadow-xl transition-all"
-      >
-        <Rocket className="w-5 h-5 ml-2" />
-        הוספת הילד הראשון שלי
-      </Button>
     </div>
   );
 }
