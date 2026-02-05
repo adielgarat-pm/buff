@@ -20,11 +20,6 @@ function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
           className={`${imgSize} object-contain`}
         />
       </div>
-      {size !== 'large' && (
-        <span className="font-display text-2xl font-bold tracking-wide text-primary">
-          BUFF
-        </span>
-      )}
     </div>
   );
 }
@@ -211,9 +206,6 @@ export default function Landing() {
                 className="h-28 w-28 object-contain"
               />
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-wide">
-              <span className="text-primary">BUFF</span>
-            </h1>
           </div>
           <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             <span className="text-foreground">{t('landing.executiveFunction')} </span>

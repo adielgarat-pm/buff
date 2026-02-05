@@ -140,17 +140,14 @@ export default function Auth() {
       <Card className="w-full max-w-md relative z-10 border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="text-center space-y-1 pb-2 pt-4 px-4">
           {/* BUFF Logo */}
-          <div className="flex items-center justify-center gap-3 mb-1">
-            <div className="w-12 h-12 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
+          <div className="flex items-center justify-center mb-1">
+            <div className="w-14 h-14 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
               <img 
                 src={buffLogo} 
                 alt="BUFF Logo" 
-                className="h-10 w-10 object-contain"
+                className="h-12 w-12 object-contain"
               />
             </div>
-            <CardTitle className="text-2xl font-display font-bold tracking-wide text-primary">
-              BUFF
-            </CardTitle>
           </div>
           <CardDescription className="text-xs italic text-buff font-medium">
             {t('app.tagline')}

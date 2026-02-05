@@ -59,9 +59,6 @@ function BuffLogo({
           className="h-10 w-10 object-contain"
         />
       </div>
-      <span className="font-display text-2xl font-bold tracking-wide text-primary">
-        BUFF
-      </span>
     </div>
   );
 }
