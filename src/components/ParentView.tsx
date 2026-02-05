@@ -50,7 +50,7 @@ export function ParentView() {
     fridayEnabled,
     updateAppTitle,
     toggleLessonReminders,
-    toggleFridayEnabled,
+    // toggleFridayEnabled removed - Friday is now auto-managed from schedule imports
   } = useSyncedTaskStore();
 
   // Loading state
@@ -186,7 +186,6 @@ export function ParentView() {
             fridayEnabled={fridayEnabled}
             onUpdateAppTitle={updateAppTitle}
             onToggleLessonReminders={toggleLessonReminders}
-            onToggleFridayEnabled={toggleFridayEnabled}
             selectedChildId={selectedChildIdForSettings}
             onBackFromChild={() => setSelectedChildIdForSettings(null)}
             onSelectChild={handleSelectChildForSettings}
