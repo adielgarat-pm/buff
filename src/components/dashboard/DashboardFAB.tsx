@@ -8,16 +8,19 @@ interface DashboardFABProps {
   onAddTask: () => void;
 }
 
+/**
+ * DashboardFAB - Floating Action Button for Parent Dashboard
+ * 
+ * When children exist: Triggers "Add New Kid" flow (onAddChild)
+ * This is the ONLY action - FAB should always add a new child, not navigate to settings.
+ */
 export function DashboardFAB({ hasChildren, onAddChild, onAddTask }: DashboardFABProps) {
+  // FAB always opens the Add Child flow on Family Overview
   const handleClick = () => {
-    if (hasChildren) {
-      onAddTask();
-    } else {
-      onAddChild();
-    }
+    onAddChild();
   };
 
-  const label = hasChildren ? 'הוספת משימה' : 'הוספת ילד';
+  const label = 'הוספת ילד';
 
   return (
     <Button
