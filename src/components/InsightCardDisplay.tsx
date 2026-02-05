@@ -35,7 +35,7 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
     },
   };
 
-  const config = severityConfig[insight.severity];
+  const config = severityConfig[insight.severity] || severityConfig.info;
 
   return (
     <div
