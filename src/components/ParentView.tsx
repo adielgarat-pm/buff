@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
+import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { ParentBottomNavigation, ParentNavTab } from './ParentBottomNavigation';
 import { ParentFamilyOverview } from './ParentFamilyOverview';
 import { ParentSettings } from './ParentSettings';
@@ -31,6 +32,16 @@ export function ParentView() {
   const [selectedChildIdForSettings, setSelectedChildIdForSettings] = useState<string | null>(null);
   const [childPickerOpen, setChildPickerOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+
+  // Sync internal navigation with browser history for proper back gesture
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab as ParentNavTab);
+    if (tab !== 'settings') {
+      setSelectedChildIdForSettings(null);
+    }
+  }, []);
+
+  useNavigationHistory(activeTab, handleTabChange, ['overview', 'settings', 'reports']);
 
   const {
     loading,
@@ -209,12 +220,7 @@ export function ParentView() {
       {/* Bottom Navigation */}
       <ParentBottomNavigation 
         activeTab={activeTab} 
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          if (tab !== 'settings') {
-            setSelectedChildIdForSettings(null);
-          }
-        }}
+        onTabChange={handleTabChange}
         onViewAsChild={children.length > 0 ? () => {
           if (children.length === 1) {
             setViewingAsChildId(children[0].id);
@@ -224,22 +230,12 @@ export function ParentView() {
         } : undefined}
       />
 
-      {/* FAB - Only show when children exist (0-kids state has its own prominent CTA) */}
+      {/* FAB - Only show when children exist. ALWAYS opens Add Child flow */}
       {activeTab === 'overview' && children.length > 0 && (
         <DashboardFAB
           hasChildren={true}
           onAddChild={() => setOnboardingOpen(true)}
-          onAddTask={() => {
-            // If only one child, go to their settings; otherwise let user pick
-            if (children.length === 1) {
-              setSelectedChildIdForSettings(children[0].id);
-              setActiveTab('settings');
-            } else if (children.length > 1) {
-              // For now, go to first child's settings
-              setSelectedChildIdForSettings(children[0].id);
-              setActiveTab('settings');
-            }
-          }}
+          onAddTask={() => setOnboardingOpen(true)} // Both actions now trigger Add Child
         />
       )}
 

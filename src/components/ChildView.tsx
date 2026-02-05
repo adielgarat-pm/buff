@@ -149,9 +149,10 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   }, [tasks, lessons, schoolQuestEnabled]);
 
   // Loading state when switching children
+  // Force Pastel Theme (theme-parent-zen) - NO dark mode for child view
   if (loading) {
     return (
-      <div className={`theme-child-gamer min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`theme-parent-zen min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground font-medium">
@@ -162,10 +163,10 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     );
   }
 
-  // Store view is full-screen
+  // Store view is full-screen - Force Pastel Theme (NO dark mode)
   if (activeTab === 'store') {
     return (
-      <div className={`theme-child-gamer min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`theme-parent-zen min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="tab-content">
           <RewardsStore
             totalBalance={totalBalance}
@@ -179,8 +180,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     );
   }
 
+  // Force Pastel Theme (theme-parent-zen) - NO dark mode for child view
   return (
-    <div className={`theme-child-gamer min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
+    <div className={`theme-parent-zen min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
       {/* iOS Install Banner - shows for iOS users not in standalone mode */}
       {!isViewingAsChild && <IOSInstallBanner />}
       

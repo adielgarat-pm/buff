@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BarChart3, TrendingUp, Calendar, User, Trophy, Flame, Target,
   BookOpen, MessageSquare, AlertTriangle, Sparkles, ChevronDown, ChevronUp
@@ -20,10 +20,12 @@ export function ParentReports() {
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   const [selectedChildId, setSelectedChildId] = useState<string>('');
 
-  // Auto-select first child
-  if (!selectedChildId && children.length > 0 && !membersLoading) {
-    setSelectedChildId(children[0].id);
-  }
+  // Auto-select first child via useEffect (not during render)
+  useEffect(() => {
+    if (!selectedChildId && children.length > 0 && !membersLoading) {
+      setSelectedChildId(children[0].id);
+    }
+  }, [selectedChildId, children, membersLoading]);
 
   const loading = membersLoading || progressLoading;
   const selectedChild = children.find(c => c.id === selectedChildId);
