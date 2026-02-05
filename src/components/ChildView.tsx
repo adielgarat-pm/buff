@@ -148,11 +148,10 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     return Array.from(categoriesWithTasks);
   }, [tasks, lessons, schoolQuestEnabled]);
 
-  // Loading state when switching children
-  // Force Pastel Theme (theme-parent-zen) - NO dark mode for child view
+  // Force Child Playful Theme (Soft Mint) - distinct from parent view
   if (loading) {
     return (
-      <div className={`theme-parent-zen min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`theme-child-playful min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground font-medium">
@@ -163,10 +162,10 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     );
   }
 
-  // Store view is full-screen - Force Pastel Theme (NO dark mode)
+  // Store view is full-screen - Child Playful Theme (Soft Mint)
   if (activeTab === 'store') {
     return (
-      <div className={`theme-parent-zen min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`theme-child-playful min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="tab-content">
           <RewardsStore
             totalBalance={totalBalance}
@@ -180,9 +179,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     );
   }
 
-  // Force Pastel Theme (theme-parent-zen) - NO dark mode for child view
+  // Child Playful Theme (Soft Mint) - distinct from parent's white
   return (
-    <div className={`theme-parent-zen min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
+    <div className={`theme-child-playful min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
       {/* iOS Install Banner - shows for iOS users not in standalone mode */}
       {!isViewingAsChild && <IOSInstallBanner />}
       
@@ -200,7 +199,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         onDismiss={dismissTransition}
       />
       
-      {/* Neon gradient glow - Gamer style */}
+      {/* Soft gradient glow - Playful style */}
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
       
       <div className="relative max-w-lg mx-auto safe-area-px pb-8">

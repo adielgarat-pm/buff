@@ -22,11 +22,11 @@ export function WeeklyGoalRing({
   const progressOffset = circumference - (currentPercentage / 100) * circumference;
   const goalOffset = circumference - (goalPercentage / 100) * circumference;
   
-  // Determine color based on progress
+  // Determine color based on progress - Pastel theme colors
   const isAboveGoal = currentPercentage >= goalPercentage;
   const progressColor = isAboveGoal 
-    ? '112 100% 54%' // Electric green
-    : '183 100% 50%'; // Neon cyan
+    ? '156 64% 55%' // Soft mint green
+    : '258 73% 76%'; // Pastel purple
 
   const getMessage = () => {
     if (currentPercentage >= 100) return '🏆 מושלם!';

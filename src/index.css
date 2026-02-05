@@ -8,118 +8,18 @@
 
 @layer base {
   /* ========================================
-     CHILD GAMER THEME (Default for :root)
-     Pure Dark with Neon Accents
+     BASE THEME (Light Default)
+     Clean and accessible foundation
      ======================================== */
-  :root,
-  .theme-child-gamer {
-    /* Pure Dark Background - #0A0A0A */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
-
-    /* Card backgrounds - very dark */
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 100%;
-
-    /* Neon Cyan - Primary - #00F2FF */
-    --primary: 183 100% 50%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-
-    /* Electric Green - Accent - #39FF14 */
-    --accent: 112 100% 54%;
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Electric Green - Success states */
-    --success: 112 100% 54%;
-    --success-foreground: 0 0% 0%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
-
-    /* Electric Green for buffs - #39FF14 */
-    --buff: 112 100% 54%;
-    --buff-foreground: 0 0% 0%;
-
-    /* Orange for streaks - #F97316 */
-    --streak: 24 95% 53%;
-    --streak-foreground: 0 0% 0%;
-
-    /* Neon Cyan for rewards - #00F2FF */
-    --reward: 183 100% 50%;
-    --reward-foreground: 0 0% 0%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 15%;
-    --ring: 183 100% 50%;
-
-    --radius: 1rem;
-
-    /* Category colors - 5-Category System */
-    --learning: 217 91% 60%;        /* Blue - Book icon */
-    --organization: 25 95% 53%;     /* Orange - Calendar icon */
-    --self-care: 330 80% 60%;       /* Pink/Teal - Sparkles icon */
-    --responsibility: 271 81% 56%;  /* Purple - House icon */
-    --movement: 142 76% 36%;        /* Green - Lightning icon */
-
-    /* Protocol/Cyberpunk Theme for Bio/Meds Tasks */
-    --protocol-cyan: 180 100% 50%;    /* Electric Cyan */
-    --protocol-purple: 280 100% 60%;  /* Neon Purple */
-    --protocol-glow: 180 100% 70%;    /* Glow variant */
-
-    /* GAMER Gradients - Neon Aesthetic */
-    --gradient-primary: linear-gradient(135deg, hsl(183, 100%, 50%), hsl(112, 100%, 54%));
-    --gradient-success: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
-    --gradient-xp: linear-gradient(90deg, hsl(112, 100%, 44%), hsl(112, 100%, 54%), hsl(112, 100%, 60%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 8%), hsl(0, 0%, 4%));
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(183, 100%, 50%, 0.15), transparent 50%);
-    --gradient-buff: linear-gradient(135deg, hsl(112, 100%, 54%), hsl(112, 100%, 44%));
-    --gradient-reward: linear-gradient(135deg, hsl(183, 100%, 50%), hsl(183, 100%, 40%));
-
-    /* GAMER Shadows - Neon Glow */
-    --shadow-glow: 0 0 20px hsl(183, 100%, 50%, 0.4);
-    --shadow-buff-glow: 0 0 30px hsl(112, 100%, 54%, 0.6), 0 0 60px hsl(112, 100%, 54%, 0.3), 0 0 90px hsl(112, 100%, 54%, 0.15);
-    --shadow-buff-glow-intense: 0 0 40px hsl(112, 100%, 54%, 0.8), 0 0 80px hsl(112, 100%, 54%, 0.5), 0 0 120px hsl(112, 100%, 54%, 0.25);
-    --shadow-reward-glow: 0 0 20px hsl(183, 100%, 50%, 0.5), 0 0 40px hsl(183, 100%, 50%, 0.3);
-    --shadow-protocol-glow: 0 0 20px hsl(180, 100%, 50%, 0.5), 0 0 40px hsl(280, 100%, 60%, 0.3), 0 0 60px hsl(180, 100%, 50%, 0.2);
-    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.8);
-
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 183 100% 50%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 183 100% 50%;
-  }
-
-  /* ========================================
-     PARENT ZEN THEME
-     Soft Pastel with Warm, Calm Aesthetic
-     ======================================== */
-  .theme-parent-zen {
-    /* Warm Off-White Background - #FAFAF9 */
-    --background: 40 20% 98%;
-    /* Dark Grey Text (not pure black) - #374151 */
+  :root {
+    /* Pure White Background - #FFFFFF */
+    --background: 0 0% 100%;
     --foreground: 220 13% 26%;
 
     /* Clean White Cards */
     --card: 0 0% 100%;
     --card-foreground: 220 13% 26%;
 
-    /* White Popovers/Modals */
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 26%;
 
@@ -168,24 +68,209 @@
 
     --radius: 0.75rem;
 
-    /* Category colors - Soft Pastels */
-    --medication: 280 45% 70%;
-    --hygiene: 200 55% 70%;
-    --nutrition: 156 50% 60%;
-    --school: 38 60% 65%;
+    /* Category colors - 5-Category System (Soft Pastels) */
+    --learning: 217 60% 70%;
+    --organization: 25 70% 70%;
+    --self-care: 330 50% 75%;
+    --responsibility: 258 50% 75%;
+    --movement: 156 50% 60%;
+
+    /* Gradients - Very Subtle and Soft */
+    --gradient-primary: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+    --gradient-success: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 60%), hsl(156, 64%, 67%), hsl(156, 70%, 72%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(40, 20%, 98%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.08), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+
+    /* Shadows - Very Soft */
+    --shadow-glow: 0 2px 8px hsl(258, 73%, 76%, 0.12);
+    --shadow-buff-glow: 0 2px 10px hsl(156, 64%, 67%, 0.15);
+    --shadow-buff-glow-intense: 0 4px 16px hsl(156, 64%, 67%, 0.2);
+    --shadow-reward-glow: 0 2px 8px hsl(258, 73%, 76%, 0.15);
+    --shadow-card: 0 1px 3px hsl(220, 13%, 26%, 0.04), 0 2px 8px hsl(220, 13%, 26%, 0.06);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 13% 26%;
+    --sidebar-primary: 258 73% 76%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 13% 26%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 258 73% 76%;
+  }
+
+  /* ========================================
+     CHILD PLAYFUL THEME
+     Soft Mint Background with Playful Vibes
+     (No dark mode, no neon - kid-friendly)
+     ======================================== */
+  .theme-child-playful {
+    /* Soft Mint Background - #DCFCE7 */
+    --background: 142 77% 93%;
+    --foreground: 220 13% 20%;
+
+    /* White Cards with slight mint tint */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 20%;
+
+    /* Pastel Purple - Primary - #E9D5FF */
+    --primary: 270 67% 92%;
+    --primary-foreground: 258 50% 40%;
+
+    /* Soft White Secondary */
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 220 13% 26%;
+
+    /* Soft Muted */
+    --muted: 142 40% 90%;
+    --muted-foreground: 220 9% 40%;
+
+    /* Pastel Purple Accent */
+    --accent: 258 73% 76%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Soft Green - Success states */
+    --success: 156 64% 55%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 70% 60%;
+    --warning-foreground: 220 13% 18%;
+
+    /* Pastel Purple for buffs (reward feel) */
+    --buff: 258 73% 76%;
+    --buff-foreground: 0 0% 100%;
+
+    /* Soft Coral for streaks */
+    --streak: 0 80% 75%;
+    --streak-foreground: 0 0% 100%;
+
+    /* Pastel Purple for rewards */
+    --reward: 258 73% 76%;
+    --reward-foreground: 0 0% 100%;
+
+    /* Soft Borders */
+    --border: 142 30% 85%;
+    --input: 142 30% 90%;
+    --ring: 258 73% 76%;
+
+    --radius: 1rem;
+
+    /* Category colors - Playful Pastels */
+    --learning: 217 70% 65%;
+    --organization: 25 80% 65%;
+    --self-care: 330 60% 70%;
+    --responsibility: 258 60% 70%;
+    --movement: 156 60% 50%;
+
+    /* Playful Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270, 67%, 92%), hsl(258, 73%, 76%));
+    --gradient-success: linear-gradient(135deg, hsl(156, 64%, 55%), hsl(156, 55%, 50%));
+    --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 50%), hsl(156, 64%, 55%), hsl(156, 70%, 60%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(142, 40%, 96%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.12), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(270, 67%, 85%));
+    --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+
+    /* Soft Shadows */
+    --shadow-glow: 0 2px 12px hsl(258, 73%, 76%, 0.2);
+    --shadow-buff-glow: 0 4px 16px hsl(258, 73%, 76%, 0.25);
+    --shadow-buff-glow-intense: 0 6px 24px hsl(258, 73%, 76%, 0.3);
+    --shadow-reward-glow: 0 2px 12px hsl(258, 73%, 76%, 0.2);
+    --shadow-card: 0 2px 8px hsl(220, 13%, 26%, 0.06), 0 4px 16px hsl(220, 13%, 26%, 0.04);
+
+    --sidebar-background: 142 77% 93%;
+    --sidebar-foreground: 220 13% 20%;
+    --sidebar-primary: 258 73% 76%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 220 13% 26%;
+    --sidebar-border: 142 30% 85%;
+    --sidebar-ring: 258 73% 76%;
+  }
+
+  /* ========================================
+     PARENT ZEN THEME
+     Pure White with Pastel Purple Accents
+     ======================================== */
+  .theme-parent-zen {
+    /* Pure White Background - #FFFFFF */
+    --background: 0 0% 100%;
+    /* Dark Grey Text (not pure black) - #374151 */
+    --foreground: 220 13% 26%;
+
+    /* Clean White Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 26%;
+
+    /* White Popovers/Modals */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 26%;
+
+    /* Soft Pastel Purple - Primary - #A78BFA */
+    --primary: 258 73% 76%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Very Light Grey Secondary - #F9FAFB */
+    --secondary: 210 20% 98%;
+    --secondary-foreground: 220 13% 26%;
+
+    /* Soft Muted */
+    --muted: 210 20% 98%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Soft Mint/Teal - Accent - #6EE7B7 */
+    --accent: 156 64% 67%;
+    --accent-foreground: 220 13% 18%;
+
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Soft Mint - Success states - #6EE7B7 */
+    --success: 156 64% 67%;
+    --success-foreground: 220 13% 18%;
+
+    --warning: 38 70% 60%;
+    --warning-foreground: 220 13% 18%;
+
+    /* Soft Mint for buffs */
+    --buff: 156 64% 67%;
+    --buff-foreground: 220 13% 18%;
+
+    /* Soft Coral for streaks - #FCA5A5 */
+    --streak: 0 91% 82%;
+    --streak-foreground: 220 13% 18%;
+
+    /* Soft Pastel Purple for rewards */
+    --reward: 258 73% 76%;
+    --reward-foreground: 0 0% 100%;
+
+    /* Soft Borders */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 258 73% 76%;
+
+    --radius: 0.75rem;
 
     /* Category colors - 5-Category System (Soft Pastels) */
-    --learning: 217 60% 70%;        /* Soft Blue */
-    --organization: 25 70% 70%;     /* Soft Orange */
-    --self-care: 330 50% 75%;       /* Soft Pink */
-    --responsibility: 258 50% 75%;  /* Soft Purple */
-    --movement: 156 50% 60%;        /* Soft Green */
+    --learning: 217 60% 70%;
+    --organization: 25 70% 70%;
+    --self-care: 330 50% 75%;
+    --responsibility: 258 50% 75%;
+    --movement: 156 50% 60%;
 
     /* ZEN Gradients - Very Subtle and Soft */
     --gradient-primary: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
     --gradient-success: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
     --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 60%), hsl(156, 64%, 67%), hsl(156, 70%, 72%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(40, 20%, 98%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(210, 20%, 98%));
     --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.08), transparent 50%);
     --gradient-buff: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
     --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
@@ -201,9 +286,9 @@
     --sidebar-foreground: 220 13% 26%;
     --sidebar-primary: 258 73% 76%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent: 210 20% 98%;
     --sidebar-accent-foreground: 220 13% 26%;
-    --sidebar-border: 220 13% 90%;
+    --sidebar-border: 220 13% 91%;
     --sidebar-ring: 258 73% 76%;
   }
 }
@@ -237,38 +322,51 @@
   }
 
   /* Theme-specific body styles */
-  .theme-child-gamer body,
-  .theme-child-gamer {
-    color: hsl(0, 0%, 100%);
-    background-color: hsl(0, 0%, 4%);
+  .theme-child-playful body,
+  .theme-child-playful {
+    color: hsl(220, 13%, 20%);
+    background-color: hsl(142, 77%, 93%);
   }
 
   .theme-parent-zen body,
   .theme-parent-zen {
-    color: hsl(222, 47%, 11%);
-    background-color: hsl(210, 40%, 98%);
+    color: hsl(220, 13%, 26%);
+    background-color: hsl(0, 0%, 100%);
   }
 
-  /* Parent Zen specific overrides - NO NEON */
+  /* Clean shadow overrides for both themes - NO NEON */
   .theme-parent-zen .shadow-buff-glow,
   .theme-parent-zen .shadow-glow,
-  .theme-parent-zen .shadow-reward-glow {
+  .theme-parent-zen .shadow-reward-glow,
+  .theme-child-playful .shadow-buff-glow,
+  .theme-child-playful .shadow-glow,
+  .theme-child-playful .shadow-reward-glow {
     box-shadow: var(--shadow-card) !important;
   }
 
   .theme-parent-zen .animate-buff-pulse,
   .theme-parent-zen .animate-cta-glow,
   .theme-parent-zen .animate-pulse-glow,
-  .theme-parent-zen .buff-active-glow {
+  .theme-parent-zen .buff-active-glow,
+  .theme-child-playful .animate-cta-glow,
+  .theme-child-playful .animate-pulse-glow {
     animation: none !important;
     box-shadow: var(--shadow-card) !important;
   }
 
-  .theme-parent-zen .cta-buff-button {
+  /* Playful but subtle pulse for child view */
+  .theme-child-playful .animate-buff-pulse,
+  .theme-child-playful .buff-active-glow {
+    box-shadow: 0 4px 16px hsl(258, 73%, 76%, 0.25) !important;
+  }
+
+  .theme-parent-zen .cta-buff-button,
+  .theme-child-playful .cta-buff-button {
     box-shadow: var(--shadow-card) !important;
   }
 
-  .theme-parent-zen .cta-buff-button:hover {
+  .theme-parent-zen .cta-buff-button:hover,
+  .theme-child-playful .cta-buff-button:hover {
     box-shadow: 0 6px 20px hsl(0, 0%, 0%, 0.1) !important;
     transform: translateY(-1px);
   }
@@ -318,14 +416,12 @@
     background-image: var(--gradient-buff);
   }
 
-  /* Glowing Neon Green Text */
+  /* Glowing Text - Soft Purple */
   .text-glow-green {
-    color: hsl(112, 100%, 54%);
+    color: hsl(258, 73%, 76%);
     text-shadow: 
-      0 0 10px hsl(112, 100%, 54%, 0.8),
-      0 0 20px hsl(112, 100%, 54%, 0.6),
-      0 0 40px hsl(112, 100%, 54%, 0.4),
-      0 0 80px hsl(112, 100%, 54%, 0.2);
+      0 0 10px hsl(258, 73%, 76%, 0.5),
+      0 0 20px hsl(258, 73%, 76%, 0.3);
   }
 
   .bg-gradient-primary {
@@ -377,10 +473,10 @@
     border-radius: inherit;
   }
 
-  /* BUFF Active Glow Effect - Neon Green */
+  /* BUFF Active Glow Effect - Soft Purple (no neon) */
   .buff-active-glow {
-    box-shadow: 0 0 15px hsl(112, 100%, 54%, 0.4), 0 0 30px hsl(112, 100%, 54%, 0.2);
-    border-color: hsl(112, 100%, 54%, 0.5);
+    box-shadow: 0 4px 16px hsl(258, 73%, 76%, 0.25);
+    border-color: hsl(258, 73%, 76%, 0.5);
   }
 
   /* Safe area for all edges on iOS */
@@ -474,23 +570,23 @@ body.modal-open {
   opacity: 0.9;
 }
 
-/* Custom scrollbar - BUFF themed */
+/* Custom scrollbar - Light theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(0, 0%, 11%);
+  background: hsl(220, 14%, 96%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(0, 0%, 25%);
+  background: hsl(220, 13%, 80%);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(262, 83%, 66%, 0.5);
+  background: hsl(258, 73%, 76%);
 }
 
 /* Hide scrollbar for horizontal scroll areas */
@@ -503,13 +599,13 @@ body.modal-open {
   scrollbar-width: none;
 }
 
-/* Animations - Neon Green (#39FF14) */
+/* Animations - Soft Pastel Purple */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px hsl(262, 83%, 66%, 0.3);
+    box-shadow: 0 0 20px hsl(258, 73%, 76%, 0.2);
   }
   50% {
-    box-shadow: 0 0 40px hsl(262, 83%, 66%, 0.5);
+    box-shadow: 0 0 40px hsl(258, 73%, 76%, 0.35);
   }
 }
 
@@ -531,10 +627,10 @@ body.modal-open {
 
 @keyframes buff-pulse {
   0%, 100% {
-    box-shadow: 0 0 15px hsl(112, 100%, 54%, 0.4);
+    box-shadow: 0 0 12px hsl(258, 73%, 76%, 0.25);
   }
   50% {
-    box-shadow: 0 0 30px hsl(112, 100%, 54%, 0.6);
+    box-shadow: 0 0 24px hsl(258, 73%, 76%, 0.4);
   }
 }
 
