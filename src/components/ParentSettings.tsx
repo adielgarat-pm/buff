@@ -60,6 +60,7 @@ import { Task, TaskCategory, Timetable, StoreReward } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 
 interface ParentSettingsProps {
   appTitle: string;
@@ -108,13 +109,20 @@ export function ParentSettings({
     <div className="space-y-3 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground font-display">
-            {selectedChildId ? 'הגדרות Buff' : 'הגדרות'}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {selectedChildId ? 'עריכת משימות, מערכת ופרסים' : 'הגדרות כלליות וניהול ילדים'}
-          </p>
+        <div className="flex items-center gap-3">
+          <img 
+            src={buffLogoNoBg} 
+            alt="BUFF Logo" 
+            className="h-10 w-10 object-contain"
+          />
+          <div>
+            <h1 className="text-xl font-bold text-foreground font-display">
+              {selectedChildId ? 'הגדרות Buff' : 'הגדרות'}
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {selectedChildId ? 'עריכת משימות, מערכת ופרסים' : 'הגדרות כלליות וניהול ילדים'}
+            </p>
+          </div>
         </div>
         {selectedChildId && onBackFromChild && (
           <Button variant="ghost" size="sm" onClick={onBackFromChild} className="text-muted-foreground">

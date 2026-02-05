@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
 import { PHASES } from '@/types/phase';
+import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 
 export function ParentReports() {
   const { children, loading: membersLoading } = useFamilyMembers();
@@ -41,9 +42,16 @@ export function ParentReports() {
   if (children.length === 0) {
     return (
       <div className="space-y-3 pb-6">
-        <div>
-          <h1 className="text-xl font-bold text-foreground font-display">Weekly Buff Stats</h1>
-          <p className="text-xs text-muted-foreground">ניתוח ותובנות</p>
+        <div className="flex items-center gap-3">
+          <img 
+            src={buffLogoNoBg} 
+            alt="BUFF Logo" 
+            className="h-10 w-10 object-contain"
+          />
+          <div>
+            <h1 className="text-xl font-bold text-foreground font-display">Weekly Buff Stats</h1>
+            <p className="text-xs text-muted-foreground">ניתוח ותובנות</p>
+          </div>
         </div>
         <div className="p-4 rounded-xl bg-card border border-border text-center">
           <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
@@ -57,9 +65,16 @@ export function ParentReports() {
     <div className="space-y-3 pb-6">
       {/* Header + Child Selector - Combined */}
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-foreground font-display">Weekly Buff Stats</h1>
-          <p className="text-xs text-muted-foreground">ניתוח ותובנות שבועיות</p>
+        <div className="flex items-center gap-3">
+          <img 
+            src={buffLogoNoBg} 
+            alt="BUFF Logo" 
+            className="h-10 w-10 object-contain"
+          />
+          <div>
+            <h1 className="text-xl font-bold text-foreground font-display">Weekly Buff Stats</h1>
+            <p className="text-xs text-muted-foreground">ניתוח ותובנות שבועיות</p>
+          </div>
         </div>
         <Select value={selectedChildId} onValueChange={setSelectedChildId}>
           <SelectTrigger className="w-auto min-w-[100px] h-8 text-xs bg-secondary border-border">

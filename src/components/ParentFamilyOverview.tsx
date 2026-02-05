@@ -14,6 +14,7 @@ import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
 import { BuffBoostCard } from './BuffBoostCard';
+import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 
 interface ParentFamilyOverviewProps {
   onSelectChild: (childId: string) => void;
@@ -109,15 +110,22 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
        {/* BuffBoost Community Support Card */}
        <BuffBoostCard />
       
-      {/* Header with Info Button */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground font-display">
-            סקירה משפחתית
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            מעקב התקדמות בזמן אמת
-          </p>
+       {/* Header with Logo and Info Button */}
+       <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <img 
+            src={buffLogoNoBg} 
+            alt="BUFF Logo" 
+            className="h-12 w-12 object-contain"
+          />
+          <div className="space-y-0.5">
+            <h1 className="text-xl font-bold text-foreground font-display">
+              סקירה משפחתית
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              מעקב התקדמות בזמן אמת
+            </p>
+          </div>
         </div>
         <Button
           variant="ghost"
