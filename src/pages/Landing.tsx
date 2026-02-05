@@ -8,13 +8,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
   const logoSize = size === 'large' ? 'h-20 w-20' : 'h-10 w-10';
   
+  const containerSize = size === 'large' ? 'w-20 h-20' : 'w-10 h-10';
+  const imgSize = size === 'large' ? 'h-16 w-16' : 'h-8 w-8';
+  
   return (
     <div className="flex items-center gap-2">
-      <img 
-        src={buffLogo} 
-        alt="BUFF Logo" 
-        className={`${logoSize} object-contain`}
-      />
+      <div className={`${containerSize} rounded-xl bg-[#DCFCE7] flex items-center justify-center`}>
+        <img 
+          src={buffLogo} 
+          alt="BUFF Logo" 
+          className={`${imgSize} object-contain`}
+        />
+      </div>
       {size !== 'large' && (
         <span className="font-display text-2xl font-bold tracking-wide text-primary">
           BUFF
@@ -199,11 +204,13 @@ export default function Landing() {
           </div>
           
           <div className="flex flex-col items-center mb-6">
-            <img 
-              src={buffLogo} 
-              alt="BUFF Logo" 
-              className="h-32 w-32 object-contain mb-4"
-            />
+            <div className="w-32 h-32 rounded-2xl bg-[#DCFCE7] flex items-center justify-center mb-4">
+              <img 
+                src={buffLogo} 
+                alt="BUFF Logo" 
+                className="h-28 w-28 object-contain"
+              />
+            </div>
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-wide">
               <span className="text-primary">BUFF</span>
             </h1>

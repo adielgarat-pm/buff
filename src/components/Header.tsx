@@ -52,12 +52,14 @@ function BuffLogo({
         />
       )}
       
-      <img 
-        src={buffLogo} 
-        alt="BUFF Logo" 
-        className="h-12 w-12 object-contain"
-      />
-      <span className="font-display text-2xl font-bold tracking-wide text-glow-green">
+      <div className="w-12 h-12 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
+        <img 
+          src={buffLogo} 
+          alt="BUFF Logo" 
+          className="h-10 w-10 object-contain"
+        />
+      </div>
+      <span className="font-display text-2xl font-bold tracking-wide text-primary">
         BUFF
       </span>
     </div>

@@ -141,11 +141,13 @@ export default function Auth() {
         <CardHeader className="text-center space-y-1 pb-2 pt-4 px-4">
           {/* BUFF Logo */}
           <div className="flex items-center justify-center gap-3 mb-1">
-            <img 
-              src={buffLogo} 
-              alt="BUFF Logo" 
-              className="h-12 w-12 object-contain"
-            />
+            <div className="w-12 h-12 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
+              <img 
+                src={buffLogo} 
+                alt="BUFF Logo" 
+                className="h-10 w-10 object-contain"
+              />
+            </div>
             <CardTitle className="text-2xl font-display font-bold tracking-wide text-primary">
               BUFF
             </CardTitle>
