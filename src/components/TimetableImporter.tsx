@@ -43,7 +43,7 @@ interface ParsedPeriod {
 }
 
 interface TimetableImporterProps {
-  onImport: (timetable: Timetable) => void;
+  onImport: (timetable: Timetable, hasFridayLessons: boolean) => void;
   onClose: () => void;
   currentTimetable: Timetable;
   childName?: string;
@@ -170,7 +170,8 @@ const findSubjectColumnFallback = (headers: string[], dayCol: string | null, tim
 };
 
 export function TimetableImporter({ onImport, onClose, currentTimetable, childName, fridayEnabled = false }: TimetableImporterProps) {
-  const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
+  // Always include Friday in displayDays during import to capture any Friday lessons
+  const displayDays = WEEK_DAYS_WITH_FRIDAY;
   
   const [mode, setMode] = useState<'choose' | 'manual' | 'file' | 'paste' | 'processing' | 'review'>('choose');
   const [manualTimetable, setManualTimetable] = useState<Timetable>(() => createEmptyTimetable(displayDays));
@@ -769,7 +770,11 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       toast.error('נא להזין לפחות שיעור אחד');
       return;
     }
-    onImport(filtered);
+    
+    // Check if Friday has any lessons
+    const hasFridayLessons = (filtered.friday || []).length > 0;
+    
+    onImport(filtered, hasFridayLessons);
     toast.success(`נשמרו ${totalLessons} שיעורים בהצלחה!`);
     onClose();
   };
@@ -851,7 +856,10 @@ export function TimetableImporter({ onImport, onClose, currentTimetable, childNa
       }));
     });
 
-    onImport(newTimetable);
+    // Check if Friday has any lessons in the imported data
+    const hasFridayLessons = (newTimetable.friday || []).length > 0;
+
+    onImport(newTimetable, hasFridayLessons);
     toast.success(`יובאו ${selectedPeriods.length} שיעורים בהצלחה!`);
     onClose();
   };

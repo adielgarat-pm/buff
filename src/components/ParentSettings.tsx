@@ -64,10 +64,10 @@ import { z } from 'zod';
 interface ParentSettingsProps {
   appTitle: string;
   lessonRemindersEnabled: boolean;
-  fridayEnabled: boolean;
+  fridayEnabled: boolean; // Still needed for display in child components
   onUpdateAppTitle: (title: string) => void;
   onToggleLessonReminders: (enabled: boolean) => void;
-  onToggleFridayEnabled: (enabled: boolean) => void;
+  // onToggleFridayEnabled removed - Friday is now auto-managed from schedule imports
   selectedChildId?: string | null;
   onBackFromChild?: () => void;
   onSelectChild?: (childId: string) => void;
@@ -80,7 +80,6 @@ export function ParentSettings({
   fridayEnabled,
   onUpdateAppTitle,
   onToggleLessonReminders,
-  onToggleFridayEnabled,
   selectedChildId,
   onBackFromChild,
   onSelectChild,
@@ -176,19 +175,9 @@ export function ParentSettings({
                   checked={lessonRemindersEnabled}
                   onCheckedChange={onToggleLessonReminders}
                 />
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm text-foreground">יום שישי יום לימודים</span>
-                </div>
-                <Switch
-                  checked={fridayEnabled}
-                  onCheckedChange={onToggleFridayEnabled}
-                />
-              </div>
             </div>
           </div>
+        </div>
 
           {/* Notifications & Updates Section */}
           <div className="rounded-xl bg-card border border-border p-3">
@@ -465,9 +454,22 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
     );
   }
 
-  const handleImportTimetable = (newTimetable: Timetable) => {
+  const handleImportTimetable = async (newTimetable: Timetable, hasFridayLessons: boolean) => {
     updateTimetable(newTimetable);
     setScheduleImporterOpen(false);
+    
+    // Auto-enable Friday if schedule contains Friday lessons
+    if (hasFridayLessons && familyId) {
+      try {
+        await supabase
+          .from('app_settings')
+          .update({ friday_enabled: true })
+          .eq('family_id', familyId);
+        toast.success('יום שישי הופעל אוטומטית כי המערכת מכילה שיעורים ביום שישי');
+      } catch (error) {
+        console.error('Error auto-enabling Friday:', error);
+      }
+    }
   };
 
   const handleToggleSchoolQuest = (enabled: boolean) => {
