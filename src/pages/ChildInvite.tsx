@@ -204,14 +204,16 @@ export default function ChildInvite() {
       <div className="relative z-10 w-full max-w-md space-y-8 animate-fade-in">
         {/* Logo and greeting */}
         <div className="text-center space-y-6">
-          {/* Glowing logo */}
+          {/* Logo with mint background */}
           <div className="relative mx-auto w-28 h-28">
-            <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl animate-pulse" />
-            <img 
-              src={buffLogo} 
-              alt="BUFF Logo" 
-              className="relative w-full h-full object-contain drop-shadow-[0_0_30px_hsl(183,100%,50%,0.5)]"
-            />
+            <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
+            <div className="relative w-full h-full rounded-2xl bg-[#DCFCE7] flex items-center justify-center shadow-lg">
+              <img 
+                src={buffLogo} 
+                alt="BUFF Logo" 
+                className="w-24 h-24 object-contain"
+              />
+            </div>
           </div>
 
           {/* Dynamic greeting */}
