@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Loader2, Zap, Users, User, Globe } from 'lucide-react';
-import buffLogo from '@/assets/buff-logo.png';
+import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 import { LegalDisclaimerLink } from '@/components/LegalDisclaimer';
 
@@ -141,13 +141,11 @@ export default function Auth() {
         <CardHeader className="text-center space-y-1 pb-2 pt-4 px-4">
           {/* BUFF Logo */}
           <div className="flex items-center justify-center mb-1">
-            <div className="w-14 h-14 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
-              <img 
-                src={buffLogo} 
-                alt="BUFF Logo" 
-                className="h-12 w-12 object-contain"
-              />
-            </div>
+            <img 
+              src={buffLogoNoBg} 
+              alt="BUFF Logo" 
+              className="h-16 w-16 object-contain"
+            />
           </div>
           <CardDescription className="text-xs italic text-buff font-medium">
             {t('app.tagline')}
