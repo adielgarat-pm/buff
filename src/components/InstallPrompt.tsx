@@ -15,7 +15,7 @@ import { usePWAInstall, DeviceOS } from '@/hooks/usePWAInstall';
 import { trackPWAEvent } from '@/hooks/usePWAAnalytics';
 import { useInstallPromptMessage } from '@/hooks/useInstallPromptMessage';
 import { useBrowserDetection, detectBrowser } from '@/hooks/useBrowserDetection';
-import buffLogo from '@/assets/buff-logo.png';
+import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 
 interface InstallPromptProps {
   onClose?: () => void;
@@ -98,8 +98,8 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
             {/* Header with dismiss */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-buff-glow">
-                  <img src={buffLogo} alt="BUFF" className="w-8 h-8" />
+                <div className="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center shadow-lg">
+                  <img src={buffLogoNoBg} alt="BUFF" className="w-10 h-10 object-contain" />
                 </div>
                 <div>
                   <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
@@ -254,9 +254,9 @@ function AndroidDesktopInstructions({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', duration: 0.5 }}
-          className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-accent to-primary shadow-buff-glow mb-4"
+          className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-[#DCFCE7] shadow-lg mb-4"
         >
-          <img src={buffLogo} alt="BUFF" className="w-14 h-14" />
+          <img src={buffLogoNoBg} alt="BUFF" className="w-16 h-16 object-contain" />
         </motion.div>
         
         {/* Dynamic personalized header */}
@@ -495,8 +495,8 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
 
             <div className="flex items-center gap-4">
               {/* Logo */}
-              <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-buff-glow">
-                <img src={buffLogo} alt="BUFF" className="w-10 h-10" />
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#DCFCE7] flex items-center justify-center shadow-lg">
+                <img src={buffLogoNoBg} alt="BUFF" className="w-12 h-12 object-contain" />
               </div>
 
               {/* Content */}
