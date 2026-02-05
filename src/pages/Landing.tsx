@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
+import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // BUFF Logo Component
@@ -199,13 +200,11 @@ export default function Landing() {
           </div>
           
           <div className="flex flex-col items-center mb-6">
-            <div className="w-32 h-32 rounded-2xl bg-[#DCFCE7] flex items-center justify-center mb-4">
-              <img 
-                src={buffLogo} 
-                alt="BUFF Logo" 
-                className="h-28 w-28 object-contain"
-              />
-            </div>
+            <img 
+              src={buffLogoNoBg} 
+              alt="BUFF Logo" 
+              className="h-32 w-32 object-contain"
+            />
           </div>
           <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             <span className="text-foreground">{t('landing.executiveFunction')} </span>
