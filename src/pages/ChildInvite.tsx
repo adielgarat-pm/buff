@@ -197,7 +197,7 @@ export default function ChildInvite() {
   }
 
   return (
-    <div className="min-h-screen theme-child-gamer flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen theme-child-playful flex items-center justify-center p-4 relative overflow-hidden">
       <TechGridBackground />
 
       {/* Main content */}
