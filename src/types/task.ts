@@ -63,7 +63,7 @@ export interface Task {
   icon?: string;
   assignedTo?: string; // Child profile ID for per-child tasks
   strategyId?: string; // Buff strategy booster ID
-  scheduleDays?: number[]; // Days of the week (0=Sunday, 6=Saturday), defaults to [0,1,2,3,4]
+  scheduleDays?: number[]; // Days of the week (0=Sunday, 6=Saturday), defaults to [0,1,2,3,4,5] (includes Friday)
 }
 
 export interface Lesson {

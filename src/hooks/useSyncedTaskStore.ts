@@ -225,7 +225,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         completed: completedTaskIds.has(t.id),
         assignedTo: t.assigned_to || undefined,
         strategyId: t.strategy_id || undefined,
-        scheduleDays: t.schedule_days || [0, 1, 2, 3, 4],
+        scheduleDays: t.schedule_days || [0, 1, 2, 3, 4, 5],
       }));
 
       setTasks(mappedTasks);
