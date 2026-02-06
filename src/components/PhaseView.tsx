@@ -52,7 +52,7 @@ export function PhaseView({
     
     return tasks.filter(task => {
       // Check if task is scheduled for today
-      const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4]; // Default Sun-Thu
+      const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4, 5]; // Default Sun-Fri (includes Friday)
       if (!scheduleDays.includes(currentDayOfWeek)) {
         return false;
       }

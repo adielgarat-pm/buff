@@ -579,7 +579,7 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
     credits: 10,
     strategyId: '' as string,
     description: '',
-    scheduleDays: [0, 1, 2, 3, 4] as number[], // Sun-Thu default
+    scheduleDays: [0, 1, 2, 3, 4, 5] as number[], // Sun-Fri default (includes Friday)
   });
 
   // Initialize child data on mount
@@ -600,7 +600,7 @@ function ChildConfiguration({ child, progress, fridayEnabled }: ChildConfigurati
         assignedTo: child.id,
       };
       addTask(taskToAdd);
-      setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, strategyId: '', description: '', scheduleDays: [0, 1, 2, 3, 4] });
+      setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, strategyId: '', description: '', scheduleDays: [0, 1, 2, 3, 4, 5] });
       setShowAddForm(false);
     }
   };
@@ -1122,7 +1122,7 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">Schedule Days</Label>
           <DayScheduleToggles
-            selectedDays={editedTask.scheduleDays || [0, 1, 2, 3, 4]}
+            selectedDays={editedTask.scheduleDays || [0, 1, 2, 3, 4, 5]}
             onChange={(days) => setEditedTask({ ...editedTask, scheduleDays: days })}
           />
         </div>
@@ -1188,8 +1188,8 @@ function TaskEditRow({ task, isEditing, onEdit, onSave, onCancel, onDelete }: Ta
     return days.map(d => dayLabels[d]).join('');
   };
 
-  const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4];
-  const isDefaultSchedule = JSON.stringify(scheduleDays.sort()) === JSON.stringify([0, 1, 2, 3, 4]);
+  const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4, 5];
+  const isDefaultSchedule = JSON.stringify([...scheduleDays].sort((a, b) => a - b)) === JSON.stringify([0, 1, 2, 3, 4, 5]);
 
   return (
     <div

@@ -598,7 +598,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
           description: task.description || null,
           icon: task.icon || null,
           strategy_id: task.strategyId || null,
-          schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+          schedule_days: task.scheduleDays || [0, 1, 2, 3, 4, 5],
         }));
 
         const { error } = await supabase.from('tasks').insert(tasksToInsert);
@@ -1123,7 +1123,7 @@ function ChildTasksEditor({
     category: 'self-care' as TaskCategory,
     credits: 10,
     description: '',
-    scheduleDays: [0, 1, 2, 3, 4] as number[],
+    scheduleDays: [0, 1, 2, 3, 4, 5] as number[],
   });
   const [newTask, setNewTask] = useState({
     title: '',
@@ -1131,7 +1131,7 @@ function ChildTasksEditor({
     category: 'self-care' as TaskCategory,
     credits: 10,
     description: '',
-    scheduleDays: [0, 1, 2, 3, 4] as number[],
+    scheduleDays: [0, 1, 2, 3, 4, 5] as number[],
   });
 
   // Sort tasks chronologically by time for the management view only
@@ -1156,7 +1156,7 @@ function ChildTasksEditor({
       description: newTask.description || undefined,
       scheduleDays: newTask.scheduleDays,
     });
-    setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, description: '', scheduleDays: [0, 1, 2, 3, 4] });
+    setNewTask({ title: '', time: '12:00', category: 'self-care', credits: 10, description: '', scheduleDays: [0, 1, 2, 3, 4, 5] });
     setShowAddForm(false);
   };
 
@@ -1168,7 +1168,7 @@ function ChildTasksEditor({
       category: task.category,
       credits: task.credits,
       description: task.description || '',
-      scheduleDays: task.scheduleDays || [0, 1, 2, 3, 4],
+      scheduleDays: task.scheduleDays || [0, 1, 2, 3, 4, 5],
     });
   };
 
