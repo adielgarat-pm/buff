@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
-import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { usePWAAnalytics } from '@/hooks/usePWAAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2 } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { AppPulseTab } from '@/components/admin/AppPulseTab';
+import { AppPulseTabV2 } from '@/components/admin/AppPulseTabV2';
 import { InstallPrompt } from '@/components/InstallPrompt';
 
 function calculateAge(birthDate: string | null): string {
@@ -26,7 +25,6 @@ function calculateAge(birthDate: string | null): string {
 
 export function AdminDashboard() {
   const { isAdmin, loading, families, orphanedUsers, fetchingFamilies, refetchFamilies } = useAdminAccess();
-  const { data: analyticsData, loading: analyticsLoading, refetch: refetchAnalytics, completionRateToday, completionRate7d, activeChildrenRate, conversionRate, familiesWithoutChildrenRate, pointsUtilization } = useAdminAnalytics(isAdmin);
   const { forceShow, resetDismissal, deviceOS, isInstalled, canShowPrompt, isPermanentlyDismissed } = usePWAInstall();
   const { getAnalyticsReport, clearAnalytics } = usePWAAnalytics();
   const [activeTab, setActiveTab] = useState('pulse');
@@ -42,7 +40,6 @@ export function AdminDashboard() {
 
   const handleRefresh = () => {
     refetchFamilies();
-    refetchAnalytics();
     setPwaReport(getAnalyticsReport());
   };
 
@@ -107,9 +104,9 @@ export function AdminDashboard() {
           <Button 
             variant="outline" 
             onClick={handleRefresh}
-            disabled={fetchingFamilies || analyticsLoading}
+            disabled={fetchingFamilies}
           >
-            <RefreshCw className={`w-4 h-4 ml-2 ${(fetchingFamilies || analyticsLoading) ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ml-2 ${fetchingFamilies ? 'animate-spin' : ''}`} />
             רענון
           </Button>
         </div>
@@ -181,16 +178,7 @@ export function AdminDashboard() {
 
           {/* App Pulse Tab */}
           <TabsContent value="pulse" className="mt-6">
-            <AppPulseTab 
-              data={analyticsData} 
-              loading={analyticsLoading}
-              completionRateToday={completionRateToday}
-              completionRate7d={completionRate7d}
-              activeChildrenRate={activeChildrenRate}
-              conversionRate={conversionRate}
-              familiesWithoutChildrenRate={familiesWithoutChildrenRate}
-              pointsUtilization={pointsUtilization}
-            />
+            <AppPulseTabV2 isAdmin={isAdmin} />
           </TabsContent>
 
           {/* PWA Analytics Tab */}
