@@ -530,10 +530,13 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
     try {
       await updateDailyGoal(parsed.data);
       toast.success('היעד עודכן בהצלחה!');
-    } catch {
+    } catch (error) {
+      console.error('Error updating daily goal:', error);
       toast.error('שגיאה בעדכון היעד');
+      // Revert to original value on error
+      setLocalDailyGoal(dailyGoal);
     } finally {
-    setSavingDailyGoal(false);
+      setSavingDailyGoal(false);
     }
   };
 
