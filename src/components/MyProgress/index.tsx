@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft, TrendingUp, Sparkles } from 'lucide-react';
 import { WeeklyMomentumBar } from './WeeklyMomentumBar';
 import { WeeklyGoalRing } from './WeeklyGoalRing';
 import { TicketWallet } from './TicketWallet';
 import { TaskCategory } from '@/types/task';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MyProgressProps {
   onClose?: () => void;
@@ -101,6 +102,11 @@ export function MyProgress({
     return Math.round((completedDays / allDays.length) * 100);
   }, [weeklyCompletionRate, stats]);
 
+  const { t, isRTL } = useLanguage();
+  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
+
+  // ... keep existing code (stats, visibleCategories, overallRate memos)
+
   return (
     <div className="space-y-6 pb-6">
       {/* Header */}
@@ -114,8 +120,8 @@ export function MyProgress({
             <TrendingUp className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">ההתקדמות שלי</h2>
-            <p className="text-sm text-muted-foreground">סיכום שבועי</p>
+            <h2 className="text-xl font-bold text-foreground">{t('myProgress.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('myProgress.weeklySummary')}</p>
           </div>
         </div>
         
@@ -124,7 +130,7 @@ export function MyProgress({
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowRight className="w-6 h-6" />
+            <BackIcon className="w-6 h-6" />
           </button>
         )}
       </motion.div>
@@ -145,7 +151,7 @@ export function MyProgress({
         transition={{ delay: 0.2 }}
         className="space-y-3"
       >
-        <h3 className="text-lg font-bold text-foreground">מומנטום שבועי</h3>
+        <h3 className="text-lg font-bold text-foreground">{t('myProgress.weeklyMomentum')}</h3>
         
         {visibleCategories.length > 0 ? (
           visibleCategories.map((category, index) => (
@@ -164,7 +170,6 @@ export function MyProgress({
             </motion.div>
           ))
         ) : (
-          /* Empty State - No active tasks */
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -175,10 +180,10 @@ export function MyProgress({
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
             <h4 className="text-lg font-bold text-foreground mb-2">
-              אין משימות פעילות כרגע
+              {t('myProgress.noActiveTasks')}
             </h4>
             <p className="text-sm text-muted-foreground">
-              זמן מצוין להטעין מצברים! 🔋✨
+              {t('myProgress.rechargeTime')}
             </p>
           </motion.div>
         )}

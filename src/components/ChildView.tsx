@@ -23,6 +23,7 @@ import { IOSInstallBanner } from './IOSInstallBanner';
 import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Phase, getSmartPhaseForTime } from '@/types/phase';
 import { TaskCategory } from '@/types/task';
 
@@ -33,6 +34,7 @@ interface ChildViewProps {
 
 export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) {
   const { profile, signOut } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
   const [showNightMission, setShowNightMission] = useState(false);
 
@@ -162,7 +164,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground font-medium">
-            {viewingChildId ? `טוען נתונים עבור ${profile?.display_name || 'ילד'}...` : 'טוען...'}
+            {viewingChildId ? `${t('common.loadingDataFor')} ${profile?.display_name || t('common.child')}...` : t('common.loading')}
           </p>
         </div>
       </div>
@@ -327,7 +329,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 onClick={() => setShowNightMission(false)}
                 className="mb-4 text-sm text-muted-foreground hover:text-foreground"
               >
-                ← חזרה למשימות
+                ← {t('common.backToTasks')}
               </button>
               <NightMission 
                 timetable={timetable}

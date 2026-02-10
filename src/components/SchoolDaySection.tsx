@@ -123,7 +123,7 @@ export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson, frida
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <Backpack className="w-4 h-4 text-buff" />
-                        ציוד נדרש
+                        {t('school.equipmentRequired')}
                       </div>
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                         {lesson.equipment}

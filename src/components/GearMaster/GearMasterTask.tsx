@@ -1,5 +1,6 @@
-import { Backpack, ChevronLeft, Sparkles, Zap, Clock } from 'lucide-react';
+import { Backpack, ChevronLeft, ChevronRight, Sparkles, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface GearMasterTaskProps {
   type: 'night' | 'morning';
@@ -8,20 +9,17 @@ interface GearMasterTaskProps {
   onClick: () => void;
 }
 
-/**
- * Task card for Gear Master - shown in phase views
- * Night Mission: Awards credits (19:00)
- * Morning Safety Net: No credits (07:00)
- */
 export function GearMasterTask({ type, credits, isCompleted, onClick }: GearMasterTaskProps) {
+  const { t, isRTL } = useLanguage();
   const isNight = type === 'night';
+  const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;
   
   return (
     <button
       onClick={onClick}
       className={cn(
         "w-full p-4 rounded-2xl border-2 transition-all",
-        "flex items-center gap-4 text-right",
+        "flex items-center gap-4",
         isCompleted
           ? "bg-primary/10 border-primary/30"
           : isNight
@@ -39,22 +37,22 @@ export function GearMasterTask({ type, credits, isCompleted, onClick }: GearMast
         )} />
       </div>
       
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 text-start">
         <div className="flex items-center gap-2">
           <h3 className={cn(
             "font-bold text-lg",
             isCompleted ? "text-primary" : "text-foreground"
           )}>
-            {isNight ? "משימת ערב - בונוס מוכנות!" : "תזכורת בוקר - בדיקת תיק"}
+            {isNight ? t('gear.nightMission') : t('gear.morningReminder')}
           </h3>
           {!isCompleted && isNight && <Zap className="w-4 h-4 text-buff animate-pulse" />}
         </div>
         <p className="text-sm text-muted-foreground mt-0.5">
           {isCompleted 
-            ? "התיק מוכן! ✨" 
+            ? t('gear.bagReady')
             : isNight 
-              ? "סידור ציוד למחר עכשיו"
-              : "בדיקה שהכל בתיק לפני היציאה"
+              ? t('gear.prepTomorrow')
+              : t('gear.checkBag')
           }
         </p>
       </div>
@@ -70,7 +68,7 @@ export function GearMasterTask({ type, credits, isCompleted, onClick }: GearMast
         )}>
           {isCompleted ? "✓" : isNight ? `+${credits}` : "0"}
         </div>
-        {!isCompleted && <ChevronLeft className="w-5 h-5 text-muted-foreground" />}
+        {!isCompleted && <ChevronIcon className="w-5 h-5 text-muted-foreground" />}
       </div>
     </button>
   );

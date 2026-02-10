@@ -35,8 +35,8 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
         
         // Show success toast
         toast({
-          title: "🎉 פרס נרכש!",
-          description: `${reward.icon} ${reward.title} - תהנה!`,
+          title: t('store.rewardPurchased'),
+          description: `${reward.icon} ${reward.title} - ${t('store.enjoy')}`,
           duration: 4000,
         });
       }, 500);
@@ -196,7 +196,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
                           {isUnclaiming ? (
                             <Sparkles className="w-3 h-3 animate-spin" />
                           ) : (
-                            'ביטול מימוש'
+                            t('store.unclaim')
                           )}
                         </Button>
                       )}
@@ -232,19 +232,19 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
       <AlertDialog open={!!confirmUnclaimReward} onOpenChange={(open) => !open && setConfirmUnclaimReward(null)}>
         <AlertDialogContent className="rounded-2xl max-w-xs mx-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-center">↩️ ביטול מימוש?</AlertDialogTitle>
+            <AlertDialogTitle className="text-center">{t('store.unclaimConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription className="text-center">
               {confirmUnclaimReward && (
                 <>
-                  הפרס {confirmUnclaimReward.icon} {confirmUnclaimReward.title} יחזור לחנות
+                  {confirmUnclaimReward.icon} {confirmUnclaimReward.title} {t('store.unclaimConfirmDesc')}
                   <br />
-                  ו-{confirmUnclaimReward.price} נקודות יוחזרו ליתרה
+                  {confirmUnclaimReward.price} {t('store.unclaimCreditsReturn')}
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 justify-center">
-            <AlertDialogCancel className="mt-0 flex-1">ביטול</AlertDialogCancel>
+            <AlertDialogCancel className="mt-0 flex-1">{t('store.confirmCancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
@@ -253,15 +253,15 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
                   onUnclaim(confirmUnclaimReward.id);
                   setTimeout(() => setUnclaimingId(null), 600);
                   toast({
-                    title: "↩️ פרס הוחזר",
-                    description: `${confirmUnclaimReward.icon} ${confirmUnclaimReward.title} - ${confirmUnclaimReward.price} נקודות הוחזרו`,
+                    title: t('store.unclaimSuccess'),
+                    description: `${confirmUnclaimReward.icon} ${confirmUnclaimReward.title} - ${confirmUnclaimReward.price} ${t('store.unclaimCreditsReturned')}`,
                     duration: 3000,
                   });
                 }
                 setConfirmUnclaimReward(null);
               }}
             >
-              אישור
+              {t('store.confirmOk')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
