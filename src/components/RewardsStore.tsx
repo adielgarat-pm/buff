@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { StoreReward } from '@/types/task';
 import { Button } from './ui/button';
 import { Vault, Gift, Check, Lock, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
@@ -21,7 +20,6 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
   const { t, isRTL } = useLanguage();
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
-  const [confirmUnclaimReward, setConfirmUnclaimReward] = useState<StoreReward | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
     if (totalBalance >= reward.price && !reward.claimed) {
@@ -45,7 +43,6 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
   const BackIcon = isRTL ? ChevronRight : ChevronLeft;
 
   return (
-    <>
     <div className="bg-background min-h-full flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/98 backdrop-blur-lg border-b border-border/50 flex-shrink-0">
@@ -187,7 +184,16 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setConfirmUnclaimReward(reward)}
+                          onClick={() => {
+                            setUnclaimingId(reward.id);
+                            onUnclaim(reward.id);
+                            setTimeout(() => setUnclaimingId(null), 600);
+                            toast({
+                              title: "↩️ פרס הוחזר",
+                              description: `${reward.icon} ${reward.title} - ${reward.price} נקודות הוחזרו`,
+                              duration: 3000,
+                            });
+                          }}
                           disabled={isUnclaiming}
                           className="w-full h-8 text-xs rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
                         >
@@ -226,45 +232,5 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
         </div>
       </div>
     </div>
-
-      {/* Unclaim Confirmation Dialog */}
-      <AlertDialog open={!!confirmUnclaimReward} onOpenChange={(open) => !open && setConfirmUnclaimReward(null)}>
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>ביטול מימוש פרס</AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirmUnclaimReward && (
-                <>
-                  האם לבטל את המימוש של {confirmUnclaimReward.icon} <strong>{confirmUnclaimReward.title}</strong>?
-                  <br />
-                  {confirmUnclaimReward.price.toLocaleString()} נקודות יוחזרו ליתרה.
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row-reverse gap-2">
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (confirmUnclaimReward && onUnclaim) {
-                  setUnclaimingId(confirmUnclaimReward.id);
-                  onUnclaim(confirmUnclaimReward.id);
-                  setTimeout(() => setUnclaimingId(null), 600);
-                  toast({
-                    title: "↩️ פרס הוחזר",
-                    description: `${confirmUnclaimReward.icon} ${confirmUnclaimReward.title} - ${confirmUnclaimReward.price} נקודות הוחזרו`,
-                    duration: 3000,
-                  });
-                }
-                setConfirmUnclaimReward(null);
-              }}
-            >
-              אישור ביטול
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
   );
 }
