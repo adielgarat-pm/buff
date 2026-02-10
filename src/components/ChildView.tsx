@@ -67,6 +67,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     toggleLesson,
     activateBuff,
     redeemStoreReward,
+    unclaimStoreReward,
     updateTimetable,
     completeBagPrep,
     undoBagPrep,
@@ -171,6 +172,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
             totalBalance={totalBalance}
             storeRewards={storeRewards}
             onRedeem={redeemStoreReward}
+            onUnclaim={unclaimStoreReward}
             onClose={() => setActiveTab('tasks')}
           />
         </div>
