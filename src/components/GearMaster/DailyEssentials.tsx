@@ -1,26 +1,20 @@
 import { useState } from 'react';
 import { Checkbox } from '../ui/checkbox';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-interface DailyEssentialsProps {
-  // No props needed - static items, no points
-}
+interface DailyEssentialsProps {}
 
-// Static essential items that should always be checked before leaving
-const DAILY_ESSENTIALS = [
-  { id: 'water_bottle', label: 'בקבוק מים', icon: '💧' },
-  { id: 'food_sandwich', label: 'אוכל/כריך', icon: '🥪' },
-  { id: 'phone', label: 'טלפון', icon: '📱' },
-  { id: 'keys', label: 'מפתחות', icon: '🔑' },
-];
-
-/**
- * Daily Essentials - Static morning checklist (NO POINTS)
- * Goal: Operational checklist to ensure the child leaves the house ready
- * Displayed as the final stage of the morning routine
- */
 export function DailyEssentials({}: DailyEssentialsProps) {
+  const { t } = useLanguage();
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+
+  const DAILY_ESSENTIALS = [
+    { id: 'water_bottle', label: t('essentials.waterBottle'), icon: '💧' },
+    { id: 'food_sandwich', label: t('essentials.food'), icon: '🥪' },
+    { id: 'phone', label: t('essentials.phone'), icon: '📱' },
+    { id: 'keys', label: t('essentials.keys'), icon: '🔑' },
+  ];
 
   const handleCheckItem = (itemId: string, checked: boolean) => {
     setCheckedItems(prev => ({ ...prev, [itemId]: checked }));
@@ -30,18 +24,16 @@ export function DailyEssentials({}: DailyEssentialsProps) {
 
   return (
     <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-lg">✨</span>
-          <h3 className="font-bold text-foreground text-sm">לפני היציאה מהבית</h3>
+          <h3 className="font-bold text-foreground text-sm">{t('essentials.title')}</h3>
         </div>
         <div className="px-2 py-1 rounded-full bg-muted text-xs text-muted-foreground">
-          ללא נקודות
+          {t('essentials.noPoints')}
         </div>
       </div>
 
-      {/* Essentials Grid */}
       <div className="grid grid-cols-2 gap-2">
         {DAILY_ESSENTIALS.map((essential) => (
           <label
@@ -69,10 +61,9 @@ export function DailyEssentials({}: DailyEssentialsProps) {
         ))}
       </div>
 
-      {/* Status */}
       {allChecked && (
         <div className="text-center py-2 bg-primary/10 rounded-lg">
-          <p className="text-sm font-bold text-primary">הכל מוכן ליציאה! 🚀</p>
+          <p className="text-sm font-bold text-primary">{t('essentials.allReady')}</p>
         </div>
       )}
     </div>

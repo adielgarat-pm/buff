@@ -8,14 +8,9 @@ interface NewDayBannerProps {
 }
 
 export function NewDayBanner({ show, onDismiss }: NewDayBannerProps) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
 
   if (!show) return null;
-
-  const title = language === 'he' ? 'בוקר טוב!' : 'Good Morning!';
-  const subtitle = language === 'he' 
-    ? 'המשימות החדשות מוכנות. יום חדש, הזדמנויות חדשות! 🚀'
-    : 'New Quests are ready. Fresh day, new opportunities! 🚀';
 
   return (
     <div 
@@ -30,8 +25,8 @@ export function NewDayBanner({ show, onDismiss }: NewDayBannerProps) {
           <Sunrise className="w-6 h-6 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-white text-lg">{title}</h3>
-          <p className="text-white/90 text-sm">{subtitle}</p>
+          <h3 className="font-bold text-white text-lg">{t('newDay.title')}</h3>
+          <p className="text-white/90 text-sm">{t('newDay.subtitle')}</p>
         </div>
         <button 
           onClick={onDismiss}

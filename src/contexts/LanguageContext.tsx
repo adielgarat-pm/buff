@@ -152,6 +152,16 @@ const translations: Record<Language, Record<string, string>> = {
     'store.vaultEmpty': 'הכספת ריקה',
     'store.askParentToAdd': 'בקש מההורה להוסיף פרסים למסע שלך!',
     'store.credits': 'קרדיטים',
+    'store.rewardPurchased': '🎉 פרס נרכש!',
+    'store.enjoy': 'תהנה!',
+    'store.unclaim': 'ביטול מימוש',
+    'store.unclaimConfirmTitle': '↩️ ביטול מימוש?',
+    'store.unclaimConfirmDesc': 'יחזור לחנות',
+    'store.unclaimCreditsReturn': 'נקודות יוחזרו ליתרה',
+    'store.unclaimSuccess': '↩️ פרס הוחזר',
+    'store.unclaimCreditsReturned': 'נקודות הוחזרו',
+    'store.confirmCancel': 'ביטול',
+    'store.confirmOk': 'אישור',
     
     // Navigation tabs
     'nav.tasks': 'משימות',
@@ -168,6 +178,10 @@ const translations: Record<Language, Record<string, string>> = {
     'fuel.skillBadge': 'תג כישורים',
     'fuel.buffs': 'באפים',
     'fuel.dailyReset': 'המד מתאפס כל בוקר - כל יום הוא התחלה חדשה!',
+    'fuel.offDay': '🌴 יום חופש',
+    'fuel.schoolDay': '📚 יום לימודים',
+    'fuel.goal': 'יעד',
+    'fuel.goalOf': 'מ-',
     
     // Progress (legacy)
     'progress.dailyXP': 'XP יומי',
@@ -185,6 +199,8 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'טוען...',
+    'common.loadingDataFor': 'טוען נתונים עבור',
+    'common.child': 'ילד',
     'common.error': 'שגיאה',
     'common.success': 'הצלחה',
     'common.confirm': 'אישור',
@@ -194,6 +210,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.close': 'סגור',
     'common.credits': 'קרדיטים',
     'common.xp': 'XP',
+    'common.backToTasks': 'חזרה למשימות',
     'tasks': 'משימות',
     'noTasksForPhase': 'אין משימות לשלב הזה',
     
@@ -209,6 +226,125 @@ const translations: Record<Language, Record<string, string>> = {
     'welcome.message': 'הכנו לך כמה משימות התחלתיות לשגרה היומית. אתה יכול להתאים אותן בכל עת דרך ההגדרות!',
     'welcome.tasksReady': '✨ 8 משימות מוכנות ומחכות לך!',
     'welcome.letsGo': 'בוא נתחיל!',
+
+    // Phase Transition Banner
+    'phase.schoolEnded': '🎉 יום הלימודים הסתיים!',
+    'phase.switchToAfternoon': 'עוברים למשימות צהריים',
+    'phase.schoolStarted': '📚 הגיע הזמן ללימודים!',
+    'phase.switchToSchool': 'עוברים ליום לימודים',
+    'phase.transition': 'מעבר שלב',
+
+    // New Day Banner
+    'newDay.title': 'בוקר טוב!',
+    'newDay.subtitle': 'המשימות החדשות מוכנות. יום חדש, הזדמנויות חדשות! 🚀',
+
+    // Birthday Celebration
+    'birthday.title': '🎉 יום הולדת שמח! 🎉',
+    'birthday.forYou': 'לך!',
+    'birthday.years': 'שנים!',
+    'birthday.wish': 'שיהיה לך יום מדהים מלא בשמחה והצלחות! ✨',
+    'birthday.thanks': 'תודה! 🥳',
+
+    // View As Child Banner
+    'viewAsChild.viewing': 'צפייה כ-',
+    'viewAsChild.backToParent': 'חזרה להורה',
+
+    // Gear Master
+    'gear.nightMission': 'משימת ערב - בונוס מוכנות!',
+    'gear.morningReminder': 'תזכורת בוקר - בדיקת תיק',
+    'gear.bagReady': 'התיק מוכן! ✨',
+    'gear.prepTomorrow': 'סידור ציוד למחר עכשיו',
+    'gear.checkBag': 'בדיקה שהכל בתיק לפני היציאה',
+    'gear.tomorrowOff': 'מחר יום חופש! 🎉',
+    'gear.noScheduleTomorrow': 'אין מערכת למחר 📋',
+    'gear.noBagPrep': 'אין צורך להכין תיק - תהנה מהמנוחה!',
+    'gear.addSchedule': 'הוסיפו מערכת שעות דרך הגדרות ההורה כדי להפעיל את משימת הערב.',
+    'gear.nightCompleted': 'משימת ערב - הושלמה! 🌟',
+    'gear.bagReadyCredits': 'התיק מוכן למחר - נצברו',
+    'gear.noSpecialEquipment': 'אין ציוד מיוחד נדרש',
+    'gear.bagComplete': 'סידור תיק הושלם!',
+    'gear.credits': 'קרדיטים',
+    'gear.nightMissionComplete': '🎒 משימת הערב הושלמה!',
+    'gear.nightMissionCompleteDesc': 'מעולה! סידור התיק מראש הביא',
+    'gear.undo': 'בטל (5 שניות)',
+    'gear.undone': '↩️ בוטל',
+    'gear.undoneDesc': 'משימת הערב בוטלה',
+    'gear.markAll': 'סימון כל הפריטים',
+    'gear.itemsReady': 'פריטים מוכנים',
+    'gear.eveningPrep': '🧹 הכנות ערב:',
+    'gear.equipmentNeeded': '🎒 ציוד נדרש לשיעורים:',
+    'gear.lunchboxReset': 'איפוס יומי: פינוי וניקוי תיק האוכל (קופסה למדיח/פח)',
+    'gear.prepNow': 'סידור ציוד עכשיו!',
+    'gear.noPoints': 'ללא נקודות',
+    'gear.morningCheck': 'בדיקה שהכל בתיק לפני היציאה!',
+    'gear.morningTip': '💡 טיפ: סידור תיק בערב הקודם מזכה בנקודות!',
+    'gear.equipmentRequired': 'ציוד נדרש',
+
+    // Daily Essentials
+    'essentials.title': 'לפני היציאה מהבית',
+    'essentials.noPoints': 'ללא נקודות',
+    'essentials.allReady': 'הכל מוכן ליציאה! 🚀',
+    'essentials.waterBottle': 'בקבוק מים',
+    'essentials.food': 'אוכל/כריך',
+    'essentials.phone': 'טלפון',
+    'essentials.keys': 'מפתחות',
+
+    // My Progress
+    'myProgress.title': 'ההתקדמות שלי',
+    'myProgress.weeklySummary': 'סיכום שבועי',
+    'myProgress.weeklyMomentum': 'מומנטום שבועי',
+    'myProgress.noActiveTasks': 'אין משימות פעילות כרגע',
+    'myProgress.rechargeTime': 'זמן מצוין להטעין מצברים! 🔋✨',
+    'myProgress.outOf7': 'מתוך 7 ✓',
+
+    // Weekly Goal Ring
+    'weeklyGoal.title': 'יעד שבועי',
+    'weeklyGoal.outOf': 'מתוך',
+    'weeklyGoal.perfect': '🏆 מושלם!',
+    'weeklyGoal.goalReached': '🎯 הגעת ליעד!',
+    'weeklyGoal.almostThere': '💪 כמעט שם!',
+    'weeklyGoal.keepGoing': '🚀 המשך/י כך!',
+    'weeklyGoal.progress': 'התקדמות',
+    'weeklyGoal.goal70': 'יעד 70%',
+
+    // Ticket Wallet
+    'tickets.title': 'ארנק כרטיסים',
+    'tickets.available': 'זמינים',
+    'tickets.rest': 'מנוחה',
+    'tickets.none': '😴 אין כרטיסי מנוחה זמינים',
+    'tickets.oneLeft': '🌟 נשאר כרטיס מנוחה אחד!',
+    'tickets.multiple': '✨ יש לך כרטיסי מנוחה',
+    'tickets.infoTitle': 'איך עובדים כרטיסי מנוחה?',
+    'tickets.rule1': 'כל',
+    'tickets.rule1Tasks': '5 משימות',
+    'tickets.rule1End': 'שהשלמת בהצלחה מזכות אותך בכרטיס מנוחה אחד.',
+    'tickets.rule2': 'אפשר להשתמש בכרטיס כדי',
+    'tickets.rule2Skip': '"לדלג"',
+    'tickets.rule2End': 'על יום בלי לפגוע במטרה השבועית שלך (ה-70%).',
+    'tickets.rule3': 'מנוחה היא חלק מהאימון! 💪',
+    'tickets.rule3Tip': 'השתמש בהם בחוכמה בימים עמוסים.',
+    'tickets.gotIt': 'הבנתי! 🚀',
+
+    // School Day Section
+    'school.equipmentRequired': 'ציוד נדרש',
+    
+    // DailySchedule
+    'schedule.todaysSchedule': 'מערכת שעות להיום',
+    'schedule.weekend': 'סוף שבוע - אין שיעורים',
+    'schedule.enjoyWeekend': '🎉 שבת שלום!',
+    'schedule.noSubjects': 'לא נקבעו מקצועות',
+    'schedule.setupTimetable': 'הגדירו מערכת שעות דרך ממשק ההורה כדי לראות את לוח הזמנים.',
+    'schedule.lessons': 'שיעורים',
+    'schedule.period': 'שיעור',
+    'schedule.now': 'עכשיו',
+
+    // Brand Terminology (Buff Positive Coaching DNA)
+    'brand.holdingSpace': 'הכלה',
+    'brand.boundaries': 'גבולות',
+    'brand.strategies': 'כלים',
+    'brand.coaching': 'אימון',
+    'brand.readiness': 'בשלות',
+    'brand.positiveReinforcement': 'חיזוק חיובי',
   },
   en: {
     // General
@@ -349,6 +485,16 @@ const translations: Record<Language, Record<string, string>> = {
     'store.vaultEmpty': 'The Vault is Empty',
     'store.askParentToAdd': 'Ask your parent to add rewards to your quest!',
     'store.credits': 'credits',
+    'store.rewardPurchased': '🎉 Reward Claimed!',
+    'store.enjoy': 'Enjoy!',
+    'store.unclaim': 'Unclaim',
+    'store.unclaimConfirmTitle': '↩️ Unclaim Reward?',
+    'store.unclaimConfirmDesc': 'will return to the store',
+    'store.unclaimCreditsReturn': 'credits will be refunded',
+    'store.unclaimSuccess': '↩️ Reward Returned',
+    'store.unclaimCreditsReturned': 'credits refunded',
+    'store.confirmCancel': 'Cancel',
+    'store.confirmOk': 'Confirm',
     
     // Navigation tabs
     'nav.tasks': 'Tasks',
@@ -365,6 +511,10 @@ const translations: Record<Language, Record<string, string>> = {
     'fuel.skillBadge': 'Skill Badge',
     'fuel.buffs': 'Buffs',
     'fuel.dailyReset': 'Meter resets every morning - every day is a fresh start!',
+    'fuel.offDay': '🌴 Off Day',
+    'fuel.schoolDay': '📚 School Day',
+    'fuel.goal': 'Goal',
+    'fuel.goalOf': 'of',
     
     // Progress (legacy)
     'progress.dailyXP': 'Daily XP',
@@ -382,6 +532,8 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'Loading...',
+    'common.loadingDataFor': 'Loading data for',
+    'common.child': 'child',
     'common.error': 'Error',
     'common.success': 'Success',
     'common.confirm': 'Confirm',
@@ -391,6 +543,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.close': 'Close',
     'common.credits': 'Credits',
     'common.xp': 'XP',
+    'common.backToTasks': 'Back to Tasks',
     'tasks': 'Tasks',
     'noTasksForPhase': 'No tasks for this phase',
     
@@ -406,6 +559,125 @@ const translations: Record<Language, Record<string, string>> = {
     'welcome.message': 'We\'ve set up some starter quests for your daily routine. You can customize them anytime in the settings!',
     'welcome.tasksReady': '✨ 8 quests ready and waiting!',
     'welcome.letsGo': 'Let\'s Go!',
+
+    // Phase Transition Banner
+    'phase.schoolEnded': '🎉 School Day is Over!',
+    'phase.switchToAfternoon': 'Switching to Afternoon tasks',
+    'phase.schoolStarted': '📚 Time for School!',
+    'phase.switchToSchool': 'Switching to School Day',
+    'phase.transition': 'Phase Transition',
+
+    // New Day Banner
+    'newDay.title': 'Good Morning!',
+    'newDay.subtitle': 'New Quests are ready. Fresh day, new opportunities! 🚀',
+
+    // Birthday Celebration
+    'birthday.title': '🎉 Happy Birthday! 🎉',
+    'birthday.forYou': 'you!',
+    'birthday.years': 'years!',
+    'birthday.wish': 'Wishing you an amazing day full of joy and achievements! ✨',
+    'birthday.thanks': 'Thanks! 🥳',
+
+    // View As Child Banner
+    'viewAsChild.viewing': 'Viewing as ',
+    'viewAsChild.backToParent': 'Back to Parent',
+
+    // Gear Master
+    'gear.nightMission': 'Night Mission - Readiness Bonus!',
+    'gear.morningReminder': 'Morning Reminder - Bag Check',
+    'gear.bagReady': 'Bag is ready! ✨',
+    'gear.prepTomorrow': 'Prepare gear for tomorrow now',
+    'gear.checkBag': 'Make sure everything is in the bag before leaving',
+    'gear.tomorrowOff': 'Tomorrow is a day off! 🎉',
+    'gear.noScheduleTomorrow': 'No schedule for tomorrow 📋',
+    'gear.noBagPrep': 'No need to prepare a bag - enjoy the rest!',
+    'gear.addSchedule': 'Add a timetable in Parent Settings to enable the Night Mission.',
+    'gear.nightCompleted': 'Night Mission - Complete! 🌟',
+    'gear.bagReadyCredits': 'Bag is ready for tomorrow - earned',
+    'gear.noSpecialEquipment': 'No special equipment needed',
+    'gear.bagComplete': 'Bag prep complete!',
+    'gear.credits': 'credits',
+    'gear.nightMissionComplete': '🎒 Night Mission Complete!',
+    'gear.nightMissionCompleteDesc': 'Great work! Preparing the bag early earned',
+    'gear.undo': 'Undo (5 seconds)',
+    'gear.undone': '↩️ Undone',
+    'gear.undoneDesc': 'Night Mission was undone',
+    'gear.markAll': 'Check all items',
+    'gear.itemsReady': 'items ready',
+    'gear.eveningPrep': '🧹 Evening Prep:',
+    'gear.equipmentNeeded': '🎒 Equipment needed for lessons:',
+    'gear.lunchboxReset': 'Daily Reset: Empty and clean lunch bag (container to dishwasher/trash)',
+    'gear.prepNow': 'Prepare gear now!',
+    'gear.noPoints': 'No points',
+    'gear.morningCheck': 'Check that everything is in the bag before leaving!',
+    'gear.morningTip': '💡 Tip: Preparing the bag the night before earns points!',
+    'gear.equipmentRequired': 'Equipment Required',
+
+    // Daily Essentials
+    'essentials.title': 'Before Leaving the House',
+    'essentials.noPoints': 'No points',
+    'essentials.allReady': 'All set to go! 🚀',
+    'essentials.waterBottle': 'Water Bottle',
+    'essentials.food': 'Food/Sandwich',
+    'essentials.phone': 'Phone',
+    'essentials.keys': 'Keys',
+
+    // My Progress
+    'myProgress.title': 'My Progress',
+    'myProgress.weeklySummary': 'Weekly Summary',
+    'myProgress.weeklyMomentum': 'Weekly Momentum',
+    'myProgress.noActiveTasks': 'No active tasks right now',
+    'myProgress.rechargeTime': 'Great time to recharge! 🔋✨',
+    'myProgress.outOf7': 'of 7 ✓',
+
+    // Weekly Goal Ring
+    'weeklyGoal.title': 'Weekly Goal',
+    'weeklyGoal.outOf': 'of',
+    'weeklyGoal.perfect': '🏆 Perfect!',
+    'weeklyGoal.goalReached': '🎯 Goal Reached!',
+    'weeklyGoal.almostThere': '💪 Almost There!',
+    'weeklyGoal.keepGoing': '🚀 Keep Going!',
+    'weeklyGoal.progress': 'Progress',
+    'weeklyGoal.goal70': 'Goal 70%',
+
+    // Ticket Wallet
+    'tickets.title': 'Ticket Wallet',
+    'tickets.available': 'available',
+    'tickets.rest': 'Rest',
+    'tickets.none': '😴 No rest tickets available',
+    'tickets.oneLeft': '🌟 One rest ticket left!',
+    'tickets.multiple': '✨ You have rest tickets',
+    'tickets.infoTitle': 'How do Rest Tickets work?',
+    'tickets.rule1': 'Every',
+    'tickets.rule1Tasks': '5 tasks',
+    'tickets.rule1End': 'you complete successfully earn you one rest ticket.',
+    'tickets.rule2': 'You can use a ticket to',
+    'tickets.rule2Skip': '"skip"',
+    'tickets.rule2End': 'a day without hurting your weekly goal (the 70%).',
+    'tickets.rule3': 'Rest is part of the coaching! 💪',
+    'tickets.rule3Tip': 'Use them wisely on busy days.',
+    'tickets.gotIt': 'Got it! 🚀',
+
+    // School Day Section
+    'school.equipmentRequired': 'Equipment Required',
+    
+    // DailySchedule
+    'schedule.todaysSchedule': "Today's Schedule",
+    'schedule.weekend': 'Weekend - No classes',
+    'schedule.enjoyWeekend': '🎉 Enjoy your weekend!',
+    'schedule.noSubjects': 'No subjects set',
+    'schedule.setupTimetable': 'Set up your timetable in Parent Mode to see your daily schedule.',
+    'schedule.lessons': 'lessons',
+    'schedule.period': 'Period',
+    'schedule.now': 'Now',
+
+    // Brand Terminology (Buff Positive Coaching DNA)
+    'brand.holdingSpace': 'Holding Space',
+    'brand.boundaries': 'Boundaries',
+    'brand.strategies': 'Strategies',
+    'brand.coaching': 'Coaching',
+    'brand.readiness': 'Readiness',
+    'brand.positiveReinforcement': 'Positive Reinforcement',
   },
 };
 
