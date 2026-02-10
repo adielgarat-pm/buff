@@ -6,6 +6,10 @@ import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from './ui/alert-dialog';
 
 interface RewardsStoreProps {
   totalBalance: number;
@@ -20,6 +24,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
   const { t, isRTL } = useLanguage();
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
+  const [confirmUnclaimReward, setConfirmUnclaimReward] = useState<StoreReward | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
     if (totalBalance >= reward.price && !reward.claimed) {
@@ -184,16 +189,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setUnclaimingId(reward.id);
-                            onUnclaim(reward.id);
-                            setTimeout(() => setUnclaimingId(null), 600);
-                            toast({
-                              title: "↩️ פרס הוחזר",
-                              description: `${reward.icon} ${reward.title} - ${reward.price} נקודות הוחזרו`,
-                              duration: 3000,
-                            });
-                          }}
+                          onClick={() => setConfirmUnclaimReward(reward)}
                           disabled={isUnclaiming}
                           className="w-full h-8 text-xs rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
                         >
@@ -231,6 +227,45 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
           <div className="h-6" />
         </div>
       </div>
+
+      {/* Unclaim confirmation dialog */}
+      <AlertDialog open={!!confirmUnclaimReward} onOpenChange={(open) => !open && setConfirmUnclaimReward(null)}>
+        <AlertDialogContent className="rounded-2xl max-w-xs mx-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">↩️ ביטול מימוש?</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              {confirmUnclaimReward && (
+                <>
+                  הפרס {confirmUnclaimReward.icon} {confirmUnclaimReward.title} יחזור לחנות
+                  <br />
+                  ו-{confirmUnclaimReward.price} נקודות יוחזרו ליתרה
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 justify-center">
+            <AlertDialogCancel className="mt-0 flex-1">ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmUnclaimReward && onUnclaim) {
+                  setUnclaimingId(confirmUnclaimReward.id);
+                  onUnclaim(confirmUnclaimReward.id);
+                  setTimeout(() => setUnclaimingId(null), 600);
+                  toast({
+                    title: "↩️ פרס הוחזר",
+                    description: `${confirmUnclaimReward.icon} ${confirmUnclaimReward.title} - ${confirmUnclaimReward.price} נקודות הוחזרו`,
+                    duration: 3000,
+                  });
+                }
+                setConfirmUnclaimReward(null);
+              }}
+            >
+              אישור
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
