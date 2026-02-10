@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Rocket, Copy, Check, Share2, ClipboardCopy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
 
@@ -13,116 +14,93 @@ interface Step6ParentTipProps {
   isLoading?: boolean;
 }
 
-/**
- * Generate full connection instructions text
- */
-function getConnectionInstructions(childName: string, familyCode: string): string {
-  const appUrl = 'https://buff.lovable.app';
-  return `🎮 היי ${childName}! הכל מוכן ב-BUFF!
-
-📱 איך להצטרף:
-1. היכנס/י לאפליקציה: ${appUrl}
-2. לחץ/י על "הרשמה"
-3. בחר/י "אני נער/ה"
-4. הזן/י את הקוד המשפחתי:
-
-🔑 ${familyCode}
-
-מחכים לך באפליקציה! 🚀`;
-}
-
 export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Step6ParentTipProps) {
   const { profile } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [familyCode, setFamilyCode] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [instructionsCopied, setInstructionsCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Fetch family code on mount
   useEffect(() => {
     const fetchFamilyCode = async () => {
       if (!profile?.family_id) return;
-      
       const { data, error } = await supabase
         .from('families')
         .select('short_code')
         .eq('id', profile.family_id)
         .single();
-      
       if (data && !error) {
         setFamilyCode(data.short_code);
       }
     };
-
     fetchFamilyCode();
   }, [profile?.family_id]);
 
+  const getConnectionInstructions = () => {
+    const appUrl = 'https://buff.lovable.app';
+    return t('onboarding.step6.whatsappMessage')
+      .replace('{name}', childName)
+      .replace('{url}', appUrl)
+      .replace('{code}', familyCode);
+  };
+
   const handleCopy = async () => {
     if (!familyCode) return;
-    
     try {
       await navigator.clipboard.writeText(familyCode);
       setCopied(true);
-      toast.success('הועתק! 📋');
+      toast.success(t('onboarding.step6.copiedToast'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('לא הצלחנו להעתיק');
+      toast.error(t('onboarding.step6.copyError'));
     }
   };
 
-  // Copy full instructions as fallback
   const handleCopyInstructions = async () => {
     if (!familyCode) return;
-    
     try {
-      const instructions = getConnectionInstructions(childName, familyCode);
+      const instructions = getConnectionInstructions();
       await navigator.clipboard.writeText(instructions);
       setInstructionsCopied(true);
-      toast.success('ההוראות הועתקו! 📋 עכשיו אפשר להדביק בוואטסאפ או בכל מקום אחר');
+      toast.success(t('onboarding.step6.instructionsCopied'));
       setTimeout(() => setInstructionsCopied(false), 3000);
     } catch {
-      toast.error('לא הצלחנו להעתיק');
+      toast.error(t('onboarding.step6.copyError'));
     }
   };
 
   const handleShareWhatsApp = () => {
     if (!familyCode) return;
-    
-    const message = getConnectionInstructions(childName, familyCode);
-    // Use wa.me with proper URL encoding - works on mobile Safari
+    const message = getConnectionInstructions();
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    
-    // Use window.location for better Safari compatibility instead of window.open
     window.location.href = whatsappUrl;
   };
 
   const handleLaunch = () => {
     setShowConfetti(true);
-    // Small delay for confetti effect, then complete
     setTimeout(() => {
       onComplete();
     }, 800);
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" dir={isRTL ? 'rtl' : 'ltr'}>
       {showConfetti && <ConfettiEffect trigger={showConfetti} />}
       
       <div className="flex-1 px-5 py-4 space-y-5 overflow-y-auto">
-        {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-success/20 flex items-center justify-center mx-auto">
             <Rocket className="w-7 h-7 text-primary" />
           </div>
           <h1 className="text-xl font-bold text-foreground">
-            הכל מוכן לשיגור! 🚀
+            {t('onboarding.step6.title')}
           </h1>
         </div>
 
-        {/* Family Code Display */}
         <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-background to-success/10 border-2 border-dashed border-primary/30">
           <p className="text-center text-sm text-muted-foreground mb-3">
-            הקוד המשפחתי שלכם:
+            {t('onboarding.step6.familyCode')}
           </p>
           <button
             onClick={handleCopy}
@@ -139,22 +117,20 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
           </button>
           {copied && (
             <p className="text-center text-xs text-success mt-2 font-medium">
-              הועתק ללוח! ✓
+              {t('onboarding.step6.copied')}
             </p>
           )}
         </div>
 
-        {/* WhatsApp Share */}
         <button
           onClick={handleShareWhatsApp}
           disabled={!familyCode}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20 transition-colors active:scale-[0.98] disabled:opacity-50"
         >
           <Share2 className="w-4 h-4" />
-          <span className="text-sm font-medium">שלחו ל{childName} בוואטסאפ</span>
+          <span className="text-sm font-medium">{t('onboarding.step6.shareWhatsApp').replace('{name}', childName)}</span>
         </button>
 
-        {/* Copy Instructions Fallback */}
         <button
           onClick={handleCopyInstructions}
           disabled={!familyCode}
@@ -163,25 +139,23 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
           {instructionsCopied ? (
             <>
               <Check className="w-4 h-4 text-success" />
-              <span className="text-sm">ההוראות הועתקו! ✓</span>
+              <span className="text-sm">{t('onboarding.step6.instructionsCopiedShort')}</span>
             </>
           ) : (
             <>
               <ClipboardCopy className="w-4 h-4" />
-              <span className="text-sm">העתק הוראות חיבור (אם וואטסאפ לא נפתח)</span>
+              <span className="text-sm">{t('onboarding.step6.copyInstructions')}</span>
             </>
           )}
         </button>
 
-        {/* Instructions */}
         <div className="p-4 rounded-xl bg-card border border-border">
-          <p className="text-sm text-foreground text-right leading-relaxed">
-            זה הזמן לקרוא ל<strong className="text-primary">{childName}</strong>, להוריד את BUFF במכשיר שלהם ולהזין את הקוד המשפחתי. המשימה הראשונה כבר מחכה בפנים!
-          </p>
+          <p className="text-sm text-foreground leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: t('onboarding.step6.callToAction').replace('{name}', childName) }}
+          />
         </div>
       </div>
 
-      {/* Big Launch Button */}
       <div className="px-5 pb-6 pt-4 flex-shrink-0 bg-background">
         <Button 
           onClick={handleLaunch}
@@ -191,10 +165,10 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
           {isLoading ? (
             <span className="flex items-center gap-2">
               <span className="animate-spin">⏳</span>
-              יוצרים את המשפחה...
+              {t('onboarding.step6.creating')}
             </span>
           ) : (
-            'זהו, אנחנו מחוברים! יוצאים לדרך ⚡'
+            t('onboarding.step6.launchCta')
           )}
         </Button>
       </div>
