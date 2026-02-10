@@ -137,6 +137,42 @@ const INSIGHT_TEMPLATES: Record<string, Omit<InsightCard, 'id' | 'completionRate
     suggestionHe: 'חגגו את ההצלחה יחד! שאלו מה עזר וחזקו את הדפוסים האלה.',
     icon: '⭐',
   },
+  'medication-low': {
+    type: 'task',
+    severity: 'attention',
+    title: 'Medication Consistency',
+    titleHe: 'עקביות בתרופות',
+    description: 'Medication tasks have been missed recently. Consistency is key for effectiveness.',
+    descriptionHe: 'משימות תרופות הוחמצו לאחרונה. עקביות היא המפתח ליעילות.',
+    suggestion: 'Link medication to a fixed anchor habit (e.g., right after brushing teeth). A visual reminder near the toothbrush can help.',
+    suggestionHe: 'קשרו את התרופות להרגל עוגן קבוע (למשל מיד אחרי צחצוח שיניים). תזכורת ויזואלית ליד המברשת יכולה לעזור.',
+    strategyType: 'environmental',
+    icon: '💊',
+  },
+  'hygiene-low': {
+    type: 'task',
+    severity: 'suggestion',
+    title: 'Hygiene Routine Support',
+    titleHe: 'תמיכה בשגרת היגיינה',
+    description: 'Hygiene tasks like showering have been challenging. Sensory sensitivities can make these harder.',
+    descriptionHe: 'משימות היגיינה כמו מקלחת היו מאתגרות. רגישויות חושיות יכולות להקשות על אלה.',
+    suggestion: 'Try making the routine predictable: same time, same order. Let your child choose their own soap/shampoo for a sense of control.',
+    suggestionHe: 'נסו להפוך את השגרה לצפויה: אותה שעה, אותו סדר. תנו לילד לבחור סבון/שמפו משלו לתחושת שליטה.',
+    strategyType: 'environmental',
+    icon: '🚿',
+  },
+  'homework-low': {
+    type: 'task',
+    severity: 'suggestion',
+    title: 'Homework Initiation',
+    titleHe: 'התחלת שיעורי בית',
+    description: 'Starting homework has been difficult. Task initiation is one of the biggest Executive Functioning challenges.',
+    descriptionHe: 'התחלת שיעורי בית הייתה קשה. התחלת משימות היא אחד האתגרים הגדולים של תפקודים ניהוליים.',
+    suggestion: 'Use the 15-minute rule: commit to just 15 minutes. Often, starting is the hardest part - once going, momentum builds naturally.',
+    suggestionHe: 'השתמשו בכלל 15 הדקות: התחייבו רק ל-15 דקות. לרוב, ההתחלה היא החלק הקשה - ברגע שמתחילים, המומנטום נבנה בטבעיות.',
+    strategyType: 'task-based',
+    icon: '📝',
+  },
 };
 
 export function useParentInsights(childId: string | null) {
@@ -237,14 +273,17 @@ export function useParentInsights(childId: string | null) {
       const medicationTasks = taskInsights.filter(t => 
         t.taskTitle.toLowerCase().includes('med') || t.taskTitle.toLowerCase().includes('תרופ')
       );
-      if (medicationTasks.some(t => t.completionRate < 60)) {
-        generatedInsights.push({
-          ...INSIGHT_TEMPLATES['medication-low'],
-          id: 'insight-medication',
-          completionRate: Math.round(
-            medicationTasks.reduce((sum, t) => sum + t.completionRate, 0) / medicationTasks.length
-          ),
-        });
+      if (medicationTasks.length > 0 && medicationTasks.some(t => t.completionRate < 60)) {
+        const template = INSIGHT_TEMPLATES['medication-low'];
+        if (template) {
+          generatedInsights.push({
+            ...template,
+            id: 'insight-medication',
+            completionRate: Math.round(
+              medicationTasks.reduce((sum, t) => sum + t.completionRate, 0) / medicationTasks.length
+            ),
+          });
+        }
       }
 
       const hygieneTasks = taskInsights.filter(t => 
@@ -252,14 +291,17 @@ export function useParentInsights(childId: string | null) {
         t.taskTitle.toLowerCase().includes('מקלחת') ||
         t.taskTitle.toLowerCase().includes('hygiene')
       );
-      if (hygieneTasks.some(t => t.completionRate < 50)) {
-        generatedInsights.push({
-          ...INSIGHT_TEMPLATES['hygiene-low'],
-          id: 'insight-hygiene',
-          completionRate: Math.round(
-            hygieneTasks.reduce((sum, t) => sum + t.completionRate, 0) / hygieneTasks.length
-          ),
-        });
+      if (hygieneTasks.length > 0 && hygieneTasks.some(t => t.completionRate < 50)) {
+        const template = INSIGHT_TEMPLATES['hygiene-low'];
+        if (template) {
+          generatedInsights.push({
+            ...template,
+            id: 'insight-hygiene',
+            completionRate: Math.round(
+              hygieneTasks.reduce((sum, t) => sum + t.completionRate, 0) / hygieneTasks.length
+            ),
+          });
+        }
       }
 
       const homeworkTasks = taskInsights.filter(t => 
@@ -268,14 +310,17 @@ export function useParentInsights(childId: string | null) {
         t.taskTitle.toLowerCase().includes('שיעורי בית') ||
         t.taskTitle.toLowerCase().includes('למידה')
       );
-      if (homeworkTasks.some(t => t.completionRate < 50)) {
-        generatedInsights.push({
-          ...INSIGHT_TEMPLATES['homework-low'],
-          id: 'insight-homework',
-          completionRate: Math.round(
-            homeworkTasks.reduce((sum, t) => sum + t.completionRate, 0) / homeworkTasks.length
-          ),
-        });
+      if (homeworkTasks.length > 0 && homeworkTasks.some(t => t.completionRate < 50)) {
+        const template = INSIGHT_TEMPLATES['homework-low'];
+        if (template) {
+          generatedInsights.push({
+            ...template,
+            id: 'insight-homework',
+            completionRate: Math.round(
+              homeworkTasks.reduce((sum, t) => sum + t.completionRate, 0) / homeworkTasks.length
+            ),
+          });
+        }
       }
 
       // If everything is going well, add positive insight
