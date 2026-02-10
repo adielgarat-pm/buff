@@ -116,7 +116,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
           <div className="rounded-lg bg-gradient-to-br from-buff/20 to-buff/5 border border-buff/30 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <Sparkles className="w-4 h-4 text-buff" />
-              <span className="text-xs text-buff font-medium">Buff Points</span>
+              <span className="text-xs text-buff font-medium">{t('reports.buffPoints')}</span>
             </div>
             <p className="text-2xl font-bold text-buff">{stats.totalBuffPoints}</p>
           </div>
@@ -124,16 +124,16 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
           <div className="rounded-lg bg-gradient-to-br from-streak/20 to-streak/5 border border-streak/30 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <Flame className="w-4 h-4 text-streak" />
-              <span className="text-xs text-streak font-medium">Streak</span>
+              <span className="text-xs text-streak font-medium">{t('reports.streak')}</span>
             </div>
-            <p className="text-2xl font-bold text-streak">{stats.streakDays} <span className="text-xs font-normal">days</span></p>
+            <p className="text-2xl font-bold text-streak">{stats.streakDays} <span className="text-xs font-normal">{t('ignition.days')}</span></p>
           </div>
 
           <div className="rounded-lg bg-card border border-border p-2.5">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1">
                 <Target className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs text-muted-foreground">Quests</span>
+                <span className="text-xs text-muted-foreground">{t('reports.quests')}</span>
               </div>
               <span className="text-sm font-bold text-foreground">
                 {stats.questsConquered}<span className="text-xs text-muted-foreground">/{stats.totalQuests}</span>
@@ -146,7 +146,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1">
                 <BookOpen className="w-3.5 h-3.5 text-accent" />
-                <span className="text-xs text-muted-foreground">Lessons</span>
+                <span className="text-xs text-muted-foreground">{t('reports.lessons')}</span>
               </div>
               <span className="text-sm font-bold text-foreground">
                 {stats.lessonsConquered}<span className="text-xs text-muted-foreground">/{stats.totalLessons}</span>
@@ -192,7 +192,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         <div className="rounded-lg bg-card border border-border p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <BarChart3 className="w-4 h-4 text-accent" />
-            <h2 className="text-sm font-semibold text-foreground">Trend Detector</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t('reports.trendDetector')}</h2>
             <span className="text-xs text-muted-foreground mr-auto">{t('reports.bySubject')}</span>
           </div>
           
@@ -212,7 +212,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
               <MessageSquare className="w-4 h-4 text-accent" />
-              <h2 className="text-sm font-semibold text-foreground">Reflection Log</h2>
+              <h2 className="text-sm font-semibold text-foreground">{t('reports.reflectionLog')}</h2>
             </div>
             <span className="text-xs text-muted-foreground">{stats.reflections.length}</span>
           </div>

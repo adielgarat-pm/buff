@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { Zap, TrendingUp, AlertCircle, Sparkles, ChevronRight } from 'lucide-react';
 import { STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface InsightCardDisplayProps {
   insight: InsightCard;
@@ -10,6 +11,7 @@ interface InsightCardDisplayProps {
 
 export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
   const [expanded, setExpanded] = useState(false);
+  const { language, t } = useLanguage();
 
   const severityConfig = {
     info: {
@@ -36,6 +38,12 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
   };
 
   const config = severityConfig[insight.severity] || severityConfig.info;
+  const title = language === 'he' ? insight.titleHe : insight.title;
+  const description = language === 'he' ? insight.descriptionHe : insight.description;
+  const suggestion = language === 'he' ? insight.suggestionHe : insight.suggestion;
+  const strategyLabel = insight.strategyType 
+    ? (language === 'he' ? STRATEGY_CATEGORIES[insight.strategyType].labelHe : STRATEGY_CATEGORIES[insight.strategyType].label)
+    : null;
 
   return (
     <div
@@ -56,7 +64,7 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
           <div className="flex items-center gap-2">
             <span className="text-xl">{insight.icon}</span>
             <h4 className="font-semibold text-foreground text-sm">
-              {insight.titleHe}
+              {title}
             </h4>
             {insight.completionRate !== undefined && insight.severity !== 'info' && (
               <span className={cn(
@@ -70,8 +78,8 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
             )}
           </div>
           
-          <p className="text-sm text-muted-foreground mt-1" dir="rtl">
-            {insight.descriptionHe}
+          <p className="text-sm text-muted-foreground mt-1">
+            {description}
           </p>
 
           {/* Expanded suggestion */}
@@ -82,15 +90,15 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
             <div className="p-3 rounded-lg bg-background/50 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-xs font-medium text-primary">הצעה לפעולה</span>
-                {insight.strategyType && (
+                <span className="text-xs font-medium text-primary">{t('ignition.actionSuggestion')}</span>
+                {strategyLabel && (
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    {STRATEGY_CATEGORIES[insight.strategyType].labelHe}
+                    {strategyLabel}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-foreground leading-relaxed" dir="rtl">
-                {insight.suggestionHe}
+              <p className="text-sm text-foreground leading-relaxed">
+                {suggestion}
               </p>
             </div>
           </div>

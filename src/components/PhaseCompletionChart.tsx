@@ -1,12 +1,15 @@
 import { PhaseInsight } from '@/hooks/useParentInsights';
 import { cn } from '@/lib/utils';
 import { PHASES } from '@/types/phase';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PhaseCompletionChartProps {
   phaseInsights: PhaseInsight[];
 }
 
 export function PhaseCompletionChart({ phaseInsights }: PhaseCompletionChartProps) {
+  const { t, language } = useLanguage();
+
   return (
     <div className="grid grid-cols-4 gap-2">
       {PHASES.map(phase => {
@@ -14,6 +17,7 @@ export function PhaseCompletionChart({ phaseInsights }: PhaseCompletionChartProp
         const rate = insight?.avgCompletionRate || 0;
         const isLow = rate < 50;
         const isMedium = rate >= 50 && rate < 70;
+        const label = language === 'he' ? phase.shortLabelHe : phase.shortLabel;
         
         return (
           <div 
@@ -22,7 +26,7 @@ export function PhaseCompletionChart({ phaseInsights }: PhaseCompletionChartProp
           >
             <span className="text-2xl mb-1">{phase.icon}</span>
             <p className="text-xs text-muted-foreground text-center mb-2">
-              {phase.shortLabel}
+              {label}
             </p>
             
             {/* Circular progress indicator */}
@@ -63,7 +67,7 @@ export function PhaseCompletionChart({ phaseInsights }: PhaseCompletionChartProp
             </div>
             
             <p className="text-xs text-muted-foreground mt-1">
-              {insight?.taskCount || 0} tasks
+              {insight?.taskCount || 0} {t('phase.tasks')}
             </p>
           </div>
         );
