@@ -61,6 +61,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ParentSettingsProps {
   appTitle: string;
@@ -88,6 +89,7 @@ export function ParentSettings({
 }: ParentSettingsProps) {
   const { children, loading: membersLoading } = useFamilyMembers();
   const { marketingConsent, saving: savingConsent, updateConsent } = useMarketingConsent();
+  const { language, setLanguage, t } = useLanguage();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
 
   const [localTitle, setLocalTitle] = useState(appTitle);
@@ -184,6 +186,38 @@ export function ParentSettings({
                   onCheckedChange={onToggleLessonReminders}
                 />
             </div>
+
+              {/* Language Toggle */}
+              <div className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🌐</span>
+                  <span className="text-sm text-foreground">{t('settings.language')}</span>
+                </div>
+                <div className="flex items-center gap-1 bg-secondary rounded-lg p-0.5">
+                  <button
+                    onClick={() => setLanguage('he')}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-md transition-all font-medium",
+                      language === 'he' 
+                        ? "bg-primary text-primary-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    🇮🇱 עברית
+                  </button>
+                  <button
+                    onClick={() => setLanguage('en')}
+                    className={cn(
+                      "px-2.5 py-1 text-xs rounded-md transition-all font-medium",
+                      language === 'en' 
+                        ? "bg-primary text-primary-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    🇺🇸 English
+                  </button>
+                </div>
+              </div>
           </div>
         </div>
 
