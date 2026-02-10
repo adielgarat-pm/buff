@@ -964,6 +964,65 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     }
   }, [familyId, profileId, isParent, storeRewards, totalBalance]);
 
+  // Unclaim (return) a store reward - refund credits and mark as unclaimed
+  const unclaimStoreReward = useCallback(async (rewardId: string) => {
+    if (!familyId || !profileId) return;
+
+    const reward = storeRewards.find(r => r.id === rewardId);
+    if (!reward || !reward.claimed) return;
+
+    // Optimistic update
+    const prevBalance = totalBalance;
+    setTotalBalance(totalBalance + reward.price);
+    setStoreRewards(prev => prev.map(r =>
+      r.id === rewardId ? { ...r, claimed: false, claimedAt: undefined } : r
+    ));
+
+    try {
+      // Mark reward as unclaimed
+      const { error: rewardError } = await supabase
+        .from('store_rewards')
+        .update({ claimed: false, claimed_at: null })
+        .eq('id', rewardId);
+
+      if (rewardError) {
+        console.error('Error unclaiming reward:', rewardError);
+        setTotalBalance(prevBalance);
+        setStoreRewards(prev => prev.map(r =>
+          r.id === rewardId ? { ...r, claimed: true, claimedAt: reward.claimedAt } : r
+        ));
+        return;
+      }
+
+      // Refund credits via RPC
+      const targetChildId = isParent ? (reward.assignedTo || profileId) : profileId;
+      const { data: updatedBalance, error: creditError } = await supabase
+        .rpc('update_child_credits', {
+          p_child_id: targetChildId,
+          p_credit_change: reward.price,
+          p_is_completion: false
+        });
+
+      if (creditError) {
+        console.error('Error refunding credits:', creditError);
+        setTotalBalance(prevBalance);
+        return;
+      }
+
+      if (typeof updatedBalance === 'number') {
+        setTotalBalance(updatedBalance);
+      }
+
+      console.log(`Reward unclaimed: ${reward.title}, refunded: ${reward.price}`);
+    } catch (err) {
+      console.error('Unexpected error unclaiming reward:', err);
+      setTotalBalance(prevBalance);
+      setStoreRewards(prev => prev.map(r =>
+        r.id === rewardId ? { ...r, claimed: true, claimedAt: reward.claimedAt } : r
+      ));
+    }
+  }, [familyId, profileId, isParent, storeRewards, totalBalance]);
+
   // Update store rewards
   const updateStoreRewards = useCallback(async (rewards: StoreReward[]) => {
     if (!familyId) return;
@@ -1179,6 +1238,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
     toggleLessonReminders,
     toggleFridayEnabled,
     redeemStoreReward,
+    unclaimStoreReward,
     updateStoreRewards,
     activateBuff,
     completeBagPrep,

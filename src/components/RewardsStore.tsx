@@ -11,13 +11,15 @@ interface RewardsStoreProps {
   totalBalance: number;
   storeRewards: StoreReward[];
   onRedeem: (rewardId: string) => void;
+  onUnclaim?: (rewardId: string) => void;
   onClose?: () => void;
   showBackButton?: boolean;
 }
 
-export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, showBackButton = false }: RewardsStoreProps) {
+export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, onClose, showBackButton = false }: RewardsStoreProps) {
   const { t, isRTL } = useLanguage();
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
+  const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
     if (totalBalance >= reward.price && !reward.claimed) {
@@ -165,19 +167,46 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onClose, sh
               </h2>
               
               <div className="grid grid-cols-2 gap-4">
-                {claimedRewards.map((reward) => (
-                  <div
-                    key={reward.id}
-                    className="p-4 rounded-2xl bg-success/10 border border-success/30 flex flex-col items-center text-center"
-                  >
-                    <span className="text-3xl opacity-75 mb-2">{reward.icon}</span>
-                    <h3 className="font-medium text-foreground text-sm mb-1">{reward.title}</h3>
-                    <div className="flex items-center gap-1 text-success text-xs">
-                      <Check className="w-4 h-4" />
-                      <span>{t('store.claimed')}</span>
+                {claimedRewards.map((reward) => {
+                  const isUnclaiming = unclaimingId === reward.id;
+                  return (
+                    <div
+                      key={reward.id}
+                      className="p-4 rounded-2xl bg-success/10 border border-success/30 flex flex-col items-center text-center"
+                    >
+                      <span className="text-3xl opacity-75 mb-2">{reward.icon}</span>
+                      <h3 className="font-medium text-foreground text-sm mb-1">{reward.title}</h3>
+                      <div className="flex items-center gap-1 text-success text-xs mb-2">
+                        <Check className="w-4 h-4" />
+                        <span>{t('store.claimed')}</span>
+                      </div>
+                      {onUnclaim && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setUnclaimingId(reward.id);
+                            onUnclaim(reward.id);
+                            setTimeout(() => setUnclaimingId(null), 600);
+                            toast({
+                              title: "↩️ פרס הוחזר",
+                              description: `${reward.icon} ${reward.title} - ${reward.price} נקודות הוחזרו`,
+                              duration: 3000,
+                            });
+                          }}
+                          disabled={isUnclaiming}
+                          className="w-full h-8 text-xs rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
+                        >
+                          {isUnclaiming ? (
+                            <Sparkles className="w-3 h-3 animate-spin" />
+                          ) : (
+                            'ביטול מימוש'
+                          )}
+                        </Button>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
