@@ -6,6 +6,7 @@ import { Checkbox } from '../ui/checkbox';
 import { cn } from '@/lib/utils';
 import { ConfettiEffect } from '../ConfettiEffect';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NightMissionProps {
   timetable: Timetable;
@@ -20,10 +21,6 @@ interface CheckedItems {
   [key: string]: boolean;
 }
 
-/**
- * Night Mission - Proactive bag preparation (19:00)
- * Awards credits for preparing tomorrow's bag in advance
- */
 export function NightMission({ 
   timetable, 
   fridayEnabled = false, 
@@ -32,14 +29,14 @@ export function NightMission({
   onComplete,
   onUndo,
 }: NightMissionProps) {
+  const { t } = useLanguage();
   const [checkedItems, setCheckedItems] = useState<CheckedItems>({});
   const [showConfetti, setShowConfetti] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
   
-  // Get tomorrow's day and lessons
   const tomorrowData = useMemo(() => {
     const today = new Date();
-    const todayIndex = today.getDay(); // 0 = Sunday
+    const todayIndex = today.getDay();
     const tomorrowIndex = (todayIndex + 1) % 7;
     
     const dayMap: Record<number, WeekDay | null> = {
@@ -49,7 +46,7 @@ export function NightMission({
       3: 'wednesday',
       4: 'thursday',
       5: fridayEnabled ? 'friday' : null,
-      6: null, // Saturday
+      6: null,
     };
     
     const tomorrowDay = dayMap[tomorrowIndex];
@@ -57,10 +54,7 @@ export function NightMission({
       return { day: null, lessons: [], dayLabel: '', hasSchedule: false };
     }
     
-    // Only include lessons with actual subject content
     const lessons = (timetable[tomorrowDay] || []).filter(p => p.subject && p.subject.trim() !== '');
-    
-    // Smart Context Guard: Check if there's actually a schedule uploaded for tomorrow
     const hasSchedule = lessons.length > 0;
     
     return { 
@@ -71,7 +65,6 @@ export function NightMission({
     };
   }, [timetable, fridayEnabled]);
 
-  // Split lessons into with/without equipment
   const { lessonsWithEquipment, lessonsWithoutEquipment } = useMemo(() => {
     const withEquip: (PeriodInfo & { index: number })[] = [];
     const withoutEquip: (PeriodInfo & { index: number })[] = [];
@@ -87,21 +80,17 @@ export function NightMission({
     return { lessonsWithEquipment: withEquip, lessonsWithoutEquipment: withoutEquip };
   }, [tomorrowData.lessons]);
 
-  // Static evening prep items (always shown) - Daily Reset prerequisite
   const EVENING_PREP_ITEMS = [
-    { id: 'lunchbox_reset', label: 'איפוס יומי: פינוי וניקוי תיק האוכל (קופסה למדיח/פח)', icon: '🧹' },
+    { id: 'lunchbox_reset', label: t('gear.lunchboxReset'), icon: '🧹' },
   ];
 
-  // Generate all checkbox items (static prep + equipment from lessons)
   const allCheckboxItems = useMemo(() => {
     const items: { id: string; label: string; icon?: string }[] = [];
     
-    // Add static evening prep items first
     EVENING_PREP_ITEMS.forEach(item => {
       items.push(item);
     });
     
-    // Add equipment items from lessons
     lessonsWithEquipment.forEach(lesson => {
       const equipmentParts = lesson.equipment!.split(/[,،\n]/);
       equipmentParts.forEach((eq, eqIndex) => {
@@ -116,11 +105,10 @@ export function NightMission({
     });
     
     return items;
-  }, [lessonsWithEquipment]);
+  }, [lessonsWithEquipment, t]);
 
-  // Check if all items are checked
   const allChecked = useMemo(() => {
-    if (allCheckboxItems.length === 0) return true; // No equipment = auto-complete
+    if (allCheckboxItems.length === 0) return true;
     return allCheckboxItems.every(item => checkedItems[item.id]);
   }, [allCheckboxItems, checkedItems]);
 
@@ -134,8 +122,8 @@ export function NightMission({
     onComplete();
     
     toast({
-      title: "🎒 משימת הערב הושלמה!",
-      description: `מעולה! סידור התיק מראש הביא ${credits} קרדיטים`,
+      title: t('gear.nightMissionComplete'),
+      description: `${t('gear.nightMissionCompleteDesc')} ${credits} ${t('gear.credits')}`,
       duration: 5000,
     });
     
@@ -147,13 +135,12 @@ export function NightMission({
     setJustCompleted(false);
     onUndo?.();
     toast({
-      title: "↩️ בוטל",
-      description: "משימת הערב בוטלה",
+      title: t('gear.undone'),
+      description: t('gear.undoneDesc'),
       duration: 3000,
     });
   };
 
-  // Smart Context Guard: If tomorrow is not a school day OR no schedule uploaded
   if (!tomorrowData.day || !tomorrowData.hasSchedule) {
     return (
       <div className="rounded-2xl bg-card border border-border p-6 text-center">
@@ -161,18 +148,17 @@ export function NightMission({
           <Moon className="w-8 h-8 text-buff" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          {!tomorrowData.day ? 'מחר יום חופש! 🎉' : 'אין מערכת למחר 📋'}
+          {!tomorrowData.day ? t('gear.tomorrowOff') : t('gear.noScheduleTomorrow')}
         </h3>
         <p className="text-sm text-muted-foreground">
           {!tomorrowData.day 
-            ? 'אין צורך להכין תיק - תהנה מהמנוחה!' 
-            : 'הוסיפו מערכת שעות דרך הגדרות ההורה כדי להפעיל את משימת הערב.'}
+            ? t('gear.noBagPrep')
+            : t('gear.addSchedule')}
         </p>
       </div>
     );
   }
 
-  // If already completed
   if (isCompleted && !justCompleted) {
     return (
       <div className="rounded-2xl bg-gradient-to-br from-buff/10 to-primary/10 border border-buff/30 p-6 text-center">
@@ -180,16 +166,15 @@ export function NightMission({
           <CheckCircle2 className="w-8 h-8 text-buff" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          משימת ערב - הושלמה! 🌟
+          {t('gear.nightCompleted')}
         </h3>
         <p className="text-sm text-muted-foreground">
-          התיק מוכן למחר - נצברו {credits} קרדיטים
+          {t('gear.bagReadyCredits')} {credits} {t('gear.credits')}
         </p>
       </div>
     );
   }
 
-  // No equipment needed
   if (allCheckboxItems.length === 0) {
     return (
       <div className="rounded-2xl bg-gradient-to-br from-buff/5 to-primary/5 border border-buff/30 p-4 space-y-4">
@@ -199,11 +184,11 @@ export function NightMission({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-foreground">משימת ערב - בונוס מוכנות!</h3>
+              <h3 className="font-bold text-foreground">{t('gear.nightMission')}</h3>
               <Zap className="w-4 h-4 text-buff animate-pulse" />
             </div>
             <p className="text-sm text-muted-foreground">
-              {tomorrowData.dayLabel} - אין ציוד מיוחד נדרש
+              {tomorrowData.dayLabel} - {t('gear.noSpecialEquipment')}
             </p>
           </div>
           <div className="px-3 py-1.5 rounded-full bg-buff/10 border border-buff/20">
@@ -216,7 +201,7 @@ export function NightMission({
           className="w-full gap-2 bg-gradient-to-r from-buff to-primary text-white hover:opacity-90"
         >
           <PartyPopper className="w-5 h-5" />
-          סידור תיק הושלם! (+{credits} קרדיטים)
+          {t('gear.bagComplete')} (+{credits} {t('gear.credits')})
         </Button>
       </div>
     );
@@ -226,18 +211,17 @@ export function NightMission({
     <div className="rounded-2xl bg-gradient-to-br from-buff/5 to-primary/5 border-2 border-buff/40 p-4 space-y-4">
       <ConfettiEffect trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
       
-      {/* Header with special Night Mission styling */}
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-buff to-primary flex items-center justify-center">
           <Backpack className="w-6 h-6 text-white" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-foreground">משימת ערב - בונוס מוכנות!</h3>
+            <h3 className="font-bold text-foreground">{t('gear.nightMission')}</h3>
             <Zap className="w-4 h-4 text-buff animate-pulse" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {tomorrowData.dayLabel} - סידור ציוד עכשיו!
+            {tomorrowData.dayLabel} - {t('gear.prepNow')}
           </p>
         </div>
         <div className="px-3 py-1.5 rounded-full bg-buff/20 border border-buff/30">
@@ -245,9 +229,8 @@ export function NightMission({
         </div>
       </div>
 
-      {/* Static Evening Prep Items */}
       <div className="space-y-2">
-        <p className="text-xs text-muted-foreground font-medium">🧹 הכנות ערב:</p>
+        <p className="text-xs text-muted-foreground font-medium">{t('gear.eveningPrep')}</p>
         <div className="p-3 rounded-xl bg-card border border-border">
           {EVENING_PREP_ITEMS.map((item) => (
             <label
@@ -271,10 +254,9 @@ export function NightMission({
         </div>
       </div>
 
-      {/* Equipment Checklist */}
       {lessonsWithEquipment.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground font-medium">🎒 ציוד נדרש לשיעורים:</p>
+          <p className="text-xs text-muted-foreground font-medium">{t('gear.equipmentNeeded')}</p>
           {lessonsWithEquipment.map((lesson, idx) => (
             <div
               key={idx}
@@ -316,7 +298,6 @@ export function NightMission({
         </div>
       )}
 
-      {/* Complete Button */}
       <div className="pt-2">
         {justCompleted ? (
           <Button
@@ -325,7 +306,7 @@ export function NightMission({
             className="w-full gap-2 text-muted-foreground"
           >
             <Undo2 className="w-4 h-4" />
-            בטל (5 שניות)
+            {t('gear.undo')}
           </Button>
         ) : (
           <Button
@@ -341,22 +322,21 @@ export function NightMission({
             {allChecked ? (
               <>
                 <PartyPopper className="w-5 h-5" />
-                סידור תיק הושלם! (+{credits} קרדיטים)
+                {t('gear.bagComplete')} (+{credits} {t('gear.credits')})
               </>
             ) : (
               <>
                 <Backpack className="w-5 h-5" />
-                סימון כל הפריטים
+                {t('gear.markAll')}
               </>
             )}
           </Button>
         )}
       </div>
 
-      {/* Progress indicator */}
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
-          {Object.values(checkedItems).filter(Boolean).length} / {allCheckboxItems.length} פריטים מוכנים
+          {Object.values(checkedItems).filter(Boolean).length} / {allCheckboxItems.length} {t('gear.itemsReady')}
         </p>
       </div>
     </div>

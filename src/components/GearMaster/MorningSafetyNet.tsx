@@ -2,26 +2,22 @@ import { useMemo } from 'react';
 import { Timetable, WeekDay, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
 import { AlertTriangle, Backpack, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MorningSafetyNetProps {
   timetable: Timetable;
   fridayEnabled?: boolean;
 }
 
-/**
- * Morning Safety Net - Shows equipment checklist as a reminder (NO POINTS)
- * Only appears if the Night Mission was NOT completed
- * Goal: Visual aid only, preventing the child from forgetting gear
- */
 export function MorningSafetyNet({ 
   timetable, 
   fridayEnabled = false, 
 }: MorningSafetyNetProps) {
+  const { t } = useLanguage();
   
-  // Get today's lessons (we're showing what's needed TODAY)
   const todayData = useMemo(() => {
     const today = new Date();
-    const todayIndex = today.getDay(); // 0 = Sunday
+    const todayIndex = today.getDay();
     
     const dayMap: Record<number, WeekDay | null> = {
       0: 'sunday',
@@ -30,7 +26,7 @@ export function MorningSafetyNet({
       3: 'wednesday',
       4: 'thursday',
       5: fridayEnabled ? 'friday' : null,
-      6: null, // Saturday
+      6: null,
     };
     
     const todayDay = dayMap[todayIndex];
@@ -39,8 +35,6 @@ export function MorningSafetyNet({
     }
     
     const lessons = (timetable[todayDay] || []).filter(p => p.subject && p.subject.trim() !== '');
-    
-    // Smart Context Guard: Check if there's actually a schedule uploaded for today
     const hasSchedule = lessons.length > 0;
     
     return { 
@@ -51,37 +45,33 @@ export function MorningSafetyNet({
     };
   }, [timetable, fridayEnabled]);
 
-  // Get lessons with equipment
   const lessonsWithEquipment = useMemo(() => {
     return todayData.lessons
       .map((lesson, index) => ({ ...lesson, index }))
       .filter(lesson => lesson.equipment && lesson.equipment.trim() !== '');
   }, [todayData.lessons]);
 
-  // Smart Context Guard: Don't show if no school day, no schedule uploaded, or no equipment needed
   if (!todayData.day || !todayData.hasSchedule || lessonsWithEquipment.length === 0) {
     return null;
   }
 
   return (
     <div className="rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 p-4 space-y-3">
-      {/* Warning Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
           <AlertTriangle className="w-5 h-5 text-amber-500" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-foreground text-sm">תזכורת בוקר - בדיקת תיק</h3>
+          <h3 className="font-bold text-foreground text-sm">{t('gear.morningReminder')}</h3>
           <p className="text-xs text-muted-foreground">
-            בדיקה שהכל בתיק לפני היציאה!
+            {t('gear.morningCheck')}
           </p>
         </div>
         <div className="px-2 py-1 rounded-full bg-muted text-xs text-muted-foreground">
-          ללא נקודות
+          {t('gear.noPoints')}
         </div>
       </div>
 
-      {/* Equipment List - Read-only visual reminder */}
       <div className="space-y-2">
         {lessonsWithEquipment.map((lesson, idx) => (
           <div
@@ -113,7 +103,7 @@ export function MorningSafetyNet({
       </div>
 
       <p className="text-xs text-center text-muted-foreground italic">
-        💡 טיפ: סידור תיק בערב הקודם מזכה בנקודות!
+        {t('gear.morningTip')}
       </p>
     </div>
   );
