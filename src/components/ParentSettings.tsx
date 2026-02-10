@@ -119,17 +119,17 @@ export function ParentSettings({
           />
           <div>
             <h1 className="text-xl font-bold text-foreground font-display">
-              {selectedChildId ? 'הגדרות Buff' : 'הגדרות'}
+              {selectedChildId ? t('parentSettings.buffSettings') : t('parentSettings.title')}
             </h1>
             <p className="text-xs text-muted-foreground">
-              {selectedChildId ? 'עריכת משימות, מערכת ופרסים' : 'הגדרות כלליות וניהול ילדים'}
+              {selectedChildId ? t('parentSettings.editTasksRewards') : t('parentSettings.generalAndChildren')}
             </p>
           </div>
         </div>
         {selectedChildId && onBackFromChild && (
           <Button variant="ghost" size="sm" onClick={onBackFromChild} className="text-muted-foreground">
             <ArrowRight className="w-4 h-4 ml-1" />
-            חזרה
+            {t('parentSettings.back')}
           </Button>
         )}
       </div>
@@ -151,14 +151,14 @@ export function ParentSettings({
                 <Settings className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-foreground">הגדרות כלליות</h2>
-                <p className="text-xs text-muted-foreground">הגדרות ברירת מחדל למשפחה</p>
+                <h2 className="text-sm font-semibold text-foreground">{t('parentSettings.generalSettings')}</h2>
+                <p className="text-xs text-muted-foreground">{t('parentSettings.familyDefaults')}</p>
               </div>
             </div>
 
             {/* App Title */}
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground whitespace-nowrap">שם האפליקציה</Label>
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">{t('parentSettings.appName')}</Label>
               <div className="flex gap-2 flex-1">
                 <Input
                   type="text"
@@ -179,7 +179,7 @@ export function ParentSettings({
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-2">
                   <Bell className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm text-foreground">תזכורות שיעורים</span>
+                  <span className="text-sm text-foreground">{t('parentSettings.lessonReminders')}</span>
                 </div>
                 <Switch
                   checked={lessonRemindersEnabled}
@@ -229,8 +229,8 @@ export function ParentSettings({
                   <Mail className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <span className="text-sm font-medium text-foreground">עדכונים וטיפים מעדי</span>
-                  <p className="text-xs text-muted-foreground">טיפים לסופ"ש ופיצ'רים חדשים</p>
+                  <span className="text-sm font-medium text-foreground">{t('parentSettings.updatesFromAdi')}</span>
+                  <p className="text-xs text-muted-foreground">{t('parentSettings.weekendTips')}</p>
                 </div>
               </div>
               <Switch
@@ -238,9 +238,9 @@ export function ParentSettings({
                 onCheckedChange={async (enabled) => {
                   try {
                     await updateConsent(enabled);
-                    toast.success(enabled ? 'נרשמת לעדכונים!' : 'בוטלה ההרשמה לעדכונים');
+                    toast.success(enabled ? t('parentSettings.subscribedUpdates') : t('parentSettings.unsubscribedUpdates'));
                   } catch {
-                    toast.error('שגיאה בעדכון ההגדרות');
+                    toast.error(t('parentSettings.settingsError'));
                   }
                 }}
                 disabled={savingConsent}
@@ -252,7 +252,7 @@ export function ParentSettings({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <User className="w-3.5 h-3.5 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">ניהול ילדים</h2>
+              <h2 className="text-sm font-semibold text-foreground">{t('parentSettings.childManagement')}</h2>
             </div>
 
             {membersLoading ? (
@@ -262,7 +262,7 @@ export function ParentSettings({
             ) : children.length === 0 ? (
               <div className="rounded-xl bg-card border border-border p-4 text-center space-y-1">
                 <User className="w-8 h-8 text-muted-foreground mx-auto" />
-                <p className="text-sm text-muted-foreground">עדיין לא הצטרפו ילדים</p>
+                <p className="text-sm text-muted-foreground">{t('parentSettings.noChildrenYet')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -286,8 +286,8 @@ export function ParentSettings({
                 <Brain className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-foreground">למידה והדרכה</h2>
-                <p className="text-xs text-muted-foreground">הבנת הגישה מאחורי Buff</p>
+                <h2 className="text-sm font-semibold text-foreground">{t('parentSettings.learningGuidance')}</h2>
+                <p className="text-xs text-muted-foreground">{t('parentSettings.understandApproach')}</p>
               </div>
             </div>
 
@@ -299,7 +299,7 @@ export function ParentSettings({
                 className="flex-1 h-9 text-xs justify-start"
               >
                 <Lightbulb className="w-3.5 h-3.5 ml-1.5 text-primary" />
-                תפיסת העולם
+                {t('parentSettings.worldView')}
               </Button>
               <Button
                 variant="outline"
@@ -308,7 +308,7 @@ export function ParentSettings({
                 className="flex-1 h-9 text-xs justify-start"
               >
                 <User className="w-3.5 h-3.5 ml-1.5 text-primary" />
-                אודות
+                {t('parentSettings.about')}
               </Button>
             </div>
           </div>
@@ -328,7 +328,7 @@ export function ParentSettings({
                 className="w-full h-10 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
               >
                 <LogOut className="w-4 h-4 ml-2" />
-                התנתק מהחשבון
+                {t('parentSettings.signOutAccount')}
               </Button>
             </div>
           )}
@@ -351,6 +351,7 @@ function ChildManagementCard({
   avatar?: string;
   onSelect: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <button
       onClick={onSelect}
@@ -362,7 +363,7 @@ function ChildManagementCard({
         </div>
         <div className="flex-1 text-right">
           <p className="text-sm font-semibold text-foreground">{childName}</p>
-          <p className="text-xs text-muted-foreground">הגדרות Buff</p>
+          <p className="text-xs text-muted-foreground">{t('parentSettings.buffSettings')}</p>
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </div>
@@ -382,6 +383,7 @@ const AVATAR_OPTIONS = [
 ];
 
 function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete }: { childId: string; childName: string; fridayEnabled: boolean; onBackAfterDelete?: () => void }) {
+  const { t } = useLanguage();
   const { familyId } = useAuth();
   const { children: familyChildren, refetch: refetchMembers } = useFamilyMembers();
   const {
@@ -467,13 +469,13 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
     setDeleting(true);
     try {
       await deleteChildProfile();
-      toast.success(`${childName} נמחק בהצלחה`);
+      toast.success(`${childName} ${t('parentSettings.deletedSuccess')}`);
       setDeleteDialogOpen(false);
       await refetchMembers();
       onBackAfterDelete?.();
     } catch (error) {
       console.error('Error deleting child:', error);
-      toast.error('שגיאה במחיקת הילד');
+      toast.error(t('parentSettings.deleteError'));
     } finally {
       setDeleting(false);
     }
@@ -482,9 +484,9 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
   const handleAvatarChange = async (newAvatar: string) => {
     try {
       await updateAvatar(newAvatar);
-      toast.success('האווטאר עודכן!');
+      toast.success(t('parentSettings.avatarUpdated'));
     } catch {
-      toast.error('שגיאה בעדכון האווטאר');
+      toast.error(t('parentSettings.avatarError'));
     }
   };
 
@@ -507,7 +509,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
           .from('app_settings')
           .update({ friday_enabled: true })
           .eq('family_id', familyId);
-        toast.success('יום שישי הופעל אוטומטית כי המערכת מכילה שיעורים ביום שישי');
+        toast.success(t('parentSettings.fridayAutoEnabled'));
       } catch (error) {
         console.error('Error auto-enabling Friday:', error);
       }
@@ -523,10 +525,10 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
       if (!hasSeenTip) {
         setShowSchoolQuestTip(true);
         localStorage.setItem(`school_quest_tip_${childId}`, 'true');
-        toast.success(
-          "הפעלת את מודול School Quest! 🎓",
+      toast.success(
+          t('parentSettings.schoolQuestActivated'),
           {
-            description: "עכשיו, מלא את מערכת השעות כדי לעזור לילד לקבל Buff במיקוד בבית הספר!",
+            description: t('parentSettings.schoolQuestActivatedDesc'),
             duration: 6000,
           }
         );
@@ -537,17 +539,17 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
   const handleSaveBalance = async () => {
     const parsed = balanceSchema.safeParse(localBalance);
     if (!parsed.success) {
-      toast.error('אנא הזן יתרה תקינה (0 עד 1,000,000)');
+      toast.error(t('parentSettings.invalidBalance'));
       return;
     }
 
     setSavingBalance(true);
     try {
       await updateTotalBalance(parsed.data);
-      toast.success('היתרה עודכנה בהצלחה!');
+      toast.success(t('parentSettings.balanceUpdated'));
       setEditingBalance(false);
     } catch {
-      toast.error('שגיאה בעדכון היתרה');
+      toast.error(t('parentSettings.balanceError'));
     } finally {
       setSavingBalance(false);
     }
@@ -556,17 +558,17 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
   const handleSaveDailyGoal = async () => {
     const parsed = dailyGoalSchema.safeParse(localDailyGoal);
     if (!parsed.success) {
-      toast.error('אנא הזן יעד תקין (10 עד 1000)');
+      toast.error(t('parentSettings.invalidGoal'));
       return;
     }
 
     setSavingDailyGoal(true);
     try {
       await updateDailyGoal(parsed.data);
-      toast.success('היעד עודכן בהצלחה!');
+      toast.success(t('parentSettings.goalUpdated'));
     } catch (error) {
       console.error('Error updating daily goal:', error);
-      toast.error('שגיאה בעדכון היעד');
+      toast.error(t('parentSettings.goalError'));
       // Revert to original value on error
       setLocalDailyGoal(dailyGoal);
     } finally {
@@ -579,9 +581,9 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
     try {
       const dateString = date ? format(date, 'yyyy-MM-dd') : null;
       await updateBirthDate(dateString);
-      toast.success('תאריך הלידה נשמר!');
+      toast.success(t('parentSettings.birthDateSaved'));
     } catch {
-      toast.error('שגיאה בשמירת תאריך הלידה');
+      toast.error(t('parentSettings.birthDateError'));
     } finally {
       setSavingBirthDate(false);
     }
@@ -590,16 +592,16 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
   const handleSaveBagPrepCredits = async () => {
     const parsed = bagPrepCreditsSchema.safeParse(localBagPrepCredits);
     if (!parsed.success) {
-      toast.error('אנא הזן כמות תקינה (5 עד 100)');
+      toast.error(t('parentSettings.invalidBagPrepCredits'));
       return;
     }
 
     setSavingBagPrepCredits(true);
     try {
       await updateBagPrepCredits(parsed.data);
-      toast.success('קרדיטים להכנת תיק עודכנו!');
+      toast.success(t('parentSettings.bagPrepCreditsUpdated'));
     } catch {
-      toast.error('שגיאה בעדכון');
+      toast.error(t('parentSettings.bagPrepCreditsError'));
     } finally {
     setSavingBagPrepCredits(false);
     }
@@ -642,7 +644,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         if (error) throw error;
 
         const count = targetChildIds.length;
-        toast.success(`המשימה "${task.title}" הועתקה ל-${count} ${count === 1 ? 'ילד' : 'ילדים'}!`);
+        toast.success(`${t('parentSettings.taskCopied')} "${task.title}"`);
       } else {
         const reward = duplicatingItem.item as StoreReward;
         // Insert rewards for each target child
@@ -659,18 +661,18 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         if (error) throw error;
 
         const count = targetChildIds.length;
-        toast.success(`הפרס "${reward.title}" הועתק ל-${count} ${count === 1 ? 'ילד' : 'ילדים'}!`);
+        toast.success(`${t('parentSettings.rewardCopied')} "${reward.title}"`);
       }
     } catch (error) {
       console.error('Error duplicating item:', error);
-      toast.error('שגיאה בהעתקה');
+      toast.error(t('parentSettings.settingsError'));
     }
   };
 
   const sections = [
-    { id: 'tasks' as const, label: 'משימות', icon: BookOpen },
-    { id: 'schedule' as const, label: 'מערכת', icon: Calendar },
-    { id: 'rewards' as const, label: 'פרסים', icon: Gift },
+    { id: 'tasks' as const, label: t('parentSettings.tasks'), icon: BookOpen },
+    { id: 'schedule' as const, label: t('parentSettings.schedule'), icon: Calendar },
+    { id: 'rewards' as const, label: t('parentSettings.rewards'), icon: Gift },
   ];
 
   return (
@@ -705,7 +707,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         </Popover>
         <div className="flex-1">
           <p className="text-sm font-semibold text-foreground">{childName}</p>
-          <p className="text-xs text-muted-foreground">הגדרות Buff אישיות</p>
+          <p className="text-xs text-muted-foreground">{t('parentSettings.personalBuffSettings')}</p>
         </div>
       </div>
 
@@ -715,7 +717,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         <div className="flex flex-col p-2.5 rounded-lg bg-card border border-border">
           <div className="flex items-center gap-1.5 mb-1.5">
             <span className="text-sm">💰</span>
-            <span className="text-xs text-muted-foreground">יתרה</span>
+            <span className="text-xs text-muted-foreground">{t('parentSettings.balance')}</span>
           </div>
           {editingBalance ? (
             <div className="flex items-center gap-1">
@@ -760,7 +762,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
 
         {/* Daily Goal */}
         <div className="flex flex-col p-2.5 rounded-lg bg-card border border-border">
-          <span className="text-xs text-muted-foreground mb-1.5">יעד יומי</span>
+          <span className="text-xs text-muted-foreground mb-1.5">{t('parentSettings.dailyGoal')}</span>
           <div className="flex items-center gap-1">
             <Input
               type="number"
@@ -789,7 +791,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         <div className="flex items-center justify-between p-2.5 rounded-lg bg-card border border-border">
           <div className="flex items-center gap-1.5">
             <CalendarDays className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs text-foreground">ת.לידה</span>
+            <span className="text-xs text-foreground">{t('parentSettings.birthDate')}</span>
           </div>
           <BirthDatePicker
             value={localBirthDate}
@@ -819,8 +821,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         <div className="flex items-start gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
           <Lightbulb className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
           <div className="text-xs flex-1">
-            <p className="font-medium text-foreground">הפעלת את School Quests! 🎓</p>
-            <p className="text-muted-foreground">מלא מערכת שעות למיקוד בביה"ס</p>
+            <p className="font-medium text-foreground">{t('parentSettings.schoolQuestTipTitle')}</p>
+            <p className="text-muted-foreground">{t('parentSettings.schoolQuestTipDesc')}</p>
           </div>
           <Button
             size="sm"
@@ -838,7 +840,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         <div className="flex items-center justify-between p-2.5">
           <div className="flex items-center gap-1.5">
             <span className="text-sm">🎒</span>
-            <span className="text-xs text-foreground">משימת ערב - בונוס מוכנות</span>
+            <span className="text-xs text-foreground">{t('parentSettings.nightMissionBonus')}</span>
           </div>
           <Switch
             checked={bagPrepEnabled}
@@ -849,7 +851,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
         {/* Bag Prep Credits (only show when enabled) */}
         {bagPrepEnabled && (
           <div className="flex items-center justify-between px-2.5 pb-2 pt-0">
-            <span className="text-xs text-muted-foreground">נקודות Buff</span>
+            <span className="text-xs text-muted-foreground">{t('parentSettings.buffPoints')}</span>
             <div className="flex items-center gap-1">
               <Input
                 type="number"
@@ -912,13 +914,13 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
             {/* Coach's Tip */}
             <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
               <p className="text-sm text-foreground leading-relaxed">
-                <span className="font-semibold">💡 למה מערכת שעות?</span>
+                <span className="font-semibold">💡 {t('parentSettings.schedule')}</span>
                 <br />
-                מערכת השעות עוזרת לילד לעקוב אחרי רגעי הצלחה בלמידה קשובה ולזהות מתי קשה יותר להתרכז. זה כלי למודעות עצמית, לא לביקורת.
+                {t('parentSettings.timetableExplanation')}
               </p>
               {!schoolQuestEnabled && (
                 <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-primary/10">
-                  ⚠️ כרגע ״משימת בית הספר״ כבויה - המערכת לא תוצג לילד. הפעילו אותה בהגדרות למעלה.
+                  {t('parentSettings.schoolQuestDisabledWarning')}
                 </p>
               )}
             </div>
@@ -932,7 +934,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
               >
                 <Camera className="w-4 h-4 ml-1" />
                 <FileSpreadsheet className="w-4 h-4 ml-2" />
-                העלאת מערכת
+                {t('parentSettings.uploadSchedule')}
               </Button>
               <Button
                 size="sm"
@@ -942,11 +944,11 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
               >
                 <Calendar className="w-4 h-4 ml-1" />
                 <span className="text-lg ml-1">🎒</span>
-                ניהול מערכת וציוד
+                {t('parentSettings.manageScheduleEquipment')}
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center">
-              {Object.values(timetable).flat().filter(p => p.subject).length} שיעורים מוגדרים
+              {Object.values(timetable).flat().filter(p => p.subject).length} {t('parentSettings.lessonsConfigured')}
             </p>
           </div>
         )}
@@ -960,15 +962,15 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
               className="w-full touch-target"
             >
               <Gift className="w-4 h-4 ml-2" />
-              ערוך חנות פרסים
+              {t('parentSettings.editRewardsStore')}
             </Button>
 
             {/* Rewards Preview List */}
             {storeRewards.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">אין פרסים מוגדרים</p>
-                <p className="text-xs mt-1">לחץ על "ערוך חנות פרסים" להוספה</p>
+                <p className="text-sm">{t('parentSettings.noRewardsConfigured')}</p>
+                <p className="text-xs mt-1">{t('parentSettings.clickToAdd')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
@@ -991,7 +993,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
                           handleDuplicateReward(reward);
                         }}
                         className="absolute top-1 left-1 w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                        title="העתק לילד אחר"
+                        title={t('parentSettings.copyToChild')}
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </Button>
@@ -1004,7 +1006,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
                       <span className="text-sm font-medium text-foreground line-clamp-2">{reward.title}</span>
                       <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
                       {reward.claimed && (
-                        <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">נמכר</span>
+                        <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{t('parentSettings.sold')}</span>
                       )}
                     </button>
                   </div>
@@ -1071,9 +1073,9 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
               <Trash2 className="w-6 h-6 text-destructive" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">מחיקת {childName}?</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t('parentSettings.deleteConfirm')} {childName}?</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                פעולה זו תמחק את כל המשימות, הנקודות והפרסים של הילד. לא ניתן לבטל פעולה זו.
+                {t('parentSettings.deleteWarning')}
               </p>
             </div>
             <div className="flex gap-2 pt-2">
@@ -1083,7 +1085,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
                 onClick={() => setDeleteDialogOpen(false)}
                 disabled={deleting}
               >
-                ביטול
+                {t('parentSettings.cancel')}
               </Button>
               <Button
                 variant="destructive"
@@ -1096,7 +1098,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4 ml-1" />
-                    מחק
+                    {t('parentSettings.delete')}
                   </>
                 )}
               </Button>
@@ -1111,8 +1113,8 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
           <div className="flex items-center gap-2">
             <Trash2 className="w-4 h-4 text-destructive" />
             <div>
-              <p className="text-sm font-medium text-foreground">מחיקת ילד</p>
-              <p className="text-xs text-muted-foreground">מחיקת הפרופיל וכל הנתונים</p>
+              <p className="text-sm font-medium text-foreground">{t('parentSettings.deleteChild')}</p>
+              <p className="text-xs text-muted-foreground">{t('parentSettings.deleteProfileAndData')}</p>
             </div>
           </div>
           <Button
@@ -1121,7 +1123,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
             className="text-destructive border-destructive/30 hover:bg-destructive/10"
             onClick={() => setDeleteDialogOpen(true)}
           >
-            מחק
+            {t('parentSettings.delete')}
           </Button>
         </div>
       </div>
@@ -1129,13 +1131,16 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
   );
 }
 
-const categoryOptions: { value: TaskCategory; label: string; icon: typeof Book }[] = [
-  { value: 'learning', label: 'למידה', icon: Book },
-  { value: 'organization', label: 'התארגנות', icon: CalendarCheck },
-  { value: 'self-care', label: 'טיפול עצמי', icon: Sparkles },
-  { value: 'responsibility', label: 'בית ואחריות', icon: Home },
-  { value: 'movement', label: 'גוף ותנועה', icon: Zap },
-];
+function useCategoryOptions() {
+  const { t } = useLanguage();
+  return [
+    { value: 'learning' as TaskCategory, label: t('category.learning'), icon: Book },
+    { value: 'organization' as TaskCategory, label: t('category.organization'), icon: CalendarCheck },
+    { value: 'self-care' as TaskCategory, label: t('category.selfCare'), icon: Sparkles },
+    { value: 'responsibility' as TaskCategory, label: t('category.responsibility'), icon: Home },
+    { value: 'movement' as TaskCategory, label: t('category.movement'), icon: Zap },
+  ];
+}
 
 function ChildTasksEditor({
   tasks,
@@ -1152,6 +1157,8 @@ function ChildTasksEditor({
   onDuplicateTask?: (task: Task) => void;
   showDuplicateButton?: boolean;
 }) {
+  const { t } = useLanguage();
+  const categoryOptions = useCategoryOptions();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
@@ -1222,7 +1229,7 @@ function ChildTasksEditor({
     // Handle both Promise<boolean> and void returns
     const success = result instanceof Promise ? await result : true;
     if (success) {
-      toast.success('המשימה עודכנה בהצלחה');
+      toast.success(t('parentSettings.taskUpdated'));
     }
     setEditingTaskId(null);
   };
@@ -1242,7 +1249,7 @@ function ChildTasksEditor({
           className="w-full touch-target"
         >
           <Plus className="w-4 h-4 ml-2" />
-          הוסף משימה
+          {t('parentSettings.addTask')}
         </Button>
       )}
 
@@ -1250,7 +1257,7 @@ function ChildTasksEditor({
       {showAddForm && (
         <div className="p-4 rounded-xl bg-card border border-border space-y-3">
           <Input
-            placeholder="שם המשימה"
+            placeholder={t('parentSettings.taskName')}
             value={newTask.title}
             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
             className="bg-background"
@@ -1289,7 +1296,7 @@ function ChildTasksEditor({
           
           {/* Day Schedule Toggles */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">ימים פעילים</Label>
+            <Label className="text-xs text-muted-foreground">{t('parentSettings.activeDays')}</Label>
             <DayScheduleToggles
               selectedDays={newTask.scheduleDays}
               onChange={(days) => setNewTask({ ...newTask, scheduleDays: days })}
@@ -1298,9 +1305,9 @@ function ChildTasksEditor({
           
           {/* Notes Field */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">פרטים נוספים או ציוד (אופציונלי)</Label>
+            <Label className="text-xs text-muted-foreground">{t('parentSettings.additionalDetails')}</Label>
             <Textarea
-              placeholder="למשל: להביא תיקיית אומנות, לא לשכוח בקבוק מים..."
+              placeholder={t('parentSettings.detailsPlaceholder')}
               value={newTask.description}
               onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
               className="bg-background min-h-[60px] text-sm resize-none"
@@ -1310,10 +1317,10 @@ function ChildTasksEditor({
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAddTask} className="flex-1 touch-target">
               <Save className="w-4 h-4 ml-1" />
-              שמור
+              {t('parentSettings.save')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShowAddForm(false)} className="touch-target">
-              ביטול
+              {t('parentSettings.cancel')}
             </Button>
           </div>
         </div>
@@ -1322,7 +1329,7 @@ function ChildTasksEditor({
       {/* Task List */}
       <div className="space-y-2">
         {tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">אין משימות עדיין</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t('parentSettings.noTasksYet')}</p>
         ) : (
           sortedTasks.map((task) => (
             <div key={task.id}>
@@ -1330,7 +1337,7 @@ function ChildTasksEditor({
                 /* Edit Mode */
                 <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
                   <Input
-                    placeholder="שם המשימה"
+                    placeholder={t('parentSettings.taskName')}
                     value={editForm.title}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                     className="bg-background"
@@ -1370,7 +1377,7 @@ function ChildTasksEditor({
                   
                   {/* Day Schedule Toggles */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">ימים פעילים</Label>
+                    <Label className="text-xs text-muted-foreground">{t('parentSettings.activeDays')}</Label>
                     <DayScheduleToggles
                       selectedDays={editForm.scheduleDays}
                       onChange={(days) => setEditForm({ ...editForm, scheduleDays: days })}
@@ -1379,9 +1386,9 @@ function ChildTasksEditor({
                   
                   {/* Notes Field */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">פרטים נוספים או ציוד (אופציונלי)</Label>
+                    <Label className="text-xs text-muted-foreground">{t('parentSettings.additionalDetails')}</Label>
                     <Textarea
-                      placeholder="למשל: להביא תיקיית אומנות, לא לשכוח בקבוק מים..."
+                      placeholder={t('parentSettings.detailsPlaceholder')}
                       value={editForm.description}
                       onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                       className="bg-background min-h-[60px] text-sm resize-none"
@@ -1391,11 +1398,11 @@ function ChildTasksEditor({
                   <div className="flex gap-2">
                     <Button size="sm" onClick={handleSaveEdit} className="flex-1 touch-target">
                       <Check className="w-4 h-4 ml-1" />
-                      שמור
+                      {t('parentSettings.save')}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="touch-target">
                       <X className="w-4 h-4 ml-1" />
-                      ביטול
+                      {t('parentSettings.cancel')}
                     </Button>
                   </div>
                 </div>
@@ -1405,7 +1412,7 @@ function ChildTasksEditor({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{task.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {task.time} • {task.credits} קרדיטים • {categoryOptions.find(c => c.value === task.category)?.label || task.category}
+                      {task.time} • {task.credits} {t('parentSettings.credits')} • {categoryOptions.find(c => c.value === task.category)?.label || task.category}
                     </p>
                   </div>
                   {/* Copy/Duplicate button */}
@@ -1415,7 +1422,7 @@ function ChildTasksEditor({
                       variant="ghost"
                       onClick={() => onDuplicateTask(task)}
                       className="text-muted-foreground hover:text-primary hover:bg-primary/10 touch-target"
-                      title="העתק לילד אחר"
+                      title={t('parentSettings.copyToChild')}
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
