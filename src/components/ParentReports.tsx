@@ -15,13 +15,14 @@ import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
 import { PHASES } from '@/types/phase';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function ParentReports() {
+  const { t, language } = useLanguage();
   const { children, loading: membersLoading } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   const [selectedChildId, setSelectedChildId] = useState<string>('');
 
-  // Auto-select first child via useEffect (not during render)
   useEffect(() => {
     if (!selectedChildId && children.length > 0 && !membersLoading) {
       setSelectedChildId(children[0].id);
@@ -34,7 +35,7 @@ export function ParentReports() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">טוען דוחות...</p>
+        <p className="text-muted-foreground">{t('reports.loadingReports')}</p>
       </div>
     );
   }
@@ -43,19 +44,15 @@ export function ParentReports() {
     return (
       <div className="space-y-3 pb-6">
         <div className="flex items-center gap-3">
-          <img 
-            src={buffLogoNoBg} 
-            alt="BUFF Logo" 
-            className="h-10 w-10 object-contain"
-          />
+          <img src={buffLogoNoBg} alt="BUFF Logo" className="h-10 w-10 object-contain" />
           <div>
-            <h1 className="text-xl font-bold text-foreground font-display">Weekly Buff Stats</h1>
-            <p className="text-xs text-muted-foreground">ניתוח ותובנות</p>
+            <h1 className="text-xl font-bold text-foreground font-display">{t('reports.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('reports.analysis')}</p>
           </div>
         </div>
         <div className="p-4 rounded-xl bg-card border border-border text-center">
           <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">אין עדיין ילדים לניתוח</p>
+          <p className="text-sm text-muted-foreground">{t('reports.noChildrenYet')}</p>
         </div>
       </div>
     );
@@ -63,22 +60,17 @@ export function ParentReports() {
 
   return (
     <div className="space-y-3 pb-6">
-      {/* Header + Child Selector - Combined */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <img 
-            src={buffLogoNoBg} 
-            alt="BUFF Logo" 
-            className="h-10 w-10 object-contain"
-          />
+          <img src={buffLogoNoBg} alt="BUFF Logo" className="h-10 w-10 object-contain" />
           <div>
-            <h1 className="text-xl font-bold text-foreground font-display">Weekly Buff Stats</h1>
-            <p className="text-xs text-muted-foreground">ניתוח ותובנות שבועיות</p>
+            <h1 className="text-xl font-bold text-foreground font-display">{t('reports.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('reports.weeklyAnalysis')}</p>
           </div>
         </div>
         <Select value={selectedChildId} onValueChange={setSelectedChildId}>
           <SelectTrigger className="w-auto min-w-[100px] h-8 text-xs bg-secondary border-border">
-            <SelectValue placeholder="בחר ילד" />
+            <SelectValue placeholder={t('reports.selectChild')} />
           </SelectTrigger>
           <SelectContent>
             {children.map((child) => (
@@ -93,7 +85,6 @@ export function ParentReports() {
         </Select>
       </div>
 
-      {/* Reports Content */}
       {selectedChildId && (
         <ChildReportsContent childId={selectedChildId} childName={selectedChild?.displayName || ''} />
       )}
@@ -102,6 +93,7 @@ export function ParentReports() {
 }
 
 function ChildReportsContent({ childId, childName }: { childId: string; childName: string }) {
+  const { t, language } = useLanguage();
   const { insights, phaseInsights, loading: insightsLoading } = useParentInsights(childId);
   const { stats, loading: statsLoading } = useWeeklyBuffStats(childId);
   const [showAllReflections, setShowAllReflections] = useState(false);
@@ -110,7 +102,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
 
   if (loading) {
     return (
-      <div className="py-8 text-center text-muted-foreground">טוען תובנות...</div>
+      <div className="py-8 text-center text-muted-foreground">{t('reports.loadingInsights')}</div>
     );
   }
 
@@ -119,10 +111,8 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
 
   return (
     <div className="space-y-2.5">
-      {/* Weekly Summary Cards */}
       {stats && (
         <div className="grid grid-cols-2 gap-2">
-          {/* Total Buff Points */}
           <div className="rounded-lg bg-gradient-to-br from-buff/20 to-buff/5 border border-buff/30 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <Sparkles className="w-4 h-4 text-buff" />
@@ -131,7 +121,6 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
             <p className="text-2xl font-bold text-buff">{stats.totalBuffPoints}</p>
           </div>
 
-          {/* Streak */}
           <div className="rounded-lg bg-gradient-to-br from-streak/20 to-streak/5 border border-streak/30 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <Flame className="w-4 h-4 text-streak" />
@@ -140,7 +129,6 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
             <p className="text-2xl font-bold text-streak">{stats.streakDays} <span className="text-xs font-normal">days</span></p>
           </div>
 
-          {/* Quests Conquered */}
           <div className="rounded-lg bg-card border border-border p-2.5">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1">
@@ -154,7 +142,6 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
             <Progress value={(stats.questsConquered / Math.max(stats.totalQuests, 1)) * 100} className="h-1.5" />
           </div>
 
-          {/* Lessons Conquered */}
           <div className="rounded-lg bg-card border border-border p-2.5">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1">
@@ -170,47 +157,43 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         </div>
       )}
 
-      {/* Ignition Insights Section */}
       <ParentIgnitionInsights 
         stats={stats} 
         phaseInsights={phaseInsights} 
         childName={childName} 
       />
 
-      {/* Phase Performance */}
       <div className="rounded-lg bg-card border border-border p-3">
         <div className="flex items-center gap-1.5 mb-2">
           <TrendingUp className="w-4 h-4 text-primary" />
-          <h2 className="text-sm font-semibold text-foreground">ביצועים לפי שלב</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('reports.phasePerformance')}</h2>
         </div>
         <PhaseCompletionChart phaseInsights={phaseInsights} />
         
-        {/* Quick highlights */}
         {(topPhaseInfo || strugglePhaseInfo) && (
           <div className="mt-2 grid grid-cols-2 gap-1.5">
             {topPhaseInfo && (
               <div className="flex items-center gap-1.5 p-1.5 rounded bg-buff/10 border border-buff/20">
                 <Trophy className="w-3 h-3 text-buff" />
-                <span className="text-xs text-buff">חזק: {topPhaseInfo.label}</span>
+                <span className="text-xs text-buff">{t('reports.strong')}: {topPhaseInfo.label}</span>
               </div>
             )}
             {strugglePhaseInfo && (
               <div className="flex items-center gap-1.5 p-1.5 rounded bg-amber-500/10 border border-amber-500/20">
                 <Sparkles className="w-3 h-3 text-amber-400" />
-                <span className="text-xs text-amber-400">בהתנעה: {strugglePhaseInfo.label}</span>
+                <span className="text-xs text-amber-400">{t('reports.igniting')}: {strugglePhaseInfo.label}</span>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Trend Detector - Subject Analysis */}
       {stats && stats.subjectTrends.length > 0 && (
         <div className="rounded-lg bg-card border border-border p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <BarChart3 className="w-4 h-4 text-accent" />
             <h2 className="text-sm font-semibold text-foreground">Trend Detector</h2>
-            <span className="text-xs text-muted-foreground mr-auto">לפי מקצוע</span>
+            <span className="text-xs text-muted-foreground mr-auto">{t('reports.bySubject')}</span>
           </div>
           
           <div className="space-y-2">
@@ -224,7 +207,6 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         </div>
       )}
 
-      {/* Reflection Log */}
       {stats && stats.reflections.length > 0 && (
         <div className="rounded-lg bg-card border border-border p-3">
           <div className="flex items-center justify-between mb-2">
@@ -249,12 +231,12 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
               {showAllReflections ? (
                 <>
                   <ChevronUp className="w-3.5 h-3.5" />
-                  הצג פחות
+                  {t('reports.showLess')}
                 </>
               ) : (
                 <>
                   <ChevronDown className="w-3.5 h-3.5" />
-                  עוד ({stats.reflections.length - 3})
+                  {t('reports.more')} ({stats.reflections.length - 3})
                 </>
               )}
             </button>
@@ -262,17 +244,16 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         </div>
       )}
 
-      {/* Insights */}
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-primary" />
-          <h2 className="text-sm font-semibold text-foreground">תובנות ל-{childName}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('reports.insightsFor')}{childName}</h2>
         </div>
         
         {insights.length === 0 ? (
           <div className="p-3 rounded-lg bg-card border border-border text-center">
             <p className="text-xs text-muted-foreground">
-              אין עדיין תובנות. בדקו שוב אחרי מספר ימי פעילות.
+              {t('reports.noInsightsYet')}
             </p>
           </div>
         ) : (
@@ -327,8 +308,10 @@ function SubjectTrendRow({ trend }: { trend: SubjectTrend }) {
 }
 
 function ReflectionCard({ reflection }: { reflection: LessonReflection }) {
+  const { t, language } = useLanguage();
   const date = new Date(reflection.date);
-  const formattedDate = date.toLocaleDateString('he-IL', { 
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
+  const formattedDate = date.toLocaleDateString(locale, { 
     weekday: 'short', 
     day: 'numeric'
   });
@@ -336,7 +319,7 @@ function ReflectionCard({ reflection }: { reflection: LessonReflection }) {
   return (
     <div className="p-2 rounded-lg bg-secondary/30 border border-border">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-medium text-accent">{reflection.subject || 'כללי'}</span>
+        <span className="text-xs font-medium text-accent">{reflection.subject || t('reports.general')}</span>
         <span className="text-xs text-muted-foreground">{formattedDate}</span>
       </div>
       {reflection.reflection && (
@@ -344,7 +327,7 @@ function ReflectionCard({ reflection }: { reflection: LessonReflection }) {
       )}
       {reflection.difficulty_rating && (
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs text-muted-foreground">קושי:</span>
+          <span className="text-xs text-muted-foreground">{t('reports.difficulty')}:</span>
           <div className="flex gap-0.5">
             {[1, 2, 3, 4, 5].map(i => (
               <div 

@@ -5,13 +5,9 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
-const familyCodeSchema = z.string()
-  .trim()
-  .length(6, { message: 'קוד משפחה חייב להכיל 6 תווים' })
-  .regex(/^[A-Za-z0-9]+$/, { message: 'קוד משפחה חייב להכיל אותיות ומספרים בלבד' });
 
 interface JoinFamilySectionProps {
   onFamilyChanged?: () => void;
@@ -19,9 +15,15 @@ interface JoinFamilySectionProps {
 
 export function JoinFamilySection({ onFamilyChanged }: JoinFamilySectionProps) {
   const { refreshProfile, user } = useAuth();
+  const { t } = useLanguage();
   const [familyCode, setFamilyCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const familyCodeSchema = z.string()
+    .trim()
+    .length(6, { message: t('joinFamily.codeError6') })
+    .regex(/^[A-Za-z0-9]+$/, { message: t('joinFamily.codeErrorAlphanumeric') });
 
   const handleJoinFamily = async () => {
     setError(null);
@@ -42,14 +44,14 @@ export function JoinFamilySection({ onFamilyChanged }: JoinFamilySectionProps) {
 
       if (rpcError) {
         console.error('RPC error:', rpcError);
-        setError('שגיאה בהצטרפות למשפחה');
+        setError(t('joinFamily.joinError'));
         return;
       }
 
       const result = data as { success: boolean; error?: string; new_family_id?: string };
 
       if (!result.success) {
-        setError(result.error || 'קוד לא תקין, אנא ודאו שזה הקוד המופיע במכשיר של בן/בת הזוג');
+        setError(result.error || t('joinFamily.invalidCode'));
         return;
       }
 
@@ -58,7 +60,7 @@ export function JoinFamilySection({ onFamilyChanged }: JoinFamilySectionProps) {
         await refreshProfile(user.id);
       }
 
-      toast.success('הצטרפת למשפחה בהצלחה!');
+      toast.success(t('joinFamily.success'));
       setFamilyCode('');
       
       // Trigger parent refresh
@@ -68,7 +70,7 @@ export function JoinFamilySection({ onFamilyChanged }: JoinFamilySectionProps) {
       window.location.reload();
     } catch (err) {
       console.error('Error joining family:', err);
-      setError('שגיאה בהצטרפות למשפחה');
+      setError(t('joinFamily.joinError'));
     } finally {
       setIsJoining(false);
     }
@@ -81,14 +83,14 @@ export function JoinFamilySection({ onFamilyChanged }: JoinFamilySectionProps) {
           <Users className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h2 className="font-semibold text-foreground">הצטרפות למשפחה</h2>
-          <p className="text-xs text-muted-foreground">הצטרפו למשפחה קיימת עם קוד משפחה</p>
+          <h2 className="font-semibold text-foreground">{t('joinFamily.title')}</h2>
+          <p className="text-xs text-muted-foreground">{t('joinFamily.subtitle')}</p>
         </div>
       </div>
 
       <div className="space-y-3">
         <div className="space-y-2">
-          <Label className="text-sm text-muted-foreground">קוד משפחה (6 תווים)</Label>
+          <Label className="text-sm text-muted-foreground">{t('joinFamily.codeLabel')}</Label>
           <Input
             type="text"
             value={familyCode}
@@ -116,15 +118,15 @@ export function JoinFamilySection({ onFamilyChanged }: JoinFamilySectionProps) {
           {isJoining ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              מצטרף...
+              {t('joinFamily.joining')}
             </>
           ) : (
-            'הצטרף למשפחה'
+            t('joinFamily.join')
           )}
         </Button>
 
         <p className="text-xs text-muted-foreground text-center">
-          בקשו מבן/בת הזוג את קוד המשפחה מההגדרות שלהם
+          {t('joinFamily.hint')}
         </p>
       </div>
     </div>

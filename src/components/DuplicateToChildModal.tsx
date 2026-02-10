@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { User, Users, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Child {
   id: string;
@@ -28,6 +29,7 @@ export function DuplicateToChildModal({
   itemTitle,
   onDuplicate,
 }: DuplicateToChildModalProps) {
+  const { t } = useLanguage();
   const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,7 +79,7 @@ export function DuplicateToChildModal({
     }
   };
 
-  const typeLabel = itemType === 'task' ? 'משימה' : 'פרס';
+  const typeLabel = itemType === 'task' ? t('duplicate.copyTask') : t('duplicate.copyReward');
   const allSelected = selectedChildIds.length === otherChildren.length && otherChildren.length > 0;
 
   return (
@@ -85,22 +87,22 @@ export function DuplicateToChildModal({
       <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
           <DialogTitle className="text-right font-display">
-            העתק {typeLabel}
+            {typeLabel}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Item being copied */}
           <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
-            <p className="text-sm text-muted-foreground">העתקת:</p>
+            <p className="text-sm text-muted-foreground">{t('duplicate.copying')}</p>
             <p className="font-semibold text-foreground">{itemTitle}</p>
           </div>
 
           {otherChildren.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <User className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">אין ילדים נוספים במשפחה</p>
-              <p className="text-xs mt-1">הוסיפו ילד נוסף כדי להשתמש בפיצ'ר הזה</p>
+              <p className="text-sm">{t('duplicate.noOtherChildren')}</p>
+              <p className="text-xs mt-1">{t('duplicate.addChildHint')}</p>
             </div>
           ) : (
             <>
@@ -121,7 +123,7 @@ export function DuplicateToChildModal({
                   )}>
                     <Users className="w-4 h-4" />
                   </div>
-                  <span className="flex-1 text-right font-medium">לכל הילדים</span>
+                  <span className="flex-1 text-right font-medium">{t('duplicate.allChildren')}</span>
                   {allSelected && <Check className="w-5 h-5 text-primary" />}
                 </button>
               )}
@@ -166,7 +168,7 @@ export function DuplicateToChildModal({
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin ml-2" />
               ) : (
-                <>העתק ({selectedChildIds.length})</>
+                <>{t('duplicate.copy')} ({selectedChildIds.length})</>
               )}
             </Button>
             <Button
@@ -174,7 +176,7 @@ export function DuplicateToChildModal({
               onClick={handleClose}
               disabled={isLoading}
             >
-              ביטול
+              {t('duplicate.cancel')}
             </Button>
           </div>
         </div>
