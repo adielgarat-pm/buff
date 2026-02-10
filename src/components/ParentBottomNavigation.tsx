@@ -23,11 +23,10 @@ export function ParentBottomNavigation({
   const navigate = useNavigate();
   const { isAdmin } = useAdminAccess();
 
-  // Clear distinction: Monitoring (Activity) vs Configuring (Sliders)
   const NAV_ITEMS = [
-    { id: 'overview' as const, label: 'מעקב', sublabel: 'Monitoring', icon: Activity },
-    { id: 'settings' as const, label: 'הגדרות', sublabel: 'Configure', icon: Sliders },
-    { id: 'reports' as const, label: 'דוחות', sublabel: 'Reports', icon: BarChart3 },
+    { id: 'overview' as const, label: t('parentNav.monitoring'), icon: Activity },
+    { id: 'settings' as const, label: t('parentNav.settings'), icon: Sliders },
+    { id: 'reports' as const, label: t('parentNav.reports'), icon: BarChart3 },
   ];
 
   const handleTabChange = (tab: ParentNavTab) => {
@@ -84,7 +83,6 @@ export function ParentBottomNavigation({
             );
           })}
           
-          {/* View as Child Button */}
           {onViewAsChild && (
             <button
               onClick={onViewAsChild}
@@ -110,12 +108,11 @@ export function ParentBottomNavigation({
                 "text-[11px] font-semibold tracking-wide",
                 isViewingAsChild && "text-accent"
               )}>
-                צפה כילד
+                {t('parentNav.viewAsChild')}
               </span>
             </button>
           )}
 
-          {/* Discrete Admin Button - Only visible to admins */}
           {isAdmin && (
             <button
               onClick={handleAdminClick}

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { ParentBottomNavigation, ParentNavTab } from './ParentBottomNavigation';
@@ -25,6 +26,7 @@ import { toast } from 'sonner';
 
 export function ParentView() {
   const { signOut, profile, refreshProfile } = useAuth();
+  const { t } = useLanguage();
   const { children, refetch: refetchChildren } = useFamilyMembers();
   
   const [activeTab, setActiveTab] = useState<ParentNavTab>('overview');
@@ -59,7 +61,7 @@ export function ParentView() {
       <div className="theme-parent-zen min-h-[100dvh] bg-background flex items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">טוען...</p>
+          <p className="text-muted-foreground">{t('parentView.loading')}</p>
         </div>
       </div>
     );
@@ -71,7 +73,7 @@ export function ParentView() {
     return (
       <>
         <ViewAsChildBanner 
-          childName={viewingChild?.displayName || 'ילד'} 
+          childName={viewingChild?.displayName || t('parentView.child')} 
           onExitViewAsChild={() => setViewingAsChildId(null)} 
         />
         <ChildView isViewingAsChild viewingChildId={viewingAsChildId} />
@@ -91,7 +93,7 @@ export function ParentView() {
   // Handle onboarding completion for adding a new child
   const handleOnboardingComplete = async (onboardingData: OnboardingData) => {
     if (!profile?.family_id) {
-      toast.error('לא נמצאה משפחה');
+      toast.error(t('parentSettings.noFamilyFound'));
       return;
     }
 
@@ -151,14 +153,14 @@ export function ParentView() {
       // Close modal and refresh
       setOnboardingOpen(false);
       await refetchChildren();
-      toast.success(`${onboardingData.childName} נוסף בהצלחה! 🎉`);
-      
+      toast.success(`${onboardingData.childName} ${t('parentSettings.childAddedSuccess')}`);
+
       // Navigate to the new child's settings
       setSelectedChildIdForSettings(childProfile.id);
       setActiveTab('settings');
     } catch (error) {
       console.error('Onboarding error:', error);
-      toast.error('שגיאה ביצירת פרופיל הילד');
+      toast.error(t('parentSettings.childCreateError'));
     }
   };
 
@@ -252,7 +254,7 @@ export function ParentView() {
           className="max-w-lg h-[85vh] p-0"
           aria-describedby={undefined}
         >
-          <DialogTitle className="sr-only">הוספת ילד חדש</DialogTitle>
+          <DialogTitle className="sr-only">{t('parentView.addChildTitle')}</DialogTitle>
           <ParentOnboarding onComplete={handleOnboardingComplete} />
         </DialogContent>
       </Dialog>
