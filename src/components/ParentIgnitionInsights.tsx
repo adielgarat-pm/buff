@@ -9,6 +9,7 @@ import { PhaseInsight } from '@/hooks/useParentInsights';
 import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
 import { PHASES, Phase } from '@/types/phase';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ParentIgnitionInsightsProps {
   stats: WeeklyBuffStats | null;
@@ -28,14 +29,14 @@ export function ParentIgnitionInsights({
   phaseInsights, 
   childName 
 }: ParentIgnitionInsightsProps) {
-  // Calculate ignition rate (successful days / total days)
+  const { t, language } = useLanguage();
+
   const ignitionStats = useMemo(() => {
     if (!stats) return null;
 
     const dailyStats = stats.dailyStats;
-    const successThreshold = 0.3; // At least 30% of tasks completed = "ignited" day
+    const successThreshold = 0.3;
     
-    // Count days where child was active (not "days off")
     const ignitedDays = dailyStats.filter(day => {
       const rate = day.tasksTotal > 0 
         ? day.tasksCompleted / day.tasksTotal 
@@ -47,7 +48,6 @@ export function ParentIgnitionInsights({
     const ignitionRate = (ignitedDays / dailyStats.length) * 100;
     const isAboveGoal = ignitionRate >= 70;
 
-    // Find best performing category/phase
     const phaseRates = phaseInsights.map(p => ({
       phase: p.phase,
       label: p.phaseLabel,
@@ -57,7 +57,6 @@ export function ParentIgnitionInsights({
 
     const bestPhase = phaseRates[0];
 
-    // Find most active time window based on completion counts
     const phaseCompletions: Record<Phase, number> = {
       morning: 0,
       school: 0,
@@ -65,7 +64,6 @@ export function ParentIgnitionInsights({
       evening: 0,
     };
 
-    // Aggregate phase completions
     phaseInsights.forEach(p => {
       const completed = Math.round((p.avgCompletionRate / 100) * p.taskCount);
       phaseCompletions[p.phase] = completed;
@@ -74,14 +72,6 @@ export function ParentIgnitionInsights({
     const mostActivePhase = Object.entries(phaseCompletions)
       .sort(([, a], [, b]) => b - a)[0]?.[0] as Phase;
 
-    // Generate positive reinforcement message
-    const reinforcementMessage = generateReinforcementMessage(
-      childName,
-      ignitedDays,
-      ignitionRate,
-      bestPhase?.label
-    );
-
     return {
       ignitedDays,
       daysOff,
@@ -89,15 +79,45 @@ export function ParentIgnitionInsights({
       isAboveGoal,
       bestPhase,
       mostActivePhase,
-      reinforcementMessage,
       dailyStats,
     };
-  }, [stats, phaseInsights, childName]);
+  }, [stats, phaseInsights]);
+
+  const reinforcementMessage = useMemo(() => {
+    if (!ignitionStats) return '';
+    const firstName = childName.split(' ')[0];
+    const { ignitedDays, ignitionRate, bestPhase } = ignitionStats;
+
+    if (language === 'he') {
+      if (ignitedDays >= 5) {
+        return `${firstName} עשה שבוע מדהים עם ${ignitedDays} ימי הצתה! 🌟 שקלו לחגוג יחד עם פעילות מיוחדת או מילה טובה. המאמץ העקבי ראוי להכרה!`;
+      }
+      if (ignitedDays >= 3) {
+        return `${firstName} הראה עקביות יפה עם ${ignitedDays} ימי הצתה ברצף! 🎯 זה הזמן המושלם להגיד "אני רואה כמה אתה משתדל" או לתת חמישייה!`;
+      }
+      if (ignitionRate >= 50) {
+        return `${firstName} נמצא בתהליך צמיחה עם שיעור הצתה של ${Math.round(ignitionRate)}%. ${bestPhase ? `במיוחד ב${bestPhase.label} רואים שיפור!` : ''} המשיכו לעודד בשקט ובעדינות.`;
+      }
+      return `כל יום הוא הזדמנות חדשה! ${firstName} לומד את הקצב שלו. נסו למצוא רגע קטן היום להגיד משהו חיובי על המאמץ, לא רק על התוצאה.`;
+    } else {
+      if (ignitedDays >= 5) {
+        return `${firstName} had an amazing week with ${ignitedDays} ignition days! 🌟 Consider celebrating together with a special activity or kind words. Consistent effort deserves recognition!`;
+      }
+      if (ignitedDays >= 3) {
+        return `${firstName} showed great consistency with ${ignitedDays} ignition days in a row! 🎯 This is the perfect time to say "I see how hard you're trying" or give a high-five!`;
+      }
+      if (ignitionRate >= 50) {
+        return `${firstName} is in a growth process with a ${Math.round(ignitionRate)}% ignition rate. ${bestPhase ? `Especially in ${bestPhase.label}, improvement is showing!` : ''} Keep encouraging gently and quietly.`;
+      }
+      return `Every day is a new opportunity! ${firstName} is learning their own rhythm. Try to find a small moment today to say something positive about the effort, not just the result.`;
+    }
+  }, [ignitionStats, childName, language]);
 
   if (!stats || !ignitionStats) {
     return null;
   }
 
+  const getPhaseLabel = (phase: Phase) => t(`phase.${phase}`);
   const mostActivePhaseInfo = PHASES.find(p => p.id === ignitionStats.mostActivePhase);
   const MostActiveIcon = PHASE_ICONS[ignitionStats.mostActivePhase] || Sun;
 
@@ -114,15 +134,14 @@ export function ParentIgnitionInsights({
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">ניתוח הצתה שבועי</h3>
-            <p className="text-xs text-muted-foreground">Ignition Analysis</p>
+            <h3 className="font-bold text-foreground">{t('ignition.weeklyAnalysis')}</h3>
+            <p className="text-xs text-muted-foreground">{t('ignition.ignitionAnalysis')}</p>
           </div>
         </div>
 
-        {/* Ignition Rate Visualization */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">שיעור ההצתה השבועי</span>
+            <span className="text-sm text-muted-foreground">{t('ignition.weeklyRate')}</span>
             <span className={cn(
               "text-lg font-bold",
               ignitionStats.isAboveGoal ? "text-buff" : "text-primary"
@@ -139,7 +158,6 @@ export function ParentIgnitionInsights({
                 ignitionStats.isAboveGoal && "[&>div]:bg-buff"
               )}
             />
-            {/* 70% threshold marker */}
             <div 
               className="absolute top-0 w-0.5 h-3 bg-foreground/40"
               style={{ left: '70%' }}
@@ -150,12 +168,11 @@ export function ParentIgnitionInsights({
             <span className="text-muted-foreground">0%</span>
             <span className="text-muted-foreground flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-foreground/40 rounded-full" />
-              יעד 70%
+              {t('ignition.goal70')}
             </span>
             <span className="text-muted-foreground">100%</span>
           </div>
 
-          {/* Status Message */}
           <div className={cn(
             "p-3 rounded-xl text-center",
             ignitionStats.isAboveGoal 
@@ -167,22 +184,21 @@ export function ParentIgnitionInsights({
               ignitionStats.isAboveGoal ? "text-buff" : "text-primary"
             )}>
               {ignitionStats.isAboveGoal 
-                ? `🎉 ${childName} מעל סף ההצלחה של 70%!`
-                : `💪 ${childName} בדרך הנכונה - עוד קצת ומגיעים ל-70%!`
+                ? `🎉 ${childName} ${t('ignition.aboveGoal')}`
+                : `💪 ${childName} ${t('ignition.onTheWay')}`
               }
             </p>
           </div>
         </div>
 
-        {/* Days Summary - Supportive Language */}
         <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="p-3 rounded-xl bg-buff/10 border border-buff/20 text-center">
             <p className="text-2xl font-bold text-buff">{ignitionStats.ignitedDays}</p>
-            <p className="text-xs text-muted-foreground">ימי הצתה 🔥</p>
+            <p className="text-xs text-muted-foreground">{t('ignition.ignitedDays')}</p>
           </div>
           <div className="p-3 rounded-xl bg-secondary/50 border border-border text-center">
             <p className="text-2xl font-bold text-muted-foreground">{ignitionStats.daysOff}</p>
-            <p className="text-xs text-muted-foreground">ימי טעינה 🔋</p>
+            <p className="text-xs text-muted-foreground">{t('ignition.chargingDays')}</p>
           </div>
         </div>
       </motion.div>
@@ -194,37 +210,35 @@ export function ParentIgnitionInsights({
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 gap-3"
       >
-        {/* Best Performing Category */}
         {ignitionStats.bestPhase && (
           <div className="rounded-2xl bg-card border border-border p-4">
             <div className="flex items-center gap-2 mb-2">
               <Trophy className="w-4 h-4 text-buff" />
-              <span className="text-xs text-muted-foreground">הקטגוריה הכי חזקה</span>
+              <span className="text-xs text-muted-foreground">{t('ignition.strongestCategory')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">{ignitionStats.bestPhase.icon}</span>
               <div>
-                <p className="font-bold text-foreground">{ignitionStats.bestPhase.label}</p>
-                <p className="text-xs text-buff">{Math.round(ignitionStats.bestPhase.rate)}% הצלחה</p>
+                <p className="font-bold text-foreground">{getPhaseLabel(ignitionStats.bestPhase.phase)}</p>
+                <p className="text-xs text-buff">{Math.round(ignitionStats.bestPhase.rate)}% {t('ignition.success')}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Most Active Time Window */}
         {mostActivePhaseInfo && (
           <div className="rounded-2xl bg-card border border-border p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground">חלון הזמן הפעיל ביותר</span>
+              <span className="text-xs text-muted-foreground">{t('ignition.mostActiveWindow')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <MostActiveIcon className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-bold text-foreground">{mostActivePhaseInfo.label}</p>
-                <p className="text-xs text-muted-foreground">{mostActivePhaseInfo.shortLabelHe}</p>
+                <p className="font-bold text-foreground">{getPhaseLabel(mostActivePhaseInfo.id)}</p>
+                <p className="text-xs text-muted-foreground">{language === 'he' ? mostActivePhaseInfo.shortLabelHe : mostActivePhaseInfo.shortLabel}</p>
               </div>
             </div>
           </div>
@@ -245,10 +259,10 @@ export function ParentIgnitionInsights({
           <div className="flex-1">
             <h4 className="font-bold text-foreground flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-rose-400" />
-              רגע חיזוק חיובי
+              {t('ignition.positiveReinforcement')}
             </h4>
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              {ignitionStats.reinforcementMessage}
+              {reinforcementMessage}
             </p>
           </div>
         </div>
@@ -263,7 +277,7 @@ export function ParentIgnitionInsights({
       >
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-primary" />
-          <h4 className="font-semibold text-foreground">מפת הצתה שבועית</h4>
+          <h4 className="font-semibold text-foreground">{t('ignition.weeklyMap')}</h4>
         </div>
         
         <div className="flex items-center justify-between gap-2">
@@ -287,7 +301,7 @@ export function ParentIgnitionInsights({
                 >
                   {isIgnited ? '🔥' : '💤'}
                 </motion.div>
-                <span className="text-[10px] text-muted-foreground">{day.dayName}</span>
+                <span className="text-[10px] text-muted-foreground">{t(day.dayName)}</span>
               </div>
             );
           })}
@@ -296,37 +310,14 @@ export function ParentIgnitionInsights({
         <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <span>🔥</span>
-            <span>יום הצתה</span>
+            <span>{t('ignition.ignitedDay')}</span>
           </div>
           <div className="flex items-center gap-1">
             <span>💤</span>
-            <span>יום טעינה</span>
+            <span>{t('ignition.chargingDay')}</span>
           </div>
         </div>
       </motion.div>
     </div>
   );
-}
-
-function generateReinforcementMessage(
-  childName: string,
-  ignitedDays: number,
-  ignitionRate: number,
-  bestCategory?: string
-): string {
-  const firstName = childName.split(' ')[0];
-  
-  if (ignitedDays >= 5) {
-    return `${firstName} עשה שבוע מדהים עם ${ignitedDays} ימי הצתה! 🌟 שקלו לחגוג יחד עם פעילות מיוחדת או מילה טובה. המאמץ העקבי ראוי להכרה!`;
-  }
-  
-  if (ignitedDays >= 3) {
-    return `${firstName} הראה עקביות יפה עם ${ignitedDays} ימי הצתה ברצף! 🎯 זה הזמן המושלם להגיד "אני רואה כמה אתה משתדל" או לתת חמישייה!`;
-  }
-  
-  if (ignitionRate >= 50) {
-    return `${firstName} נמצא בתהליך צמיחה עם שיעור הצתה של ${Math.round(ignitionRate)}%. ${bestCategory ? `במיוחד ב${bestCategory} רואים שיפור!` : ''} המשיכו לעודד בשקט ובעדינות.`;
-  }
-  
-  return `כל יום הוא הזדמנות חדשה! ${firstName} לומד את הקצב שלו. נסו למצוא רגע קטן היום להגיד משהו חיובי על המאמץ, לא רק על התוצאה.`;
 }

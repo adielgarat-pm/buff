@@ -45,7 +45,7 @@ export interface WeeklyBuffStats {
   strugglePhase: Phase | null;
 }
 
-const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+const DAY_KEYS = ['day.sun', 'day.mon', 'day.tue', 'day.wed', 'day.thu', 'day.fri', 'day.sat'];
 
 export function useWeeklyBuffStats(childId: string | null) {
   const { familyId } = useAuth();
@@ -124,7 +124,7 @@ export function useWeeklyBuffStats(childId: string | null) {
 
         return {
           date,
-          dayName: DAY_NAMES[dayIndex],
+          dayName: DAY_KEYS[dayIndex],
           tasksCompleted,
           tasksTotal: tasksData?.length || 0,
           lessonsCompleted,
