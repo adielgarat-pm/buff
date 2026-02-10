@@ -23,7 +23,7 @@ import { IOSInstallBanner } from './IOSInstallBanner';
 import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Phase, getPhaseForTime } from '@/types/phase';
+import { Phase, getSmartPhaseForTime } from '@/types/phase';
 import { TaskCategory } from '@/types/task';
 
 interface ChildViewProps {
@@ -115,7 +115,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     requestPermission,
   } = useNotifications();
 
-  // Calculate phase stats (hide school if disabled)
+  // Calculate phase stats using same logic as PhaseView (smart boundaries + scheduleDays filter)
   const phaseStats = useMemo(() => {
     const stats: Record<Phase, { completed: number; total: number }> = {
       morning: { completed: 0, total: 0 },
@@ -124,8 +124,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       evening: { completed: 0, total: 0 },
     };
 
+    const currentDayOfWeek = new Date().getDay();
+
     tasks.forEach(task => {
-      const phase = getPhaseForTime(task.time);
+      // Filter by scheduleDays — same logic as PhaseView
+      const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4, 5];
+      if (!scheduleDays.includes(currentDayOfWeek)) return;
+
+      const phase = getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay && schoolQuestEnabled);
       stats[phase].total++;
       if (task.completed) stats[phase].completed++;
     });
@@ -137,7 +143,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     }
 
     return stats;
-  }, [tasks, lessons, schoolQuestEnabled]);
+  }, [tasks, lessons, schoolQuestEnabled, schoolEndTime, isSchoolDay]);
 
   // Calculate active categories (only show categories that have at least one task)
   const activeCategories = useMemo(() => {
