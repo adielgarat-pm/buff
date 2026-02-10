@@ -1,6 +1,7 @@
 import { PeriodInfo, WeekDay, WEEK_DAYS } from '@/types/task';
 import { Clock, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DailyScheduleProps {
   timetable: Record<string, PeriodInfo[]>;
@@ -9,18 +10,17 @@ interface DailyScheduleProps {
 
 function getTodayWeekDay(fridayEnabled: boolean = false): WeekDay | null {
   const dayIndex = new Date().getDay();
-  // 0 = Sunday, 1 = Monday, etc.
-  // School days are Sun-Thu (0-4), Friday (5) only if enabled
   if (dayIndex >= 0 && dayIndex <= 4) {
     return WEEK_DAYS[dayIndex];
   }
   if (dayIndex === 5 && fridayEnabled) {
     return 'friday';
   }
-  return null; // Saturday (6) is always weekend
+  return null;
 }
 
 export function DailySchedule({ timetable, fridayEnabled = false }: DailyScheduleProps) {
+  const { t } = useLanguage();
   const todayKey = getTodayWeekDay(fridayEnabled);
   
   if (!todayKey) {
@@ -31,12 +31,12 @@ export function DailySchedule({ timetable, fridayEnabled = false }: DailySchedul
             <BookOpen className="w-5 h-5 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Today's Schedule</h3>
-            <p className="text-xs text-muted-foreground">Weekend - No classes</p>
+            <h3 className="font-semibold text-foreground">{t('schedule.todaysSchedule')}</h3>
+            <p className="text-xs text-muted-foreground">{t('schedule.weekend')}</p>
           </div>
         </div>
         <div className="text-center py-6 text-muted-foreground">
-          <p>🎉 Enjoy your weekend!</p>
+          <p>{t('schedule.enjoyWeekend')}</p>
         </div>
       </div>
     );
@@ -53,18 +53,17 @@ export function DailySchedule({ timetable, fridayEnabled = false }: DailySchedul
             <BookOpen className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Today's Schedule</h3>
-            <p className="text-xs text-muted-foreground">No subjects set</p>
+            <h3 className="font-semibold text-foreground">{t('schedule.todaysSchedule')}</h3>
+            <p className="text-xs text-muted-foreground">{t('schedule.noSubjects')}</p>
           </div>
         </div>
         <p className="text-sm text-muted-foreground text-center py-4">
-          Set up your timetable in Parent Mode to see your daily schedule.
+          {t('schedule.setupTimetable')}
         </p>
       </div>
     );
   }
 
-  // Get current time for highlighting current/next period
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -80,15 +79,14 @@ export function DailySchedule({ timetable, fridayEnabled = false }: DailySchedul
           <BookOpen className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground">Today's Schedule</h3>
+          <h3 className="font-semibold text-foreground">{t('schedule.todaysSchedule')}</h3>
           <p className="text-xs text-muted-foreground capitalize">
-            {todayKey} • {todaySchedule.filter(p => p.subject).length} lessons
+            {todayKey} • {todaySchedule.filter(p => p.subject).length} {t('schedule.lessons')}
           </p>
         </div>
       </div>
 
       <div className="relative">
-        {/* Timeline line */}
         <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-border" />
         
         <div className="space-y-2">
@@ -113,7 +111,6 @@ export function DailySchedule({ timetable, fridayEnabled = false }: DailySchedul
                   !isActive && !isPast && "hover:bg-secondary/50"
                 )}
               >
-                {/* Timeline dot */}
                 <div
                   className={cn(
                     "relative z-10 w-3 h-3 rounded-full border-2",
@@ -136,13 +133,13 @@ export function DailySchedule({ timetable, fridayEnabled = false }: DailySchedul
                     {period.subject}
                   </span>
                   <span className="text-xs text-muted-foreground ml-2">
-                    Period {index + 1}
+                    {t('schedule.period')} {index + 1}
                   </span>
                 </div>
                 
                 {isActive && (
                   <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                    Now
+                    {t('schedule.now')}
                   </span>
                 )}
               </div>
