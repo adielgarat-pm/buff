@@ -12,6 +12,7 @@ import { FamilyCodeDisplay } from './FamilyCodeDisplay';
 import { NewDayBanner } from './NewDayBanner';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
 import { BuffBoostCard } from './BuffBoostCard';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
@@ -23,25 +24,24 @@ interface ParentFamilyOverviewProps {
   onAddTask?: (childId: string) => void;
 }
 
-// Helper to determine current phase
-function getCurrentPhase(): { name: string; emoji: string } {
+function getCurrentPhase(t: (key: string) => string): { name: string; emoji: string } {
   const now = new Date();
   const hour = now.getHours();
   
-  if (hour >= 6 && hour < 9) return { name: 'בוקר', emoji: '🌅' };
-  if (hour >= 9 && hour < 16) return { name: 'בית ספר', emoji: '📚' };
-  if (hour >= 16 && hour < 20) return { name: 'אחר הצהריים', emoji: '🌤️' };
-  return { name: 'ערב', emoji: '🌙' };
+  if (hour >= 6 && hour < 9) return { name: t('overview.morning'), emoji: '🌅' };
+  if (hour >= 9 && hour < 16) return { name: t('overview.school'), emoji: '📚' };
+  if (hour >= 16 && hour < 20) return { name: t('overview.afternoon'), emoji: '🌤️' };
+  return { name: t('overview.evening'), emoji: '🌙' };
 }
 
 export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnboarding, onAddTask }: ParentFamilyOverviewProps) {
   const { familyShortCode } = useAuth();
+  const { t } = useLanguage();
   const { children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
 
-  // Midnight reset for parent view - refresh progress data
   const handleMidnightReset = useCallback(() => {
     refetch();
   }, [refetch]);
@@ -51,12 +51,11 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   });
 
   const loading = membersLoading || progressLoading;
-  const currentPhase = getCurrentPhase();
+  const currentPhase = getCurrentPhase(t);
 
-  // Calculate setup progress
   const hasChildren = children.length > 0;
   const hasTasks = childrenProgress.some(p => p.tasksTotal > 0);
-  const hasRewards = true; // Default rewards are created with children
+  const hasRewards = true;
   const hasTimetable = childrenProgress.some(p => p.schoolQuestEnabled && p.lessonsTotal > 0);
   
   const setupProgress = calculateSetupProgress({
@@ -69,7 +68,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const handleAwardBonus = async (childId: string, childName: string) => {
     const success = await awardCleanDayBonus(childId, childName);
     if (success) {
-      refetch(); // Refresh progress data to show updated balance
+      refetch();
     }
   };
 
@@ -83,34 +82,28 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
 
   return (
     <>
-    {/* Philosophy Modal */}
     <Dialog open={showPhilosophy} onOpenChange={setShowPhilosophy}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
         <BuffPhilosophyPage isModal onClose={() => setShowPhilosophy(false)} />
       </DialogContent>
     </Dialog>
 
-    {/* Condition 1: Zero Children - Show Welcome Home Screen */}
     {!hasChildren ? (
       <WelcomeHomeScreen onStartOnboarding={onStartOnboarding} />
     ) : (
     <div className="space-y-6 pb-8">
-      {/* New Day Banner - shows at midnight */}
       <NewDayBanner show={showNewDayMessage} onDismiss={dismissNewDayMessage} />
       
-      {/* Setup Progress Header - Show if not 100% complete */}
       {setupProgress.percent < 100 && (
         <SetupProgressHeader
           progressPercent={setupProgress.percent}
-          missingSteps={setupProgress.missing}
+          missingSteps={setupProgress.missing.map(key => t(key))}
           onContinueSetup={onStartOnboarding}
         />
       )}
 
-       {/* BuffBoost Community Support Card */}
        <BuffBoostCard />
       
-       {/* Header with Logo and Info Button */}
        <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <img 
@@ -120,10 +113,10 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
           />
           <div className="space-y-0.5">
             <h1 className="text-xl font-bold text-foreground font-display">
-              סקירה משפחתית
+              {t('overview.familyOverview')}
             </h1>
             <p className="text-xs text-muted-foreground">
-              מעקב התקדמות בזמן אמת
+              {t('overview.realTimeTracking')}
             </p>
           </div>
         </div>
@@ -137,26 +130,23 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
         </Button>
       </div>
 
-      {/* Current Phase Indicator */}
       <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
         <Clock className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium text-foreground">
-          עכשיו: {currentPhase.emoji} {currentPhase.name}
+          {t('overview.now')}: {currentPhase.emoji} {currentPhase.name}
         </span>
       </div>
 
-      {/* Family Code */}
       {familyShortCode && (
         <div className="rounded-2xl bg-card border border-primary/20 p-4">
           <FamilyCodeDisplay shortCode={familyShortCode} onChildAdded={refetchMembers} />
         </div>
       )}
 
-      {/* Children Cards */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-primary" />
-          <h2 className="font-semibold text-foreground">הילדים שלי</h2>
+          <h2 className="font-semibold text-foreground">{t('overview.myChildren')}</h2>
         </div>
 
         <div className="grid gap-4">
@@ -174,7 +164,6 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                 key={child.id}
                 className="rounded-2xl bg-card border border-border overflow-hidden"
               >
-                {/* Child Header */}
                 <div className="p-4 space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -185,7 +174,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                         <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
                         {progress && (
                           <p className="text-sm text-muted-foreground">
-                            💰 {progress.totalBalance.toLocaleString()} קרדיטים נצברו
+                            💰 {progress.totalBalance.toLocaleString()} {t('overview.creditsAccumulated')}
                           </p>
                         )}
                       </div>
@@ -193,12 +182,11 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                     {progress && !hasNoTasks && (
                       <div className="text-right">
                         <p className="text-3xl font-bold text-primary">{progress.todayEarned}</p>
-                        <p className="text-xs text-muted-foreground">מתוך {progress.dailyGoal}</p>
+                        <p className="text-xs text-muted-foreground">{t('overview.outOf')} {progress.dailyGoal}</p>
                       </div>
                     )}
                   </div>
 
-                  {/* Condition 2: Child Exists but No Tasks - Show Nudge Card */}
                   {hasNoTasks ? (
                     <FirstTaskNudgeCard 
                       childName={child.displayName}
@@ -206,28 +194,26 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                     />
                   ) : (
                     <>
-                      {/* Today's Progress - Main Focus */}
                       {progress && (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-foreground">התקדמות היום</span>
+                            <span className="font-medium text-foreground">{t('overview.todayProgress')}</span>
                             <span className="font-bold text-primary">{Math.round(progressPercent)}%</span>
                           </div>
                           <Progress value={progressPercent} className="h-3" />
                           
-                          {/* Live Status */}
                           <div className="flex gap-4 text-sm">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                               <span className="text-muted-foreground">
-                                משימות: {progress.tasksCompleted}/{progress.tasksTotal}
+                                {t('overview.tasks')}: {progress.tasksCompleted}/{progress.tasksTotal}
                               </span>
                             </div>
                             {progress.schoolQuestEnabled && (
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-primary/60" />
                                 <span className="text-muted-foreground">
-                                  שיעורים: {progress.lessonsCompleted}/{progress.lessonsTotal}
+                                  {t('overview.lessons')}: {progress.lessonsCompleted}/{progress.lessonsTotal}
                                 </span>
                               </div>
                             )}
@@ -235,7 +221,6 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                         </div>
                       )}
 
-                      {/* Clean Day Bonus Button - Prominent */}
                       <Button
                         onClick={() => handleAwardBonus(child.id, child.displayName)}
                         disabled={bonusAwarded || isAwarding}
@@ -249,17 +234,17 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                         {isAwarding ? (
                           <>
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            מעניק בונוס...
+                            {t('overview.awardingBonus')}
                           </>
                         ) : bonusAwarded ? (
                           <>
                             <Check className="w-5 h-5 mr-2" />
-                            בונוס יום מוצלח ניתן ✓
+                            {t('overview.bonusAwarded')}
                           </>
                         ) : (
                           <>
                             <Sparkles className="w-5 h-5 mr-2" />
-                            🌟 יום מוצלח במיוחד! (+20)
+                            {t('overview.greatDay')}
                           </>
                         )}
                       </Button>
@@ -267,14 +252,13 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                   )}
                 </div>
 
-                {/* Action Button - View as Child Only */}
                 <div className="border-t border-border">
                   <button
                     onClick={() => onViewAsChild(child.id)}
                     className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-accent hover:bg-accent/10 transition-colors touch-target"
                   >
                     <Eye className="w-4 h-4" />
-                    צפה כילד
+                    {t('overview.viewAsChild')}
                   </button>
                 </div>
               </div>

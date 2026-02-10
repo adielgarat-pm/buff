@@ -4,6 +4,7 @@ import { Sparkles, X, BookOpen, ArrowLeft, Rocket } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ParentWelcomeBannerProps {
   userId: string;
@@ -14,16 +15,15 @@ interface ParentWelcomeBannerProps {
 const PARENT_WELCOME_DISMISSED_KEY = 'buff_parent_welcome_dismissed';
 
 export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboarding }: ParentWelcomeBannerProps) {
+  const { t, isRTL } = useLanguage();
   const [show, setShow] = useState(false);
   const [showPhilosophy, setShowPhilosophy] = useState(false);
   const { children } = useFamilyMembers();
   const hasNoChildren = children.length === 0;
 
   useEffect(() => {
-    // Check if this parent has already dismissed the welcome message
     const dismissedUsers = JSON.parse(localStorage.getItem(PARENT_WELCOME_DISMISSED_KEY) || '[]');
     if (!dismissedUsers.includes(userId)) {
-      // Small delay for better UX
       const timer = setTimeout(() => setShow(true), 800);
       return () => clearTimeout(timer);
     }
@@ -31,7 +31,6 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
 
   const handleDismiss = () => {
     setShow(false);
-    // Mark as dismissed for this user
     const dismissedUsers = JSON.parse(localStorage.getItem(PARENT_WELCOME_DISMISSED_KEY) || '[]');
     if (!dismissedUsers.includes(userId)) {
       dismissedUsers.push(userId);
@@ -55,11 +54,9 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
 
   return (
     <>
-      {/* Welcome Modal */}
       {show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-md bg-card border border-primary/20 rounded-2xl p-6 shadow-xl animate-in zoom-in-95 duration-300">
-            {/* Close button */}
             <Button
               variant="ghost"
               size="icon"
@@ -69,29 +66,24 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
               <X className="w-4 h-4" />
             </Button>
 
-            {/* Content */}
             <div className="text-center space-y-5">
-              {/* Icon */}
               <div className="relative inline-block">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto">
                   <Sparkles className="w-10 h-10 text-primary" />
                 </div>
               </div>
 
-              {/* Title */}
               <h2 className="text-xl font-bold text-foreground">
-                ברוכים הבאים ל-Buff
+                {t('parentWelcome.title')}
               </h2>
 
-              {/* Message */}
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {hasNoChildren 
-                  ? 'מוכנים להתחיל? נעזור לכם להגדיר את הפרופיל הראשון של הילד, המשימות והפרסים תוך 2 דקות.'
-                  : 'הכנו עבורכם את התשתית המקצועית ביותר לניהול היום. מומלץ להתחיל בקריאת "תפיסת העולם" שלנו כדי להפיק את המקסימום מהתהליך.'
+                  ? t('parentWelcome.noChildrenMsg')
+                  : t('parentWelcome.hasChildrenMsg')
                 }
               </p>
 
-              {/* CTA Buttons */}
               <div className="space-y-3 pt-2">
                 {hasNoChildren && onStartOnboarding ? (
                   <>
@@ -99,8 +91,8 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
                       onClick={handleStartOnboarding}
                       className="w-full h-12 bg-gradient-to-r from-primary to-success text-primary-foreground font-bold rounded-xl"
                     >
-                      <Rocket className="w-5 h-5 ml-2" />
-                      בואו נתחיל! 🚀
+                      <Rocket className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {t('parentWelcome.letsStart')}
                     </Button>
                     
                     <Button
@@ -108,8 +100,8 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
                       onClick={handleLearnMore}
                       className="w-full h-10 text-muted-foreground hover:text-foreground"
                     >
-                      <BookOpen className="w-4 h-4 ml-1" />
-                      קודם אקרא על השיטה
+                      <BookOpen className={`w-4 h-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                      {t('parentWelcome.readFirst')}
                     </Button>
                   </>
                 ) : (
@@ -118,8 +110,8 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
                       onClick={handleLearnMore}
                       className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold rounded-xl"
                     >
-                      <BookOpen className="w-5 h-5 ml-2" />
-                      למדו עוד על השיטה
+                      <BookOpen className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {t('parentWelcome.learnMore')}
                     </Button>
                     
                     <Button
@@ -127,8 +119,8 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
                       onClick={handleDismiss}
                       className="w-full h-10 text-muted-foreground hover:text-foreground"
                     >
-                      <ArrowLeft className="w-4 h-4 ml-1" />
-                      דלג, אתחיל לבד
+                      <ArrowLeft className={`w-4 h-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                      {t('parentWelcome.skipStart')}
                     </Button>
                   </>
                 )}
@@ -138,7 +130,6 @@ export function ParentWelcomeBanner({ userId, onNavigateToSettings, onStartOnboa
         </div>
       )}
 
-      {/* Philosophy Dialog */}
       <Dialog open={showPhilosophy} onOpenChange={setShowPhilosophy}>
         <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
           <BuffPhilosophyPage 
