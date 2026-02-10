@@ -21,6 +21,7 @@ import { PhaseCompletionChart } from './PhaseCompletionChart';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
 import { BuffBoostCard } from './BuffBoostCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const categoryOptions: { value: TaskCategory; label: string; labelHe: string; icon: typeof Book }[] = [
   { value: 'learning', label: 'Learning', labelHe: 'למידה', icon: Book },
@@ -70,6 +71,7 @@ export function ParentDashboard({
   onBack,
 }: ParentDashboardProps) {
   const { familyId, familyShortCode } = useAuth();
+  const { t } = useLanguage();
   const { members, children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   
@@ -113,8 +115,8 @@ export function ParentDashboard({
               <Settings className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="font-semibold text-foreground">הגדרות משפחה</h2>
-              <p className="text-xs text-muted-foreground">הגדרות כלליות וקוד משפחה</p>
+              <h2 className="font-semibold text-foreground">{t('oldDashboard.familySettings')}</h2>
+              <p className="text-xs text-muted-foreground">{t('oldDashboard.familySettingsDesc')}</p>
             </div>
           </div>
 
@@ -125,7 +127,7 @@ export function ParentDashboard({
 
           {/* App Title */}
           <div className="space-y-2">
-            <Label className="text-sm text-muted-foreground">שם האפליקציה</Label>
+            <Label className="text-sm text-muted-foreground">{t('oldDashboard.appName')}</Label>
             <div className="flex gap-2">
               <Input
                 type="text"
@@ -146,7 +148,7 @@ export function ParentDashboard({
 
           {/* Daily Goal */}
           <div className="space-y-2">
-            <Label className="text-sm text-muted-foreground">יעד יומי ברירת מחדל</Label>
+            <Label className="text-sm text-muted-foreground">{t('oldDashboard.defaultGoal')}</Label>
             <div className="flex gap-2 items-center">
               <Input
                 type="number"
@@ -154,7 +156,7 @@ export function ParentDashboard({
                 onChange={(e) => setLocalGoal(parseInt(e.target.value) || 0)}
                 className="w-24 bg-secondary border-border"
               />
-              <span className="text-sm text-muted-foreground">קרדיטים</span>
+              <span className="text-sm text-muted-foreground">{t('oldDashboard.credits')}</span>
               <Button
                 size="sm"
                 onClick={handleSaveGoal}
@@ -170,7 +172,7 @@ export function ParentDashboard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">תזכורות שיעורים</span>
+                <span className="text-sm text-foreground">{t('oldDashboard.lessonReminders')}</span>
               </div>
               <Switch
                 checked={lessonRemindersEnabled}
@@ -181,7 +183,7 @@ export function ParentDashboard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">יום שישי יום לימודים</span>
+                <span className="text-sm text-foreground">{t('oldDashboard.fridaySchoolDay')}</span>
               </div>
               <Switch
                 checked={fridayEnabled}
@@ -268,6 +270,7 @@ export function ParentDashboard({
 
 // Child Configuration Panel (embedded in accordion)
 function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: string; childName: string; fridayEnabled: boolean }) {
+  const { t } = useLanguage();
   const {
     tasks,
     timetable,
@@ -371,7 +374,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
               >
                 <Camera className="w-4 h-4 ml-1" />
                 <FileSpreadsheet className="w-4 h-4 ml-2" />
-                העלאת מערכת
+                {t('oldDashboard.uploadSchedule')}
               </Button>
               <Button
                 size="sm"
@@ -381,7 +384,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
               >
                 <Calendar className="w-4 h-4 ml-1" />
                 <span className="text-lg ml-1">🎒</span>
-                ניהול מערכת וציוד
+                {t('oldDashboard.manageSchedule')}
               </Button>
             </div>
             <p className="text-sm text-muted-foreground text-center">

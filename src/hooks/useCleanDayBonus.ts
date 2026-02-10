@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
 export function useCleanDayBonus() {
   const { familyId } = useAuth();
+  const { t } = useLanguage();
   const [awarding, setAwarding] = useState<string | null>(null);
 
   const awardCleanDayBonus = useCallback(async (childId: string, childName: string) => {
@@ -17,15 +19,13 @@ export function useCleanDayBonus() {
     const bonusCredits = 20;
 
     try {
-      // Check if bonus was already awarded today
       const localStorageKey = `cleanDayBonus_${childId}_${todayKey}`;
       if (localStorage.getItem(localStorageKey)) {
-        toast.error(`בונוס יום מוצלח כבר ניתן ל${childName} היום!`);
+        toast.error(t('bonus.alreadyAwarded').replace('{name}', childName));
         setAwarding(null);
         return false;
       }
 
-      // Get current vault balance
       const { data: vaultData, error: vaultError } = await supabase
         .from('credit_vault')
         .select('*')
@@ -39,7 +39,6 @@ export function useCleanDayBonus() {
       const newBalance = currentBalance + bonusCredits;
 
       if (vaultData) {
-        // Update existing vault
         const { error: updateError } = await supabase
           .from('credit_vault')
           .update({
@@ -48,10 +47,8 @@ export function useCleanDayBonus() {
             updated_at: new Date().toISOString(),
           })
           .eq('id', vaultData.id);
-
         if (updateError) throw updateError;
       } else {
-        // Create new vault for child
         const { error: insertError } = await supabase
           .from('credit_vault')
           .insert({
@@ -60,23 +57,21 @@ export function useCleanDayBonus() {
             total_balance: bonusCredits,
             last_updated_date: todayKey,
           });
-
         if (insertError) throw insertError;
       }
 
-      // Mark bonus as awarded today (local storage for simple tracking)
       localStorage.setItem(localStorageKey, 'true');
 
-      toast.success(`🌟 ${childName} קיבל/ה בונוס יום מוצלח! +${bonusCredits} קרדיטים`);
+      toast.success(t('bonus.awarded').replace('{name}', childName).replace('{credits}', String(bonusCredits)));
       setAwarding(null);
       return true;
     } catch (error) {
       console.error('Error awarding clean day bonus:', error);
-      toast.error('שגיאה בהענקת הבונוס');
+      toast.error(t('bonus.error'));
       setAwarding(null);
       return false;
     }
-  }, [familyId]);
+  }, [familyId, t]);
 
   const wasBonusAwardedToday = useCallback((childId: string): boolean => {
     const todayKey = getTodayKey();

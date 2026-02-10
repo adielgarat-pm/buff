@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Task, PeriodInfo } from '@/types/task';
 import { getDiscreteNotificationTitle, getDiscreteNotificationBody, getEffectiveCredits } from '@/utils/protocolTaskUtils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export type NotificationPermissionStatus = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -13,6 +14,7 @@ interface ScheduledNotification {
 }
 
 export function useNotifications() {
+  const { t } = useLanguage();
   const [permission, setPermission] = useState<NotificationPermissionStatus>('default');
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
   const [scheduledNotifications, setScheduledNotifications] = useState<ScheduledNotification[]>([]);
@@ -244,8 +246,8 @@ export function useNotifications() {
       if (notifyTime > today) {
         scheduleNotification(
           `lesson_${index}`,
-          `🎯 שיעור ${period.subject} מתחיל בעוד 5 דקות!`,
-          `הגיע הזמן להתכונן! 🏆`,
+          t('notification.lessonSoon').replace('{subject}', period.subject),
+          t('notification.getReady'),
           notifyTime
         );
       }
@@ -271,8 +273,8 @@ export function useNotifications() {
     if (notifyTime > today) {
       scheduleNotification(
         'gear_master_evening',
-        `🎒 משימת ערב - בונוס מוכנות!`,
-        `התיק למחר כבר מוכן? זה הזמן לזכות ב-${credits} נקודות Buff! ✨`,
+        t('notification.gearMasterTitle'),
+        t('notification.gearMasterBody').replace('{credits}', String(credits)),
         notifyTime
       );
     }
