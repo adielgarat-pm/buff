@@ -3,34 +3,33 @@ import { HelpCircle, Play, MessageCircle, Mail, Copy, Check, ChevronDown, Chevro
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-
-/**
- * Share installation guide via different methods
- */
-function shareInstallGuide(method: 'whatsapp' | 'email' | 'copy') {
-  const url = `${window.location.origin}/install`;
-  const message = 'צפו בסרטון הקצר כדי להתקין את BUFF על הטלפון 📱';
-
-  switch (method) {
-    case 'whatsapp':
-      window.open(`https://wa.me/?text=${encodeURIComponent(message + '\n\n' + url)}`, '_blank');
-      break;
-    case 'email':
-      window.open(`mailto:?subject=${encodeURIComponent('התקנת BUFF')}&body=${encodeURIComponent(message + '\n\n' + url)}`, '_blank');
-      break;
-    case 'copy':
-      navigator.clipboard.writeText(url).then(() => {
-        toast.success('הלינק הועתק!');
-      }).catch(() => {
-        toast.error('שגיאה בהעתקה');
-      });
-      break;
-  }
-}
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function ParentHelpSection() {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const shareInstallGuide = (method: 'whatsapp' | 'email' | 'copy') => {
+    const url = `${window.location.origin}/install`;
+    const message = t('help.shareMessage');
+
+    switch (method) {
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(message + '\n\n' + url)}`, '_blank');
+        break;
+      case 'email':
+        window.open(`mailto:?subject=${encodeURIComponent(t('help.shareSubject'))}&body=${encodeURIComponent(message + '\n\n' + url)}`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url).then(() => {
+          toast.success(t('help.linkCopied'));
+        }).catch(() => {
+          toast.error(t('help.copyError'));
+        });
+        break;
+    }
+  };
 
   const handleCopy = () => {
     shareInstallGuide('copy');
@@ -49,8 +48,8 @@ export function ParentHelpSection() {
           <HelpCircle className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1">
-          <h2 className="font-semibold text-foreground">עזרה והתקנה</h2>
-          <p className="text-xs text-muted-foreground">סרטון הדרכה ושיתוף לילדים</p>
+          <h2 className="font-semibold text-foreground">{t('help.title')}</h2>
+          <p className="text-xs text-muted-foreground">{t('help.subtitle')}</p>
         </div>
         {expanded ? (
           <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -80,7 +79,7 @@ export function ParentHelpSection() {
                     controls
                     className="w-full h-full object-contain"
                   >
-                    הדפדפן שלכם לא תומך בווידאו
+                    {t('help.videoFallback')}
                   </video>
                 </div>
               </div>
@@ -88,14 +87,14 @@ export function ParentHelpSection() {
               {/* Video label */}
               <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                 <Play className="w-4 h-4" />
-                סרטון הדרכה קצר - איך להתקין את BUFF
+                {t('help.videoLabel')}
               </p>
 
               {/* Share Section */}
               <div className="space-y-3 pt-2">
                 <p className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Smartphone className="w-4 h-4 text-primary" />
-                  שלח מדריך התקנה לילד:
+                  {t('help.shareInstallGuide')}
                 </p>
                 
                 <div className="grid grid-cols-3 gap-2">
@@ -118,7 +117,7 @@ export function ParentHelpSection() {
                     className="flex-col h-auto py-3 gap-1.5"
                   >
                     <Mail className="w-5 h-5 text-primary" />
-                    <span className="text-xs">אימייל</span>
+                    <span className="text-xs">{t('help.email')}</span>
                   </Button>
 
                   {/* Copy Link */}
@@ -133,7 +132,7 @@ export function ParentHelpSection() {
                     ) : (
                       <Copy className="w-5 h-5 text-muted-foreground" />
                     )}
-                    <span className="text-xs">{copiedLink ? 'הועתק!' : 'העתק לינק'}</span>
+                    <span className="text-xs">{copiedLink ? t('help.copied') : t('help.copyLink')}</span>
                   </Button>
                 </div>
               </div>
