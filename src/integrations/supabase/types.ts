@@ -610,26 +610,16 @@ export type Database = {
         }
         Returns: number
       }
-      update_child_profile_settings:
-        | {
-            Args: {
-              p_birth_date?: string
-              p_child_id: string
-              p_daily_goal?: number
-              p_school_quest_enabled?: boolean
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_avatar?: string
-              p_birth_date?: string
-              p_child_id: string
-              p_daily_goal?: number
-              p_school_quest_enabled?: boolean
-            }
-            Returns: undefined
-          }
+      update_child_profile_settings: {
+        Args: {
+          p_avatar?: string
+          p_birth_date?: string
+          p_child_id: string
+          p_daily_goal?: number
+          p_school_quest_enabled?: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
