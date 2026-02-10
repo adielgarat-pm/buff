@@ -95,6 +95,19 @@ export function Header({
       </div>
       
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        {/* Child-friendly language toggle - prominent globe outside menu */}
+        {childAvatar !== undefined && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl w-10 h-10 touch-target border-primary/30 bg-primary/10 hover:bg-primary/20 shadow-sm hover:shadow-md transition-all"
+            onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
+            title={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
+          >
+            <Globe className="w-5 h-5 text-primary" />
+          </Button>
+        )}
+
         {/* Philosophy Info Icon - for parent view */}
         {showPhilosophyIcon && (
           <Button
