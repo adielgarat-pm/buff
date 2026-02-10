@@ -4,6 +4,7 @@ import { BookOpen, Swords, Trophy, Backpack } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SchoolDaySectionProps {
   lessons: (Lesson & { displayLabel?: string; startTime?: string; equipment?: string })[];
@@ -13,6 +14,7 @@ interface SchoolDaySectionProps {
 }
 
 export function SchoolDaySection({ lessons, todaySchedule, onToggleLesson, fridayEnabled = false }: SchoolDaySectionProps) {
+  const { t } = useLanguage();
   const completedCount = lessons.filter(l => l.completed).length;
   const totalCredits = lessons.filter(l => l.completed).reduce((sum, l) => sum + l.credits, 0);
   const allComplete = completedCount === lessons.length && lessons.length > 0;
