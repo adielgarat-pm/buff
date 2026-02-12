@@ -865,6 +865,10 @@ const translations: Record<Language, Record<string, string>> = {
     'pet.restCardUsedMessage': 'זה בסדר לנוח! השתמשתי בכרטיס מנוחה כדי לשמור על הרצף שלך. בוא נחזור לפעולה מחר כדי לעזור לי לצמוח!',
     'pet.buyRestCard': 'קנה כרטיס מנוחה',
     'pet.buyRestCardDesc': 'הגן על הרצף שלך ביום עמוס',
+    'pet.lastRestCardUsedNotif': 'שימו לב: {name} השתמש/ה הרגע בכרטיס המנוחה האחרון שלו. זה זמן מצוין לעודד אותו/ה על ההתמדה עד עכשיו, ואולי להציע כרטיס חדש כפרס על מאמץ מיוחד מחר! 🛡️',
+    'pet.noRestCards': 'אין כרטיסי מנוחה',
+    'pet.grantRestCard': 'הענק כרטיס מנוחה',
+    'pet.restCardGranted': 'כרטיס מנוחה הוענק ל{name}!',
   },
   en: {
     // General
@@ -1718,6 +1722,10 @@ const translations: Record<Language, Record<string, string>> = {
     'pet.restCardUsedMessage': "It's okay to take a break! I used a Rest Card to save your streak. Let's get back to work tomorrow to help me grow!",
     'pet.buyRestCard': 'Buy Rest Card',
     'pet.buyRestCardDesc': 'Protect your streak on a busy day',
+    'pet.lastRestCardUsedNotif': "Heads up: {name} just used their last Rest Card. They're out of safety nets! This is a great moment to acknowledge their streak and perhaps offer a new card as a reward for tomorrow's effort! 🛡️",
+    'pet.noRestCards': 'No Rest Cards',
+    'pet.grantRestCard': 'Grant Rest Card',
+    'pet.restCardGranted': 'Rest Card granted to {name}!',
   },
 };
 

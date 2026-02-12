@@ -14,6 +14,7 @@ export interface ChildProgress {
   lessonsTotal: number;
   totalBalance: number;
   schoolQuestEnabled: boolean;
+  restCardsBalance: number;
 }
 
 interface ChildData {
@@ -46,7 +47,7 @@ export function useChildProgress() {
       // Fetch all children in the family
       const { data: children } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, pet_state')
         .eq('family_id', familyId)
         .eq('role', 'child');
 
@@ -125,6 +126,10 @@ export function useChildProgress() {
               .reduce((sum, l) => sum + (l.credits || 10), 0) || 0)
           : 0;
 
+        // Extract rest cards balance from pet_state JSONB
+        const petState = child.pet_state as Record<string, unknown> | null;
+        const restCardsBalance = (petState?.rest_cards_balance as number) ?? 1;
+
         return {
           childId: child.id,
           displayName: child.display_name,
@@ -136,6 +141,7 @@ export function useChildProgress() {
           lessonsTotal,
           totalBalance: vaultBalance,
           schoolQuestEnabled,
+          restCardsBalance,
         };
       });
 

@@ -159,10 +159,12 @@ export function useChildPet(childId?: string) {
     let streak = state.daily_streak;
     let restCards = state.rest_cards_balance;
     const missedDays = diffDays - 1; // Days between last and today (exclusive)
+    let cardsConsumed = 0;
 
     for (let i = 0; i < missedDays; i++) {
       if (restCards > 0) {
-        restCards--; // Consume a rest card, streak preserved
+        restCards--;
+        cardsConsumed++;
       } else {
         streak = 0; // Streak broken
         break;
@@ -170,6 +172,12 @@ export function useChildPet(childId?: string) {
     }
 
     if (streak !== state.daily_streak || restCards !== state.rest_cards_balance) {
+      // Fire event if rest cards hit 0 after consumption
+      if (cardsConsumed > 0 && restCards === 0) {
+        window.dispatchEvent(new CustomEvent('rest-card-depleted', {
+          detail: { childId: effectiveChildId }
+        }));
+      }
       return {
         ...state,
         daily_streak: streak,
@@ -334,13 +342,22 @@ export function useChildPet(childId?: string) {
   const useRestCard = useCallback(async () => {
     if (petState.rest_cards_balance <= 0) return false;
 
+    const newBalance = petState.rest_cards_balance - 1;
     const newState: PetState = {
       ...petState,
-      rest_cards_balance: petState.rest_cards_balance - 1,
+      rest_cards_balance: newBalance,
     };
     await savePetState(newState);
+
+    // Notify parent if last card was used
+    if (newBalance === 0) {
+      window.dispatchEvent(new CustomEvent('rest-card-depleted', {
+        detail: { childId: effectiveChildId }
+      }));
+    }
+
     return true;
-  }, [petState, savePetState]);
+  }, [petState, savePetState, effectiveChildId]);
 
   // Add rest cards (parent grant or store purchase)
   const addRestCards = useCallback(async (count: number) => {
