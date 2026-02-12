@@ -306,8 +306,8 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                         />
                       )}
 
-                      {/* Daily Summary Card - Pro only, shows after 17:00 */}
-                      {isProUser && new Date().getHours() >= 17 && progress && progress.tasksTotal > 0 && (
+                      {/* Daily Summary Card - Pro only, shows after 21:00 */}
+                      {isProUser && new Date().getHours() >= 21 && progress && progress.tasksTotal > 0 && (
                         <ProGate>
                           <DailySummaryCard
                             childId={child.id}
