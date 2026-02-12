@@ -37,6 +37,7 @@ const LABELS: Record<string, Record<FocusArea, { title: string; desc: string }>>
 export function Step2FocusArea({ childName, initialValue, onNext, onBack }: Step2FocusAreaProps) {
   const { isRTL, language } = useLanguage();
   const [tappedId, setTappedId] = useState<FocusArea | null>(null);
+  const [isAdvancing, setIsAdvancing] = useState(false);
   const lang = language === 'he' ? 'he' : 'en';
   const isHe = lang === 'he';
   const name = childName || (isHe ? 'הילד/ה' : 'your child');
@@ -44,6 +45,8 @@ export function Step2FocusArea({ childName, initialValue, onNext, onBack }: Step
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
 
   const handleSelect = (id: FocusArea) => {
+    if (isAdvancing) return; // Prevent double-tap
+    setIsAdvancing(true);
     setTappedId(id);
     setTimeout(() => onNext({ focusArea: id }), 200);
   };

@@ -147,10 +147,22 @@ export function usePersistentOnboarding() {
     });
   }, [saveToLocalStorage, saveToSupabase]);
 
-  // Mark step as completed
+  // Mark step as completed (uses functional update to avoid stale closure)
   const completeStep = useCallback((step: number) => {
-    updateDraft({ lastCompletedStep: Math.max(draft.lastCompletedStep, step) });
-  }, [draft.lastCompletedStep, updateDraft]);
+    setDraft(prev => {
+      const newStep = Math.max(prev.lastCompletedStep, step);
+      if (newStep === prev.lastCompletedStep) return prev;
+      const newDraft: OnboardingDraft = {
+        ...prev,
+        lastCompletedStep: newStep,
+        updatedAt: new Date().toISOString(),
+      };
+      saveToLocalStorage(newDraft);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveToSupabase(newDraft), DEBOUNCE_MS);
+      return newDraft;
+    });
+  }, [saveToLocalStorage, saveToSupabase]);
 
   // Clear draft after successful onboarding
   const clearDraft = useCallback(async () => {

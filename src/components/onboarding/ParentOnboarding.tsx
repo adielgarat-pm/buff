@@ -231,7 +231,14 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
           <Step2FocusArea
             childName={draft.childName}
             initialValue={draft.focusArea}
-            onNext={(stepData) => handleStepUpdate(2, { focusArea: stepData.focusArea }, 3)}
+            onNext={(stepData) => {
+              // If focus area changed, clear the stale schoolFeature selection
+              const updates: Partial<typeof draft> = { focusArea: stepData.focusArea };
+              if (stepData.focusArea !== draft.focusArea) {
+                updates.schoolFeature = undefined;
+              }
+              handleStepUpdate(2, updates, 3);
+            }}
             onBack={() => goToStep(1)}
           />
         )}
