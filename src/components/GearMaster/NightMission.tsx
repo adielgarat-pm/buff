@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Timetable, WeekDay, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
+import { Timetable, WeekDay, WEEK_DAY_LABELS, WEEK_DAY_LABELS_EN, PeriodInfo } from '@/types/task';
 import { Backpack, CheckCircle2, Moon, Sparkles, PartyPopper, Undo2, Zap } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
@@ -29,7 +29,8 @@ export function NightMission({
   onComplete,
   onUndo,
 }: NightMissionProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dayLabels = language === 'he' ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
   const [checkedItems, setCheckedItems] = useState<CheckedItems>({});
   const [showConfetti, setShowConfetti] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
@@ -60,7 +61,7 @@ export function NightMission({
     return { 
       day: tomorrowDay, 
       lessons, 
-      dayLabel: WEEK_DAY_LABELS[tomorrowDay],
+      dayLabel: dayLabels[tomorrowDay],
       hasSchedule 
     };
   }, [timetable, fridayEnabled]);

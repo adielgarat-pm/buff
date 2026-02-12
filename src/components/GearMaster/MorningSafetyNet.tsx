@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Timetable, WeekDay, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
+import { Timetable, WeekDay, WEEK_DAY_LABELS, WEEK_DAY_LABELS_EN, PeriodInfo } from '@/types/task';
 import { AlertTriangle, Backpack, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,7 +13,8 @@ export function MorningSafetyNet({
   timetable, 
   fridayEnabled = false, 
 }: MorningSafetyNetProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dayLabels = language === 'he' ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
   
   const todayData = useMemo(() => {
     const today = new Date();

@@ -338,6 +338,28 @@ const translations: Record<Language, Record<string, string>> = {
     'schedule.period': 'שיעור',
     'schedule.now': 'עכשיו',
 
+    // Timetable (WeeklyTimetable)
+    'timetable.lessons': 'שיעורים',
+    'timetable.plannedLessons': 'שיעורים מתוכננים',
+    'timetable.add': '+ הוסף',
+    'timetable.editAll': 'ערוך הכל',
+    'timetable.noLessons': 'אין שיעורים ליום זה',
+    'timetable.addFirst': '+ הוסף שיעור ראשון',
+    'timetable.weekOverview': 'סקירת השבוע',
+    'timetable.time': 'שעה',
+    'timetable.subjectPlaceholder': 'שם המקצוע',
+    'timetable.equipmentRequired': 'ציוד נדרש',
+    'timetable.equipmentPlaceholder': 'מחברת, ספר לימוד...',
+    'timetable.clickToAdd': 'לחצו להוספת מקצוע...',
+
+    // TomorrowsPrep
+    'prep.tomorrowOff': 'מחר יום חופש! 🎉',
+    'prep.noBagPrep': 'אין צורך להכין תיק - תהנה מהמנוחה!',
+    'prep.prepForTomorrow': 'הכנה למחר',
+    'prep.noSpecialEquipment': 'לא הוגדר ציוד מיוחד למחר',
+    'prep.equipmentChecklist': 'צ\'קליסט ציוד',
+    'prep.bagReady': 'הכנת את התיק? מעולה! יום מחר יהיה קל יותר 💪',
+
     // Brand Terminology (Buff Positive Coaching DNA)
     'brand.holdingSpace': 'הכלה',
     'brand.boundaries': 'גבולות',
@@ -1078,6 +1100,28 @@ const translations: Record<Language, Record<string, string>> = {
     'schedule.lessons': 'lessons',
     'schedule.period': 'Period',
     'schedule.now': 'Now',
+
+    // Timetable (WeeklyTimetable)
+    'timetable.lessons': 'lessons',
+    'timetable.plannedLessons': 'planned lessons',
+    'timetable.add': '+ Add',
+    'timetable.editAll': 'Edit All',
+    'timetable.noLessons': 'No lessons for this day',
+    'timetable.addFirst': '+ Add first lesson',
+    'timetable.weekOverview': 'Week Overview',
+    'timetable.time': 'Time',
+    'timetable.subjectPlaceholder': 'Subject name',
+    'timetable.equipmentRequired': 'Equipment required',
+    'timetable.equipmentPlaceholder': 'Notebook, textbook...',
+    'timetable.clickToAdd': 'Click to add subject...',
+
+    // TomorrowsPrep
+    'prep.tomorrowOff': 'Tomorrow is a day off! 🎉',
+    'prep.noBagPrep': 'No bag prep needed - enjoy the rest!',
+    'prep.prepForTomorrow': 'Prep for Tomorrow',
+    'prep.noSpecialEquipment': 'No special equipment defined for tomorrow',
+    'prep.equipmentChecklist': 'Equipment Checklist',
+    'prep.bagReady': 'Bag packed? Awesome! Tomorrow will be easier 💪',
 
     // Brand Terminology (Buff Positive Coaching DNA)
     'brand.holdingSpace': 'Holding Space',

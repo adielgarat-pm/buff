@@ -102,7 +102,7 @@ export function MyProgress({
     return Math.round((completedDays / allDays.length) * 100);
   }, [weeklyCompletionRate, stats]);
 
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   // ... keep existing code (stats, visibleCategories, overallRate memos)
@@ -162,7 +162,7 @@ export function MyProgress({
               transition={{ delay: 0.3 + index * 0.1 }}
             >
               <WeeklyMomentumBar
-                category={category.label}
+                category={language === 'he' ? category.label : category.labelEn}
                 categoryIcon={category.icon}
                 completedDays={stats[category.id]}
                 color={category.color}
