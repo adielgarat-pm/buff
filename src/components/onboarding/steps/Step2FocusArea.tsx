@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Target, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -35,11 +36,17 @@ const LABELS: Record<string, Record<FocusArea, { title: string; desc: string }>>
 
 export function Step2FocusArea({ childName, initialValue, onNext, onBack }: Step2FocusAreaProps) {
   const { isRTL, language } = useLanguage();
+  const [tappedId, setTappedId] = useState<FocusArea | null>(null);
   const lang = language === 'he' ? 'he' : 'en';
   const isHe = lang === 'he';
   const name = childName || (isHe ? 'הילד/ה' : 'your child');
 
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
+
+  const handleSelect = (id: FocusArea) => {
+    setTappedId(id);
+    setTimeout(() => onNext({ focusArea: id }), 200);
+  };
 
   return (
     <div className="flex flex-col h-full" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -76,10 +83,11 @@ export function Step2FocusArea({ childName, initialValue, onNext, onBack }: Step
               <button
                 key={option.id}
                 type="button"
-                onClick={() => onNext({ focusArea: option.id })}
+                onClick={() => handleSelect(option.id)}
                 className={cn(
                   'flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all duration-200',
-                  'hover:border-primary/50 hover:bg-primary/5 active:scale-[0.97]',
+                  'hover:border-primary/50 hover:bg-primary/5',
+                  tappedId === option.id && 'scale-[0.93] opacity-80',
                   selected
                     ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
                     : 'border-border bg-card'
