@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { ParentDailyWinCard } from './ParentDailyWinCard';
 import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
@@ -219,6 +220,16 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                             )}
                           </div>
                         </div>
+                      )}
+
+                      {/* Daily Win Card - shows when child completed all tasks */}
+                      {progress && progress.tasksCompleted >= progress.tasksTotal && progress.tasksTotal > 0 && (
+                        <ParentDailyWinCard
+                          childName={child.displayName}
+                          creditsEarned={progress.todayEarned}
+                          tasksCompleted={progress.tasksCompleted}
+                          totalTasks={progress.tasksTotal}
+                        />
                       )}
 
                       <Button

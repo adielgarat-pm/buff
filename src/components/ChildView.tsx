@@ -22,8 +22,11 @@ import { BrowserDetectionBanner } from './BrowserDetectionBanner';
 import { IOSInstallBanner } from './IOSInstallBanner';
 import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
+import { PackCompletionCelebration } from './PackCompletionCelebration';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { usePackCompletion } from '@/hooks/usePackCompletion';
 import { Phase, getSmartPhaseForTime } from '@/types/phase';
 import { TaskCategory } from '@/types/task';
 
@@ -35,6 +38,7 @@ interface ChildViewProps {
 export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) {
   const { profile, signOut } = useAuth();
   const { t } = useLanguage();
+  const { isProUser } = useSubscription();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
   const [showNightMission, setShowNightMission] = useState(false);
 
@@ -84,6 +88,13 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     birthDate: childBirthDate,
     childName: childDisplayName || profile?.display_name,
   });
+
+  // Pack completion celebration - Pro users only
+  const {
+    showCelebration: showPackCelebration,
+    creditsEarned: packCreditsEarned,
+    dismissCelebration: dismissPackCelebration,
+  } = usePackCompletion({ tasks, isProUser });
 
   // Smart phase transitions based on school schedule
   const isSchoolDay = !isCurrentlyWeekend;
@@ -375,6 +386,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         childName={childDisplayName || profile?.display_name}
         age={age}
         onDismiss={dismissCelebration}
+      />
+
+      {/* Pack Completion Celebration - Pro users */}
+      <PackCompletionCelebration
+        show={showPackCelebration}
+        childName={childDisplayName || profile?.display_name}
+        creditsEarned={packCreditsEarned}
+        onDismiss={dismissPackCelebration}
       />
     </div>
   );

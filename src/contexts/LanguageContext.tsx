@@ -245,6 +245,21 @@ const translations: Record<Language, Record<string, string>> = {
     'birthday.wish': 'שיהיה לך יום מדהים מלא בשמחה והצלחות! ✨',
     'birthday.thanks': 'תודה! 🥳',
 
+    // Pack Completion Celebration
+    'celebration.greatJob': 'כל הכבוד!',
+    'celebration.champ': 'אלוף/ה',
+    'celebration.focusMuscles': 'השתמשת בשרירי הריכוז שלך היום! 💪',
+    'celebration.creditsEarned': 'קרדיטים שנצברו',
+    'celebration.continue': 'המשך להתקדם! 🚀',
+
+    // Parent Daily Win Card
+    'dailyWin.title': 'ניצחון יומי!',
+    'dailyWin.completedTasks': 'השלים/ה {count} מתוך {total} משימות',
+    'dailyWin.momentum': 'מומנטום יומי',
+    'dailyWin.coachingTitle': 'רגע אימון',
+    'dailyWin.coachingTip': '{name} סיים/ה את המשימות! זה הזמן לתת חיבוק ארוך או מחמאה ספציפית על המאמץ.',
+    'dailyWin.viewInsight': 'צפה בתובנה מעמיקה',
+
     // View As Child Banner
     'viewAsChild.viewing': 'צפייה כ-',
     'viewAsChild.backToParent': 'חזרה להורה',
@@ -1044,6 +1059,21 @@ const translations: Record<Language, Record<string, string>> = {
     'birthday.years': 'years!',
     'birthday.wish': 'Wishing you an amazing day full of joy and achievements! ✨',
     'birthday.thanks': 'Thanks! 🥳',
+
+    // Pack Completion Celebration
+    'celebration.greatJob': 'Great Job!',
+    'celebration.champ': 'Champ',
+    'celebration.focusMuscles': 'You used your focus muscles today! 💪',
+    'celebration.creditsEarned': 'Credits Earned',
+    'celebration.continue': 'Keep Going! 🚀',
+
+    // Parent Daily Win Card
+    'dailyWin.title': 'Daily Win!',
+    'dailyWin.completedTasks': 'completed {count} of {total} tasks',
+    'dailyWin.momentum': 'Daily Momentum',
+    'dailyWin.coachingTitle': 'Coaching Moment',
+    'dailyWin.coachingTip': '{name} just finished their tasks! This is a great time to give them a long hug or a specific compliment about their effort.',
+    'dailyWin.viewInsight': 'View Deep Insight',
 
     // View As Child Banner
     'viewAsChild.viewing': 'Viewing as ',
