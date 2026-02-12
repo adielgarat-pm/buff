@@ -61,7 +61,6 @@ const CATEGORIES: GradeCategory[] = [
       { value: '10', labelHe: 'י׳', labelEn: '10th' },
       { value: '11', labelHe: 'י״א', labelEn: '11th' },
       { value: '12', labelHe: 'י״ב', labelEn: '12th' },
-      { value: 'other', labelHe: 'אחר', labelEn: 'Other' },
     ],
   },
 ];
@@ -131,20 +130,20 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
 
   return (
     <div className="flex flex-col h-full" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="flex-1 px-4 pt-3 pb-2 space-y-3 overflow-y-auto">
+      <div className="flex-1 px-4 pt-2 pb-1 space-y-2 overflow-y-auto">
         {/* Compact Header */}
-        <div className="text-center space-y-0.5">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <Users className="w-5 h-5 text-primary" />
+        <div className="text-center space-y-0">
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <Users className="w-4.5 h-4.5 text-primary" />
           </div>
-          <h1 className="text-lg font-bold text-foreground leading-tight">
+          <h1 className="text-base font-bold text-foreground leading-tight">
             {isHe ? `בואו נתאים את BUFF ל${displayName}` : `Let's customize BUFF for ${displayName}`}
           </h1>
         </div>
 
         {/* Child Name */}
-        <div className="space-y-1">
-          <Label htmlFor="childName" className="text-sm font-medium">
+        <div className="space-y-0.5">
+          <Label htmlFor="childName" className="text-xs font-medium">
             {t('onboarding.step1.childName')}
           </Label>
           <Input
@@ -152,19 +151,19 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
             value={childName}
             onChange={(e) => setChildName(e.target.value)}
             placeholder={t('onboarding.step1.namePlaceholder')}
-            className="h-10 text-base"
+            className="h-9 text-sm"
             dir={isRTL ? 'rtl' : 'ltr'}
           />
         </div>
 
         {/* Grade Section */}
         {!showBirthYear ? (
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">
               {isHe
                 ? `באיזו מסגרת ${childName.trim() ? `${childName.trim()} נמצא/ת` : 'הילד/ה'}?`
-                : `What grade is ${childName.trim() || 'the child'} in?`}
-              <span className="text-muted-foreground font-normal mr-1 ml-1 text-xs">
+                : `Grade?`}
+              <span className="text-muted-foreground font-normal mr-1 ml-1">
                 ({isHe ? 'אופציונלי' : 'Optional'})
               </span>
             </Label>
@@ -177,7 +176,7 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
                   type="button"
                   onClick={() => setActiveCategory(cat.key)}
                   className={cn(
-                    'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all',
+                    'flex-1 py-1.5 text-[11px] font-semibold rounded-md transition-all',
                     activeCategory === cat.key
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
@@ -188,8 +187,8 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
               ))}
             </div>
 
-            {/* Grade Chips — 3-column grid */}
-            <div className="grid grid-cols-3 gap-1.5">
+            {/* Grade Chips — 3-column grid, tight gaps */}
+            <div className="grid grid-cols-3 gap-1">
               {activeCat.options.map((opt) => (
                 <button
                   key={opt.value}
@@ -198,10 +197,10 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
                     setSelectedGrade(selectedGrade === opt.value ? undefined : opt.value)
                   }
                   className={cn(
-                    'py-2 rounded-lg text-sm font-medium border transition-all text-center',
+                    'py-1.5 rounded-lg text-xs font-medium border transition-all text-center',
                     selectedGrade === opt.value
                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-background text-foreground border-border hover:border-primary/40 hover:bg-primary/5'
+                      : 'bg-background text-foreground border-border hover:border-primary/40'
                   )}
                 >
                   {isHe ? opt.labelHe : opt.labelEn}
@@ -209,21 +208,37 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
               ))}
             </div>
 
-            {/* Switch to birth year */}
+            {/* 'Other' chip — standalone, outlined, full-width */}
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedGrade(selectedGrade === 'other' ? undefined : 'other')
+              }
+              className={cn(
+                'w-full py-1.5 rounded-lg text-xs font-medium border transition-all text-center',
+                selectedGrade === 'other'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-background text-muted-foreground border-border border-dashed hover:border-primary/40 hover:text-foreground'
+              )}
+            >
+              {isHe ? 'אחר / לא רלוונטי' : 'Other / N/A'}
+            </button>
+
+            {/* Switch to birth year — minimal */}
             <button
               type="button"
               onClick={() => setShowBirthYear(true)}
-              className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              className="flex items-center justify-center gap-1 w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors"
             >
-              <CalendarDays className="w-3.5 h-3.5" />
+              <CalendarDays className="w-3 h-3" />
               {isHe ? 'להזין שנת לידה במקום' : 'Enter birth year instead'}
             </button>
           </div>
         ) : (
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">
               {isHe ? 'שנת לידה' : 'Birth year'}
-              <span className="text-muted-foreground font-normal mr-1 ml-1 text-xs">
+              <span className="text-muted-foreground font-normal mr-1 ml-1">
                 ({isHe ? 'אופציונלי' : 'Optional'})
               </span>
             </Label>
@@ -232,7 +247,7 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
               value={birthYear}
               onChange={(e) => setBirthYear(e.target.value)}
               placeholder={isHe ? 'לדוגמה: 2015' : 'e.g., 2015'}
-              className="h-10 text-base w-36"
+              className="h-9 text-sm w-32"
               min={2000}
               max={new Date().getFullYear()}
               autoFocus
@@ -240,19 +255,19 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
             <button
               type="button"
               onClick={() => setShowBirthYear(false)}
-              className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              className="flex items-center justify-center gap-1 w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
               {isHe ? 'חזרה לבחירת כיתה' : 'Back to grade selection'}
             </button>
           </div>
         )}
 
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && <p className="text-[11px] text-destructive">{error}</p>}
       </div>
 
       {/* CTA pinned to bottom */}
-      <div className="px-4 pb-5 pt-2 flex-shrink-0">
+      <div className="px-4 pb-4 pt-1.5 flex-shrink-0">
         <Button
           onClick={handleSubmit}
           disabled={isLoading || !childName.trim()}
