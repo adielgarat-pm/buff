@@ -274,6 +274,7 @@ export type Database = {
           display_name: string
           family_id: string | null
           id: string
+          is_activated: boolean
           is_lifetime_access: boolean
           is_pro: boolean
           marketing_consent: boolean
@@ -298,6 +299,7 @@ export type Database = {
           display_name: string
           family_id?: string | null
           id?: string
+          is_activated?: boolean
           is_lifetime_access?: boolean
           is_pro?: boolean
           marketing_consent?: boolean
@@ -322,6 +324,7 @@ export type Database = {
           display_name?: string
           family_id?: string | null
           id?: string
+          is_activated?: boolean
           is_lifetime_access?: boolean
           is_pro?: boolean
           marketing_consent?: boolean

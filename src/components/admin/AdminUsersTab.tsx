@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import { Loader2, Crown, Sparkles, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -27,6 +28,8 @@ interface AdminProfile {
   family_id: string | null;
   is_pro: boolean;
   is_lifetime_access: boolean;
+  is_activated: boolean;
+  onboarding_step: number;
   created_at: string;
   family_name: string | null;
   family_code: string | null;
@@ -184,12 +187,13 @@ export function AdminUsersTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Family</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead className="text-center">Pro</TableHead>
-                    <TableHead className="text-center">Lifetime</TableHead>
+                     <TableHead>Name</TableHead>
+                     <TableHead>Email</TableHead>
+                     <TableHead>Family</TableHead>
+                     <TableHead>Onboarding</TableHead>
+                     <TableHead>Joined</TableHead>
+                     <TableHead className="text-center">Pro</TableHead>
+                     <TableHead className="text-center">Lifetime</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -226,8 +230,16 @@ export function AdminUsersTab() {
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
+                         </TableCell>
+                         <TableCell>
+                           <div className="flex items-center gap-2 min-w-[100px]">
+                             <Progress value={Math.round((profile.onboarding_step / 6) * 100)} className="h-1.5 w-14" />
+                             <span className="text-xs text-muted-foreground">
+                               {profile.onboarding_step >= 6 ? '✅' : `${profile.onboarding_step}/6`}
+                             </span>
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(profile.created_at), 'dd/MM/yyyy')}
                         </TableCell>
                         <TableCell className="text-center">

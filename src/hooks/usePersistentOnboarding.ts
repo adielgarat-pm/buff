@@ -14,6 +14,7 @@ export interface OnboardingDraft {
   schoolFeature?: SchoolFeature;
   firstTask?: string;
   weekendReward?: string;
+  childProfileId?: string; // Set after Step 1 early commit
   lastCompletedStep: number;
   updatedAt: string;
 }
