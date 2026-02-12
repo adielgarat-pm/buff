@@ -97,71 +97,98 @@ export function ParentView() {
       return;
     }
 
-    try {
-      // Create child profile with birth_date
-      const { data: childProfile, error: childError } = await supabase
-        .from('profiles')
-        .insert({
-          display_name: onboardingData.childName,
-          role: 'child',
-          family_id: profile.family_id,
-          daily_goal: 70,
-          birth_date: format(onboardingData.birthDate, 'yyyy-MM-dd'),
-          school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
-          bag_prep_enabled: onboardingData.schoolFeature === 'evening_prep',
-        })
-        .select()
-        .single();
+    const maxRetries = 2;
+    let attempt = 0;
 
-      if (childError) throw childError;
+    const tryCreateChild = async (): Promise<void> => {
+      attempt++;
+      try {
+        // Step 1: Create child profile (critical — if this fails, abort)
+        const { data: childProfile, error: childError } = await supabase
+          .from('profiles')
+          .insert({
+            display_name: onboardingData.childName,
+            role: 'child',
+            family_id: profile.family_id,
+            daily_goal: 70,
+            birth_date: format(onboardingData.birthDate, 'yyyy-MM-dd'),
+            school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
+            bag_prep_enabled: onboardingData.schoolFeature === 'evening_prep',
+          })
+          .select()
+          .single();
 
-      // Map focus area to valid task categories (5-category system)
-      const categoryMap: Record<string, string> = {
-        'homework': 'learning',
-        'project': 'learning',
-        'fitness': 'movement',
-        'home': 'responsibility',
-      };
+        if (childError) throw childError;
 
-      // Create first task for the child
-      const { error: taskError } = await supabase
-        .from('tasks')
-        .insert({
-          family_id: profile.family_id,
-          assigned_to: childProfile.id,
-          title: onboardingData.firstTask,
-          category: categoryMap[onboardingData.focusArea] || 'learning',
-          time: '16:00',
-          credits: 15,
+        // Map focus area to valid task categories (5-category system)
+        const categoryMap: Record<string, string> = {
+          'homework': 'learning',
+          'project': 'learning',
+          'fitness': 'movement',
+          'home': 'responsibility',
+        };
+
+        // Step 2: Create first task + reward in parallel (non-critical — warn on failure)
+        const [taskResult, rewardResult] = await Promise.allSettled([
+          supabase.from('tasks').insert({
+            family_id: profile.family_id,
+            assigned_to: childProfile.id,
+            title: onboardingData.firstTask,
+            category: categoryMap[onboardingData.focusArea] || 'learning',
+            time: '16:00',
+            credits: 15,
+          }),
+          supabase.from('store_rewards').insert({
+            family_id: profile.family_id,
+            assigned_to: childProfile.id,
+            title: onboardingData.weekendReward,
+            emoji: '🎉',
+            price: 100,
+          }),
+        ]);
+
+        const warnings: string[] = [];
+        if (taskResult.status === 'rejected' || (taskResult.status === 'fulfilled' && taskResult.value.error)) {
+          warnings.push('המשימה הראשונה');
+        }
+        if (rewardResult.status === 'rejected' || (rewardResult.status === 'fulfilled' && rewardResult.value.error)) {
+          warnings.push('הפרס הראשון');
+        }
+
+        // Close modal and refresh
+        setOnboardingOpen(false);
+        await refetchChildren();
+
+        if (warnings.length > 0) {
+          toast.warning(`${onboardingData.childName} נוסף/ה בהצלחה, אבל לא הצלחנו ליצור: ${warnings.join(' ו')}. אפשר להוסיף אותם ידנית בהגדרות.`);
+        } else {
+          toast.success(`${onboardingData.childName} ${t('parentSettings.childAddedSuccess')}`);
+        }
+
+        // Navigate to the new child's settings
+        setSelectedChildIdForSettings(childProfile.id);
+        setActiveTab('settings');
+      } catch (error: any) {
+        console.error(`Onboarding attempt ${attempt} failed:`, error);
+
+        if (attempt < maxRetries) {
+          toast.error('שגיאה ביצירת הפרופיל, מנסה שוב...', { duration: 2000 });
+          await new Promise(r => setTimeout(r, 1500));
+          return tryCreateChild();
+        }
+
+        // Final failure — show actionable error with manual retry
+        toast.error('לא הצלחנו ליצור את הפרופיל. בדקו את החיבור לאינטרנט ונסו שוב.', {
+          duration: 6000,
+          action: {
+            label: 'נסה שוב',
+            onClick: () => handleOnboardingComplete(onboardingData),
+          },
         });
+      }
+    };
 
-      if (taskError) console.error('Task creation error:', taskError);
-
-      // Create first reward
-      const { error: rewardError } = await supabase
-        .from('store_rewards')
-        .insert({
-          family_id: profile.family_id,
-          assigned_to: childProfile.id,
-          title: onboardingData.weekendReward,
-          emoji: '🎉',
-          price: 100,
-        });
-
-      if (rewardError) console.error('Reward creation error:', rewardError);
-
-      // Close modal and refresh
-      setOnboardingOpen(false);
-      await refetchChildren();
-      toast.success(`${onboardingData.childName} ${t('parentSettings.childAddedSuccess')}`);
-
-      // Navigate to the new child's settings
-      setSelectedChildIdForSettings(childProfile.id);
-      setActiveTab('settings');
-    } catch (error) {
-      console.error('Onboarding error:', error);
-      toast.error(t('parentSettings.childCreateError'));
-    }
+    await tryCreateChild();
   };
 
   const renderTabContent = () => {
