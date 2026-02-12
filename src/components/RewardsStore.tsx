@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StoreReward } from '@/types/task';
 import { Button } from './ui/button';
-import { Vault, Gift, Check, Lock, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Vault, Gift, Check, Lock, ChevronLeft, ChevronRight, Sparkles, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -67,6 +67,11 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
               <h1 className="text-xl font-bold text-foreground">{t('store.title')}</h1>
               <p className="text-sm text-muted-foreground">{t('store.subtitle')}</p>
             </div>
+          </div>
+          {/* Effort reinforcement banner */}
+          <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/50 border border-accent">
+            <Heart className="w-4 h-4 text-primary flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">{t('store.effortMessage')}</p>
           </div>
         </div>
       </div>
