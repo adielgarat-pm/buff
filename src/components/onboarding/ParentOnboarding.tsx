@@ -141,14 +141,11 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
     // Update child profile in DB if applicable (steps 2-3 affect child profile)
     if (draft.childProfileId && (updates.schoolFeature !== undefined)) {
       try {
-        // Map starter pack to profile booleans
         const learningPacks = ['school_quest', 'homework_hero'];
-        const homePacks = ['morning_pro', 'room_power'];
         await supabase
           .from('profiles')
           .update({
             school_quest_enabled: learningPacks.includes(updates.schoolFeature || ''),
-            bag_prep_enabled: homePacks.includes(updates.schoolFeature || ''),
           })
           .eq('id', draft.childProfileId);
       } catch (e) {
@@ -245,6 +242,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
             focusArea={draft.focusArea}
             onNext={(stepData) => handleStepUpdate(3, { schoolFeature: stepData.schoolFeature }, 4)}
             onBack={() => goToStep(2)}
+            onUpgrade={() => toast.info('שדרגו ל-BUFF Pro כדי לפתוח ערכות פרימיום!')}
           />
         )}
         
