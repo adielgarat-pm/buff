@@ -18,24 +18,29 @@ interface Step1ProfileProps {
   isLoading?: boolean;
 }
 
-interface GradeGroup {
-  titleHe: string;
-  titleEn: string;
+type CategoryKey = 'early' | 'elementary' | 'secondary';
+
+interface GradeCategory {
+  key: CategoryKey;
+  labelHe: string;
+  labelEn: string;
   options: { value: GradeOption; labelHe: string; labelEn: string }[];
 }
 
-const GRADE_GROUPS: GradeGroup[] = [
+const CATEGORIES: GradeCategory[] = [
   {
-    titleHe: 'גיל הרך',
-    titleEn: 'Early childhood',
+    key: 'early',
+    labelHe: 'גיל הרך',
+    labelEn: 'Early',
     options: [
       { value: 'preschool', labelHe: 'טרום חובה', labelEn: 'Pre-K' },
       { value: 'kindergarten', labelHe: 'גן חובה', labelEn: 'K' },
     ],
   },
   {
-    titleHe: 'יסודי',
-    titleEn: 'Elementary',
+    key: 'elementary',
+    labelHe: 'יסודי',
+    labelEn: 'Elementary',
     options: [
       { value: '1', labelHe: 'א׳', labelEn: '1st' },
       { value: '2', labelHe: 'ב׳', labelEn: '2nd' },
@@ -46,8 +51,9 @@ const GRADE_GROUPS: GradeGroup[] = [
     ],
   },
   {
-    titleHe: 'חטיבה ותיכון',
-    titleEn: 'Middle & High',
+    key: 'secondary',
+    labelHe: 'חטיבה ותיכון',
+    labelEn: 'Middle & High',
     options: [
       { value: '7', labelHe: 'ז׳', labelEn: '7th' },
       { value: '8', labelHe: 'ח׳', labelEn: '8th' },
@@ -60,7 +66,13 @@ const GRADE_GROUPS: GradeGroup[] = [
   },
 ];
 
-/** Map a grade to an approximate birth date (September 1st of the inferred birth year). */
+function findCategoryForGrade(grade: GradeOption): CategoryKey {
+  for (const cat of CATEGORIES) {
+    if (cat.options.some((o) => o.value === grade)) return cat.key;
+  }
+  return 'elementary';
+}
+
 export function gradeToApproxBirthDate(grade: GradeOption): Date | undefined {
   const currentYear = new Date().getFullYear();
   const gradeAgeMap: Record<string, number> = {
@@ -77,6 +89,9 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
   const { t, isRTL, language } = useLanguage();
   const [childName, setChildName] = useState(initialData?.childName || '');
   const [selectedGrade, setSelectedGrade] = useState<GradeOption | undefined>(initialData?.grade);
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>(
+    initialData?.grade ? findCategoryForGrade(initialData.grade) : 'elementary'
+  );
   const [showBirthYear, setShowBirthYear] = useState(false);
   const [birthYear, setBirthYear] = useState<string>(
     initialData?.birthDate ? String(initialData.birthDate.getFullYear()) : ''
@@ -85,7 +100,10 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
 
   useEffect(() => {
     if (initialData?.childName) setChildName(initialData.childName);
-    if (initialData?.grade) setSelectedGrade(initialData.grade);
+    if (initialData?.grade) {
+      setSelectedGrade(initialData.grade);
+      setActiveCategory(findCategoryForGrade(initialData.grade));
+    }
     if (initialData?.birthDate) setBirthYear(String(initialData.birthDate.getFullYear()));
   }, [initialData]);
 
@@ -95,7 +113,6 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
       return;
     }
     setError('');
-
     let birthDate: Date | undefined;
     if (showBirthYear && birthYear) {
       const yr = parseInt(birthYear);
@@ -105,32 +122,29 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
     } else if (selectedGrade) {
       birthDate = gradeToApproxBirthDate(selectedGrade);
     }
-
     onNext({ childName: childName.trim(), birthDate, grade: selectedGrade });
   };
 
   const isHe = language === 'he';
   const displayName = childName.trim() || (isHe ? 'הילד/ה' : 'your child');
+  const activeCat = CATEGORIES.find((c) => c.key === activeCategory)!;
 
   return (
     <div className="flex flex-col h-full" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="flex-1 px-5 py-4 space-y-5 overflow-y-auto">
-        {/* Header */}
-        <div className="text-center space-y-1">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <Users className="w-6 h-6 text-primary" />
+      <div className="flex-1 px-4 pt-3 pb-2 space-y-3 overflow-y-auto">
+        {/* Compact Header */}
+        <div className="text-center space-y-0.5">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <Users className="w-5 h-5 text-primary" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">
+          <h1 className="text-lg font-bold text-foreground leading-tight">
             {isHe ? `בואו נתאים את BUFF ל${displayName}` : `Let's customize BUFF for ${displayName}`}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {t('onboarding.step1.subtitle')}
-          </p>
         </div>
 
-        {/* Child Name (required) */}
-        <div className="space-y-1.5">
-          <Label htmlFor="childName" className="block text-sm font-medium">
+        {/* Child Name */}
+        <div className="space-y-1">
+          <Label htmlFor="childName" className="text-sm font-medium">
             {t('onboarding.step1.childName')}
           </Label>
           <Input
@@ -138,115 +152,114 @@ export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfilePro
             value={childName}
             onChange={(e) => setChildName(e.target.value)}
             placeholder={t('onboarding.step1.namePlaceholder')}
-            className="h-11 text-base"
+            className="h-10 text-base"
             dir={isRTL ? 'rtl' : 'ltr'}
           />
         </div>
 
-        {/* Grade / Birth Year section (optional) */}
-        <div className="space-y-3">
-          <Label className="block text-sm font-medium">
-            {isHe
-              ? `באיזו מסגרת ${childName.trim() ? `${childName.trim()} נמצא/ת` : 'הילד/ה נמצא/ת'}?`
-              : `What grade is ${childName.trim() || 'the child'} in?`}
-            <span className="text-muted-foreground font-normal mr-1 ml-1">
-              ({isHe ? 'אופציונלי' : 'Optional'})
-            </span>
-          </Label>
+        {/* Grade Section */}
+        {!showBirthYear ? (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              {isHe
+                ? `באיזו מסגרת ${childName.trim() ? `${childName.trim()} נמצא/ת` : 'הילד/ה'}?`
+                : `What grade is ${childName.trim() || 'the child'} in?`}
+              <span className="text-muted-foreground font-normal mr-1 ml-1 text-xs">
+                ({isHe ? 'אופציונלי' : 'Optional'})
+              </span>
+            </Label>
 
-          {!showBirthYear ? (
-            <div className="space-y-3">
-              {/* Grouped Grade Chips */}
-              {GRADE_GROUPS.map((group, gi) => (
-                <div key={gi} className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {isHe ? group.titleHe : group.titleEn}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {group.options.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() =>
-                          setSelectedGrade(selectedGrade === opt.value ? undefined : opt.value)
-                        }
-                        className={cn(
-                          'px-3 py-1.5 rounded-full text-sm font-medium border transition-all',
-                          selectedGrade === opt.value
-                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                            : 'bg-background text-foreground border-border hover:border-primary/40 hover:bg-primary/5'
-                        )}
-                      >
-                        {isHe ? opt.labelHe : opt.labelEn}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* Segmented Tabs */}
+            <div className="flex rounded-lg bg-muted/60 p-0.5 gap-0.5">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.key)}
+                  className={cn(
+                    'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all',
+                    activeCategory === cat.key
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {isHe ? cat.labelHe : cat.labelEn}
+                </button>
               ))}
-
-              {/* Switch to birth year — secondary button */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBirthYear(true)}
-                className="w-full gap-2 text-muted-foreground hover:text-foreground mt-1"
-              >
-                <CalendarDays className="w-4 h-4" />
-                {isHe ? 'אני מעדיפ/ה להזין שנת לידה' : 'Prefer to enter birth year instead'}
-              </Button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {/* Birth Year Input */}
-              <div className="flex items-center gap-3">
-                <Input
-                  type="number"
-                  value={birthYear}
-                  onChange={(e) => setBirthYear(e.target.value)}
-                  placeholder={isHe ? 'לדוגמה: 2015' : 'e.g., 2015'}
-                  className="h-11 text-base w-36"
-                  min={2000}
-                  max={new Date().getFullYear()}
-                  autoFocus
-                />
-                <span className="text-sm text-muted-foreground">
-                  {isHe ? 'שנת לידה' : 'Birth year'}
-                </span>
-              </div>
 
-              {/* Back to grades — secondary button */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBirthYear(false)}
-                className="w-full gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <ArrowRight className="w-4 h-4" />
-                {isHe ? 'חזרה לבחירת כיתה' : 'Back to grade selection'}
-              </Button>
+            {/* Grade Chips — 3-column grid */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {activeCat.options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    setSelectedGrade(selectedGrade === opt.value ? undefined : opt.value)
+                  }
+                  className={cn(
+                    'py-2 rounded-lg text-sm font-medium border transition-all text-center',
+                    selectedGrade === opt.value
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-background text-foreground border-border hover:border-primary/40 hover:bg-primary/5'
+                  )}
+                >
+                  {isHe ? opt.labelHe : opt.labelEn}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+
+            {/* Switch to birth year */}
+            <button
+              type="button"
+              onClick={() => setShowBirthYear(true)}
+              className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              {isHe ? 'להזין שנת לידה במקום' : 'Enter birth year instead'}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              {isHe ? 'שנת לידה' : 'Birth year'}
+              <span className="text-muted-foreground font-normal mr-1 ml-1 text-xs">
+                ({isHe ? 'אופציונלי' : 'Optional'})
+              </span>
+            </Label>
+            <Input
+              type="number"
+              value={birthYear}
+              onChange={(e) => setBirthYear(e.target.value)}
+              placeholder={isHe ? 'לדוגמה: 2015' : 'e.g., 2015'}
+              className="h-10 text-base w-36"
+              min={2000}
+              max={new Date().getFullYear()}
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={() => setShowBirthYear(false)}
+              className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+            >
+              <ArrowRight className="w-3.5 h-3.5" />
+              {isHe ? 'חזרה לבחירת כיתה' : 'Back to grade selection'}
+            </button>
+          </div>
+        )}
 
         {error && <p className="text-xs text-destructive">{error}</p>}
-
-        <p className="text-xs text-muted-foreground/80 leading-relaxed">
-          {isHe
-            ? '💡 בחירת כיתה עוזרת לנו להתאים את המשימות. אפשר לדלג ולהוסיף אחר כך.'
-            : '💡 Selecting a grade helps us tailor tasks. You can skip and add later.'}
-        </p>
       </div>
 
-      <div className="px-5 pb-6 pt-3 flex-shrink-0">
+      {/* CTA pinned to bottom */}
+      <div className="px-4 pb-5 pt-2 flex-shrink-0">
         <Button
           onClick={handleSubmit}
           disabled={isLoading || !childName.trim()}
-          className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-l from-primary to-success"
+          className="w-full h-11 text-base font-bold rounded-xl bg-gradient-to-l from-primary to-success"
           size="lg"
         >
-          {isLoading ? (isHe ? 'יוצר פרופיל...' : 'Creating profile...') : t('onboarding.step1.cta')}
+          {isLoading ? (isHe ? 'יוצר פרופיל...' : 'Creating...') : t('onboarding.step1.cta')}
         </Button>
       </div>
     </div>
