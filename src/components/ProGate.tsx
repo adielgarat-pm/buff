@@ -9,10 +9,10 @@ interface ProGateProps {
 }
 
 export function ProGate({ children, fallback }: ProGateProps) {
-  const { isPro } = useSubscription();
+  const { isProUser } = useSubscription();
   const [showModal, setShowModal] = useState(false);
 
-  if (isPro) {
+  if (isProUser) {
     return <>{children}</>;
   }
 

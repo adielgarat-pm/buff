@@ -9,6 +9,7 @@ interface Profile {
   display_name: string;
   role: 'parent' | 'child';
   is_pro: boolean;
+  is_lifetime_access: boolean;
   pro_settings: Record<string, unknown>;
 }
 

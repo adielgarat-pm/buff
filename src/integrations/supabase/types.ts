@@ -274,6 +274,7 @@ export type Database = {
           display_name: string
           family_id: string | null
           id: string
+          is_lifetime_access: boolean
           is_pro: boolean
           marketing_consent: boolean
           onboarding_data: Json | null
@@ -297,6 +298,7 @@ export type Database = {
           display_name: string
           family_id?: string | null
           id?: string
+          is_lifetime_access?: boolean
           is_pro?: boolean
           marketing_consent?: boolean
           onboarding_data?: Json | null
@@ -320,6 +322,7 @@ export type Database = {
           display_name?: string
           family_id?: string | null
           id?: string
+          is_lifetime_access?: boolean
           is_pro?: boolean
           marketing_consent?: boolean
           onboarding_data?: Json | null
