@@ -23,10 +23,12 @@ import { IOSInstallBanner } from './IOSInstallBanner';
 import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { PackCompletionCelebration } from './PackCompletionCelebration';
+import { PetDisplay } from './PetDisplay';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePackCompletion } from '@/hooks/usePackCompletion';
+import { useChildPet } from '@/hooks/useChildPet';
 import { Phase, getSmartPhaseForTime } from '@/types/phase';
 import { TaskCategory } from '@/types/task';
 
@@ -95,6 +97,22 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     creditsEarned: packCreditsEarned,
     dismissCelebration: dismissPackCelebration,
   } = usePackCompletion({ tasks, isProUser });
+
+  // Pet module - Pro users only
+  const childPet = useChildPet(viewingChildId);
+  const [petJustCompletedTask, setPetJustCompletedTask] = useState(false);
+
+  // Wrap completeTask to also feed pet XP
+  const handleCompleteTask = useCallback((taskId: string) => {
+    completeTask(taskId);
+    if (isProUser) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        childPet.onTaskCompleted(task.credits || 10);
+        setPetJustCompletedTask(true);
+      }
+    }
+  }, [completeTask, isProUser, tasks, childPet]);
 
   // Smart phase transitions based on school schedule
   const isSchoolDay = !isCurrentlyWeekend;
@@ -247,6 +265,18 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 schoolQuestEnabled={schoolQuestEnabled}
               />
 
+              {/* Pet Display - Pro users, above the fold */}
+              {isProUser && (
+                <div className="rounded-2xl bg-card border border-border p-3">
+                  <PetDisplay
+                    childName={childDisplayName || profile?.display_name}
+                    childId={viewingChildId}
+                    justCompletedTask={petJustCompletedTask}
+                    onTaskCompletionAck={() => setPetJustCompletedTask(false)}
+                  />
+                </div>
+              )}
+
               {/* Focus Fuel Meter */}
               <ProgressBar
                 earned={earnedCredits}
@@ -290,7 +320,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 lessons={todayLessons}
                 timetable={timetable}
                 todaySchedule={todaySchedule}
-                onCompleteTask={completeTask}
+                onCompleteTask={handleCompleteTask}
                 onUncompleteTask={uncompleteTask}
                 onToggleLesson={toggleLesson}
                 onBuffActivated={activateBuff}
