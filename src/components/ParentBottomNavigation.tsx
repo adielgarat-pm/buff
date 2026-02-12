@@ -1,4 +1,4 @@
-import { Activity, Sliders, BarChart3, Eye, ShieldCheck } from 'lucide-react';
+import { Activity, Sliders, Lightbulb, Eye, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +26,7 @@ export function ParentBottomNavigation({
   const NAV_ITEMS = [
     { id: 'overview' as const, label: t('parentNav.monitoring'), icon: Activity },
     { id: 'settings' as const, label: t('parentNav.settings'), icon: Sliders },
-    { id: 'reports' as const, label: t('parentNav.reports'), icon: BarChart3 },
+    { id: 'reports' as const, label: t('parentNav.insights'), icon: Lightbulb },
   ];
 
   const handleTabChange = (tab: ParentNavTab) => {

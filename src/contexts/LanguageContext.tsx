@@ -501,7 +501,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Parent Bottom Navigation
     'parentNav.monitoring': 'מעקב',
     'parentNav.settings': 'הגדרות',
-    'parentNav.reports': 'דוחות',
+    'parentNav.insights': 'תובנות',
     'parentNav.viewAsChild': 'צפה כילד',
 
     // Parent Family Overview
@@ -1372,7 +1372,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Parent Bottom Navigation
     'parentNav.monitoring': 'Monitoring',
     'parentNav.settings': 'Settings',
-    'parentNav.reports': 'Reports',
+    'parentNav.insights': 'Insights',
     'parentNav.viewAsChild': 'View as Child',
 
     // Parent Family Overview
