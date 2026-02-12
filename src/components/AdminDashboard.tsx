@@ -7,11 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2 } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { AppPulseTabV2 } from '@/components/admin/AppPulseTabV2';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
 
 function calculateAge(birthDate: string | null): string {
   if (!birthDate) return 'לא צוין';
@@ -161,10 +162,14 @@ export function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="pulse" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
               App Pulse
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Crown className="w-4 h-4" />
+              Users / Pro
             </TabsTrigger>
             <TabsTrigger value="pwa" className="flex items-center gap-2">
               <Download className="w-4 h-4" />
@@ -179,6 +184,10 @@ export function AdminDashboard() {
           {/* App Pulse Tab */}
           <TabsContent value="pulse" className="mt-6">
             <AppPulseTabV2 isAdmin={isAdmin} />
+          </TabsContent>
+          {/* Users / Pro Tab */}
+          <TabsContent value="users" className="mt-6">
+            <AdminUsersTab />
           </TabsContent>
 
           {/* PWA Analytics Tab */}
