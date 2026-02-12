@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, PeriodInfo } from '@/types/task';
+import { Timetable, WeekDay, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WEEK_DAY_LABELS_EN, PeriodInfo } from '@/types/task';
 import { Backpack, CheckCircle2, Moon, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TomorrowsPrepProps {
   timetable: Timetable;
@@ -9,15 +10,14 @@ interface TomorrowsPrepProps {
 }
 
 export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPrepProps) {
-  const displayDays = fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS;
+  const { t, language } = useLanguage();
+  const dayLabels = language === 'he' ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
   
-  // Get tomorrow's day
   const tomorrowData = useMemo(() => {
     const today = new Date();
-    const todayIndex = today.getDay(); // 0 = Sunday
+    const todayIndex = today.getDay();
     const tomorrowIndex = (todayIndex + 1) % 7;
     
-    // Map JS day index to WeekDay
     const dayMap: Record<number, WeekDay | null> = {
       0: 'sunday',
       1: 'monday',
@@ -25,7 +25,7 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
       3: 'wednesday',
       4: 'thursday',
       5: fridayEnabled ? 'friday' : null,
-      6: null, // Saturday - no school
+      6: null,
     };
     
     const tomorrowDay = dayMap[tomorrowIndex];
@@ -33,15 +33,12 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
       return { day: null, lessons: [], hasEquipment: false };
     }
     
-    // Only include lessons with actual subject content
     const lessons = (timetable[tomorrowDay] || []).filter(p => p.subject && p.subject.trim() !== '');
-    // Only count equipment if it has actual content
     const hasEquipment = lessons.some(p => p.equipment && p.equipment.trim() !== '');
     
     return { day: tomorrowDay, lessons, hasEquipment };
   }, [timetable, fridayEnabled]);
 
-  // Group equipment by lesson - only include items with actual equipment content
   const equipmentList = useMemo(() => {
     return tomorrowData.lessons
       .filter(lesson => lesson.equipment && lesson.equipment.trim() !== '')
@@ -52,7 +49,6 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
       }));
   }, [tomorrowData.lessons]);
 
-  // If tomorrow is not a school day
   if (!tomorrowData.day) {
     return (
       <div className="rounded-2xl bg-card border border-border p-6 text-center">
@@ -60,16 +56,15 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
           <Moon className="w-8 h-8 text-buff" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">
-          מחר יום חופש! 🎉
+          {t('prep.tomorrowOff')}
         </h3>
         <p className="text-sm text-muted-foreground">
-          אין צורך להכין תיק - תהנה מהמנוחה!
+          {t('prep.noBagPrep')}
         </p>
       </div>
     );
   }
 
-  // If no lessons with equipment
   if (equipmentList.length === 0) {
     return (
       <div className="rounded-2xl bg-card border border-border p-6">
@@ -78,9 +73,9 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
             <Backpack className="w-6 h-6 text-buff" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">הכנה למחר</h3>
+            <h3 className="font-bold text-foreground">{t('prep.prepForTomorrow')}</h3>
             <p className="text-sm text-muted-foreground">
-              {WEEK_DAY_LABELS[tomorrowData.day]} - {tomorrowData.lessons.length} שיעורים
+              {dayLabels[tomorrowData.day]} - {tomorrowData.lessons.length} {t('timetable.lessons')}
             </p>
           </div>
         </div>
@@ -88,7 +83,7 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
         <div className="p-4 rounded-xl bg-secondary/50 text-center">
           <CheckCircle2 className="w-8 h-8 text-primary/50 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            לא הוגדר ציוד מיוחד למחר
+            {t('prep.noSpecialEquipment')}
           </p>
         </div>
       </div>
@@ -97,23 +92,21 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-buff/5 to-primary/5 border border-buff/30 p-4 space-y-4">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-buff/20 flex items-center justify-center">
           <Backpack className="w-6 h-6 text-buff" />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-foreground">הכנה למחר</h3>
+            <h3 className="font-bold text-foreground">{t('prep.prepForTomorrow')}</h3>
             <Sparkles className="w-4 h-4 text-buff animate-pulse" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {WEEK_DAY_LABELS[tomorrowData.day]} - צ'קליסט ציוד
+            {dayLabels[tomorrowData.day]} - {t('prep.equipmentChecklist')}
           </p>
         </div>
       </div>
 
-      {/* Equipment checklist */}
       <div className="space-y-3">
         {equipmentList.map((item, index) => (
           <div
@@ -144,10 +137,9 @@ export function TomorrowsPrep({ timetable, fridayEnabled = false }: TomorrowsPre
         ))}
       </div>
 
-      {/* Motivational footer */}
       <div className="text-center pt-2">
         <p className="text-xs text-muted-foreground">
-          הכנת את התיק? מעולה! יום מחר יהיה קל יותר 💪
+          {t('prep.bagReady')}
         </p>
       </div>
     </div>

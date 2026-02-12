@@ -1,4 +1,4 @@
-import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WeekDay, PeriodInfo } from '@/types/task';
+import { Timetable, WEEK_DAYS, WEEK_DAYS_WITH_FRIDAY, WEEK_DAY_LABELS, WEEK_DAY_LABELS_EN, WeekDay, PeriodInfo } from '@/types/task';
 import { Clock, BookOpen, Settings2, Check, X, Backpack } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useMemo } from 'react';
@@ -7,23 +7,24 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { TimetableEditor } from './TimetableEditor';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WeeklyTimetableProps {
   timetable: Timetable;
   onUpdateTimetable: (timetable: Timetable) => void;
   fridayEnabled?: boolean;
-  isParentView?: boolean; // Zen styling for parent
+  isParentView?: boolean;
 }
 
 export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = false, isParentView = false }: WeeklyTimetableProps) {
+  const { t, language } = useLanguage();
   const [editorOpen, setEditorOpen] = useState(false);
+  const dayLabels = language === 'he' ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
   
-  // Determine which days to show
   const displayDays = useMemo(() => fridayEnabled ? WEEK_DAYS_WITH_FRIDAY : WEEK_DAYS, [fridayEnabled]);
   
   const [selectedDay, setSelectedDay] = useState<WeekDay>(() => {
     const dayIndex = new Date().getDay();
-    // Default to today if it's a school day, otherwise Sunday
     if (dayIndex >= 0 && dayIndex <= 4) {
       return WEEK_DAYS[dayIndex];
     }
@@ -33,7 +34,6 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
     return 'sunday';
   });
   
-  // Inline editing state
   const [editingPeriod, setEditingPeriod] = useState<{ day: WeekDay; index: number } | null>(null);
   const [editingSubject, setEditingSubject] = useState('');
   const [editingTime, setEditingTime] = useState('');
@@ -46,9 +46,6 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   };
 
   const selectedSchedule = timetable[selectedDay] || [];
-  
-  // Filter to only show lessons with subjects in view mode
-  // This hides empty/placeholder slots for a cleaner view
   const displaySchedule = selectedSchedule.filter(p => p.subject && p.subject.trim() !== '');
 
   const handleStartEdit = (day: WeekDay, index: number, period: PeriodInfo) => {
@@ -60,10 +57,8 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
 
   const handleSaveEdit = () => {
     if (!editingPeriod) return;
-
     const updatedTimetable = { ...timetable };
     const daySchedule = [...(updatedTimetable[editingPeriod.day] || [])];
-    
     if (daySchedule[editingPeriod.index]) {
       daySchedule[editingPeriod.index] = {
         subject: editingSubject,
@@ -73,7 +68,6 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
       updatedTimetable[editingPeriod.day] = daySchedule;
       onUpdateTimetable(updatedTimetable);
     }
-    
     setEditingPeriod(null);
   };
 
@@ -87,23 +81,17 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   const handleAddPeriod = () => {
     const updatedTimetable = { ...timetable };
     const daySchedule = [...(updatedTimetable[selectedDay] || [])];
-    
-    // Find the next available time slot
     const lastPeriod = daySchedule[daySchedule.length - 1];
     const nextTime = lastPeriod 
       ? incrementTime(lastPeriod.startTime, 50) 
       : '08:00';
-    
     daySchedule.push({ subject: '', startTime: nextTime, equipment: '' });
     updatedTimetable[selectedDay] = daySchedule;
-    
-    // Start editing the new period
     const newIndex = daySchedule.length - 1;
     setEditingPeriod({ day: selectedDay, index: newIndex });
     setEditingSubject('');
     setEditingTime(nextTime);
     setEditingEquipment('');
-    
     onUpdateTimetable(updatedTimetable);
   };
 
@@ -117,7 +105,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
 
   return (
     <div className="space-y-4 tab-content">
-      {/* Day Selector - Touch-friendly horizontal scroll */}
+      {/* Day Selector */}
       <div className="flex gap-1.5 p-1.5 bg-secondary/50 rounded-2xl overflow-x-auto no-scrollbar">
         {displayDays.map((day) => {
           const isActive = selectedDay === day;
@@ -146,13 +134,13 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                   "text-sm font-semibold block",
                   isActive ? "text-foreground" : "text-muted-foreground"
                 )}>
-                  {WEEK_DAY_LABELS[day]}
+                  {dayLabels[day]}
                 </span>
                 <span className={cn(
                   "text-[11px] font-medium",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}>
-                  {lessonCount} שיעורים
+                  {lessonCount} {t('timetable.lessons')}
                 </span>
               </div>
             </button>
@@ -169,9 +157,9 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 <BookOpen className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground capitalize">{WEEK_DAY_LABELS[selectedDay]}</h3>
+                <h3 className="font-semibold text-foreground capitalize">{dayLabels[selectedDay]}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {displaySchedule.length} שיעורים מתוכננים
+                  {displaySchedule.length} {t('timetable.plannedLessons')}
                 </p>
               </div>
             </div>
@@ -182,7 +170,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 onClick={handleAddPeriod}
                 className="gap-1.5 h-10 px-3 touch-target rounded-xl"
               >
-                + הוסף
+                {t('timetable.add')}
               </Button>
               <Button
                 variant="outline"
@@ -191,7 +179,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                 className="gap-1.5 h-10 px-3 touch-target rounded-xl"
               >
                 <Settings2 className="w-4 h-4" />
-                <span className="hidden sm:inline">ערוך הכל</span>
+                <span className="hidden sm:inline">{t('timetable.editAll')}</span>
               </Button>
             </div>
           </div>
@@ -200,19 +188,18 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
         <div className="divide-y divide-border">
           {displaySchedule.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              <p>אין שיעורים ליום זה</p>
+              <p>{t('timetable.noLessons')}</p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleAddPeriod}
                 className="mt-4 gap-2"
               >
-                + הוסף שיעור ראשון
+                {t('timetable.addFirst')}
               </Button>
             </div>
           ) : (
             displaySchedule.map((period, index) => {
-              // Find the original index in selectedSchedule for editing
               const originalIndex = selectedSchedule.findIndex(
                 p => p.subject === period.subject && p.startTime === period.startTime
               );
@@ -225,14 +212,11 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                     className="p-3 bg-primary/5 space-y-3"
                   >
                     <div className="flex items-center gap-3">
-                      {/* Period Number */}
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                         <span className="text-sm font-semibold text-primary">
                           {index + 1}
                         </span>
                       </div>
-
-                      {/* Time Input */}
                       <div className="flex items-center gap-1.5 w-24">
                         <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                         <Input
@@ -242,12 +226,10 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                           className="h-8 text-sm"
                         />
                       </div>
-
-                      {/* Subject Input */}
                       <Input
                         value={editingSubject}
                         onChange={(e) => setEditingSubject(e.target.value)}
-                        placeholder="שם המקצוע"
+                        placeholder={t('timetable.subjectPlaceholder')}
                         className="flex-1 h-8"
                         autoFocus
                         onKeyDown={(e) => {
@@ -255,38 +237,24 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                           if (e.key === 'Escape') handleCancelEdit();
                         }}
                       />
-
-                      {/* Actions */}
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleSaveEdit}
-                          className="h-8 w-8 text-primary"
-                        >
+                        <Button variant="ghost" size="icon" onClick={handleSaveEdit} className="h-8 w-8 text-primary">
                           <Check className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleCancelEdit}
-                          className="h-8 w-8 text-muted-foreground"
-                        >
+                        <Button variant="ghost" size="icon" onClick={handleCancelEdit} className="h-8 w-8 text-muted-foreground">
                           <X className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
-
-                    {/* Equipment Input - Show when editing */}
                     <div className="mr-11">
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
                         <Backpack className="w-3 h-3" />
-                        ציוד נדרש
+                        {t('timetable.equipmentRequired')}
                       </div>
                       <Textarea
                         value={editingEquipment}
                         onChange={(e) => setEditingEquipment(e.target.value)}
-                        placeholder="מחברת, ספר לימוד..."
+                        placeholder={t('timetable.equipmentPlaceholder')}
                         className="min-h-[50px] text-sm"
                         rows={2}
                       />
@@ -301,30 +269,21 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                   onClick={() => handleStartEdit(selectedDay, originalIndex, period)}
                   className="flex items-center gap-3 sm:gap-4 p-4 active:bg-secondary/50 transition-colors cursor-pointer group touch-feedback"
                 >
-                  {/* Period Number */}
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-semibold text-primary">
-                      {index + 1}
-                    </span>
+                    <span className="text-sm font-semibold text-primary">{index + 1}</span>
                   </div>
-
-                  {/* Time */}
                   <div className="flex items-center gap-1.5 text-muted-foreground w-14 sm:w-16 flex-shrink-0">
                     <Clock className="w-3.5 h-3.5" />
                     <span className="text-sm font-medium">{period.startTime}</span>
                   </div>
-
-                  {/* Subject */}
                   <div className="flex-1 min-w-0">
                     <span className={cn(
                       "font-medium block truncate",
                       period.subject ? "text-foreground" : "text-muted-foreground italic"
                     )}>
-                      {period.subject || 'לחצו להוספת מקצוע...'}
+                      {period.subject || t('timetable.clickToAdd')}
                     </span>
                   </div>
-
-                  {/* Equipment indicator */}
                   {period.equipment && (
                     <Popover>
                       <PopoverTrigger asChild>
@@ -341,7 +300,7 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <Backpack className="w-4 h-4 text-buff" />
-                            ציוד נדרש
+                            {t('timetable.equipmentRequired')}
                           </div>
                           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                             {period.equipment}
@@ -350,8 +309,6 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                       </PopoverContent>
                     </Popover>
                   )}
-
-                  {/* Delete button - always visible on mobile for touch */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -370,14 +327,14 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
         </div>
       </div>
 
-      {/* Full Week Overview (compact) */}
+      {/* Full Week Overview */}
       <div className="rounded-2xl bg-card border border-border p-4">
-        <h4 className="text-sm font-medium text-muted-foreground mb-3">סקירת השבוע</h4>
+        <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('timetable.weekOverview')}</h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr>
-                <th className="text-left py-2 px-1 text-muted-foreground font-medium w-12">שעה</th>
+                <th className="text-left py-2 px-1 text-muted-foreground font-medium w-12">{t('timetable.time')}</th>
                 {displayDays.map(day => (
                   <th 
                     key={day} 
@@ -386,13 +343,12 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
                       isToday(day) ? "text-primary" : "text-muted-foreground"
                     )}
                   >
-                    {WEEK_DAY_LABELS[day]}
+                    {dayLabels[day]}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {/* Get all unique times across all days */}
               {getAllUniqueTimes(timetable, displayDays).map((time, idx) => (
                 <tr key={idx} className="border-t border-border/50">
                   <td className="py-2 px-1 text-muted-foreground font-medium">{time}</td>
@@ -420,7 +376,6 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
         </div>
       </div>
 
-      {/* Timetable Editor Dialog */}
       <TimetableEditor
         open={editorOpen}
         onClose={() => setEditorOpen(false)}
@@ -432,7 +387,6 @@ export function WeeklyTimetable({ timetable, onUpdateTimetable, fridayEnabled = 
   );
 }
 
-// Helper to increment time by minutes
 function incrementTime(time: string, minutes: number): string {
   const [hours, mins] = time.split(':').map(Number);
   const totalMins = hours * 60 + mins + minutes;
@@ -441,29 +395,16 @@ function incrementTime(time: string, minutes: number): string {
   return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
 }
 
-// Helper to get all unique times across the week
 function getAllUniqueTimes(timetable: Timetable, days: WeekDay[]): string[] {
   const times = new Set<string>();
   days.forEach(day => {
-    (timetable[day] || []).forEach(period => {
-      if (period.subject) {
-        times.add(period.startTime);
-      }
+    (timetable[day] || []).forEach(p => {
+      if (p.subject) times.add(p.startTime);
     });
   });
   return Array.from(times).sort();
 }
 
-// Helper to truncate long subject names for the overview
 function truncateSubject(subject: string): string {
-  const abbrevMap: Record<string, string> = {
-    'Chemistry / Physics': 'Chem/Phys',
-    'Hebrew Grammar': 'Hebrew',
-    'Bible Studies': 'Bible',
-    'Ramon Program': 'Ramon',
-    'Self Study': 'Study',
-    'Literature': 'Lit',
-    'Physical Education': 'P.E.',
-  };
-  return abbrevMap[subject] || (subject.length > 8 ? subject.slice(0, 7) + '.' : subject);
+  return subject.length > 6 ? subject.slice(0, 5) + '…' : subject;
 }

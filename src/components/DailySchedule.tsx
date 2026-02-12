@@ -1,4 +1,4 @@
-import { PeriodInfo, WeekDay, WEEK_DAYS } from '@/types/task';
+import { PeriodInfo, WeekDay, WEEK_DAYS, WEEK_DAY_LABELS, WEEK_DAY_LABELS_EN } from '@/types/task';
 import { Clock, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,7 +20,8 @@ function getTodayWeekDay(fridayEnabled: boolean = false): WeekDay | null {
 }
 
 export function DailySchedule({ timetable, fridayEnabled = false }: DailyScheduleProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dayLabels = language === 'he' ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
   const todayKey = getTodayWeekDay(fridayEnabled);
   
   if (!todayKey) {
@@ -81,7 +82,7 @@ export function DailySchedule({ timetable, fridayEnabled = false }: DailySchedul
         <div>
           <h3 className="font-semibold text-foreground">{t('schedule.todaysSchedule')}</h3>
           <p className="text-xs text-muted-foreground capitalize">
-            {todayKey} • {todaySchedule.filter(p => p.subject).length} {t('schedule.lessons')}
+            {dayLabels[todayKey]} • {todaySchedule.filter(p => p.subject).length} {t('schedule.lessons')}
           </p>
         </div>
       </div>
