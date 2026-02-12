@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { OnboardingProgress } from './OnboardingProgress';
-import { Step1Profile } from './steps/Step1Profile';
+import { Step1Profile, GradeOption } from './steps/Step1Profile';
 import { Step2FocusArea, FocusArea } from './steps/Step2FocusArea';
 import { Step3SchoolFeature, SchoolFeature } from './steps/Step3SchoolFeature';
 import { Step4FirstTask } from './steps/Step4FirstTask';
@@ -16,7 +16,8 @@ import buffLogo from '@/assets/buff-logo.png';
 
 export interface OnboardingData {
   childName: string;
-  birthDate: Date;
+  birthDate?: Date;
+  grade?: GradeOption;
   focusArea: FocusArea;
   schoolFeature: SchoolFeature;
   firstTask: string;
@@ -57,7 +58,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   }, []);
 
   // Step 1: Early commit — INSERT child profile immediately
-  const handleStep1Complete = async (stepData: { childName: string; birthDate: Date }) => {
+  const handleStep1Complete = async (stepData: { childName: string; birthDate?: Date; grade?: GradeOption }) => {
     // Validate with Zod
     const result = step1Schema.safeParse(stepData);
     if (!result.success) {
@@ -75,7 +76,8 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
       // Just update local draft and move on
       updateDraft({
         childName: stepData.childName,
-        birthDate: stepData.birthDate.toISOString(),
+        birthDate: stepData.birthDate?.toISOString(),
+        grade: stepData.grade,
       });
       completeStep(1);
       goToStep(2);
@@ -89,10 +91,10 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         .from('profiles')
         .insert({
           display_name: stepData.childName,
-          role: 'child',
+          role: 'child' as const,
           family_id: profile.family_id,
           daily_goal: 70,
-          birth_date: format(stepData.birthDate, 'yyyy-MM-dd'),
+          ...(stepData.birthDate ? { birth_date: format(stepData.birthDate, 'yyyy-MM-dd') } : {}),
         })
         .select('id')
         .single();
@@ -108,7 +110,8 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
       // Save child profile ID + data to draft
       updateDraft({
         childName: stepData.childName,
-        birthDate: stepData.birthDate.toISOString(),
+        birthDate: stepData.birthDate?.toISOString(),
+        grade: stepData.grade,
         childProfileId: childProfile.id,
       });
       completeStep(1);
@@ -168,7 +171,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
 
   const handleComplete = async () => {
     const birthDate = getBirthDate();
-    if (!draft.childName || !birthDate || !draft.focusArea || !draft.schoolFeature) {
+    if (!draft.childName || !draft.focusArea || !draft.schoolFeature) {
       return;
     }
 
@@ -177,6 +180,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
       await onComplete({
         childName: draft.childName,
         birthDate: birthDate,
+        grade: draft.grade ?? undefined,
         focusArea: draft.focusArea,
         schoolFeature: draft.schoolFeature,
         firstTask: draft.firstTask || 'לפתור תרגיל אחד',
@@ -216,6 +220,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
             initialData={{
               childName: draft.childName,
               birthDate: getBirthDate(),
+              grade: draft.grade ?? undefined,
             }}
             onNext={handleStep1Complete}
             isLoading={isLoading}

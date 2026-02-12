@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { FocusArea } from '@/components/onboarding/steps/Step2FocusArea';
 import { SchoolFeature } from '@/components/onboarding/steps/Step3SchoolFeature';
+import { GradeOption } from '@/components/onboarding/steps/Step1Profile';
 
 const STORAGE_KEY = 'buff_onboarding_draft';
 const DEBOUNCE_MS = 500;
@@ -10,6 +11,7 @@ const DEBOUNCE_MS = 500;
 export interface OnboardingDraft {
   childName?: string;
   birthDate?: string; // ISO string for serialization
+  grade?: GradeOption;
   focusArea?: FocusArea;
   schoolFeature?: SchoolFeature;
   firstTask?: string;
