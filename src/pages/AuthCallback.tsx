@@ -433,21 +433,39 @@ export default function AuthCallback() {
         // Non-critical - continue anyway
       }
 
-      // Create first task from onboarding if we have child profile
-      if (childProfile && onboardingData.firstTask) {
+      // Create pack tasks from selected starter pack
+      if (childProfile) {
         try {
-          await supabase.from('tasks').insert({
-            family_id: familyId,
-            assigned_to: childProfile.id,
-            title: onboardingData.firstTask,
-            category: getFocusAreaCategory(onboardingData.focusArea),
-            time: '15:00',
-            credits: 20,
-            icon: getFocusAreaEmoji(onboardingData.focusArea),
-            description: 'המשימה הראשונה שלי - התחלה קטנה!',
-          });
+          const { PACK_DEFINITIONS } = await import('@/data/starterPacks');
+          const packDef = PACK_DEFINITIONS[onboardingData.schoolFeature as keyof typeof PACK_DEFINITIONS];
+
+          if (packDef?.tasks?.length) {
+            const packTasks = packDef.tasks.map((task) => ({
+              family_id: familyId,
+              assigned_to: childProfile.id,
+              title: task.titleKey.replace('pack.task.', '').replace(/_/g, ' '),
+              category: task.category,
+              time: task.time,
+              credits: task.credits,
+              icon: task.icon,
+            }));
+            await supabase.from('tasks').insert(packTasks);
+          }
+
+          // Also add the custom first task
+          if (onboardingData.firstTask) {
+            await supabase.from('tasks').insert({
+              family_id: familyId,
+              assigned_to: childProfile.id,
+              title: onboardingData.firstTask,
+              category: getFocusAreaCategory(onboardingData.focusArea),
+              time: '15:00',
+              credits: 15,
+              icon: getFocusAreaEmoji(onboardingData.focusArea),
+            });
+          }
         } catch (taskErr) {
-          console.error('Error creating first task:', taskErr);
+          console.error('Error creating pack tasks:', taskErr);
         }
       }
 
@@ -459,7 +477,7 @@ export default function AuthCallback() {
             assigned_to: childProfile.id,
             title: onboardingData.weekendReward,
             emoji: '🎁',
-            price: 500, // 5 days of hitting smart goal
+            price: 500,
           });
         } catch (rewardErr) {
           console.error('Error creating weekend reward:', rewardErr);

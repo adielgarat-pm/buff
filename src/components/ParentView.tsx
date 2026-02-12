@@ -103,24 +103,44 @@ export function ParentView() {
     }
 
     try {
-      // Map focus area to valid task categories
-      const categoryMap: Record<string, string> = {
-        'homework': 'learning',
-        'project': 'learning',
-        'fitness': 'movement',
-        'home': 'responsibility',
-      };
+      // Import pack definitions to create tasks with correct credits
+      const { PACK_DEFINITIONS } = await import('@/data/starterPacks');
+      const packDef = PACK_DEFINITIONS[onboardingData.schoolFeature];
 
-      // Create first task + reward in parallel (child profile already exists)
-      const [taskResult, rewardResult] = await Promise.allSettled([
-        supabase.from('tasks').insert({
+      // Create pack tasks in parallel with the custom reward
+      const packTaskInserts = packDef?.tasks?.length
+        ? packDef.tasks.map((task) => ({
+            family_id: profile.family_id,
+            assigned_to: childProfileId,
+            title: t(task.titleKey),
+            category: task.category,
+            time: task.time,
+            credits: task.credits,
+            icon: task.icon,
+          }))
+        : [];
+
+      // Also add the user's custom first task
+      if (onboardingData.firstTask) {
+        const categoryMap: Record<string, string> = {
+          'homework': 'learning', 'project': 'learning',
+          'fitness': 'movement', 'home': 'responsibility',
+        };
+        packTaskInserts.push({
           family_id: profile.family_id,
           assigned_to: childProfileId,
           title: onboardingData.firstTask,
           category: categoryMap[onboardingData.focusArea] || 'learning',
           time: '16:00',
           credits: 15,
-        }),
+          icon: '✨',
+        });
+      }
+
+      const [taskResult, rewardResult] = await Promise.allSettled([
+        packTaskInserts.length > 0
+          ? supabase.from('tasks').insert(packTaskInserts)
+          : Promise.resolve({ error: null }),
         supabase.from('store_rewards').insert({
           family_id: profile.family_id,
           assigned_to: childProfileId,

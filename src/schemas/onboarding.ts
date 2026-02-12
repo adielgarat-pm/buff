@@ -7,7 +7,7 @@ import { z } from 'zod';
  */
 
 export const focusAreaSchema = z.enum(['homework', 'project', 'fitness', 'home']);
-export const schoolFeatureSchema = z.enum(['school_quest', 'evening_prep']);
+export const schoolFeatureSchema = z.enum(['school_quest', 'homework_hero', 'morning_pro', 'evening_routine', 'daily_dash', 'fuel_up', 'steam_startup']);
 
 export const gradeSchema = z.enum([
   'preschool', 'kindergarten', '1', '2', '3', '4', '5', '6',

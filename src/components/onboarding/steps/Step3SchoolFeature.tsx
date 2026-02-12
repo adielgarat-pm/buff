@@ -1,47 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Backpack, Home, Dumbbell, Lightbulb, Lock,
+  Backpack, Home, Dumbbell, Lock,
   ArrowRight, ArrowLeft, Sparkles, Star,
-  BookOpen, ClipboardCheck, Zap, Apple, FlaskConical, BarChart3,
-  Sun, Bed,
+  BookOpen, Apple, FlaskConical,
+  Sun, Bed, Crown,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { FocusArea } from './Step2FocusArea';
-
-// Each focus area has exactly 2 starter packs
-export type StarterPack =
-  | 'school_quest' | 'homework_hero'     // homework (learning)
-  | 'morning_pro' | 'room_power'         // home
-  | 'daily_dash' | 'fuel_up'             // fitness
-  | 'innovation_lab' | 'progress_log';   // project
+import { useSubscription } from '@/hooks/useSubscription';
+import {
+  StarterPack,
+  PACKS_BY_FOCUS,
+  PACK_DEFINITIONS,
+} from '@/data/starterPacks';
 
 // Keep backward compat alias
 export type SchoolFeature = StarterPack;
+export type { StarterPack };
 
-interface PackMeta {
-  icon: typeof Backpack;
-  titleKey: string;
-  descKey: string;
-}
-
-const PACKS_BY_FOCUS: Record<FocusArea, [StarterPack, StarterPack]> = {
-  homework: ['school_quest', 'homework_hero'],
-  home:     ['morning_pro', 'room_power'],
-  fitness:  ['daily_dash', 'fuel_up'],
-  project:  ['innovation_lab', 'progress_log'],
-};
-
-const PACK_META: Record<StarterPack, PackMeta> = {
-  school_quest:   { icon: Backpack,      titleKey: 'onboarding.step3.pack.school_quest',      descKey: 'onboarding.step3.pack.school_quest.desc' },
-  homework_hero:  { icon: BookOpen,      titleKey: 'onboarding.step3.pack.homework_hero',     descKey: 'onboarding.step3.pack.homework_hero.desc' },
-  morning_pro:    { icon: Sun,           titleKey: 'onboarding.step3.pack.morning_pro',       descKey: 'onboarding.step3.pack.morning_pro.desc' },
-  room_power:     { icon: Home,          titleKey: 'onboarding.step3.pack.room_power',        descKey: 'onboarding.step3.pack.room_power.desc' },
-  daily_dash:     { icon: Dumbbell,      titleKey: 'onboarding.step3.pack.daily_dash',        descKey: 'onboarding.step3.pack.daily_dash.desc' },
-  fuel_up:        { icon: Apple,         titleKey: 'onboarding.step3.pack.fuel_up',           descKey: 'onboarding.step3.pack.fuel_up.desc' },
-  innovation_lab: { icon: FlaskConical,  titleKey: 'onboarding.step3.pack.innovation_lab',    descKey: 'onboarding.step3.pack.innovation_lab.desc' },
-  progress_log:   { icon: BarChart3,     titleKey: 'onboarding.step3.pack.progress_log',      descKey: 'onboarding.step3.pack.progress_log.desc' },
+const ICON_MAP: Record<string, typeof Backpack> = {
+  Backpack, BookOpen, Sun, Bed, Dumbbell, Apple, FlaskConical,
 };
 
 interface Step3SchoolFeatureProps {
@@ -49,11 +29,13 @@ interface Step3SchoolFeatureProps {
   focusArea?: FocusArea;
   onNext: (data: { schoolFeature: StarterPack }) => void;
   onBack: () => void;
+  onUpgrade?: () => void;
 }
 
-export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: Step3SchoolFeatureProps) {
+export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack, onUpgrade }: Step3SchoolFeatureProps) {
   const { t, isRTL, language } = useLanguage();
   const isHe = language === 'he';
+  const { isProUser } = useSubscription();
   const [selected, setSelected] = useState<StarterPack | null>(initialValue || null);
   const [tappedId, setTappedId] = useState<string | null>(null);
 
@@ -61,13 +43,11 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
     if (initialValue) setSelected(initialValue);
   }, [initialValue]);
 
-  // Get the 2 packs for the current focus area (default to homework)
   const activeFocus: FocusArea = focusArea || 'homework';
-  const [packA, packB] = PACKS_BY_FOCUS[activeFocus];
-  const packs: StarterPack[] = [packA, packB];
+  const packs = PACKS_BY_FOCUS[activeFocus];
 
-  // First pack is always the "most popular" for the focus area
-  const popularPack = packA;
+  // First free pack is the "most popular"
+  const popularPack = packs.find(p => !PACK_DEFINITIONS[p].isPremium) || packs[0];
 
   // Reset selection if it doesn't belong to the current focus area
   useEffect(() => {
@@ -84,6 +64,11 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
   };
 
   const handleSelect = (pack: StarterPack) => {
+    const def = PACK_DEFINITIONS[pack];
+    if (def.isPremium && !isProUser) {
+      onUpgrade?.();
+      return;
+    }
     setSelected(pack);
     setTappedId(pack);
     setTimeout(() => setTappedId(null), 200);
@@ -118,11 +103,12 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
         {/* Starter Pack Cards */}
         <div className="space-y-2">
           {packs.map((packId) => {
-            const meta = PACK_META[packId];
-            const Icon = meta.icon;
+            const def = PACK_DEFINITIONS[packId];
+            const Icon = ICON_MAP[def.iconName] || Backpack;
             const isSelected = selected === packId;
-            const isPopular = popularPack === packId;
+            const isPopular = popularPack === packId && !def.isPremium;
             const isTapped = tappedId === packId;
+            const isLocked = def.isPremium && !isProUser;
 
             return (
               <button
@@ -131,11 +117,12 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
                 onClick={() => handleSelect(packId)}
                 className={cn(
                   'w-full p-3 rounded-xl border-2 text-start transition-all duration-200 relative',
-                  'hover:border-primary/50 hover:bg-primary/5',
                   isTapped && 'scale-[0.96]',
-                  isSelected
-                    ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                    : 'border-border bg-card'
+                  isLocked
+                    ? 'border-dashed border-border/60 bg-muted/30 opacity-70'
+                    : isSelected
+                      ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
+                      : 'border-border bg-card hover:border-primary/50 hover:bg-primary/5'
                 )}
               >
                 {/* Popular Badge */}
@@ -149,29 +136,47 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
                   </span>
                 )}
 
+                {/* PRO Badge */}
+                {def.isPremium && (
+                  <span className={cn(
+                    'absolute -top-2.5 bg-primary/15 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1',
+                    isRTL ? 'start-3' : 'end-3'
+                  )}>
+                    {isLocked ? <Lock className="w-3 h-3" /> : <Crown className="w-3 h-3" />}
+                    PRO
+                  </span>
+                )}
+
                 <div className="flex items-start gap-2.5">
                   <div className={cn(
                     'w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5',
-                    isSelected ? 'bg-primary/20' : 'bg-muted'
+                    isLocked ? 'bg-muted' : isSelected ? 'bg-primary/20' : 'bg-muted'
                   )}>
-                    <Icon className={cn(
-                      'w-4.5 h-4.5',
-                      isSelected ? 'text-primary' : 'text-muted-foreground'
-                    )} />
+                    {isLocked
+                      ? <Lock className="w-4.5 h-4.5 text-muted-foreground" />
+                      : <Icon className={cn('w-4.5 h-4.5', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                    }
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className={cn(
                       'font-bold text-sm leading-tight',
-                      isSelected ? 'text-primary' : 'text-foreground'
+                      isLocked ? 'text-muted-foreground' : isSelected ? 'text-primary' : 'text-foreground'
                     )}>
-                      {t(meta.titleKey)}
+                      {t(def.titleKey)}
                     </h3>
                     <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                      {t(meta.descKey)}
+                      {t(def.descKey)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground/70 mt-1 italic">
-                      {t('onboarding.step3.includes')}
-                    </p>
+                    {!isLocked && def.tasks.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground/70 mt-1 italic">
+                        {t('onboarding.step3.includes').replace('{n}', String(def.tasks.length))}
+                      </p>
+                    )}
+                    {isLocked && (
+                      <p className="text-[10px] text-primary/70 mt-1 font-medium">
+                        {t('onboarding.step3.upgradeToUnlock')}
+                      </p>
+                    )}
                   </div>
                 </div>
               </button>
@@ -179,27 +184,29 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
           })}
         </div>
 
-        {/* Pro Teaser Card */}
-        <div className="p-3 rounded-xl border-2 border-dashed border-border/60 bg-muted/30 opacity-70 relative">
-          <div className="flex items-start gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Lock className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-bold text-sm text-muted-foreground leading-tight">
-                  {t('onboarding.step3.proPacks')}
-                </h3>
-                <span className="text-[9px] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
-                  PRO
-                </span>
+        {/* Global Pro Teaser (only if project focus doesn't already show a premium pack) */}
+        {activeFocus !== 'project' && activeFocus !== 'homework' && (
+          <div className="p-3 rounded-xl border-2 border-dashed border-border/60 bg-muted/30 opacity-70 relative">
+            <div className="flex items-start gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Lock className="w-4 h-4 text-muted-foreground" />
               </div>
-              <p className="text-[11px] text-muted-foreground/70 leading-snug mt-0.5">
-                {t('onboarding.step3.proDesc')}
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-bold text-sm text-muted-foreground leading-tight">
+                    {t('onboarding.step3.proPacks')}
+                  </h3>
+                  <span className="text-[9px] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
+                    PRO
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground/70 leading-snug mt-0.5">
+                  {t('onboarding.step3.proDesc')}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Note */}
         <p className="text-[10px] text-muted-foreground text-center">
