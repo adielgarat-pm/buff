@@ -274,9 +274,11 @@ export type Database = {
           display_name: string
           family_id: string | null
           id: string
+          is_pro: boolean
           marketing_consent: boolean
           onboarding_data: Json | null
           onboarding_step: number | null
+          pro_settings: Json | null
           role: string
           school_quest_enabled: boolean
           updated_at: string
@@ -295,9 +297,11 @@ export type Database = {
           display_name: string
           family_id?: string | null
           id?: string
+          is_pro?: boolean
           marketing_consent?: boolean
           onboarding_data?: Json | null
           onboarding_step?: number | null
+          pro_settings?: Json | null
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
@@ -316,9 +320,11 @@ export type Database = {
           display_name?: string
           family_id?: string | null
           id?: string
+          is_pro?: boolean
           marketing_consent?: boolean
           onboarding_data?: Json | null
           onboarding_step?: number | null
+          pro_settings?: Json | null
           role?: string
           school_quest_enabled?: boolean
           updated_at?: string
