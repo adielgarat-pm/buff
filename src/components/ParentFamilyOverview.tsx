@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ParentDailyWinCard } from './ParentDailyWinCard';
-import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info } from 'lucide-react';
+import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -16,6 +16,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
 import { BuffBoostCard } from './BuffBoostCard';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 
 interface ParentFamilyOverviewProps {
@@ -42,6 +44,46 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
+  const [grantingCardFor, setGrantingCardFor] = useState<string | null>(null);
+
+  // Listen for rest-card-depleted events from child view
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      const childId = e.detail?.childId;
+      const child = children.find(c => c.id === childId);
+      const name = child?.displayName || '';
+      toast.info(t('pet.lastRestCardUsedNotif').replace('{name}', name), { duration: 8000 });
+    };
+    window.addEventListener('rest-card-depleted', handler as EventListener);
+    return () => window.removeEventListener('rest-card-depleted', handler as EventListener);
+  }, [children, t]);
+
+  // Grant a rest card to a child
+  const handleGrantRestCard = async (childId: string, childName: string) => {
+    setGrantingCardFor(childId);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('pet_state')
+        .eq('id', childId)
+        .single();
+      
+      const petState = (data?.pet_state as Record<string, unknown>) || {};
+      const currentCards = (petState.rest_cards_balance as number) ?? 0;
+      
+      await supabase
+        .from('profiles')
+        .update({ pet_state: { ...petState, rest_cards_balance: currentCards + 1 } })
+        .eq('id', childId);
+      
+      toast.success(t('pet.restCardGranted').replace('{name}', childName));
+      refetch();
+    } catch {
+      toast.error('Error granting rest card');
+    } finally {
+      setGrantingCardFor(null);
+    }
+  };
 
   const handleMidnightReset = useCallback(() => {
     refetch();
@@ -166,27 +208,55 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                 className="rounded-2xl bg-card border border-border overflow-hidden"
               >
                 <div className="p-4 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-3xl">
-                        {child.avatar || '🚀'}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
-                        {progress && (
-                          <p className="text-sm text-muted-foreground">
-                            💰 {progress.totalBalance.toLocaleString()} {t('overview.creditsAccumulated')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {progress && !hasNoTasks && (
-                      <div className="text-right">
-                        <p className="text-3xl font-bold text-primary">{progress.todayEarned}</p>
-                        <p className="text-xs text-muted-foreground">{t('overview.outOf')} {progress.dailyGoal}</p>
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex items-start justify-between">
+                     <div className="flex items-center gap-3">
+                       <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-3xl">
+                         {child.avatar || '🚀'}
+                       </div>
+                       <div>
+                         <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
+                         {progress && (
+                           <p className="text-sm text-muted-foreground">
+                             💰 {progress.totalBalance.toLocaleString()} {t('overview.creditsAccumulated')}
+                           </p>
+                         )}
+                       </div>
+                     </div>
+                     {progress && !hasNoTasks && (
+                       <div className="text-right">
+                         <p className="text-3xl font-bold text-primary">{progress.todayEarned}</p>
+                         <p className="text-xs text-muted-foreground">{t('overview.outOf')} {progress.dailyGoal}</p>
+                       </div>
+                     )}
+                   </div>
+
+                   {/* Rest Card Alert - Orange when 0 */}
+                   {progress && progress.restCardsBalance === 0 && (
+                     <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-orange-500/15 border border-orange-500/30">
+                       <div className="flex items-center gap-2">
+                         <ShieldAlert className="w-4 h-4 text-orange-500 shrink-0" />
+                         <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                           🎫 {t('pet.noRestCards')}
+                         </span>
+                       </div>
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         className="h-7 text-xs border-orange-500/40 text-orange-600 hover:bg-orange-500/10"
+                         onClick={() => handleGrantRestCard(child.id, child.displayName)}
+                         disabled={grantingCardFor === child.id}
+                       >
+                         {grantingCardFor === child.id ? (
+                           <Loader2 className="w-3 h-3 animate-spin" />
+                         ) : (
+                           <>
+                             <Gift className="w-3 h-3" />
+                             {t('pet.grantRestCard')}
+                           </>
+                         )}
+                       </Button>
+                     </div>
+                   )}
 
                   {hasNoTasks ? (
                     <FirstTaskNudgeCard 
