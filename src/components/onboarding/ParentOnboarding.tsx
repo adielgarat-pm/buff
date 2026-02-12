@@ -7,6 +7,11 @@ import { Step4FirstTask } from './steps/Step4FirstTask';
 import { Step5Rewards } from './steps/Step5Rewards';
 import { Step6ParentTip } from './steps/Step6ParentTip';
 import { usePersistentOnboarding } from '@/hooks/usePersistentOnboarding';
+import { step1Schema } from '@/schemas/onboarding';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
 import buffLogo from '@/assets/buff-logo.png';
 
 export interface OnboardingData {
@@ -16,6 +21,7 @@ export interface OnboardingData {
   schoolFeature: SchoolFeature;
   firstTask: string;
   weekendReward: string;
+  childProfileId?: string; // Set after Step 1 early commit
 }
 
 interface ParentOnboardingProps {
@@ -25,6 +31,7 @@ interface ParentOnboardingProps {
 const TOTAL_STEPS = 6;
 
 export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
+  const { profile } = useAuth();
   const { 
     draft, 
     isHydrated, 
@@ -40,7 +47,6 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   // Restore step from persistent state on hydration
   useEffect(() => {
     if (isHydrated && draft.lastCompletedStep > 0) {
-      // Go to the next uncompleted step (or the last one if all completed)
       const nextStep = Math.min(draft.lastCompletedStep + 1, TOTAL_STEPS);
       setCurrentStep(nextStep);
     }
@@ -49,6 +55,116 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   const goToStep = useCallback((step: number) => {
     setCurrentStep(Math.max(1, Math.min(step, TOTAL_STEPS)));
   }, []);
+
+  // Step 1: Early commit — INSERT child profile immediately
+  const handleStep1Complete = async (stepData: { childName: string; birthDate: Date }) => {
+    // Validate with Zod
+    const result = step1Schema.safeParse(stepData);
+    if (!result.success) {
+      toast.error(result.error.errors[0]?.message || 'נתונים לא תקינים');
+      return;
+    }
+
+    if (!profile?.family_id) {
+      toast.error('לא נמצאה משפחה. נסו לרענן את הדף.');
+      return;
+    }
+
+    // Check if we already created a child profile (resuming flow)
+    if (draft.childProfileId) {
+      // Just update local draft and move on
+      updateDraft({
+        childName: stepData.childName,
+        birthDate: stepData.birthDate.toISOString(),
+      });
+      completeStep(1);
+      goToStep(2);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // INSERT child profile early — triggers default tasks/rewards/credit_vault
+      const { data: childProfile, error: childError } = await supabase
+        .from('profiles')
+        .insert({
+          display_name: stepData.childName,
+          role: 'child',
+          family_id: profile.family_id,
+          daily_goal: 70,
+          birth_date: format(stepData.birthDate, 'yyyy-MM-dd'),
+        })
+        .select('id')
+        .single();
+
+      if (childError) throw childError;
+
+      // Set parent as activated
+      await supabase
+        .from('profiles')
+        .update({ is_activated: true, onboarding_step: 1 })
+        .eq('id', profile.id);
+
+      // Save child profile ID + data to draft
+      updateDraft({
+        childName: stepData.childName,
+        birthDate: stepData.birthDate.toISOString(),
+        childProfileId: childProfile.id,
+      });
+      completeStep(1);
+      goToStep(2);
+    } catch (error: any) {
+      console.error('Step 1 commit failed:', error);
+      toast.error('שגיאה ביצירת הפרופיל. בדקו את החיבור לאינטרנט ונסו שוב.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Steps 2-5: UPDATE the existing child profile
+  const handleStepUpdate = async (
+    step: number,
+    updates: Partial<{
+      focusArea: FocusArea;
+      schoolFeature: SchoolFeature;
+      firstTask: string;
+      weekendReward: string;
+    }>,
+    nextStep: number
+  ) => {
+    // Update local draft
+    updateDraft(updates);
+
+    // Update child profile in DB if applicable (steps 2-3 affect child profile)
+    if (draft.childProfileId && (updates.schoolFeature !== undefined)) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            school_quest_enabled: updates.schoolFeature === 'school_quest',
+            bag_prep_enabled: updates.schoolFeature === 'evening_prep',
+          })
+          .eq('id', draft.childProfileId);
+      } catch (e) {
+        console.warn('Failed to update child profile:', e);
+      }
+    }
+
+    // Update parent's onboarding_step
+    if (profile?.id) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ onboarding_step: step })
+          .eq('id', profile.id);
+      } catch (e) {
+        console.warn('Failed to update onboarding step:', e);
+      }
+    }
+
+    completeStep(step);
+    goToStep(nextStep);
+  };
 
   const handleComplete = async () => {
     const birthDate = getBirthDate();
@@ -65,8 +181,8 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         schoolFeature: draft.schoolFeature,
         firstTask: draft.firstTask || 'לפתור תרגיל אחד',
         weekendReward: draft.weekendReward || 'בילוי משותף',
+        childProfileId: draft.childProfileId,
       });
-      // Clear the draft after successful completion
       await clearDraft();
     } finally {
       setIsLoading(false);
@@ -101,25 +217,15 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
               childName: draft.childName,
               birthDate: getBirthDate(),
             }}
-            onNext={(stepData) => {
-              updateDraft({
-                childName: stepData.childName,
-                birthDate: stepData.birthDate.toISOString(),
-              });
-              completeStep(1);
-              goToStep(2);
-            }}
+            onNext={handleStep1Complete}
+            isLoading={isLoading}
           />
         )}
         
         {currentStep === 2 && (
           <Step2FocusArea
             initialValue={draft.focusArea}
-            onNext={(stepData) => {
-              updateDraft({ focusArea: stepData.focusArea });
-              completeStep(2);
-              goToStep(3);
-            }}
+            onNext={(stepData) => handleStepUpdate(2, { focusArea: stepData.focusArea }, 3)}
             onBack={() => goToStep(1)}
           />
         )}
@@ -127,11 +233,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         {currentStep === 3 && (
           <Step3SchoolFeature
             initialValue={draft.schoolFeature}
-            onNext={(stepData) => {
-              updateDraft({ schoolFeature: stepData.schoolFeature });
-              completeStep(3);
-              goToStep(4);
-            }}
+            onNext={(stepData) => handleStepUpdate(3, { schoolFeature: stepData.schoolFeature }, 4)}
             onBack={() => goToStep(2)}
           />
         )}
@@ -139,11 +241,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         {currentStep === 4 && (
           <Step4FirstTask
             initialValue={draft.firstTask}
-            onNext={(stepData) => {
-              updateDraft({ firstTask: stepData.firstTask });
-              completeStep(4);
-              goToStep(5);
-            }}
+            onNext={(stepData) => handleStepUpdate(4, { firstTask: stepData.firstTask }, 5)}
             onBack={() => goToStep(3)}
           />
         )}
@@ -151,11 +249,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         {currentStep === 5 && (
           <Step5Rewards
             initialValue={draft.weekendReward}
-            onNext={(stepData) => {
-              updateDraft({ weekendReward: stepData.weekendReward });
-              completeStep(5);
-              goToStep(6);
-            }}
+            onNext={(stepData) => handleStepUpdate(5, { weekendReward: stepData.weekendReward }, 6)}
             onBack={() => goToStep(4)}
           />
         )}

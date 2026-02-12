@@ -6,6 +6,8 @@ interface StuckOnboardingItem {
   family_code: string;
   created_at: string;
   parent_email: string | null;
+  onboarding_step: number;
+  is_activated: boolean;
 }
 
 interface FunnelData {
@@ -42,6 +44,8 @@ interface RecentSignup {
   profile_role: string | null;
   display_name: string | null;
   has_family: boolean;
+  onboarding_step: number;
+  is_activated: boolean;
 }
 
 interface WeeklyTrend {

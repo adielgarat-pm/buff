@@ -13,9 +13,10 @@ interface Step1ProfileProps {
     birthDate?: Date;
   };
   onNext: (data: { childName: string; birthDate: Date }) => void;
+  isLoading?: boolean;
 }
 
-export function Step1Profile({ initialData, onNext }: Step1ProfileProps) {
+export function Step1Profile({ initialData, onNext, isLoading }: Step1ProfileProps) {
   const { t, isRTL } = useLanguage();
   const [childName, setChildName] = useState(initialData?.childName || '');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(
@@ -172,10 +173,11 @@ export function Step1Profile({ initialData, onNext }: Step1ProfileProps) {
       <div className="px-5 pb-6 pt-3 flex-shrink-0">
         <Button 
           onClick={handleSubmit}
+          disabled={isLoading}
           className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-l from-primary to-success"
           size="lg"
         >
-          {t('onboarding.step1.cta')}
+          {isLoading ? 'יוצר פרופיל...' : t('onboarding.step1.cta')}
         </Button>
       </div>
     </div>

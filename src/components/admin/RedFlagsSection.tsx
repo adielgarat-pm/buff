@@ -14,6 +14,8 @@ interface StuckOnboardingItem {
   family_code: string;
   created_at: string;
   parent_email: string | null;
+  onboarding_step: number;
+  is_activated: boolean;
 }
 
 interface RedFlagsData {
@@ -183,30 +185,55 @@ export function RedFlagsSection({ redFlags, loading }: RedFlagsSectionProps) {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Family Code</TableHead>
+                <TableHead>Step</TableHead>
                 <TableHead>Signed Up</TableHead>
                 <TableHead>Time Ago</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {redFlags?.stuck_onboarding?.map((item) => (
-                <TableRow key={item.family_id}>
-                  <TableCell className="font-mono text-sm">
-                    {item.parent_email || '-'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{item.family_code}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {format(new Date(item.created_at), 'dd/MM HH:mm', { locale: he })}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {redFlags?.stuck_onboarding?.map((item) => {
+                const stepLabels: Record<number, string> = {
+                  0: 'Not started',
+                  1: 'Profile ✓',
+                  2: 'Focus Area ✓',
+                  3: 'School Feature ✓',
+                  4: 'First Task ✓',
+                  5: 'Rewards ✓',
+                };
+                const stepLabel = stepLabels[item.onboarding_step] || `Step ${item.onboarding_step}`;
+                const progressPct = Math.round((item.onboarding_step / 6) * 100);
+                
+                return (
+                  <TableRow key={item.family_id}>
+                    <TableCell className="font-mono text-sm">
+                      {item.parent_email || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{item.family_code}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div 
+                            className="h-full rounded-full bg-primary transition-all" 
+                            style={{ width: `${progressPct}%` }} 
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{stepLabel}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {format(new Date(item.created_at), 'dd/MM HH:mm', { locale: he })}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {(!redFlags?.stuck_onboarding || redFlags.stuck_onboarding.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                     No users stuck in onboarding 🎉
                   </TableCell>
                 </TableRow>

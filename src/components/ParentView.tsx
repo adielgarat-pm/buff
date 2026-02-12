@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
@@ -90,105 +89,78 @@ export function ParentView() {
     setViewingAsChildId(childId);
   };
 
-  // Handle onboarding completion for adding a new child
+  // Handle onboarding completion — child profile already exists from Step 1
   const handleOnboardingComplete = async (onboardingData: OnboardingData) => {
     if (!profile?.family_id) {
       toast.error(t('parentSettings.noFamilyFound'));
       return;
     }
 
-    const maxRetries = 2;
-    let attempt = 0;
+    const childProfileId = onboardingData.childProfileId;
+    if (!childProfileId) {
+      toast.error('שגיאה פנימית: פרופיל הילד לא נמצא.');
+      return;
+    }
 
-    const tryCreateChild = async (): Promise<void> => {
-      attempt++;
-      try {
-        // Step 1: Create child profile (critical — if this fails, abort)
-        const { data: childProfile, error: childError } = await supabase
-          .from('profiles')
-          .insert({
-            display_name: onboardingData.childName,
-            role: 'child',
-            family_id: profile.family_id,
-            daily_goal: 70,
-            birth_date: format(onboardingData.birthDate, 'yyyy-MM-dd'),
-            school_quest_enabled: onboardingData.schoolFeature === 'school_quest',
-            bag_prep_enabled: onboardingData.schoolFeature === 'evening_prep',
-          })
-          .select()
-          .single();
+    try {
+      // Map focus area to valid task categories
+      const categoryMap: Record<string, string> = {
+        'homework': 'learning',
+        'project': 'learning',
+        'fitness': 'movement',
+        'home': 'responsibility',
+      };
 
-        if (childError) throw childError;
+      // Create first task + reward in parallel (child profile already exists)
+      const [taskResult, rewardResult] = await Promise.allSettled([
+        supabase.from('tasks').insert({
+          family_id: profile.family_id,
+          assigned_to: childProfileId,
+          title: onboardingData.firstTask,
+          category: categoryMap[onboardingData.focusArea] || 'learning',
+          time: '16:00',
+          credits: 15,
+        }),
+        supabase.from('store_rewards').insert({
+          family_id: profile.family_id,
+          assigned_to: childProfileId,
+          title: onboardingData.weekendReward,
+          emoji: '🎉',
+          price: 100,
+        }),
+      ]);
 
-        // Map focus area to valid task categories (5-category system)
-        const categoryMap: Record<string, string> = {
-          'homework': 'learning',
-          'project': 'learning',
-          'fitness': 'movement',
-          'home': 'responsibility',
-        };
+      // Mark onboarding as complete (step 6)
+      await supabase
+        .from('profiles')
+        .update({ onboarding_step: 6 })
+        .eq('id', profile.id);
 
-        // Step 2: Create first task + reward in parallel (non-critical — warn on failure)
-        const [taskResult, rewardResult] = await Promise.allSettled([
-          supabase.from('tasks').insert({
-            family_id: profile.family_id,
-            assigned_to: childProfile.id,
-            title: onboardingData.firstTask,
-            category: categoryMap[onboardingData.focusArea] || 'learning',
-            time: '16:00',
-            credits: 15,
-          }),
-          supabase.from('store_rewards').insert({
-            family_id: profile.family_id,
-            assigned_to: childProfile.id,
-            title: onboardingData.weekendReward,
-            emoji: '🎉',
-            price: 100,
-          }),
-        ]);
-
-        const warnings: string[] = [];
-        if (taskResult.status === 'rejected' || (taskResult.status === 'fulfilled' && taskResult.value.error)) {
-          warnings.push('המשימה הראשונה');
-        }
-        if (rewardResult.status === 'rejected' || (rewardResult.status === 'fulfilled' && rewardResult.value.error)) {
-          warnings.push('הפרס הראשון');
-        }
-
-        // Close modal and refresh
-        setOnboardingOpen(false);
-        await refetchChildren();
-
-        if (warnings.length > 0) {
-          toast.warning(`${onboardingData.childName} נוסף/ה בהצלחה, אבל לא הצלחנו ליצור: ${warnings.join(' ו')}. אפשר להוסיף אותם ידנית בהגדרות.`);
-        } else {
-          toast.success(`${onboardingData.childName} ${t('parentSettings.childAddedSuccess')}`);
-        }
-
-        // Navigate to the new child's settings
-        setSelectedChildIdForSettings(childProfile.id);
-        setActiveTab('settings');
-      } catch (error: any) {
-        console.error(`Onboarding attempt ${attempt} failed:`, error);
-
-        if (attempt < maxRetries) {
-          toast.error('שגיאה ביצירת הפרופיל, מנסה שוב...', { duration: 2000 });
-          await new Promise(r => setTimeout(r, 1500));
-          return tryCreateChild();
-        }
-
-        // Final failure — show actionable error with manual retry
-        toast.error('לא הצלחנו ליצור את הפרופיל. בדקו את החיבור לאינטרנט ונסו שוב.', {
-          duration: 6000,
-          action: {
-            label: 'נסה שוב',
-            onClick: () => handleOnboardingComplete(onboardingData),
-          },
-        });
+      const warnings: string[] = [];
+      if (taskResult.status === 'rejected' || (taskResult.status === 'fulfilled' && taskResult.value.error)) {
+        warnings.push('המשימה הראשונה');
       }
-    };
+      if (rewardResult.status === 'rejected' || (rewardResult.status === 'fulfilled' && rewardResult.value.error)) {
+        warnings.push('הפרס הראשון');
+      }
 
-    await tryCreateChild();
+      // Close modal and refresh
+      setOnboardingOpen(false);
+      await refetchChildren();
+
+      if (warnings.length > 0) {
+        toast.warning(`${onboardingData.childName} נוסף/ה בהצלחה, אבל לא הצלחנו ליצור: ${warnings.join(' ו')}. אפשר להוסיף אותם ידנית בהגדרות.`);
+      } else {
+        toast.success(`${onboardingData.childName} ${t('parentSettings.childAddedSuccess')}`);
+      }
+
+      // Navigate to the new child's settings
+      setSelectedChildIdForSettings(childProfileId);
+      setActiveTab('settings');
+    } catch (error: any) {
+      console.error('Onboarding completion error:', error);
+      toast.error('שגיאה בסיום ההתקנה. נסו שוב.');
+    }
   };
 
   const renderTabContent = () => {
