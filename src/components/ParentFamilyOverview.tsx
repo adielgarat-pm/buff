@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ParentDailyWinCard } from './ParentDailyWinCard';
+import { DailySummaryCard } from './DailySummaryCard';
 import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
@@ -15,7 +16,9 @@ import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
+import { useSubscription } from '@/hooks/useSubscription';
 import { BuffBoostCard } from './BuffBoostCard';
+import { ProGate } from './ProGate';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
@@ -43,6 +46,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const { children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
   const { awardCleanDayBonus, awarding, wasBonusAwardedToday } = useCleanDayBonus();
+  const { isProUser } = useSubscription();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
   const [grantingCardFor, setGrantingCardFor] = useState<string | null>(null);
 
@@ -300,6 +304,17 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                           tasksCompleted={progress.tasksCompleted}
                           totalTasks={progress.tasksTotal}
                         />
+                      )}
+
+                      {/* Daily Summary Card - Pro only, shows after 17:00 */}
+                      {isProUser && new Date().getHours() >= 17 && progress && progress.tasksTotal > 0 && (
+                        <ProGate>
+                          <DailySummaryCard
+                            childId={child.id}
+                            childName={child.displayName}
+                            onNavigateToSettings={onSelectChild}
+                          />
+                        </ProGate>
                       )}
 
                       <Button

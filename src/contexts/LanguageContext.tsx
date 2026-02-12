@@ -869,6 +869,18 @@ const translations: Record<Language, Record<string, string>> = {
     'pet.noRestCards': 'אין כרטיסי מנוחה',
     'pet.grantRestCard': 'הענק כרטיס מנוחה',
     'pet.restCardGranted': 'כרטיס מנוחה הוענק ל{name}!',
+
+    // Daily Summary (Pro)
+    'dailySummary.header': 'סיכום היום של {name} 🌙',
+    'dailySummary.loading': 'טוען סיכום יומי...',
+    'dailySummary.errorLoading': 'לא הצלחנו לטעון את הסיכום',
+    'dailySummary.successScore': 'הצלחה',
+    'dailySummary.tasksCompleted': 'משימות',
+    'dailySummary.creditsEarned': 'קרדיטים',
+    'dailySummary.streakStatus': 'רצף',
+    'dailySummary.dailyScore': 'ציון יומי',
+    'dailySummary.tipFromBuff': 'טיפ מ-BUFF',
+    'dailySummary.prepTomorrow': 'הכן את הבוקר של מחר',
   },
   en: {
     // General
@@ -1726,6 +1738,18 @@ const translations: Record<Language, Record<string, string>> = {
     'pet.noRestCards': 'No Rest Cards',
     'pet.grantRestCard': 'Grant Rest Card',
     'pet.restCardGranted': 'Rest Card granted to {name}!',
+
+    // Daily Summary (Pro)
+    'dailySummary.header': "{name}'s Day Summary 🌙",
+    'dailySummary.loading': 'Loading daily summary...',
+    'dailySummary.errorLoading': 'Could not load summary',
+    'dailySummary.successScore': 'success',
+    'dailySummary.tasksCompleted': 'Tasks',
+    'dailySummary.creditsEarned': 'Credits',
+    'dailySummary.streakStatus': 'Streak',
+    'dailySummary.dailyScore': 'Daily Score',
+    'dailySummary.tipFromBuff': 'Tip from BUFF',
+    'dailySummary.prepTomorrow': "Prep tomorrow's morning",
   },
 };
 

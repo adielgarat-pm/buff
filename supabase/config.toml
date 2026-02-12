@@ -2,3 +2,6 @@ project_id = "iyejaxnugjgjeceqdcky"
 
 [functions.lemon-squeezy-webhook]
 verify_jwt = false
+
+[functions.daily-summary]
+verify_jwt = false
