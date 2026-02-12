@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
-  BarChart3, TrendingUp, Calendar, User, Trophy, Flame, Target,
-  BookOpen, MessageSquare, AlertTriangle, Sparkles, ChevronDown, ChevronUp
+  Lightbulb, TrendingUp, Calendar, User, Trophy, Flame, Target,
+  BookOpen, MessageSquare, AlertTriangle, Sparkles, ChevronDown, ChevronUp, BarChart3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
@@ -52,7 +52,7 @@ export function ParentReports() {
           </div>
         </div>
         <div className="p-4 rounded-xl bg-card border border-border text-center">
-          <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <Lightbulb className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">{t('reports.noChildrenYet')}</p>
         </div>
       </div>
