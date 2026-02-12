@@ -3,12 +3,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Json } from '@/integrations/supabase/types';
 
+// Evolution stages
+export type EvolutionStage = 'egg' | 'hatchling' | 'scout' | 'guardian';
+
 export interface PetState {
   level: number;
   experience: number;
   energy_level: number;
   current_skin: string;
   last_interaction: string | null;
+  // Evolution system
+  evolution_stage: EvolutionStage;
+  evolution_days_count: number;
+  daily_streak: number;
+  rest_cards_balance: number;
+  last_task_completion_date: string | null;
 }
 
 const DEFAULT_PET_STATE: PetState = {
@@ -17,15 +26,42 @@ const DEFAULT_PET_STATE: PetState = {
   energy_level: 50,
   current_skin: 'dragon',
   last_interaction: null,
+  evolution_stage: 'egg',
+  evolution_days_count: 0,
+  daily_streak: 0,
+  rest_cards_balance: 1, // Start with 1 free rest card
+  last_task_completion_date: null,
 };
+
+// Evolution thresholds (days of actual task completion)
+const EVOLUTION_THRESHOLDS: Record<EvolutionStage, number> = {
+  egg: 0,
+  hatchling: 3,
+  scout: 7,
+  guardian: 13,
+};
+
+function getEvolutionStage(days: number): EvolutionStage {
+  if (days >= 13) return 'guardian';
+  if (days >= 7) return 'scout';
+  if (days >= 3) return 'hatchling';
+  return 'egg';
+}
+
+function getNextEvolutionThreshold(stage: EvolutionStage): number {
+  if (stage === 'egg') return 3;
+  if (stage === 'hatchling') return 7;
+  if (stage === 'scout') return 13;
+  return 13; // guardian is max
+}
 
 // XP thresholds per level (cumulative)
 const LEVEL_THRESHOLDS = [0, 50, 120, 220, 350, 520, 730, 1000, 1350, 1800];
 const MAX_LEVEL = LEVEL_THRESHOLDS.length;
 
 // Rest period config
-const REST_DURATION_MS = 5 * 60 * 1000; // 5 minutes of active interaction triggers rest
-const REST_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes rest
+const REST_DURATION_MS = 5 * 60 * 1000;
+const REST_COOLDOWN_MS = 15 * 60 * 1000;
 
 const PET_REST_KEY = 'buff_pet_session';
 
@@ -44,6 +80,25 @@ function getSessionState(): SessionState {
 
 function saveSessionState(state: SessionState) {
   localStorage.setItem(PET_REST_KEY, JSON.stringify(state));
+}
+
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function normalizePetState(raw: Record<string, unknown>): PetState {
+  return {
+    level: (raw.level as number) ?? DEFAULT_PET_STATE.level,
+    experience: (raw.experience as number) ?? DEFAULT_PET_STATE.experience,
+    energy_level: (raw.energy_level as number) ?? DEFAULT_PET_STATE.energy_level,
+    current_skin: (raw.current_skin as string) ?? DEFAULT_PET_STATE.current_skin,
+    last_interaction: (raw.last_interaction as string | null) ?? null,
+    evolution_stage: (raw.evolution_stage as EvolutionStage) ?? getEvolutionStage((raw.evolution_days_count as number) ?? 0),
+    evolution_days_count: (raw.evolution_days_count as number) ?? 0,
+    daily_streak: (raw.daily_streak as number) ?? 0,
+    rest_cards_balance: (raw.rest_cards_balance as number) ?? 1,
+    last_task_completion_date: (raw.last_task_completion_date as string | null) ?? null,
+  };
 }
 
 export function useChildPet(childId?: string) {
@@ -68,7 +123,17 @@ export function useChildPet(childId?: string) {
         .single();
 
       if (data?.pet_state) {
-        setPetState(data.pet_state as unknown as PetState);
+        const loaded = normalizePetState(data.pet_state as Record<string, unknown>);
+        // Check if streak needs updating (missed day without rest card)
+        const processed = checkStreakOnLoad(loaded);
+        if (processed !== loaded) {
+          // Save the updated state back
+          await supabase
+            .from('profiles')
+            .update({ pet_state: processed as unknown as Json })
+            .eq('id', effectiveChildId);
+        }
+        setPetState(processed);
       }
       setLoading(false);
     };
@@ -76,11 +141,49 @@ export function useChildPet(childId?: string) {
     loadPetState();
   }, [effectiveChildId]);
 
-  // Manage time-based rest period
+  // Check streak on load - auto-consume rest card if day was missed
+  function checkStreakOnLoad(state: PetState): PetState {
+    const today = getTodayKey();
+    const lastDate = state.last_task_completion_date;
+    
+    if (!lastDate || lastDate === today) return state;
+
+    // Calculate days between last completion and today
+    const last = new Date(lastDate);
+    const now = new Date(today);
+    const diffDays = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 1) return state; // Yesterday = no gap
+
+    // There's a gap - check if we have rest cards to cover it
+    let streak = state.daily_streak;
+    let restCards = state.rest_cards_balance;
+    const missedDays = diffDays - 1; // Days between last and today (exclusive)
+
+    for (let i = 0; i < missedDays; i++) {
+      if (restCards > 0) {
+        restCards--; // Consume a rest card, streak preserved
+      } else {
+        streak = 0; // Streak broken
+        break;
+      }
+    }
+
+    if (streak !== state.daily_streak || restCards !== state.rest_cards_balance) {
+      return {
+        ...state,
+        daily_streak: streak,
+        rest_cards_balance: restCards,
+      };
+    }
+
+    return state;
+  }
+
+  // Manage time-based rest period (screen time limit)
   useEffect(() => {
     const session = getSessionState();
 
-    // Check if currently resting
     if (session.restingUntil && Date.now() < session.restingUntil) {
       setIsResting(true);
       const remaining = session.restingUntil - Date.now();
@@ -91,18 +194,15 @@ export function useChildPet(childId?: string) {
       return;
     }
 
-    // If rest expired, clear it
     if (session.restingUntil) {
       saveSessionState({ activeStartTime: null, restingUntil: null });
       setIsResting(false);
     }
 
-    // Start tracking active time
     if (!session.activeStartTime) {
       saveSessionState({ ...session, activeStartTime: Date.now() });
     }
 
-    // Check if active time exceeds limit
     const checkActive = () => {
       const s = getSessionState();
       if (s.activeStartTime && Date.now() - s.activeStartTime >= REST_DURATION_MS) {
@@ -140,7 +240,6 @@ export function useChildPet(childId?: string) {
     const newXp = petState.experience + xp;
     let newLevel = petState.level;
 
-    // Check for level up
     while (newLevel < MAX_LEVEL && newXp >= LEVEL_THRESHOLDS[newLevel]) {
       newLevel++;
     }
@@ -160,21 +259,97 @@ export function useChildPet(childId?: string) {
     return { leveledUp, newLevel };
   }, [petState, savePetState]);
 
-  // Called when a task is completed
+  // Called when a task is completed - handles streak + evolution + XP
   const onTaskCompleted = useCallback(async (credits: number) => {
-    // XP is proportional to credits earned
+    const today = getTodayKey();
     const xp = Math.max(5, Math.round(credits * 0.5));
-    const result = await grantExperience(xp);
 
-    // Wake pet from rest if it was resting (task completed = earned interaction)
+    // Calculate new streak and evolution days
+    let newStreak = petState.daily_streak;
+    let newEvoDays = petState.evolution_days_count;
+    const lastDate = petState.last_task_completion_date;
+
+    // Only increment once per day
+    if (lastDate !== today) {
+      if (lastDate) {
+        const last = new Date(lastDate);
+        const now = new Date(today);
+        const diffDays = Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          // Consecutive day
+          newStreak += 1;
+        } else if (diffDays > 1) {
+          // Gap - rest cards may have been consumed on load, but if streak is still alive, continue
+          newStreak = petState.daily_streak > 0 ? petState.daily_streak + 1 : 1;
+        }
+      } else {
+        newStreak = 1; // First ever completion
+      }
+      newEvoDays += 1;
+    }
+
+    const newStage = getEvolutionStage(newEvoDays);
+    const newXp = petState.experience + xp;
+    let newLevel = petState.level;
+    while (newLevel < MAX_LEVEL && newXp >= LEVEL_THRESHOLDS[newLevel]) {
+      newLevel++;
+    }
+
+    // Award rest card: 1 per 5 evolution days
+    let newRestCards = petState.rest_cards_balance;
+    const prevCardMilestone = Math.floor(petState.evolution_days_count / 5);
+    const newCardMilestone = Math.floor(newEvoDays / 5);
+    if (newCardMilestone > prevCardMilestone) {
+      newRestCards += (newCardMilestone - prevCardMilestone);
+    }
+
+    const evolved = newStage !== petState.evolution_stage;
+
+    const newState: PetState = {
+      ...petState,
+      experience: newXp,
+      level: newLevel,
+      energy_level: Math.min(100, petState.energy_level + 15),
+      last_interaction: new Date().toISOString(),
+      evolution_stage: newStage,
+      evolution_days_count: newEvoDays,
+      daily_streak: newStreak,
+      rest_cards_balance: newRestCards,
+      last_task_completion_date: today,
+    };
+
+    await savePetState(newState);
+
+    // Wake pet from rest if resting
     if (isResting) {
       setIsResting(false);
       saveSessionState({ activeStartTime: Date.now(), restingUntil: null });
       if (restTimerRef.current) clearTimeout(restTimerRef.current);
     }
 
-    return result;
-  }, [grantExperience, isResting]);
+    return { leveledUp: newLevel > petState.level, newLevel, evolved, newStage };
+  }, [petState, savePetState, isResting]);
+
+  // Use a rest card manually
+  const useRestCard = useCallback(async () => {
+    if (petState.rest_cards_balance <= 0) return false;
+
+    const newState: PetState = {
+      ...petState,
+      rest_cards_balance: petState.rest_cards_balance - 1,
+    };
+    await savePetState(newState);
+    return true;
+  }, [petState, savePetState]);
+
+  // Add rest cards (parent grant or store purchase)
+  const addRestCards = useCallback(async (count: number) => {
+    const newState: PetState = {
+      ...petState,
+      rest_cards_balance: petState.rest_cards_balance + count,
+    };
+    await savePetState(newState);
+  }, [petState, savePetState]);
 
   // Record an interaction (tap)
   const recordInteraction = useCallback(async () => {
@@ -196,6 +371,15 @@ export function useChildPet(childId?: string) {
   const xpNeeded = nextLevelThreshold - currentLevelThreshold;
   const xpProgress = xpNeeded > 0 ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100;
 
+  // Evolution progress
+  const nextEvolutionDays = getNextEvolutionThreshold(petState.evolution_stage);
+  const currentEvolutionDays = EVOLUTION_THRESHOLDS[petState.evolution_stage];
+  const evolutionDaysInStage = petState.evolution_days_count - currentEvolutionDays;
+  const evolutionDaysNeeded = nextEvolutionDays - currentEvolutionDays;
+  const evolutionProgress = petState.evolution_stage === 'guardian'
+    ? 100
+    : Math.min(100, (evolutionDaysInStage / evolutionDaysNeeded) * 100);
+
   return {
     petState,
     isResting,
@@ -203,8 +387,14 @@ export function useChildPet(childId?: string) {
     onTaskCompleted,
     recordInteraction,
     grantExperience,
+    useRestCard,
+    addRestCards,
     xpProgress,
     xpInLevel,
     xpNeeded,
+    evolutionProgress,
+    evolutionDaysInStage,
+    evolutionDaysNeeded,
+    nextEvolutionDays,
   };
 }

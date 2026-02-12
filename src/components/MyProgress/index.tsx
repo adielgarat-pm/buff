@@ -9,7 +9,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MyProgressProps {
   onClose?: () => void;
-  // Weekly stats by category - each has 7 days of completion data
   weeklyStats?: {
     learning: boolean[];
     organization: boolean[];
@@ -17,9 +16,8 @@ interface MyProgressProps {
     responsibility: boolean[];
     movement: boolean[];
   };
-  weeklyCompletionRate?: number; // 0-100
+  weeklyCompletionRate?: number;
   restTickets?: number;
-  // Active categories - only these will be shown
   activeCategories?: TaskCategory[];
 }
 
@@ -66,9 +64,10 @@ export function MyProgress({
   onClose, 
   weeklyStats,
   weeklyCompletionRate = 0,
-  restTickets = 2,
+  restTickets,
   activeCategories,
 }: MyProgressProps) {
+  const effectiveRestTickets = restTickets ?? 2;
   // Default mock data if not provided - now with 5 categories
   const stats = useMemo(() => weeklyStats || {
     learning: [true, true, false, true, true, false, false],
@@ -195,7 +194,7 @@ export function MyProgress({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <TicketWallet restTickets={restTickets} maxTickets={3} />
+        <TicketWallet restTickets={effectiveRestTickets} maxTickets={Math.max(3, effectiveRestTickets)} />
       </motion.div>
     </div>
   );

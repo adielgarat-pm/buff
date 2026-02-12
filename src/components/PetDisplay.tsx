@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useChildPet, PetState } from '@/hooks/useChildPet';
+import { useChildPet, PetState, EvolutionStage } from '@/hooks/useChildPet';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Progress } from './ui/progress';
-import { Sparkles, Moon, Zap, Heart } from 'lucide-react';
+import { Sparkles, Moon, Zap, Heart, Flame, Shield, Ticket } from 'lucide-react';
 import Lottie from 'lottie-react';
 import { playCreditDing } from '@/utils/celebrationAudio';
 
@@ -19,7 +19,14 @@ const PET_SKINS: Record<string, { emoji: string; nameKey: string }> = {
   dino: { emoji: '🦖', nameKey: 'pet.skin.dino' },
 };
 
-// Greetings the pet says when tapped
+// Evolution stage visuals
+const EVOLUTION_VISUALS: Record<EvolutionStage, { emoji: string; labelKey: string; glowColor: string }> = {
+  egg: { emoji: '🥚', labelKey: 'pet.stage.egg', glowColor: 'from-muted/20' },
+  hatchling: { emoji: '🐣', labelKey: 'pet.stage.hatchling', glowColor: 'from-primary/20' },
+  scout: { emoji: '⚡', labelKey: 'pet.stage.scout', glowColor: 'from-primary/30' },
+  guardian: { emoji: '🛡️', labelKey: 'pet.stage.guardian', glowColor: 'from-accent/30' },
+};
+
 const GREETING_KEYS = [
   'pet.greeting.ready',
   'pet.greeting.awesome',
@@ -32,7 +39,6 @@ const CELEBRATION_URL = 'https://assets2.lottiefiles.com/packages/lf20_u4yrau.js
 interface PetDisplayProps {
   childName?: string;
   childId?: string;
-  /** Set true when a task was just completed to trigger energy glow */
   justCompletedTask?: boolean;
   onTaskCompletionAck?: () => void;
 }
@@ -44,22 +50,29 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
     petState,
     isResting,
     loading,
-    onTaskCompleted,
     recordInteraction,
     xpProgress,
     xpInLevel,
     xpNeeded,
+    evolutionProgress,
+    evolutionDaysInStage,
+    evolutionDaysNeeded,
   } = useChildPet(childId);
 
   const [showGreeting, setShowGreeting] = useState(false);
   const [greetingText, setGreetingText] = useState('');
   const [showEnergyGlow, setShowEnergyGlow] = useState(false);
-  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [showEvolution, setShowEvolution] = useState(false);
   const [lottieData, setLottieData] = useState<object | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const petName = proSettings?.virtualPet?.name || 'Buddy';
   const skin = PET_SKINS[petState.current_skin] || PET_SKINS.dragon;
+  const stage = EVOLUTION_VISUALS[petState.evolution_stage];
+  const isMaxEvolution = petState.evolution_stage === 'guardian';
+
+  // For egg stage, show the egg emoji; for higher stages show the pet skin
+  const displayEmoji = petState.evolution_stage === 'egg' ? '🥚' : skin.emoji;
 
   // Load Lottie for Pro celebrations
   useEffect(() => {
@@ -77,7 +90,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
       setShowEnergyGlow(true);
       setShowCelebration(true);
       playCreditDing();
-      
+
       const glowTimer = setTimeout(() => {
         setShowEnergyGlow(false);
         setShowCelebration(false);
@@ -101,7 +114,6 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
     setTimeout(() => setShowGreeting(false), 3000);
   }, [isResting, recordInteraction, t, childName]);
 
-  // Energy level determines animation intensity
   const energyLevel = petState.energy_level;
   const isHighEnergy = energyLevel >= 70;
 
@@ -121,7 +133,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </AnimatePresence>
 
-      {/* Pro Lottie celebration on task complete */}
+      {/* Pro Lottie celebration */}
       <AnimatePresence>
         {showCelebration && isProUser && lottieData && (
           <motion.div
@@ -144,19 +156,10 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           className="text-7xl focus:outline-none cursor-pointer disabled:cursor-default select-none"
           animate={
             isResting
-              ? {
-                  y: [0, -3, 0],
-                  scale: [0.95, 0.92, 0.95],
-                }
+              ? { y: [0, -3, 0], scale: [0.95, 0.92, 0.95] }
               : isHighEnergy
-              ? {
-                  y: [0, -10, 0, -6, 0],
-                  scale: [1, 1.05, 1, 1.03, 1],
-                }
-              : {
-                  y: [0, -6, 0],
-                  scale: [1, 1.02, 1],
-                }
+              ? { y: [0, -10, 0, -6, 0], scale: [1, 1.05, 1, 1.03, 1] }
+              : { y: [0, -6, 0], scale: [1, 1.02, 1] }
           }
           transition={
             isResting
@@ -168,7 +171,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           style={isResting ? { filter: 'grayscale(0.4)', opacity: 0.6 } : undefined}
           whileTap={!isResting ? { scale: 1.15 } : undefined}
         >
-          {isResting ? '😴' : skin.emoji}
+          {isResting ? '😴' : displayEmoji}
         </motion.button>
 
         {/* Energy indicator dot */}
@@ -183,33 +186,65 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </div>
 
-      {/* Pet Name + Level */}
+      {/* Pet Name + Level + Stage Badge */}
       <div className="flex items-center gap-2 mt-3">
         <span className="text-sm font-bold text-foreground">{petName}</span>
         <span className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold">
           Lv.{petState.level}
         </span>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent-foreground font-semibold flex items-center gap-1">
+          {stage.emoji} {t(stage.labelKey)}
+        </span>
       </div>
 
-      {/* XP Progress Bar */}
-      <div className="w-full max-w-[180px] mt-2">
-        <Progress value={xpProgress} className="h-1.5" />
+      {/* Evolution Progress */}
+      <div className="w-full max-w-[200px] mt-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+            {isMaxEvolution ? (
+              <><Shield className="w-3 h-3" /> {t('pet.maxEvolution')}</>
+            ) : (
+              <><Sparkles className="w-3 h-3" /> {t('pet.evolutionProgress')}</>
+            )}
+          </span>
+        </div>
+        <Progress value={evolutionProgress} className="h-2" />
+        {!isMaxEvolution && (
+          <p className="text-[10px] text-muted-foreground text-center mt-0.5">
+            {evolutionDaysInStage}/{evolutionDaysNeeded} {t('pet.daysToEvolve')}
+          </p>
+        )}
+      </div>
+
+      {/* Streak + Rest Cards row */}
+      <div className="flex items-center gap-4 mt-2">
+        {/* Daily Streak */}
+        <div className="flex items-center gap-1">
+          <Flame className="w-3.5 h-3.5 text-orange-400" />
+          <span className="text-xs font-bold text-foreground">{petState.daily_streak}</span>
+          <span className="text-[10px] text-muted-foreground">{t('pet.streak')}</span>
+        </div>
+
+        {/* Rest Cards */}
+        <div className="flex items-center gap-1">
+          <Ticket className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-bold text-foreground">{petState.rest_cards_balance}</span>
+          <span className="text-[10px] text-muted-foreground">{t('pet.restCards')}</span>
+        </div>
+
+        {/* Energy */}
+        <div className="flex items-center gap-1">
+          <Zap className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-bold text-foreground">{energyLevel}%</span>
+        </div>
+      </div>
+
+      {/* XP Progress Bar (smaller, secondary) */}
+      <div className="w-full max-w-[160px] mt-2">
+        <Progress value={xpProgress} className="h-1" />
         <p className="text-[10px] text-muted-foreground text-center mt-0.5">
           {xpInLevel}/{xpNeeded} XP
         </p>
-      </div>
-
-      {/* Energy Level Bar */}
-      <div className="flex items-center gap-1.5 mt-2">
-        <Zap className="w-3 h-3 text-primary" />
-        <div className="w-20 h-1.5 bg-secondary rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-primary rounded-full"
-            animate={{ width: `${energyLevel}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-        <span className="text-[10px] text-muted-foreground">{energyLevel}%</span>
       </div>
 
       {/* Greeting Bubble */}
@@ -246,9 +281,10 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </AnimatePresence>
 
+      {/* Rest Card Used Message */}
       {/* Level Up notification */}
       <AnimatePresence>
-        {showLevelUp && (
+        {showEvolution && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -256,7 +292,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
             className="absolute top-0 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center gap-1.5"
           >
             <Sparkles className="w-4 h-4" />
-            {t('pet.levelUp')}
+            {t('pet.evolved')}
           </motion.div>
         )}
       </AnimatePresence>
