@@ -229,6 +229,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         
         {currentStep === 2 && (
           <Step2FocusArea
+            childName={draft.childName}
             initialValue={draft.focusArea}
             onNext={(stepData) => handleStepUpdate(2, { focusArea: stepData.focusArea }, 3)}
             onBack={() => goToStep(1)}
