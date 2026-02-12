@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { 
+import {
   Sparkles, 
   Trophy, 
   Calendar, 
@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +41,7 @@ const CARD_THEMES = [
   { bg: 'from-amber-500/15 to-orange-500/10', border: 'border-amber-500/20', icon: 'from-amber-500 to-orange-600', dot: 'bg-amber-500', punchline: 'text-amber-600 dark:text-amber-400' },
   { bg: 'from-emerald-500/15 to-teal-500/10', border: 'border-emerald-500/20', icon: 'from-emerald-500 to-teal-600', dot: 'bg-emerald-500', punchline: 'text-emerald-600 dark:text-emerald-400' },
   { bg: 'from-blue-500/15 to-cyan-500/10', border: 'border-blue-500/20', icon: 'from-blue-500 to-cyan-600', dot: 'bg-blue-500', punchline: 'text-blue-600 dark:text-blue-400' },
+  { bg: 'from-green-500/15 to-lime-500/10', border: 'border-green-500/20', icon: 'from-green-500 to-lime-600', dot: 'bg-green-500', punchline: 'text-green-600 dark:text-green-400' },
 ];
 
 export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSettings, onStartOnboarding }: BuffPhilosophyPageProps) {
@@ -56,6 +58,7 @@ export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSetti
     { id: 'bonus', icon: Heart, title: t('philosophy.bonus.title'), buffInsight: t('philosophy.bonus.insight') },
     { id: 'dayTypes', icon: Calendar, title: t('philosophy.dayTypes.title'), buffInsight: t('philosophy.dayTypes.insight') },
     { id: 'smartGoal', icon: Flame, title: t('philosophy.smartGoal.title'), buffInsight: t('philosophy.smartGoal.insight') },
+    { id: 'community', icon: MessageCircle, title: t('philosophy.community.title'), buffInsight: t('philosophy.community.insight'), isWhatsApp: true },
   ];
 
   const onApiChange = useCallback((emblaApi: CarouselApi) => {
@@ -152,6 +155,19 @@ export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSetti
                     <p className={`text-sm sm:text-base font-semibold leading-relaxed ${theme.punchline} max-w-[260px]`}>
                       {point.buffInsight}
                     </p>
+
+                    {/* WhatsApp CTA for community card */}
+                    {point.isWhatsApp && (
+                      <a
+                        href={t('philosophy.community.link')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br ${theme.icon} text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all`}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        {t('philosophy.community.buttonText')}
+                      </a>
+                    )}
 
                     {/* Spacer bottom */}
                     <div className="flex-[0.5]" />
