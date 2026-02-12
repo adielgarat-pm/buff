@@ -26,7 +26,7 @@ export function OnboardingCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full p-3 rounded-xl border-2 text-right transition-all duration-200",
+        "w-full p-3 rounded-xl border-2 text-start transition-all duration-200",
         "hover:border-primary/50 hover:bg-primary/5",
         "active:scale-[0.98]",
         "disabled:opacity-50 disabled:cursor-not-allowed",
