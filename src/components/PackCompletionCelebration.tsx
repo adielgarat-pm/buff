@@ -57,8 +57,9 @@ export function PackCompletionCelebration({
       return;
     }
 
-    const duration = 1200;
-    const steps = 30;
+    // Gentle credit count-up - fewer dings, calmer pacing
+    const duration = 1800;
+    const steps = 20;
     const increment = creditsEarned / steps;
     let current = 0;
     let step = 0;
@@ -68,7 +69,8 @@ export function PackCompletionCelebration({
       current = Math.min(Math.round(increment * step), creditsEarned);
       setAnimatedCredits(current);
 
-      if (step % 5 === 0) {
+      // Only play ding at start, midpoint, and end - not gambling-like
+      if (step === 1 || step === Math.floor(steps / 2) || step === steps) {
         playCreditDing();
       }
 
@@ -100,43 +102,43 @@ export function PackCompletionCelebration({
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[60] flex items-center justify-center"
       >
-        {/* Background with gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/30 via-background to-accent/20 backdrop-blur-md" />
+        {/* Calm background - soft gradient, no flashing */}
+        <div className="absolute inset-0 bg-gradient-to-b from-accent/40 via-background to-primary/10 backdrop-blur-sm" />
 
-        {/* Lottie Confetti Layer */}
+        {/* Lottie Confetti Layer - reduced opacity for calmness */}
         {lottieData && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <Lottie
               animationData={lottieData}
-              loop={true}
+              loop={false}
               className="absolute inset-0 w-full h-full"
-              style={{ opacity: 0.8 }}
+              style={{ opacity: 0.5 }}
             />
           </div>
         )}
 
         {/* Content */}
         <motion.div
-          initial={{ scale: 0.3, opacity: 0, y: 80 }}
+          initial={{ scale: 0.6, opacity: 0, y: 40 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ type: 'spring', damping: 12, stiffness: 150, delay: 0.2 }}
+          transition={{ type: 'spring', damping: 18, stiffness: 120, delay: 0.3 }}
           className="relative z-10 flex flex-col items-center text-center px-6 py-8 max-w-sm w-full mx-4"
         >
-          {/* Trophy Icon */}
+          {/* Trophy Icon - gentle entrance */}
           <motion.div
-            initial={{ scale: 0, rotate: -30 }}
+            initial={{ scale: 0, rotate: -15 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
-            className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center mb-6"
+            transition={{ delay: 0.5, type: 'spring', stiffness: 150, damping: 15 }}
+            className="w-20 h-20 rounded-full bg-primary/15 border-2 border-primary/30 flex items-center justify-center mb-6"
           >
             <Trophy className="w-10 h-10 text-primary" />
           </motion.div>
 
           {/* Main Heading */}
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.6 }}
             className="text-2xl font-black text-foreground mb-2"
           >
             {t('celebration.greatJob')}
@@ -145,29 +147,30 @@ export function PackCompletionCelebration({
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.7 }}
             className="text-lg font-bold text-primary mb-1"
           >
             {childName || t('celebration.champ')}!
           </motion.p>
 
+          {/* Effort reinforcement - clear connection to hard work */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.8 }}
             className="text-muted-foreground mb-6"
           >
-            {t('celebration.focusMuscles')}
+            {t('celebration.effortMessage')}
           </motion.p>
 
           {/* Credit Vault Animation */}
           <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
+            initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.8, type: 'spring' }}
-            className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-card/80 border border-primary/30 shadow-lg mb-6"
+            transition={{ delay: 0.9, type: 'spring', damping: 20 }}
+            className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-card/80 border border-primary/20 shadow-md mb-6"
           >
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center">
               <Zap className="w-6 h-6 text-primary" />
             </div>
             <div className="text-start">
@@ -180,11 +183,11 @@ export function PackCompletionCelebration({
             </div>
           </motion.div>
 
-          {/* Emoji Pet */}
+          {/* Emoji Pet - calm happy state */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
+            transition={{ delay: 1.1 }}
             className="mb-8"
           >
             <EmojiPet isHappy={true} size="lg" />
@@ -194,7 +197,7 @@ export function PackCompletionCelebration({
           <AnimatePresence>
             {showCloseBtn && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full"
               >

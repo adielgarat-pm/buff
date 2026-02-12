@@ -162,6 +162,12 @@ const translations: Record<Language, Record<string, string>> = {
     'store.unclaimCreditsReturned': 'נקודות הוחזרו',
     'store.confirmCancel': 'ביטול',
     'store.confirmOk': 'אישור',
+    'store.effortMessage': 'כל פרס כאן הרווחת בעצמך, דרך העבודה הקשה שלך! 💪',
+    
+    // Pet
+    'pet.resting': '😴 החיית המחמד נחה...',
+    'pet.restEncouragement': 'זה הזמן לצאת ולעשות משהו כיף בעולם האמיתי!',
+    'pet.happyReaction': 'וואו!',
     
     // Navigation tabs
     'nav.tasks': 'משימות',
@@ -249,6 +255,7 @@ const translations: Record<Language, Record<string, string>> = {
     'celebration.greatJob': 'כל הכבוד!',
     'celebration.champ': 'אלוף/ה',
     'celebration.focusMuscles': 'השתמשת בשרירי הריכוז שלך היום! 💪',
+    'celebration.effortMessage': 'הרווחת את זה דרך העבודה הקשה שלך!',
     'celebration.creditsEarned': 'קרדיטים שנצברו',
     'celebration.continue': 'המשך להתקדם! 🚀',
 
@@ -977,6 +984,12 @@ const translations: Record<Language, Record<string, string>> = {
     'store.unclaimCreditsReturned': 'credits refunded',
     'store.confirmCancel': 'Cancel',
     'store.confirmOk': 'Confirm',
+    'store.effortMessage': 'Everything here you earned through your own hard work! 💪',
+    
+    // Pet
+    'pet.resting': '😴 Your pet is resting...',
+    'pet.restEncouragement': 'Time to go do something fun in the real world!',
+    'pet.happyReaction': 'Woohoo!',
     
     // Navigation tabs
     'nav.tasks': 'Tasks',
@@ -1064,6 +1077,7 @@ const translations: Record<Language, Record<string, string>> = {
     'celebration.greatJob': 'Great Job!',
     'celebration.champ': 'Champ',
     'celebration.focusMuscles': 'You used your focus muscles today! 💪',
+    'celebration.effortMessage': 'You earned this through your hard work!',
     'celebration.creditsEarned': 'Credits Earned',
     'celebration.continue': 'Keep Going! 🚀',
 
