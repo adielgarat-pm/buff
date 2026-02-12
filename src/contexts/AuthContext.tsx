@@ -8,6 +8,8 @@ interface Profile {
   family_id: string | null;
   display_name: string;
   role: 'parent' | 'child';
+  is_pro: boolean;
+  pro_settings: Record<string, unknown>;
 }
 
 interface AuthContextType {
