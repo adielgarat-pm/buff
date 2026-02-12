@@ -101,6 +101,14 @@ function AuthCallbackRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (user?.email !== 'adi.elgarat@gmail.com') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
+
 function AboutPageWrapper() {
   const navigate = useNavigate();
   return <AboutPage onBack={() => navigate("/dashboard", { replace: true })} />;
@@ -126,8 +134,8 @@ const AppRoutes = () => (
     {/* Protected dashboard - the main app (requires full auth + profile + family) */}
     <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
     
-    {/* Admin dashboard - protected with role check inside */}
-    <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+    {/* Admin dashboard - restricted to specific admin email */}
+    <Route path="/admin" element={<ProtectedRoute><AdminGuard><AdminDashboard /></AdminGuard></ProtectedRoute>} />
     
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />
