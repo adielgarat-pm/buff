@@ -566,6 +566,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_pro_status: {
+        Args: {
+          p_is_lifetime_access?: boolean
+          p_is_pro?: boolean
+          p_profile_id: string
+        }
+        Returns: Json
+      }
       delete_child_profile: { Args: { p_child_id: string }; Returns: Json }
       generate_family_short_code: { Args: never; Returns: string }
       get_admin_app_pulse: { Args: never; Returns: Json }
@@ -602,6 +610,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_admin_profiles_overview: { Args: never; Returns: Json }
       get_my_family_id: { Args: never; Returns: string }
       has_role: {
         Args: {
