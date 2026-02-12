@@ -280,6 +280,7 @@ export type Database = {
           marketing_consent: boolean
           onboarding_data: Json | null
           onboarding_step: number | null
+          pet_state: Json | null
           pro_settings: Json | null
           role: string
           school_quest_enabled: boolean
@@ -305,6 +306,7 @@ export type Database = {
           marketing_consent?: boolean
           onboarding_data?: Json | null
           onboarding_step?: number | null
+          pet_state?: Json | null
           pro_settings?: Json | null
           role?: string
           school_quest_enabled?: boolean
@@ -330,6 +332,7 @@ export type Database = {
           marketing_consent?: boolean
           onboarding_data?: Json | null
           onboarding_step?: number | null
+          pet_state?: Json | null
           pro_settings?: Json | null
           role?: string
           school_quest_enabled?: boolean
@@ -403,6 +406,7 @@ export type Database = {
           family_id: string
           id: string
           price: number
+          reward_category: string
           title: string
         }
         Insert: {
@@ -414,6 +418,7 @@ export type Database = {
           family_id: string
           id?: string
           price: number
+          reward_category?: string
           title: string
         }
         Update: {
@@ -425,6 +430,7 @@ export type Database = {
           family_id?: string
           id?: string
           price?: number
+          reward_category?: string
           title?: string
         }
         Relationships: [
