@@ -1,42 +1,80 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Backpack, Home, Lock, ArrowRight, ArrowLeft, Sparkles, Star } from 'lucide-react';
+import {
+  Backpack, Home, Dumbbell, Lightbulb, Lock,
+  ArrowRight, ArrowLeft, Sparkles, Star,
+  BookOpen, ClipboardCheck, Zap, Apple, FlaskConical, BarChart3,
+  Sun, Bed,
+} from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { FocusArea } from './Step2FocusArea';
 
-export type SchoolFeature = 'school_quest' | 'evening_prep';
+// Each focus area has exactly 2 starter packs
+export type StarterPack =
+  | 'school_quest' | 'homework_hero'     // homework (learning)
+  | 'morning_pro' | 'room_power'         // home
+  | 'daily_dash' | 'fuel_up'             // fitness
+  | 'innovation_lab' | 'progress_log';   // project
 
-interface Step3SchoolFeatureProps {
-  initialValue?: SchoolFeature;
-  focusArea?: string;
-  onNext: (data: { schoolFeature: SchoolFeature }) => void;
-  onBack: () => void;
+// Keep backward compat alias
+export type SchoolFeature = StarterPack;
+
+interface PackMeta {
+  icon: typeof Backpack;
+  titleKey: string;
+  descKey: string;
 }
 
-const PACK_CONFIG: Record<SchoolFeature, { icon: typeof Backpack; emoji: string }> = {
-  school_quest: { icon: Backpack, emoji: '🎯' },
-  evening_prep: { icon: Home, emoji: '🌙' },
+const PACKS_BY_FOCUS: Record<FocusArea, [StarterPack, StarterPack]> = {
+  homework: ['school_quest', 'homework_hero'],
+  home:     ['morning_pro', 'room_power'],
+  fitness:  ['daily_dash', 'fuel_up'],
+  project:  ['innovation_lab', 'progress_log'],
 };
 
-// Focus areas that map to "most popular" pack
-const POPULAR_MAP: Record<string, SchoolFeature> = {
-  homework: 'school_quest',
-  project: 'school_quest',
-  fitness: 'evening_prep',
-  home: 'evening_prep',
+const PACK_META: Record<StarterPack, PackMeta> = {
+  school_quest:   { icon: Backpack,      titleKey: 'onboarding.step3.pack.school_quest',      descKey: 'onboarding.step3.pack.school_quest.desc' },
+  homework_hero:  { icon: BookOpen,      titleKey: 'onboarding.step3.pack.homework_hero',     descKey: 'onboarding.step3.pack.homework_hero.desc' },
+  morning_pro:    { icon: Sun,           titleKey: 'onboarding.step3.pack.morning_pro',       descKey: 'onboarding.step3.pack.morning_pro.desc' },
+  room_power:     { icon: Home,          titleKey: 'onboarding.step3.pack.room_power',        descKey: 'onboarding.step3.pack.room_power.desc' },
+  daily_dash:     { icon: Dumbbell,      titleKey: 'onboarding.step3.pack.daily_dash',        descKey: 'onboarding.step3.pack.daily_dash.desc' },
+  fuel_up:        { icon: Apple,         titleKey: 'onboarding.step3.pack.fuel_up',           descKey: 'onboarding.step3.pack.fuel_up.desc' },
+  innovation_lab: { icon: FlaskConical,  titleKey: 'onboarding.step3.pack.innovation_lab',    descKey: 'onboarding.step3.pack.innovation_lab.desc' },
+  progress_log:   { icon: BarChart3,     titleKey: 'onboarding.step3.pack.progress_log',      descKey: 'onboarding.step3.pack.progress_log.desc' },
 };
+
+interface Step3SchoolFeatureProps {
+  initialValue?: StarterPack;
+  focusArea?: FocusArea;
+  onNext: (data: { schoolFeature: StarterPack }) => void;
+  onBack: () => void;
+}
 
 export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: Step3SchoolFeatureProps) {
   const { t, isRTL, language } = useLanguage();
   const isHe = language === 'he';
-  const [selected, setSelected] = useState<SchoolFeature | null>(initialValue || null);
+  const [selected, setSelected] = useState<StarterPack | null>(initialValue || null);
   const [tappedId, setTappedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialValue) setSelected(initialValue);
   }, [initialValue]);
 
-  const popularPack = focusArea ? POPULAR_MAP[focusArea] : 'school_quest';
+  // Get the 2 packs for the current focus area (default to homework)
+  const activeFocus: FocusArea = focusArea || 'homework';
+  const [packA, packB] = PACKS_BY_FOCUS[activeFocus];
+  const packs: StarterPack[] = [packA, packB];
+
+  // First pack is always the "most popular" for the focus area
+  const popularPack = packA;
+
+  // Reset selection if it doesn't belong to the current focus area
+  useEffect(() => {
+    if (selected && !packs.includes(selected)) {
+      setSelected(null);
+    }
+  }, [activeFocus]);
 
   const handleNext = () => {
     if (selected) {
@@ -45,15 +83,13 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
     }
   };
 
-  const handleSelect = (feature: SchoolFeature) => {
-    setSelected(feature);
-    setTappedId(feature);
+  const handleSelect = (pack: StarterPack) => {
+    setSelected(pack);
+    setTappedId(pack);
     setTimeout(() => setTappedId(null), 200);
   };
 
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
-
-  const packs: SchoolFeature[] = ['school_quest', 'evening_prep'];
 
   return (
     <div className="flex flex-col h-full" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -82,8 +118,8 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
         {/* Starter Pack Cards */}
         <div className="space-y-2">
           {packs.map((packId) => {
-            const config = PACK_CONFIG[packId];
-            const Icon = config.icon;
+            const meta = PACK_META[packId];
+            const Icon = meta.icon;
             const isSelected = selected === packId;
             const isPopular = popularPack === packId;
             const isTapped = tappedId === packId;
@@ -128,10 +164,10 @@ export function Step3SchoolFeature({ initialValue, focusArea, onNext, onBack }: 
                       'font-bold text-sm leading-tight',
                       isSelected ? 'text-primary' : 'text-foreground'
                     )}>
-                      {t(`onboarding.step3.${packId === 'school_quest' ? 'schoolQuest' : 'eveningPrep'}`)}
+                      {t(meta.titleKey)}
                     </h3>
                     <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                      {t(`onboarding.step3.${packId === 'school_quest' ? 'schoolQuestDesc' : 'eveningPrepDesc'}`)}
+                      {t(meta.descKey)}
                     </p>
                     <p className="text-[10px] text-muted-foreground/70 mt-1 italic">
                       {t('onboarding.step3.includes')}

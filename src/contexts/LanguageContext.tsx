@@ -695,16 +695,32 @@ const translations: Record<Language, Record<string, string>> = {
     // Step 3
     'onboarding.step3.title': 'בחרו ערכת התחלה',
     'onboarding.step3.subtitle': 'כל ערכה כוללת משימות מוכנות ופרס מותאם:',
-    'onboarding.step3.schoolQuest': 'ערכת ריכוז בבית הספר',
-    'onboarding.step3.schoolQuestDesc': 'רפלקציה יומית על קשב והשתתפות בשיעורים.',
-    'onboarding.step3.eveningPrep': 'ערכת הכנה לערב',
-    'onboarding.step3.eveningPrepDesc': 'הכנת ציוד, בגדים ותיק למחר.',
     'onboarding.step3.includes': '📦 כולל 3 משימות מוכנות + פרס מותאם',
     'onboarding.step3.mostPopular': 'הבחירה הנפוצה',
     'onboarding.step3.proPacks': 'ערכות פרימיום',
     'onboarding.step3.proDesc': 'פתחו מסלולים מיוחדים כמו ״חיית מחמד וירטואלית״ או ״מיומנויות חברתיות״ עם BUFF Pro.',
     'onboarding.step3.note': '💡 תמיד אפשר לשנות את הבחירה בהגדרות.',
     'onboarding.step3.cta': 'המשך',
+    // Learning packs
+    'onboarding.step3.pack.school_quest': 'School Quest – ריכוז בכיתה',
+    'onboarding.step3.pack.school_quest.desc': 'רפלקציה יומית על קשב והשתתפות בשיעורים.',
+    'onboarding.step3.pack.homework_hero': 'Homework Hero – גיבור שיעורי הבית',
+    'onboarding.step3.pack.homework_hero.desc': 'מבנה ברור להתחלת שיעורי בית ומעקב התקדמות.',
+    // Home packs
+    'onboarding.step3.pack.morning_pro': 'Morning Pro – מקצוען הבוקר',
+    'onboarding.step3.pack.morning_pro.desc': 'שגרת בוקר מסודרת: התלבשות, ארוחה ויציאה בזמן.',
+    'onboarding.step3.pack.room_power': 'Room Power – כוח החדר',
+    'onboarding.step3.pack.room_power.desc': 'סידור החדר, ארגון השולחן ושמירה על סדר.',
+    // Fitness packs
+    'onboarding.step3.pack.daily_dash': 'Daily Dash – דאש יומי',
+    'onboarding.step3.pack.daily_dash.desc': 'תנועה יומית, אימון קצר ומעקב פעילות.',
+    'onboarding.step3.pack.fuel_up': 'Fuel Up – תדלוק נכון',
+    'onboarding.step3.pack.fuel_up.desc': 'תזונה בריאה, שתייה ומנוחה מספקת.',
+    // Project packs
+    'onboarding.step3.pack.innovation_lab': 'Innovation Lab – מעבדת חדשנות',
+    'onboarding.step3.pack.innovation_lab.desc': 'הקדשת זמן יומי לפרויקט אישי ויצירתיות.',
+    'onboarding.step3.pack.progress_log': 'Progress Log – יומן התקדמות',
+    'onboarding.step3.pack.progress_log.desc': 'תיעוד צעדים, מעקב יעדים וחגיגת הישגים.',
 
     // Step 4
     'onboarding.step4.title': 'מנצחים את ה"התנעה" 🏁',
@@ -1460,16 +1476,32 @@ const translations: Record<Language, Record<string, string>> = {
     // Step 3
     'onboarding.step3.title': 'Choose a Starter Pack',
     'onboarding.step3.subtitle': 'Each pack includes pre-set tasks and a custom reward:',
-    'onboarding.step3.schoolQuest': 'School Focus Pack',
-    'onboarding.step3.schoolQuestDesc': 'Daily reflection on focus and participation in class.',
-    'onboarding.step3.eveningPrep': 'Evening Prep Pack',
-    'onboarding.step3.eveningPrepDesc': 'Prepare gear, clothes & bag for tomorrow.',
     'onboarding.step3.includes': '📦 Includes 3 pre-set tasks + a custom reward',
     'onboarding.step3.mostPopular': 'Most Popular',
     'onboarding.step3.proPacks': 'Premium Packs',
     'onboarding.step3.proDesc': 'Unlock specialized tracks like "Virtual Pet" or "Social Skills" with BUFF Pro.',
     'onboarding.step3.note': '💡 You can always change this in settings.',
     'onboarding.step3.cta': 'Continue',
+    // Learning packs
+    'onboarding.step3.pack.school_quest': 'School Quest',
+    'onboarding.step3.pack.school_quest.desc': 'Daily reflection on focus and participation in class.',
+    'onboarding.step3.pack.homework_hero': 'Homework Hero',
+    'onboarding.step3.pack.homework_hero.desc': 'Structured approach to starting homework and tracking progress.',
+    // Home packs
+    'onboarding.step3.pack.morning_pro': 'Morning Pro',
+    'onboarding.step3.pack.morning_pro.desc': 'Smooth morning routine: get dressed, eat & leave on time.',
+    'onboarding.step3.pack.room_power': 'Room Power',
+    'onboarding.step3.pack.room_power.desc': 'Tidy room, organized desk & keeping things in order.',
+    // Fitness packs
+    'onboarding.step3.pack.daily_dash': 'Daily Dash',
+    'onboarding.step3.pack.daily_dash.desc': 'Daily movement, quick workout & activity tracking.',
+    'onboarding.step3.pack.fuel_up': 'Fuel Up',
+    'onboarding.step3.pack.fuel_up.desc': 'Healthy eating, hydration & proper rest.',
+    // Project packs
+    'onboarding.step3.pack.innovation_lab': 'Innovation Lab',
+    'onboarding.step3.pack.innovation_lab.desc': 'Dedicated daily time for personal projects & creativity.',
+    'onboarding.step3.pack.progress_log': 'Progress Log',
+    'onboarding.step3.pack.progress_log.desc': 'Document steps, track goals & celebrate achievements.',
 
     // Step 4
     'onboarding.step4.title': 'Beat the "startup" challenge 🏁',
