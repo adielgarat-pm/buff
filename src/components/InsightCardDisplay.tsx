@@ -1,17 +1,34 @@
 import { InsightCard } from '@/hooks/useParentInsights';
 import { cn } from '@/lib/utils';
-import { Zap, TrendingUp, AlertCircle, Sparkles, ChevronRight } from 'lucide-react';
+import { Zap, TrendingUp, AlertCircle, Sparkles, ChevronRight, Plus } from 'lucide-react';
 import { STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 interface InsightCardDisplayProps {
   insight: InsightCard;
+  childId?: string;
 }
 
-export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
+// Action task suggestions based on insight type
+const INSIGHT_ACTIONS: Record<string, { titleHe: string; titleEn: string; time: string; category: string; credits: number }> = {
+  'insight-evening': { titleHe: 'רגיעה של 5 דקות לפני שינה', titleEn: '5-min Wind-down before bed', time: '20:15', category: 'self-care', credits: 10 },
+  'insight-afternoon': { titleHe: 'הפסקת טעינה אחרי בית ספר', titleEn: 'Recharge break after school', time: '15:30', category: 'self-care', credits: 10 },
+  'insight-morning': { titleHe: 'הכנת בגדים בערב', titleEn: 'Prep clothes tonight', time: '20:00', category: 'organization', credits: 10 },
+  'insight-hygiene': { titleHe: 'תזכורת מקלחת ערב', titleEn: 'Evening shower reminder', time: '20:30', category: 'self-care', credits: 10 },
+  'insight-homework': { titleHe: '15 דקות למידה ממוקדת', titleEn: '15-min focused study', time: '17:00', category: 'learning', credits: 15 },
+  'insight-medication': { titleHe: 'תזכורת תרופות עם צחצוח', titleEn: 'Meds with toothbrushing', time: '07:30', category: 'self-care', credits: 10 },
+};
+
+export function InsightCardDisplay({ insight, childId }: InsightCardDisplayProps) {
   const [expanded, setExpanded] = useState(false);
+  const [addingTask, setAddingTask] = useState(false);
   const { language, t } = useLanguage();
+  const { familyId } = useAuth();
 
   const severityConfig = {
     info: {
@@ -44,6 +61,38 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
   const strategyLabel = insight.strategyType 
     ? (language === 'he' ? STRATEGY_CATEGORIES[insight.strategyType].labelHe : STRATEGY_CATEGORIES[insight.strategyType].label)
     : null;
+
+  const actionConfig = INSIGHT_ACTIONS[insight.id];
+
+  const handleAddTask = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!familyId || !childId || !actionConfig || addingTask) return;
+
+    setAddingTask(true);
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowDay = tomorrow.getDay();
+
+      const { error } = await supabase.from('tasks').insert({
+        family_id: familyId,
+        assigned_to: childId,
+        title: language === 'he' ? actionConfig.titleHe : actionConfig.titleEn,
+        time: actionConfig.time,
+        category: actionConfig.category,
+        credits: actionConfig.credits,
+        schedule_days: [tomorrowDay],
+      });
+
+      if (error) throw error;
+      toast.success(language === 'he' ? 'משימה נוספה למחר! ✨' : 'Task added for tomorrow! ✨');
+    } catch (err) {
+      console.error('Error adding task:', err);
+      toast.error(language === 'he' ? 'שגיאה בהוספת משימה' : 'Error adding task');
+    } finally {
+      setAddingTask(false);
+    }
+  };
 
   return (
     <div
@@ -85,7 +134,7 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
           {/* Expanded suggestion */}
           <div className={cn(
             'overflow-hidden transition-all duration-300',
-            expanded ? 'max-h-48 opacity-100 mt-3' : 'max-h-0 opacity-0'
+            expanded ? 'max-h-64 opacity-100 mt-3' : 'max-h-0 opacity-0'
           )}>
             <div className="p-3 rounded-lg bg-background/50 border border-border">
               <div className="flex items-center gap-2 mb-2">
@@ -100,6 +149,23 @@ export function InsightCardDisplay({ insight }: InsightCardDisplayProps) {
               <p className="text-sm text-foreground leading-relaxed">
                 {suggestion}
               </p>
+
+              {/* Action Button */}
+              {actionConfig && childId && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+                  onClick={handleAddTask}
+                  disabled={addingTask}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {addingTask 
+                    ? (language === 'he' ? 'מוסיף...' : 'Adding...')
+                    : (language === 'he' ? actionConfig.titleHe : actionConfig.titleEn)
+                  }
+                </Button>
+              )}
             </div>
           </div>
         </div>
