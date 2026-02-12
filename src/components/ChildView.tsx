@@ -101,6 +101,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   // Pet module - Pro users only
   const childPet = useChildPet(viewingChildId);
   const [petJustCompletedTask, setPetJustCompletedTask] = useState(false);
+  const restTickets = childPet.petState.rest_cards_balance;
 
   // Wrap completeTask to also feed pet XP
   const handleCompleteTask = useCallback((taskId: string) => {
@@ -358,6 +359,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
             <MyProgress 
               onClose={() => setActiveTab('tasks')}
               activeCategories={activeCategories}
+              restTickets={isProUser ? restTickets : undefined}
             />
           )}
         </div>

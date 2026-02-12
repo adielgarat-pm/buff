@@ -849,6 +849,22 @@ const translations: Record<Language, Record<string, string>> = {
     'oldDashboard.fridaySchoolDay': 'יום שישי יום לימודים',
     'oldDashboard.uploadSchedule': 'העלאת מערכת',
     'oldDashboard.manageSchedule': 'ניהול מערכת וציוד',
+
+    // Pet Evolution
+    'pet.stage.egg': 'ביצה',
+    'pet.stage.hatchling': 'גוזל',
+    'pet.stage.scout': 'סייר',
+    'pet.stage.guardian': 'שומר',
+    'pet.evolutionProgress': 'התקדמות אבולוציה',
+    'pet.maxEvolution': 'אבולוציה מקסימלית!',
+    'pet.daysToEvolve': 'ימים להתפתחות',
+    'pet.streak': 'רצף',
+    'pet.restCards': 'כרטיסים',
+    'pet.evolved': 'התפתחות! 🎉',
+    'pet.restCardUsed': 'כרטיס מנוחה נוצל! הרצף שלך מוגן 🛡️',
+    'pet.restCardUsedMessage': 'זה בסדר לנוח! השתמשתי בכרטיס מנוחה כדי לשמור על הרצף שלך. בוא נחזור לפעולה מחר כדי לעזור לי לצמוח!',
+    'pet.buyRestCard': 'קנה כרטיס מנוחה',
+    'pet.buyRestCardDesc': 'הגן על הרצף שלך ביום עמוס',
   },
   en: {
     // General
@@ -1686,6 +1702,22 @@ const translations: Record<Language, Record<string, string>> = {
     'oldDashboard.fridaySchoolDay': 'Friday is a School Day',
     'oldDashboard.uploadSchedule': 'Upload Schedule',
     'oldDashboard.manageSchedule': 'Manage Schedule & Equipment',
+
+    // Pet Evolution
+    'pet.stage.egg': 'Egg',
+    'pet.stage.hatchling': 'Hatchling',
+    'pet.stage.scout': 'Scout',
+    'pet.stage.guardian': 'Guardian',
+    'pet.evolutionProgress': 'Evolution Progress',
+    'pet.maxEvolution': 'Max Evolution!',
+    'pet.daysToEvolve': 'days to evolve',
+    'pet.streak': 'streak',
+    'pet.restCards': 'cards',
+    'pet.evolved': 'Evolved! 🎉',
+    'pet.restCardUsed': 'Rest Card used! Your streak is safe 🛡️',
+    'pet.restCardUsedMessage': "It's okay to take a break! I used a Rest Card to save your streak. Let's get back to work tomorrow to help me grow!",
+    'pet.buyRestCard': 'Buy Rest Card',
+    'pet.buyRestCardDesc': 'Protect your streak on a busy day',
   },
 };
 
