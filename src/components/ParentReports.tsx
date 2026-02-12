@@ -3,6 +3,7 @@ import {
   BarChart3, TrendingUp, Calendar, User, Trophy, Flame, Target,
   BookOpen, MessageSquare, AlertTriangle, Sparkles, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useChildProgress } from '@/hooks/useChildProgress';
 import { useParentInsights } from '@/hooks/useParentInsights';
@@ -97,8 +98,25 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
   const { insights, phaseInsights, loading: insightsLoading } = useParentInsights(childId);
   const { stats, loading: statsLoading } = useWeeklyBuffStats(childId);
   const [showAllReflections, setShowAllReflections] = useState(false);
+  const [schoolQuestEnabled, setSchoolQuestEnabled] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('profiles')
+      .select('school_quest_enabled')
+      .eq('id', childId)
+      .single()
+      .then(({ data }) => {
+        if (data) setSchoolQuestEnabled(data.school_quest_enabled ?? true);
+      });
+  }, [childId]);
 
   const loading = insightsLoading || statsLoading;
+
+  // Determine if school/subject data should be shown
+  const hasSchoolData = schoolQuestEnabled && stats && (
+    stats.lessonsConquered > 0 || stats.subjectTrends.length > 0
+  );
 
   if (loading) {
     return (
@@ -112,7 +130,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
   return (
     <div className="space-y-2.5">
       {stats && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className={cn("grid gap-2", hasSchoolData ? "grid-cols-2" : "grid-cols-3")}>
           <div className="rounded-lg bg-gradient-to-br from-buff/20 to-buff/5 border border-buff/30 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <Sparkles className="w-4 h-4 text-buff" />
@@ -142,18 +160,20 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
             <Progress value={(stats.questsConquered / Math.max(stats.totalQuests, 1)) * 100} className="h-1.5" />
           </div>
 
-          <div className="rounded-lg bg-card border border-border p-2.5">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1">
-                <BookOpen className="w-3.5 h-3.5 text-accent" />
-                <span className="text-xs text-muted-foreground">{t('reports.lessons')}</span>
+          {hasSchoolData && (
+            <div className="rounded-lg bg-card border border-border p-2.5">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1">
+                  <BookOpen className="w-3.5 h-3.5 text-accent" />
+                  <span className="text-xs text-muted-foreground">{t('reports.lessons')}</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">
+                  {stats.lessonsConquered}<span className="text-xs text-muted-foreground">/{stats.totalLessons}</span>
+                </span>
               </div>
-              <span className="text-sm font-bold text-foreground">
-                {stats.lessonsConquered}<span className="text-xs text-muted-foreground">/{stats.totalLessons}</span>
-              </span>
+              <Progress value={(stats.lessonsConquered / Math.max(stats.totalLessons, 1)) * 100} className="h-1.5" />
             </div>
-            <Progress value={(stats.lessonsConquered / Math.max(stats.totalLessons, 1)) * 100} className="h-1.5" />
-          </div>
+          )}
         </div>
       )}
 
@@ -188,7 +208,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         )}
       </div>
 
-      {stats && stats.subjectTrends.length > 0 && (
+      {hasSchoolData && stats && stats.subjectTrends.length > 0 && (
         <div className="rounded-lg bg-card border border-border p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <BarChart3 className="w-4 h-4 text-accent" />
@@ -207,7 +227,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         </div>
       )}
 
-      {stats && stats.reflections.length > 0 && (
+      {hasSchoolData && stats && stats.reflections.length > 0 && (
         <div className="rounded-lg bg-card border border-border p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
@@ -259,7 +279,7 @@ function ChildReportsContent({ childId, childName }: { childId: string; childNam
         ) : (
           <div className="space-y-2">
             {insights.map((insight) => (
-              <InsightCardDisplay key={insight.id} insight={insight} />
+              <InsightCardDisplay key={insight.id} insight={insight} childId={childId} />
             ))}
           </div>
         )}
