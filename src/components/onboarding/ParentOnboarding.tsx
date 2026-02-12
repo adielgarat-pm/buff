@@ -239,6 +239,7 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         {currentStep === 3 && (
           <Step3SchoolFeature
             initialValue={draft.schoolFeature}
+            focusArea={draft.focusArea}
             onNext={(stepData) => handleStepUpdate(3, { schoolFeature: stepData.schoolFeature }, 4)}
             onBack={() => goToStep(2)}
           />
