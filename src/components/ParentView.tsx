@@ -25,40 +25,9 @@ import { ParentOnboarding, OnboardingData } from './onboarding/ParentOnboarding'
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/** Silent Launch mode: insights are open to all users */
 function ProGatedInsights({ children }: { children: React.ReactNode }) {
-  const { isProUser } = useSubscription();
-  const { t, language } = useLanguage();
-  const [showUpgrade, setShowUpgrade] = useState(false);
-
-  if (isProUser) return <>{children}</>;
-
-  const isHe = language === 'he';
-
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-5">
-      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-        <Lock className="w-8 h-8 text-primary" />
-      </div>
-      <div className="space-y-2">
-        <h2 className="text-xl font-bold text-foreground">
-          {isHe ? 'תובנות מתקדמות' : 'Advanced Insights'}
-        </h2>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-          {isHe
-            ? 'גלה תובנות מעמיקות על ההתקדמות של ילדך, מגמות בית ספר וטיפים מותאמים אישית עם BUFF Pro.'
-            : "Unlock deep insights into your child's progress, school trends, and personalized coaching tips with BUFF Pro."}
-        </p>
-      </div>
-      <button
-        onClick={() => setShowUpgrade(true)}
-        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-lg hover:opacity-90 transition-opacity"
-      >
-        <Crown className="w-5 h-5" />
-        {isHe ? 'שדרג ל-BUFF Pro' : 'Upgrade to BUFF Pro'}
-      </button>
-      <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} />
-    </div>
-  );
+  return <>{children}</>;
 }
 
 export function ParentView() {
