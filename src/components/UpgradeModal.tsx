@@ -7,7 +7,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Crown, Sparkles, Palette, PawPrint } from 'lucide-react';
+import { Crown, Sparkles, Palette, PawPrint, PartyPopper } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface UpgradeModalProps {
   open: boolean;
@@ -17,6 +18,7 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
   const { language } = useLanguage();
   const isHe = language === 'he';
+  const { isGracePeriod } = useSubscription();
 
   const title = isHe ? 'שדרג ל-BUFF Pro' : 'Upgrade to BUFF Pro';
   const description = isHe
@@ -38,6 +40,9 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
       ];
 
   const comingSoon = isHe ? 'בקרוב!' : 'Coming Soon!';
+  const graceBanner = isHe
+    ? '🎉 שבוע השקה מיוחד: כל תכונות ה-Pro פתוחות עבורך לחקירה!'
+    : '🎉 Special Launch Week: All Pro features are currently open for you to explore!';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,6 +54,13 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+
+        {isGracePeriod && (
+          <div className="flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-xs font-medium text-primary">
+            <PartyPopper className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{graceBanner}</span>
+          </div>
+        )}
 
         <ul className="space-y-3 my-4">
           {features.map((f, i) => (
