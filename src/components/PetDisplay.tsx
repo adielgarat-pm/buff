@@ -197,6 +197,11 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         </span>
       </div>
 
+      {/* Coach subtitle — intrinsic growth messaging */}
+      <p className="text-[10px] text-muted-foreground mt-1 italic">
+        {t('pet.coachSubtitle')}
+      </p>
+
       {/* Evolution Progress */}
       <div className="w-full max-w-[200px] mt-3">
         <div className="flex items-center justify-between mb-1">
@@ -247,7 +252,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         </p>
       </div>
 
-      {/* Greeting Bubble */}
+      {/* Coach Greeting / Celebration Bubble */}
       <AnimatePresence>
         {showGreeting && !isResting && (
           <motion.div
@@ -258,6 +263,22 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           >
             <p className="text-xs text-foreground text-center font-medium">
               {greetingText}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Coach celebration on task complete */}
+      <AnimatePresence>
+        {showEnergyGlow && !isResting && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="mt-2 px-4 py-2 rounded-2xl bg-primary/15 border border-primary/25 text-center max-w-[220px]"
+          >
+            <p className="text-xs font-semibold text-primary">
+              {t('pet.celebrationCoach')}
             </p>
           </motion.div>
         )}
