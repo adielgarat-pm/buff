@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 
-export const GRACE_PERIOD_END = new Date('2026-02-20T23:59:59');
+export const GRACE_PERIOD_END = new Date('2026-02-27T23:59:59');
 
 export interface ProSettings {
   theme?: string;

@@ -41,8 +41,8 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
 
   const comingSoon = isHe ? 'בקרוב!' : 'Coming Soon!';
   const graceBanner = isHe
-    ? '🎉 שבוע השקה מיוחד: כל תכונות ה-Pro פתוחות עבורך לחקירה!'
-    : '🎉 Special Launch Week: All Pro features are currently open for you to explore!';
+    ? '🎉 מתנת השקה: כל פיצ\'רי הפרו פתוחים עד ה-27.2!'
+    : '🎉 Launch Gift: All Pro features are open until Feb 27!';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
