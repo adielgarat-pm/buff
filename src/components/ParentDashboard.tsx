@@ -19,7 +19,7 @@ import { useParentInsights } from '@/hooks/useParentInsights';
 import { InsightCardDisplay } from './InsightCardDisplay';
 import { PhaseCompletionChart } from './PhaseCompletionChart';
 import { FamilyCodeDisplay } from './FamilyCodeDisplay';
-import { BuffBoostCard } from './BuffBoostCard';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -105,8 +105,6 @@ export function ParentDashboard({
           </p>
         </div>
 
-        {/* BuffBoost Community Support Card */}
-        <BuffBoostCard />
 
         {/* General Settings Card */}
         <div className="rounded-2xl bg-card border border-primary/20 p-5 space-y-4">
