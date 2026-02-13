@@ -116,7 +116,7 @@ export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSetti
       <div dir={isRTL ? 'rtl' : 'ltr'} className={`flex-1 min-h-0 flex flex-col ${isModal ? 'px-2' : 'max-w-2xl mx-auto w-full px-3'}`}>
         <Carousel
           setApi={onApiChange}
-          opts={{ align: 'start', loop: false, direction: isRTL ? 'rtl' : 'ltr' }}
+          opts={{ align: 'start', loop: false, direction: isRTL ? 'rtl' : 'ltr', containScroll: false }}
           className="flex-1 min-h-0 flex flex-col"
         >
           <CarouselContent className="-ml-2 h-full">
