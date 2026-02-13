@@ -24,6 +24,7 @@ import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { PackCompletionCelebration } from './PackCompletionCelebration';
 import { PetDisplay } from './PetDisplay';
+import { RewardMilestoneToast } from './RewardMilestoneToast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -426,6 +427,12 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         childName={childDisplayName || profile?.display_name}
         creditsEarned={packCreditsEarned}
         onDismiss={dismissPackCelebration}
+      />
+
+      {/* Transient Reward Milestone Notifications */}
+      <RewardMilestoneToast
+        totalBalance={totalBalance}
+        storeRewards={storeRewards}
       />
     </div>
   );
