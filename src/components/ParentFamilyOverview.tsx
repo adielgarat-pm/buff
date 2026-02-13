@@ -17,7 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
 import { useSubscription } from '@/hooks/useSubscription';
-import { BuffBoostCard } from './BuffBoostCard';
+
 import { ProGate } from './ProGate';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -149,7 +149,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
         />
       )}
 
-       <BuffBoostCard />
+       
       
        <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
