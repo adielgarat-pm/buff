@@ -48,6 +48,7 @@ import { TimetableImporter } from './TimetableImporter';
 import { StoreRewardEditor } from './StoreRewardEditor';
 import { BuffPhilosophyPage } from './BuffPhilosophyPage';
 import { JoinFamilySection } from './JoinFamilySection';
+import { useSubscription } from '@/hooks/useSubscription';
 import { ParentHelpSection } from './ParentHelpSection';
 import { DayScheduleToggles } from './DayScheduleToggles';
 import { DuplicateToChildModal } from './DuplicateToChildModal';
@@ -62,6 +63,27 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+function SimulateProToggle() {
+  const { language } = useLanguage();
+  const { simulatePro, setSimulatePro } = useSubscription();
+  const isHe = language === 'he';
+  return (
+    <div className="pt-6 border-t border-dashed border-muted-foreground/20 mt-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="space-y-0.5">
+          <p className="text-xs font-semibold text-muted-foreground">
+            {isHe ? 'אדמין: סימולציית Pro (שימוש פנימי בלבד)' : 'Admin: Simulate Pro Status (Internal Use Only)'}
+          </p>
+          <p className="text-[10px] text-muted-foreground/60">
+            {isHe ? 'עוקף את כל לוגיקת המנוי לצרכי בדיקה' : 'Overrides all subscription logic for testing'}
+          </p>
+        </div>
+        <Switch checked={simulatePro} onCheckedChange={setSimulatePro} />
+      </div>
+    </div>
+  );
+}
 
 interface ParentSettingsProps {
   appTitle: string;
@@ -332,6 +354,10 @@ export function ParentSettings({
               </Button>
             </div>
           )}
+
+          {/* Admin: Simulate Pro Toggle */}
+          <SimulateProToggle />
+
         </>
       )}
     </div>
