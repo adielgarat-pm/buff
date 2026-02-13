@@ -119,7 +119,7 @@ export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSetti
           opts={{ align: 'start', loop: false, direction: isRTL ? 'rtl' : 'ltr' }}
           className="flex-1 min-h-0 flex flex-col"
         >
-          <CarouselContent className="-ml-2 flex-1 min-h-0">
+          <CarouselContent className="-ml-2 h-full">
             {philosophyPoints.map((point, index) => {
               const theme = CARD_THEMES[index];
               const IconComp = point.icon;
