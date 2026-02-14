@@ -104,6 +104,15 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   const [petJustCompletedTask, setPetJustCompletedTask] = useState(false);
   const restTickets = childPet.petState.rest_cards_balance;
 
+  // Listen for notification-triggered task completions → pet happy reaction
+  useEffect(() => {
+    const handler = () => {
+      setPetJustCompletedTask(true);
+    };
+    window.addEventListener('pet-task-completed-via-notification', handler);
+    return () => window.removeEventListener('pet-task-completed-via-notification', handler);
+  }, []);
+
   // Wrap completeTask to also feed pet XP
   const handleCompleteTask = useCallback((taskId: string) => {
     completeTask(taskId);

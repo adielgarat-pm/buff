@@ -185,7 +185,7 @@ export function useNotifications() {
           body,
           tag: taskId,
           requireInteraction: true,
-          data: { taskId, url: '/' },
+          data: { taskId, url: '/?tab=tasks&pet=1' },
         });
       }
       // Remove from scheduled list
@@ -198,11 +198,17 @@ export function useNotifications() {
     ]);
   }, [permission, showNotification, serviceWorkerReady]);
 
-  // Schedule all task notifications for today - "Positive Coach" nudge 5 min before
-  const scheduleTaskNotifications = useCallback((tasks: Task[], childName?: string): void => {
+  // Schedule all task notifications for today - Pet persona nudge 5 min before
+  const scheduleTaskNotifications = useCallback((
+    tasks: Task[],
+    childName?: string,
+    evolutionStage?: string,
+    petName?: string
+  ): void => {
     if (permission !== 'granted') return;
 
     const today = new Date();
+    const stage = evolutionStage || 'egg';
     
     tasks.forEach(task => {
       if (task.completed) return;
@@ -216,9 +222,11 @@ export function useNotifications() {
 
       // Only schedule if nudge time is in the future
       if (nudgeTime > today) {
-        const coachTitle = childName 
-          ? t('notification.coachNudge').replace('{name}', childName)
-          : getDiscreteNotificationTitle(task);
+        // Use stage-specific pet persona message
+        const coachKey = `notification.coachNudge.${stage}` as any;
+        const coachTitle = t(coachKey)
+          .replace('{name}', childName || '')
+          .replace('{petName}', petName || 'Buddy');
         
         scheduleNotification(
           task.id,
@@ -305,10 +313,12 @@ export function useNotifications() {
     setScheduledNotifications([]);
   }, [scheduledNotifications]);
 
-  // Schedule a morning preview notification at 07:00
+  // Schedule a morning preview notification at 07:00 — pet persona
   const scheduleMorningPreview = useCallback((
     taskCount: number,
-    childName?: string
+    childName?: string,
+    evolutionStage?: string,
+    petName?: string
   ): void => {
     if (permission !== 'granted' || taskCount === 0) return;
 
@@ -318,8 +328,16 @@ export function useNotifications() {
 
     // Only schedule if 07:00 is in the future
     if (morningTime > today) {
-      const title = t('notification.morningTitle').replace('{name}', childName || '');
-      const body = t('notification.morningBody').replace('{count}', String(taskCount));
+      const stage = evolutionStage || 'egg';
+      const isEgg = stage === 'egg';
+      
+      const titleKey = isEgg ? 'notification.morningTitle.egg' : 'notification.morningTitle.default';
+      const bodyKey = isEgg ? 'notification.morningBody.egg' : 'notification.morningBody.default';
+      
+      const title = t(titleKey)
+        .replace('{name}', childName || '')
+        .replace('{petName}', petName || 'Buddy');
+      const body = t(bodyKey).replace('{count}', String(taskCount));
       
       scheduleNotification(
         'morning_preview',

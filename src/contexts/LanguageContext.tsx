@@ -832,14 +832,20 @@ const translations: Record<Language, Record<string, string>> = {
     'bonus.awarded': '🌟 {name} קיבל/ה בונוס יום מוצלח! +{credits} קרדיטים',
     'bonus.error': 'שגיאה בהענקת הבונוס',
 
-    // Notifications
+    // Notifications — Pet persona
     'notification.lessonSoon': '🎯 שיעור {subject} מתחיל בעוד 5 דקות!',
     'notification.getReady': 'הגיע הזמן להתכונן! 🏆',
-    'notification.gearMasterTitle': '🎒 משימת ערב - בונוס מוכנות!',
-    'notification.gearMasterBody': 'התיק למחר כבר מוכן? זה הזמן לזכות ב-{credits} נקודות Buff! ✨',
-    'notification.coachNudge': 'היי {name}, המשימה שלך מתחילה בעוד 5 דקות! מוכן? 💪',
-    'notification.morningTitle': '☀️ בוקר טוב {name}!',
-    'notification.morningBody': 'יש לך {count} משימות היום. בוא נתחיל יום מעולה! 🚀',
+    'notification.gearMasterTitle': '🎒 אני רעב! משימת ערב = ארוחה בשבילי!',
+    'notification.gearMasterBody': 'התיק למחר כבר מוכן? תעזור לי לגדול עם {credits} נקודות! ✨',
+    'notification.coachNudge.egg': 'פסססט... אני מרגיש רעידה! 🥚 המשימה שלך מתחילה בעוד 5 דק\' - תעזור לי לבקוע!',
+    'notification.coachNudge.hatchling': 'היי {name}! 🐣 אני רעב! המשימה שלך בעוד 5 דק\' = ארוחה בשבילי!',
+    'notification.coachNudge.scout': 'היי {name}! ⚡ בוא נצא להרפתקה! המשימה שלך בעוד 5 דקות!',
+    'notification.coachNudge.guardian': '{name}, אני שומר עליך! 🛡️ המשימה שלך בעוד 5 דקות. יאללה!',
+    'notification.morningTitle.egg': '🥚 בוקר טוב! אני מתגעגע אליך!',
+    'notification.morningTitle.default': '☀️ {petName} מחכה לך!',
+    'notification.morningBody.egg': 'יש לך {count} משימות היום. כל אחת מקרבת אותי לבקיעה! 🐣',
+    'notification.morningBody.default': '{count} משימות = {count} ארוחות בשבילי! בוא נתחיל! 🍎',
+    'notification.petLonely': 'פסססט... מתגעגע אליך! 🥚 בוא תשלים משימה ונבלה יחד!',
 
     // Install Prompt Messages
     'install.personalized.0': 'הופכים את הבוקר של {names} לסיפור הצלחה. הוסיפו את Buff למסך הבית.',
@@ -1713,14 +1719,20 @@ const translations: Record<Language, Record<string, string>> = {
     'bonus.awarded': '🌟 {name} received a successful day bonus! +{credits} credits',
     'bonus.error': 'Error awarding bonus',
 
-    // Notifications
+    // Notifications — Pet persona
     'notification.lessonSoon': '🎯 {subject} lesson starts in 5 minutes!',
     'notification.getReady': 'Time to get ready! 🏆',
-    'notification.gearMasterTitle': '🎒 Evening Mission - Readiness Bonus!',
-    'notification.gearMasterBody': 'Is the bag ready for tomorrow? Time to earn {credits} Buff Points! ✨',
-    'notification.coachNudge': 'Hey {name}, your mission starts in 5 minutes! Ready? 💪',
-    'notification.morningTitle': '☀️ Good Morning {name}!',
-    'notification.morningBody': 'You have {count} tasks today. Let\'s crush it! 🚀',
+    'notification.gearMasterTitle': '🎒 I\'m hungry! Evening mission = dinner for me!',
+    'notification.gearMasterBody': 'Is the bag ready for tomorrow? Help me grow with {credits} points! ✨',
+    'notification.coachNudge.egg': 'Psst... I feel a wiggle! 🥚 Your mission starts in 5 min—help me crack this shell!',
+    'notification.coachNudge.hatchling': 'Hey {name}! 🐣 I\'m hungry! Your mission in 5 min = a treat for me!',
+    'notification.coachNudge.scout': 'Hey {name}! ⚡ Let\'s go on an adventure! Your mission starts in 5 minutes!',
+    'notification.coachNudge.guardian': '{name}, I\'ve got your back! 🛡️ Mission starts in 5 min. Let\'s go!',
+    'notification.morningTitle.egg': '🥚 Good morning! I\'m getting lonely!',
+    'notification.morningTitle.default': '☀️ {petName} is waiting for you!',
+    'notification.morningBody.egg': 'You have {count} tasks today. Each one brings me closer to hatching! 🐣',
+    'notification.morningBody.default': '{count} tasks = {count} treats for me! Let\'s start! 🍎',
+    'notification.petLonely': 'Psst... I\'m getting lonely! 🥚 Come complete a task so we can hang out!',
 
     // Install Prompt Messages
     'install.personalized.0': 'Turn {names}\'s morning into a success story. Add Buff to your home screen.',
