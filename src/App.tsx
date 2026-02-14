@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -22,12 +22,13 @@ const queryClient = new QueryClient();
 
 // Loading component with Buff logo
 function LoadingScreen() {
+  const { language } = useLanguage();
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
       <img src={buffLogo} alt="Buff" className="w-20 h-20 animate-pulse" />
       <div className="flex items-center gap-2">
         <Loader2 className="w-5 h-5 animate-spin text-primary" />
-        <p className="text-muted-foreground">טוען...</p>
+        <p className="text-muted-foreground">{language === 'he' ? 'טוען...' : 'Loading...'}</p>
       </div>
     </div>
   );
