@@ -33,13 +33,13 @@ export function ChildSidebar({ onOpenCommandCenter }: ChildSidebarProps) {
     <>
       {/* Floating toggle button */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={handleToggle}
-        className="fixed top-4 z-40 rounded-xl w-10 h-10 bg-transparent hover:bg-primary/10 shadow-none border-0 transition-all"
+        className="fixed top-4 z-40 rounded-xl w-10 h-10 border-border bg-card shadow-sm hover:bg-secondary hover:scale-105 transition-all"
         style={{ [isRTL ? 'left' : 'left']: '1rem' }}
       >
-        {open ? <X className="w-5 h-5 text-primary" /> : <Menu className="w-5 h-5 text-primary" />}
+        {open ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
       </Button>
 
       {/* Backdrop */}
