@@ -1781,7 +1781,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       return langParam;
     }
     const saved = localStorage.getItem('buff-language');
-    return (saved as Language) || 'he';
+    return (saved as Language) || 'en';
   });
 
   useEffect(() => {
