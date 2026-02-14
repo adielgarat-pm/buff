@@ -307,7 +307,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 isTeen={isTeen}
               />
 
-              {/* Pet Display - Pro users who enabled it, above the fold */}
+               {/* Pet Display - Pro users who enabled it, above the fold */}
               {showPetDisplay && (
                 <div className="rounded-2xl bg-card border border-border p-3">
                   <PetDisplay
@@ -315,6 +315,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                     childId={viewingChildId}
                     justCompletedTask={petJustCompletedTask}
                     onTaskCompletionAck={() => setPetJustCompletedTask(false)}
+                    completedToday={tasks.filter(t => t.completed).length}
+                    totalToday={tasks.length}
                   />
                 </div>
               )}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChildPet, PetState, EvolutionStage } from '@/hooks/useChildPet';
 import { useSubscription } from '@/hooks/useSubscription';
+import { getEggCrackStage } from '@/utils/coachingContext';
 import { Progress } from './ui/progress';
 import { Sparkles, Moon, Zap, Heart, Flame, Shield, Ticket } from 'lucide-react';
 import Lottie from 'lottie-react';
@@ -18,6 +19,10 @@ const PET_SKINS: Record<string, { emoji: string; nameKey: string }> = {
   bear: { emoji: '🐻', nameKey: 'pet.skin.bear' },
   dino: { emoji: '🦖', nameKey: 'pet.skin.dino' },
 };
+
+// Egg crack visuals based on completion progress
+const EGG_CRACK_EMOJIS = ['🥚', '🥚', '🥚', '🐣'];
+const EGG_CRACK_LABELS = ['pet.eggCrack1', 'pet.eggCrack2', 'pet.eggCrack3', 'pet.hatching'];
 
 // Evolution stage visuals
 const EVOLUTION_VISUALS: Record<EvolutionStage, { emoji: string; labelKey: string; glowColor: string }> = {
@@ -41,9 +46,13 @@ interface PetDisplayProps {
   childId?: string;
   justCompletedTask?: boolean;
   onTaskCompletionAck?: () => void;
+  /** Number of tasks completed today (for egg crack progression) */
+  completedToday?: number;
+  /** Total tasks for today (for egg crack progression) */
+  totalToday?: number;
 }
 
-export function PetDisplay({ childName, childId, justCompletedTask, onTaskCompletionAck }: PetDisplayProps) {
+export function PetDisplay({ childName, childId, justCompletedTask, onTaskCompletionAck, completedToday = 0, totalToday = 0 }: PetDisplayProps) {
   const { t } = useLanguage();
   const { isProUser, proSettings } = useSubscription();
   const {
@@ -63,16 +72,36 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
   const [greetingText, setGreetingText] = useState('');
   const [showEnergyGlow, setShowEnergyGlow] = useState(false);
   const [showEvolution, setShowEvolution] = useState(false);
+  const [showHatchCelebration, setShowHatchCelebration] = useState(false);
   const [lottieData, setLottieData] = useState<object | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [prevCrackStage, setPrevCrackStage] = useState(0);
+  const [crackMessage, setCrackMessage] = useState('');
 
   const petName = proSettings?.virtualPet?.name || 'Buddy';
   const skin = PET_SKINS[petState.current_skin] || PET_SKINS.dragon;
   const stage = EVOLUTION_VISUALS[petState.evolution_stage];
   const isMaxEvolution = petState.evolution_stage === 'guardian';
 
-  // For egg stage, show the egg emoji; for higher stages show the pet skin
-  const displayEmoji = petState.evolution_stage === 'egg' ? '🥚' : skin.emoji;
+  // Egg crack stage calculation
+  const crackStage = petState.evolution_stage === 'egg'
+    ? getEggCrackStage(completedToday, totalToday)
+    : 0;
+
+  // For egg stage, show crack-based emoji; for higher stages show the pet skin
+  const displayEmoji = petState.evolution_stage === 'egg'
+    ? (crackStage >= 3 ? '🐣' : '🥚')
+    : skin.emoji;
+
+  // Show crack message when stage advances
+  useEffect(() => {
+    if (petState.evolution_stage !== 'egg') return;
+    if (crackStage > prevCrackStage && crackStage > 0) {
+      setCrackMessage(t(EGG_CRACK_LABELS[crackStage - 1]));
+      setTimeout(() => setCrackMessage(''), 3000);
+    }
+    setPrevCrackStage(crackStage);
+  }, [crackStage, prevCrackStage, petState.evolution_stage, t]);
 
   // Load Lottie for Pro celebrations
   useEffect(() => {
@@ -149,6 +178,41 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
 
       {/* Pet Container */}
       <div className="relative">
+        {/* Egg crack lines overlay (only during egg stage) */}
+        {petState.evolution_stage === 'egg' && crackStage > 0 && !isResting && (
+          <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+            {crackStage >= 1 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 0.8, scale: 1 }}
+                className="absolute text-3xl -rotate-12 translate-x-3 -translate-y-1"
+              >
+                ✨
+              </motion.div>
+            )}
+            {crackStage >= 2 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 0.9, scale: 1, rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                className="absolute text-2xl rotate-12 -translate-x-4 translate-y-2"
+              >
+                💫
+              </motion.div>
+            )}
+            {crackStage >= 3 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: 1, scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+                className="absolute text-lg translate-y-4"
+              >
+                🌟
+              </motion.div>
+            )}
+          </div>
+        )}
+
         {/* Pet Emoji with breathing/floating animation */}
         <motion.button
           onClick={handleTap}
@@ -157,6 +221,8 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           animate={
             isResting
               ? { y: [0, -3, 0], scale: [0.95, 0.92, 0.95] }
+              : petState.evolution_stage === 'egg' && crackStage >= 2
+              ? { y: [0, -8, 0], rotate: [0, -3, 3, -2, 0], scale: [1, 1.04, 1] }
               : isHighEnergy
               ? { y: [0, -10, 0, -6, 0], scale: [1, 1.05, 1, 1.03, 1] }
               : { y: [0, -6, 0], scale: [1, 1.02, 1] }
@@ -164,6 +230,8 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           transition={
             isResting
               ? { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+              : petState.evolution_stage === 'egg' && crackStage >= 2
+              ? { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
               : isHighEnergy
               ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
               : { duration: 3, repeat: Infinity, ease: 'easeInOut' }
@@ -185,6 +253,20 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           />
         )}
       </div>
+
+      {/* Egg Crack Progress Message */}
+      <AnimatePresence>
+        {crackMessage && petState.evolution_stage === 'egg' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="mt-2 px-4 py-2 rounded-2xl bg-primary/15 border border-primary/25 text-center max-w-[220px]"
+          >
+            <p className="text-xs font-semibold text-primary">{crackMessage}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Pet Name + Level + Stage Badge */}
       <div className="flex items-center gap-2 mt-3">

@@ -846,6 +846,18 @@ const translations: Record<Language, Record<string, string>> = {
     'notification.morningBody.egg': 'יש לך {count} משימות היום. כל אחת מקרבת אותי לבקיעה! 🐣',
     'notification.morningBody.default': '{count} משימות = {count} ארוחות בשבילי! בוא נתחיל! 🍎',
     'notification.petLonely': 'פסססט... מתגעגע אליך! 🥚 בוא תשלים משימה ונבלה יחד!',
+    // Context-aware coaching scripts
+    'notification.coach.morning': 'בוקר טוב! ☀️ חיית המחמד שלך מחכה לארוחת בוקר—עזור לה על ידי סיום המשימה הראשונה!',
+    'notification.coach.departure': 'משימה: בית ספר! 🎒 תן לביצה \'סדק\' קטן על ידי נעילת נעליים!',
+    'notification.coach.focus': 'זמן לגיבורי שיעורי בית! 📝 חיית המחמד שלך צריכה אנרגיית ריכוז. בוא נתחזק ביחד!',
+    'notification.coach.shower': 'זמן להשתכשך! 🛁 חיית המחמד שלך אוהבת בועות—סיים את המשימה כדי לפתוח הפתעה!',
+    'notification.coach.bedtime': 'לילה טוב! 🌙 חיית המחמד שלך מתחילה להיות עייפה. סיים את המשימות כדי להשכיב אותה לישון.',
+    // Egg crack / hatching
+    'pet.eggCrack1': '🥚 סדק ראשון! הביצה מתחילה להיסדק!',
+    'pet.eggCrack2': '🥚 הביצה רועדת! עוד קצת!',
+    'pet.eggCrack3': '🥚 כמעט! אפשר לראות תנועה בפנים!',
+    'pet.hatching': '🐣 הביצה נבקעה! חבר חדש נולד!',
+    'pet.hatchingDesc': 'ברכות! בזכות המשימות שלך, חיית המחמד שלך נולדה!',
 
     // Install Prompt Messages
     'install.personalized.0': 'הופכים את הבוקר של {names} לסיפור הצלחה. הוסיפו את Buff למסך הבית.',
@@ -1752,6 +1764,18 @@ const translations: Record<Language, Record<string, string>> = {
     'notification.morningBody.egg': 'You have {count} tasks today. Each one brings me closer to hatching! 🐣',
     'notification.morningBody.default': '{count} tasks = {count} treats for me! Let\'s start! 🍎',
     'notification.petLonely': 'Psst... I\'m getting lonely! 🥚 Come complete a task so we can hang out!',
+    // Context-aware coaching scripts
+    'notification.coach.morning': 'Rise and shine! ☀️ Your pet is waiting for breakfast—help it by finishing your first mission!',
+    'notification.coach.departure': 'Mission: School! 🎒 Give your egg a quick \'crack\' by putting on your shoes!',
+    'notification.coach.focus': 'Homework Hero time! 📝 Your pet needs focus energy. Let\'s power up together!',
+    'notification.coach.shower': 'Splashing time! 🛁 Your pet loves bubbles—complete your routine to unlock a surprise!',
+    'notification.coach.bedtime': 'Nighty night! 🌙 Your pet is getting sleepy. Complete your tasks to tuck it in.',
+    // Egg crack / hatching
+    'pet.eggCrack1': '🥚 First crack! The egg is starting to break!',
+    'pet.eggCrack2': '🥚 The egg is shaking! Almost there!',
+    'pet.eggCrack3': '🥚 So close! You can see movement inside!',
+    'pet.hatching': '🐣 The egg hatched! A new friend is born!',
+    'pet.hatchingDesc': 'Congratulations! Thanks to your missions, your pet was born!',
 
     // Install Prompt Messages
     'install.personalized.0': 'Turn {names}\'s morning into a success story. Add Buff to your home screen.',
