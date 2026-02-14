@@ -899,6 +899,25 @@ const translations: Record<Language, Record<string, string>> = {
     'dailySummary.dailyScore': 'ציון יומי',
     'dailySummary.tipFromBuff': 'טיפ מ-BUFF',
     'dailySummary.prepTomorrow': 'הכן את הבוקר של מחר',
+
+    // Child Command Center
+    'commandCenter.title': 'מרכז הפיקוד',
+    'commandCenter.ageTitle': 'גיל ומצב',
+    'commandCenter.ageDesc': 'עדכן את הגיל שלך כדי להתאים את החוויה',
+    'commandCenter.proMode': 'מצב פרו',
+    'commandCenter.proModeDesc': 'משימות ורמות בלי ביצה',
+    'commandCenter.hatchingMode': 'מצב בקיעה',
+    'commandCenter.hatchingModeDesc': 'גדל את השותף שלך מהביצה!',
+    'commandCenter.skinsTitle': 'גלריית סקינים',
+    'commandCenter.skin.mint': 'טבעי',
+    'commandCenter.skin.gamer': 'גיימר',
+    'commandCenter.skinDesc.mint': 'רגוע, ירוק ונעים',
+    'commandCenter.skinDesc.gamer': 'כהה, ניאון ואנרגטי',
+    'commandCenter.proNudge': 'סקינים אפיים לגיבורי PRO! בקש מההורה לפתוח.',
+    'commandCenter.petTitle': 'חיית מחמד',
+    'commandCenter.petToggleLabel': 'הצג ביצה / חיית מחמד',
+    'commandCenter.petToggleDesc': 'הסתר או הצג את השותף שלך',
+    'commandCenter.save': 'שמור שינויים',
   },
   en: {
     // General
@@ -1786,6 +1805,25 @@ const translations: Record<Language, Record<string, string>> = {
     'dailySummary.dailyScore': 'Daily Score',
     'dailySummary.tipFromBuff': 'Tip from BUFF',
     'dailySummary.prepTomorrow': "Prep tomorrow's morning",
+
+    // Child Command Center
+    'commandCenter.title': 'Command Center',
+    'commandCenter.ageTitle': 'Age & Mode',
+    'commandCenter.ageDesc': 'Update your age to customize your experience',
+    'commandCenter.proMode': 'Pro Mode',
+    'commandCenter.proModeDesc': 'Missions and levels, no egg',
+    'commandCenter.hatchingMode': 'Hatching Mode',
+    'commandCenter.hatchingModeDesc': 'Grow your partner from an egg!',
+    'commandCenter.skinsTitle': 'Skins Gallery',
+    'commandCenter.skin.mint': 'Natural',
+    'commandCenter.skin.gamer': 'Gamer',
+    'commandCenter.skinDesc.mint': 'Calm, green and cozy',
+    'commandCenter.skinDesc.gamer': 'Dark, neon and energetic',
+    'commandCenter.proNudge': 'Epic skins for PRO Heroes! Ask a parent to unlock.',
+    'commandCenter.petTitle': 'Pet / Egg',
+    'commandCenter.petToggleLabel': 'Show Egg / Pet',
+    'commandCenter.petToggleDesc': 'Hide or show your buddy',
+    'commandCenter.save': 'Save Changes',
   },
 };
 
