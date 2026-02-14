@@ -27,6 +27,7 @@ interface HeaderProps {
   showPhilosophyIcon?: boolean;
   childAvatar?: string;
   onChangeAvatar?: (newAvatar: string) => Promise<void>;
+  onOpenCommandCenter?: () => void;
 }
 
 // BUFF Logo Component with image and optional avatar
@@ -73,6 +74,7 @@ export function Header({
   showPhilosophyIcon,
   childAvatar,
   onChangeAvatar,
+  onOpenCommandCenter,
 }: HeaderProps) {
   const { language, setLanguage, t, isRTL } = useLanguage();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
@@ -95,6 +97,19 @@ export function Header({
       </div>
       
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        {/* Command Center button for children */}
+        {onOpenCommandCenter && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl w-10 h-10 touch-target border-primary/30 bg-primary/10 hover:bg-primary/20 shadow-sm hover:shadow-md transition-all"
+            onClick={onOpenCommandCenter}
+            title={t('commandCenter.title')}
+          >
+            <Settings className="w-5 h-5 text-primary" />
+          </Button>
+        )}
+
         {/* Child-friendly language toggle - prominent globe outside menu */}
         {childAvatar !== undefined && (
           <Button

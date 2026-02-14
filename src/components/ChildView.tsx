@@ -26,6 +26,7 @@ import { BirthdayCelebration } from './BirthdayCelebration';
 import { MyProgress } from './MyProgress';
 import { PackCompletionCelebration } from './PackCompletionCelebration';
 import { PetDisplay } from './PetDisplay';
+import { ChildCommandCenter } from './ChildCommandCenter';
 import { RewardMilestoneToast } from './RewardMilestoneToast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,6 +47,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   const { isProUser } = useSubscription();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
   const [showNightMission, setShowNightMission] = useState(false);
+  const [showCommandCenter, setShowCommandCenter] = useState(false);
 
   // Child preferences (theme, pet toggle, age mode)
   const isOwnDevice = profile?.role === 'child' && profile?.user_id !== null;
@@ -289,6 +291,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           userName={profile?.display_name}
           childAvatar={childAvatar}
           onChangeAvatar={updateChildAvatar}
+          onOpenCommandCenter={() => setShowCommandCenter(true)}
         />
         
         <div className="tab-content">
@@ -470,6 +473,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       <RewardMilestoneToast
         totalBalance={totalBalance}
         storeRewards={storeRewards}
+      />
+
+      {/* Child Command Center */}
+      <ChildCommandCenter
+        open={showCommandCenter}
+        onClose={() => setShowCommandCenter(false)}
+        preferences={childPrefs}
+        onSave={savePreferences}
       />
     </div>
   );
