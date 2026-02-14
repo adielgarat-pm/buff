@@ -1773,6 +1773,13 @@ const translations: Record<Language, Record<string, string>> = {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
+    // Check URL parameter first (e.g. ?lang=en)
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang');
+    if (langParam === 'en' || langParam === 'he') {
+      localStorage.setItem('buff-language', langParam);
+      return langParam;
+    }
     const saved = localStorage.getItem('buff-language');
     return (saved as Language) || 'he';
   });
