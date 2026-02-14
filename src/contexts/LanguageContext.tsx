@@ -930,6 +930,14 @@ const translations: Record<Language, Record<string, string>> = {
     'commandCenter.petToggleLabel': 'הצג ביצה / חיית מחמד',
     'commandCenter.petToggleDesc': 'הסתר או הצג את השותף שלך',
     'commandCenter.save': 'שמור שינויים',
+    'commandCenter.muteLabel': 'השתק צלילים',
+    'commandCenter.muteDesc': 'כבה אפקטים קוליים',
+
+    // Sidebar
+    'sidebar.title': 'תפריט',
+    'sidebar.language': 'שפה',
+    'sidebar.personalize': 'התאמה אישית',
+    'sidebar.personalizeDesc': 'גיל, סקין וחיית מחמד',
   },
   en: {
     // General
@@ -1848,6 +1856,14 @@ const translations: Record<Language, Record<string, string>> = {
     'commandCenter.petToggleLabel': 'Show Egg / Pet',
     'commandCenter.petToggleDesc': 'Hide or show your buddy',
     'commandCenter.save': 'Save Changes',
+    'commandCenter.muteLabel': 'Mute Sounds',
+    'commandCenter.muteDesc': 'Turn off sound effects',
+
+    // Sidebar
+    'sidebar.title': 'Menu',
+    'sidebar.language': 'Language',
+    'sidebar.personalize': 'Personalize',
+    'sidebar.personalizeDesc': 'Age, skin & pet',
   },
 };
 

@@ -145,7 +145,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
         ref={cardRef}
         className={cn(
           "quest-card w-full p-3 rounded-xl border transition-all duration-200",
-          "active:scale-[0.98] touch-feedback",
+          "active:scale-[0.98] hover:scale-[1.02] hover:shadow-lg touch-feedback",
           task.completed
             ? "bg-buff/10 border-buff/30"
             : isProtocol

@@ -27,12 +27,14 @@ import { MyProgress } from './MyProgress';
 import { PackCompletionCelebration } from './PackCompletionCelebration';
 import { PetDisplay } from './PetDisplay';
 import { ChildCommandCenter } from './ChildCommandCenter';
+import { ChildSidebar } from './ChildSidebar';
 import { RewardMilestoneToast } from './RewardMilestoneToast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePackCompletion } from '@/hooks/usePackCompletion';
 import { useChildPet } from '@/hooks/useChildPet';
+import { playSuccessChime } from '@/utils/soundEffects';
 import { Phase, getSmartPhaseForTime } from '@/types/phase';
 import { TaskCategory } from '@/types/task';
 
@@ -135,6 +137,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   // Wrap completeTask to also feed pet XP
   const handleCompleteTask = useCallback((taskId: string) => {
     completeTask(taskId);
+    playSuccessChime();
     if (isProUser) {
       const task = tasks.find(t => t.id === taskId);
       if (task) {
@@ -281,6 +284,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       {/* Soft gradient glow - Playful style */}
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
       
+      {/* Child Sidebar - language & command center */}
+      <ChildSidebar onOpenCommandCenter={() => setShowCommandCenter(true)} />
+
       <div className="relative max-w-lg mx-auto safe-area-px pb-8">
         <Header 
           onOpenStore={() => setActiveTab('store')}
@@ -291,7 +297,6 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           userName={profile?.display_name}
           childAvatar={childAvatar}
           onChangeAvatar={updateChildAvatar}
-          onOpenCommandCenter={() => setShowCommandCenter(true)}
         />
         
         <div className="tab-content">
