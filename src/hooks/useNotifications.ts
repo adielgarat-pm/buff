@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Task, PeriodInfo } from '@/types/task';
 import { getDiscreteNotificationTitle, getDiscreteNotificationBody, getEffectiveCredits } from '@/utils/protocolTaskUtils';
+import { getCoachingTrigger } from '@/utils/coachingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export type NotificationPermissionStatus = 'default' | 'granted' | 'denied' | 'unsupported';
@@ -222,16 +223,20 @@ export function useNotifications() {
 
       // Only schedule if nudge time is in the future
       if (nudgeTime > today) {
-        // Use stage-specific pet persona message
+        // Use stage-specific pet persona title
         const coachKey = `notification.coachNudge.${stage}` as any;
         const coachTitle = t(coachKey)
           .replace('{name}', childName || '')
           .replace('{petName}', petName || 'Buddy');
         
+        // Use context-aware coaching body based on task time/category
+        const trigger = getCoachingTrigger(task.time, task.category);
+        const coachBody = t(`notification.coach.${trigger}` as any);
+        
         scheduleNotification(
           task.id,
           coachTitle,
-          getDiscreteNotificationBody(task),
+          coachBody,
           nudgeTime
         );
       }
