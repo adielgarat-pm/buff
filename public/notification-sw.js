@@ -29,7 +29,7 @@ self.addEventListener('push', (event) => {
     ],
     data: {
       taskId: data.taskId,
-      url: data.url || '/',
+      url: data.url || '/?tab=tasks&pet=1',
       timestamp: Date.now()
     }
   };
@@ -116,7 +116,7 @@ self.addEventListener('message', (event) => {
             { action: 'complete', title: '✓ Done' },
             { action: 'snooze', title: '⏰ Snooze' }
           ],
-          data: { taskId, url: '/' }
+          data: { taskId, url: '/?tab=tasks&pet=1' }
         });
       }, delay);
     }

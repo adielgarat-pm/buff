@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChildPet } from '@/hooks/useChildPet';
 import { WeeklySummary } from '@/components/WeeklySummary';
 import { useWeeklySummary, isSaturday } from '@/hooks/useWeeklySummary';
 import { ChildView } from '@/components/ChildView';
@@ -36,6 +37,11 @@ const Index = () => {
     fridayEnabled,
   } = useSyncedTaskStore();
 
+  // Pet state for notification persona — only used when child on separate device
+  const { petState } = useChildPet();
+  const evolutionStage = petState?.evolution_stage || 'egg';
+  const petName = (profile?.pro_settings as any)?.virtualPet?.name || 'Buddy';
+
   // Notification system
   const {
     permission,
@@ -63,16 +69,16 @@ const Index = () => {
   // Schedule coach nudge notifications - ONLY for children on separate devices
   useEffect(() => {
     if (permission === 'granted' && tasks.length > 0 && isChildOnSeparateDevice) {
-      scheduleTaskNotifications(tasks, childName);
+      scheduleTaskNotifications(tasks, childName, evolutionStage, petName);
     }
-  }, [permission, tasks, scheduleTaskNotifications, isChildOnSeparateDevice, childName]);
+  }, [permission, tasks, scheduleTaskNotifications, isChildOnSeparateDevice, childName, evolutionStage, petName]);
 
   // Schedule morning preview - ONLY for children on separate devices
   useEffect(() => {
     if (permission === 'granted' && tasks.length > 0 && isChildOnSeparateDevice) {
-      scheduleMorningPreview(tasks.length, childName);
+      scheduleMorningPreview(tasks.length, childName, evolutionStage, petName);
     }
-  }, [permission, tasks, scheduleMorningPreview, isChildOnSeparateDevice, childName]);
+  }, [permission, tasks, scheduleMorningPreview, isChildOnSeparateDevice, childName, evolutionStage, petName]);
 
   // Schedule lesson notifications - ONLY for children on separate devices
   useEffect(() => {
@@ -113,10 +119,14 @@ const Index = () => {
     }
   }, [permission, bagPrepEnabled, bagPrepCompleted, bagPrepCredits, isCurrentlyWeekend, tomorrowHasSchedule, scheduleGearMasterNotification, isChildOnSeparateDevice]);
 
-  // Listen for task completion from service worker
+  // Listen for task completion from service worker — also triggers pet happy reaction
   useEffect(() => {
     const handleSwCompleteTask = (event: CustomEvent<{ taskId: string }>) => {
       completeTask(event.detail.taskId);
+      // Dispatch pet-reaction event so PetDisplay shows happy animation
+      window.dispatchEvent(new CustomEvent('pet-task-completed-via-notification', {
+        detail: { taskId: event.detail.taskId }
+      }));
     };
 
     window.addEventListener('sw-complete-task', handleSwCompleteTask as EventListener);
