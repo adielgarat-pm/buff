@@ -198,8 +198,8 @@ export function useNotifications() {
     ]);
   }, [permission, showNotification, serviceWorkerReady]);
 
-  // Schedule all task notifications for today
-  const scheduleTaskNotifications = useCallback((tasks: Task[]): void => {
+  // Schedule all task notifications for today - "Positive Coach" nudge 5 min before
+  const scheduleTaskNotifications = useCallback((tasks: Task[], childName?: string): void => {
     if (permission !== 'granted') return;
 
     const today = new Date();
@@ -211,18 +211,24 @@ export function useNotifications() {
       const taskTime = new Date(today);
       taskTime.setHours(hours, minutes, 0, 0);
 
-      // Only schedule if task time is in the future
-      if (taskTime > today) {
-        // Use discrete notification title/body for privacy
+      // Nudge 5 minutes BEFORE the task time
+      const nudgeTime = new Date(taskTime.getTime() - 5 * 60 * 1000);
+
+      // Only schedule if nudge time is in the future
+      if (nudgeTime > today) {
+        const coachTitle = childName 
+          ? t('notification.coachNudge').replace('{name}', childName)
+          : getDiscreteNotificationTitle(task);
+        
         scheduleNotification(
           task.id,
-          getDiscreteNotificationTitle(task),
+          coachTitle,
           getDiscreteNotificationBody(task),
-          taskTime
+          nudgeTime
         );
       }
     });
-  }, [permission, scheduleNotification]);
+  }, [permission, scheduleNotification, t]);
 
   // Schedule lesson notifications (5 minutes before) - Smart Buff Alerts
   const scheduleLessonNotifications = useCallback((
@@ -299,6 +305,31 @@ export function useNotifications() {
     setScheduledNotifications([]);
   }, [scheduledNotifications]);
 
+  // Schedule a morning preview notification at 07:00
+  const scheduleMorningPreview = useCallback((
+    taskCount: number,
+    childName?: string
+  ): void => {
+    if (permission !== 'granted' || taskCount === 0) return;
+
+    const today = new Date();
+    const morningTime = new Date(today);
+    morningTime.setHours(7, 0, 0, 0);
+
+    // Only schedule if 07:00 is in the future
+    if (morningTime > today) {
+      const title = t('notification.morningTitle').replace('{name}', childName || '');
+      const body = t('notification.morningBody').replace('{count}', String(taskCount));
+      
+      scheduleNotification(
+        'morning_preview',
+        title,
+        body,
+        morningTime
+      );
+    }
+  }, [permission, scheduleNotification, t]);
+
   return {
     permission,
     isSupported,
@@ -310,6 +341,7 @@ export function useNotifications() {
     scheduleTaskNotifications,
     scheduleLessonNotifications,
     scheduleGearMasterNotification,
+    scheduleMorningPreview,
     cancelNotification,
     cancelAllNotifications,
   };

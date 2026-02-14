@@ -837,6 +837,9 @@ const translations: Record<Language, Record<string, string>> = {
     'notification.getReady': 'הגיע הזמן להתכונן! 🏆',
     'notification.gearMasterTitle': '🎒 משימת ערב - בונוס מוכנות!',
     'notification.gearMasterBody': 'התיק למחר כבר מוכן? זה הזמן לזכות ב-{credits} נקודות Buff! ✨',
+    'notification.coachNudge': 'היי {name}, המשימה שלך מתחילה בעוד 5 דקות! מוכן? 💪',
+    'notification.morningTitle': '☀️ בוקר טוב {name}!',
+    'notification.morningBody': 'יש לך {count} משימות היום. בוא נתחיל יום מעולה! 🚀',
 
     // Install Prompt Messages
     'install.personalized.0': 'הופכים את הבוקר של {names} לסיפור הצלחה. הוסיפו את Buff למסך הבית.',
@@ -1715,6 +1718,9 @@ const translations: Record<Language, Record<string, string>> = {
     'notification.getReady': 'Time to get ready! 🏆',
     'notification.gearMasterTitle': '🎒 Evening Mission - Readiness Bonus!',
     'notification.gearMasterBody': 'Is the bag ready for tomorrow? Time to earn {credits} Buff Points! ✨',
+    'notification.coachNudge': 'Hey {name}, your mission starts in 5 minutes! Ready? 💪',
+    'notification.morningTitle': '☀️ Good Morning {name}!',
+    'notification.morningBody': 'You have {count} tasks today. Let\'s crush it! 🚀',
 
     // Install Prompt Messages
     'install.personalized.0': 'Turn {names}\'s morning into a success story. Add Buff to your home screen.',

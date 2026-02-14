@@ -42,11 +42,16 @@ const Index = () => {
     scheduleTaskNotifications,
     scheduleLessonNotifications,
     scheduleGearMasterNotification,
+    scheduleMorningPreview,
   } = useNotifications();
 
   // Weekly summary data
   const weeklySummaryData = useWeeklySummary(tasks, storeRewards);
   const showWeeklySummary = isSaturday() && !weeklySummaryDismissed;
+
+  // Device awareness: only send notifications to children on separate devices (user_id !== null)
+  const isChildOnSeparateDevice = profile?.role === 'child' && profile?.user_id !== null;
+  const childName = profile?.display_name;
 
   const handleDismissWeeklySummary = () => {
     setWeeklySummaryDismissed(true);
@@ -55,19 +60,26 @@ const Index = () => {
     }));
   };
 
-  // Schedule notifications when tasks change or permission is granted
+  // Schedule coach nudge notifications - ONLY for children on separate devices
   useEffect(() => {
-    if (permission === 'granted' && tasks.length > 0) {
-      scheduleTaskNotifications(tasks);
+    if (permission === 'granted' && tasks.length > 0 && isChildOnSeparateDevice) {
+      scheduleTaskNotifications(tasks, childName);
     }
-  }, [permission, tasks, scheduleTaskNotifications]);
+  }, [permission, tasks, scheduleTaskNotifications, isChildOnSeparateDevice, childName]);
 
-  // Schedule lesson notifications
+  // Schedule morning preview - ONLY for children on separate devices
   useEffect(() => {
-    if (permission === 'granted' && lessonRemindersEnabled && todaySchedule.length > 0) {
+    if (permission === 'granted' && tasks.length > 0 && isChildOnSeparateDevice) {
+      scheduleMorningPreview(tasks.length, childName);
+    }
+  }, [permission, tasks, scheduleMorningPreview, isChildOnSeparateDevice, childName]);
+
+  // Schedule lesson notifications - ONLY for children on separate devices
+  useEffect(() => {
+    if (permission === 'granted' && lessonRemindersEnabled && todaySchedule.length > 0 && isChildOnSeparateDevice) {
       scheduleLessonNotifications(todaySchedule, lessonRemindersEnabled);
     }
-  }, [permission, todaySchedule, lessonRemindersEnabled, scheduleLessonNotifications]);
+  }, [permission, todaySchedule, lessonRemindersEnabled, scheduleLessonNotifications, isChildOnSeparateDevice]);
 
   // Smart Context Guard: Check if tomorrow has a schedule
   const tomorrowHasSchedule = useMemo(() => {
@@ -94,12 +106,12 @@ const Index = () => {
     return tomorrowLessons.length > 0;
   }, [timetable, fridayEnabled]);
 
-  // Schedule Gear Master evening notification (19:00) - only on school days with schedule
+  // Schedule Gear Master evening notification (19:00) - only for children on separate devices
   useEffect(() => {
-    if (permission === 'granted' && !isCurrentlyWeekend) {
+    if (permission === 'granted' && !isCurrentlyWeekend && isChildOnSeparateDevice) {
       scheduleGearMasterNotification(bagPrepEnabled, bagPrepCompleted, bagPrepCredits, tomorrowHasSchedule);
     }
-  }, [permission, bagPrepEnabled, bagPrepCompleted, bagPrepCredits, isCurrentlyWeekend, tomorrowHasSchedule, scheduleGearMasterNotification]);
+  }, [permission, bagPrepEnabled, bagPrepCompleted, bagPrepCredits, isCurrentlyWeekend, tomorrowHasSchedule, scheduleGearMasterNotification, isChildOnSeparateDevice]);
 
   // Listen for task completion from service worker
   useEffect(() => {
