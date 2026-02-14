@@ -228,21 +228,26 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
             </button>
           )}
 
-          {/* Checkbox Button - Smaller */}
+          {/* Checkbox Button - Prominent "Complete" target */}
           <button
             onClick={handleComplete}
             className={cn(
-              "relative w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 touch-target",
+              "relative w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 touch-target",
               "active:scale-90",
               task.completed
-                ? "bg-buff border-buff"
+                ? "bg-buff border-buff shadow-[0_0_12px_rgba(var(--buff-rgb),0.4)]"
                 : isProtocol
-                  ? "border-protocol-cyan/50 active:border-protocol-cyan active:bg-protocol-cyan/10"
-                  : "border-muted-foreground/50 active:border-buff active:bg-buff/10"
+                  ? "border-protocol-cyan/60 active:border-protocol-cyan active:bg-protocol-cyan/10 animate-pulse-slow shadow-[0_0_8px_rgba(var(--protocol-cyan-rgb,0,200,200),0.2)]"
+                  : "border-primary/50 active:border-buff active:bg-buff/10 animate-pulse-slow shadow-[0_0_8px_hsl(var(--primary)/0.15)]"
             )}
           >
-            {task.completed && (
-              <Check className="w-5 h-5 text-buff-foreground animate-check-bounce" />
+            {task.completed ? (
+              <Check className="w-6 h-6 text-buff-foreground animate-check-bounce" />
+            ) : (
+              <span className={cn(
+                "w-3 h-3 rounded-full",
+                isProtocol ? "bg-protocol-cyan/40" : "bg-primary/30"
+              )} />
             )}
           </button>
         </div>
