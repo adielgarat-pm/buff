@@ -268,6 +268,7 @@ export type Database = {
           birth_date: string | null
           buff_boost_dismissed_at: string | null
           buff_boost_supported: boolean
+          child_preferences: Json | null
           created_at: string
           daily_goal: number
           daily_win_reward: number
@@ -294,6 +295,7 @@ export type Database = {
           birth_date?: string | null
           buff_boost_dismissed_at?: string | null
           buff_boost_supported?: boolean
+          child_preferences?: Json | null
           created_at?: string
           daily_goal?: number
           daily_win_reward?: number
@@ -320,6 +322,7 @@ export type Database = {
           birth_date?: string | null
           buff_boost_dismissed_at?: string | null
           buff_boost_supported?: boolean
+          child_preferences?: Json | null
           created_at?: string
           daily_goal?: number
           daily_win_reward?: number

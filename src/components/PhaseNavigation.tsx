@@ -8,6 +8,7 @@ interface PhaseNavigationProps {
   onPhaseChange: (phase: Phase) => void;
   phaseStats: Record<Phase, { completed: number; total: number }>;
   schoolQuestEnabled?: boolean;
+  isTeen?: boolean;
 }
 
 export function PhaseNavigation({ 
@@ -16,8 +17,23 @@ export function PhaseNavigation({
   onPhaseChange,
   phaseStats,
   schoolQuestEnabled = true,
+  isTeen = false,
 }: PhaseNavigationProps) {
   const { language } = useLanguage();
+
+  // Teen terminology: "missions" → "objectives"
+  const TEEN_LABELS_HE: Record<Phase, string> = {
+    morning: 'בוקר',
+    school: 'לימודים',
+    afternoon: 'אחה״צ',
+    evening: 'ערב',
+  };
+  const TEEN_LABELS_EN: Record<Phase, string> = {
+    morning: 'AM Ops',
+    school: 'School',
+    afternoon: 'PM Ops',
+    evening: 'Night Ops',
+  };
 
   const handlePhaseChange = (phase: Phase) => {
     // Haptic feedback
@@ -40,7 +56,9 @@ export function PhaseNavigation({
         const isCurrent = currentPhase === phase.id;
         const stats = phaseStats[phase.id];
         const isComplete = stats.total > 0 && stats.completed === stats.total;
-        const label = language === 'he' ? phase.shortLabelHe : phase.shortLabel;
+        const label = isTeen
+          ? (language === 'he' ? TEEN_LABELS_HE[phase.id] : TEEN_LABELS_EN[phase.id])
+          : (language === 'he' ? phase.shortLabelHe : phase.shortLabel);
         
         return (
           <button
