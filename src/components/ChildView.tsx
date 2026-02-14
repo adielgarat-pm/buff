@@ -4,6 +4,8 @@ import { useSyncedTaskStore } from '@/hooks/useSyncedTaskStore';
 import { useMidnightReset } from '@/hooks/useMidnightReset';
 import { useSmartPhase } from '@/hooks/useSmartPhase';
 import { useBirthdayCheck } from '@/hooks/useBirthdayCheck';
+import { useChildPreferences } from '@/hooks/useChildPreferences';
+import { ChildOnboarding } from './ChildOnboarding';
 import { Header } from './Header';
 import { ProgressBar } from './ProgressBar';
 import { PhaseNavigation } from './PhaseNavigation';
@@ -44,6 +46,21 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   const { isProUser } = useSubscription();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
   const [showNightMission, setShowNightMission] = useState(false);
+
+  // Child preferences (theme, pet toggle, age mode)
+  const isOwnDevice = profile?.role === 'child' && profile?.user_id !== null;
+  const {
+    preferences: childPrefs,
+    themeClass,
+    showPet: childWantsPet,
+    isTeen,
+    needsOnboarding,
+    savePreferences,
+    loading: prefsLoading,
+  } = useChildPreferences(viewingChildId);
+
+  // Show pet only if Pro AND child has it enabled
+  const showPetDisplay = isProUser && childWantsPet;
 
   // Pass viewingChildId to the store so it loads the correct child's data
   const {
@@ -197,10 +214,20 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     return Array.from(categoriesWithTasks);
   }, [tasks, lessons, schoolQuestEnabled]);
 
-  // Force Child Playful Theme (Soft Mint) - distinct from parent view
-  if (loading) {
+  // Child onboarding gate — only for own-device children who haven't completed it
+  if (!prefsLoading && needsOnboarding && isOwnDevice && !isViewingAsChild) {
     return (
-      <div className={`theme-child-playful min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <ChildOnboarding
+        childName={childDisplayName || profile?.display_name}
+        onComplete={savePreferences}
+      />
+    );
+  }
+
+  // Dynamic theme based on child preferences
+  if (loading || prefsLoading) {
+    return (
+      <div className={`${themeClass} min-h-screen bg-background flex items-center justify-center ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-muted-foreground font-medium">
@@ -211,10 +238,10 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     );
   }
 
-  // Store view is full-screen - Child Playful Theme (Soft Mint)
+  // Store view is full-screen
   if (activeTab === 'store') {
     return (
-      <div className={`theme-child-playful min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
+      <div className={`${themeClass} min-h-screen bg-background pb-24 no-horizontal-scroll ${isViewingAsChild ? 'pt-12' : ''}`}>
         <div className="tab-content">
           <RewardsStore
             totalBalance={totalBalance}
@@ -229,9 +256,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
     );
   }
 
-  // Child Playful Theme (Soft Mint) - distinct from parent's white
+  // Main child view with dynamic theme
   return (
-    <div className={`theme-child-playful min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
+    <div className={`${themeClass} min-h-[100dvh] bg-background pb-24 overflow-x-hidden ${isViewingAsChild ? 'pt-12' : ''}`}>
       {/* iOS Install Banner - shows for iOS users not in standalone mode */}
       {!isViewingAsChild && <IOSInstallBanner />}
       
@@ -274,10 +301,11 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
                 onPhaseChange={setActivePhase}
                 phaseStats={phaseStats}
                 schoolQuestEnabled={schoolQuestEnabled}
+                isTeen={isTeen}
               />
 
-              {/* Pet Display - Pro users, above the fold */}
-              {isProUser && (
+              {/* Pet Display - Pro users who enabled it, above the fold */}
+              {showPetDisplay && (
                 <div className="rounded-2xl bg-card border border-border p-3">
                   <PetDisplay
                     childName={childDisplayName || profile?.display_name}
