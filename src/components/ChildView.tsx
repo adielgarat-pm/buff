@@ -285,7 +285,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       <div className="fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
       
       {/* Child Sidebar - language & command center */}
-      <ChildSidebar onOpenCommandCenter={() => setShowCommandCenter(true)} />
+      <ChildSidebar onOpenCommandCenter={() => setShowCommandCenter(true)} isViewingAsChild={isViewingAsChild} />
 
       <div className="relative max-w-lg mx-auto safe-area-px pb-8">
         <Header 
