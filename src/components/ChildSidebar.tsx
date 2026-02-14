@@ -7,9 +7,10 @@ import { playClickSound } from '@/utils/soundEffects';
 
 interface ChildSidebarProps {
   onOpenCommandCenter: () => void;
+  isViewingAsChild?: boolean;
 }
 
-export function ChildSidebar({ onOpenCommandCenter }: ChildSidebarProps) {
+export function ChildSidebar({ onOpenCommandCenter, isViewingAsChild }: ChildSidebarProps) {
   const [open, setOpen] = useState(false);
   const { language, setLanguage, t, isRTL } = useLanguage();
 
@@ -36,7 +37,7 @@ export function ChildSidebar({ onOpenCommandCenter }: ChildSidebarProps) {
         variant="outline"
         size="icon"
         onClick={handleToggle}
-        className="fixed top-4 z-40 rounded-xl w-10 h-10 border-border bg-card shadow-sm hover:bg-secondary hover:scale-105 transition-all"
+        className={`fixed ${isViewingAsChild ? 'top-16' : 'top-4'} z-[70] rounded-xl w-10 h-10 border-border bg-card shadow-sm hover:bg-secondary hover:scale-105 transition-all`}
         style={{ [isRTL ? 'left' : 'left']: '1rem' }}
       >
         {open ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
