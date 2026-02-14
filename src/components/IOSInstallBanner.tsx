@@ -2,35 +2,26 @@ import { useState, useEffect } from 'react';
 import { X, Share, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const DISMISS_KEY = 'buff_ios_banner_dismissed';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
-/**
- * Check if the device is iOS (iPhone/iPad)
- */
 function isIOSDevice(): boolean {
   const ua = navigator.userAgent.toLowerCase();
   return /iphone|ipad|ipod/.test(ua) || 
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
-/**
- * Check if app is running in standalone mode (installed PWA)
- */
 function isStandaloneMode(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches ||
     (navigator as any).standalone === true;
 }
 
-/**
- * Check if banner was recently dismissed
- */
 function wasDismissed(): boolean {
   try {
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (!dismissed) return false;
-    
     const dismissedAt = parseInt(dismissed, 10);
     return Date.now() - dismissedAt < DISMISS_DURATION;
   } catch {
@@ -40,11 +31,11 @@ function wasDismissed(): boolean {
 
 export function IOSInstallBanner() {
   const [showBanner, setShowBanner] = useState(false);
+  const { language } = useLanguage();
+  const isHe = language === 'he';
 
   useEffect(() => {
-    // Only show for iOS devices NOT in standalone mode, and not dismissed
     if (isIOSDevice() && !isStandaloneMode() && !wasDismissed()) {
-      // Small delay to not be too aggressive
       const timer = setTimeout(() => setShowBanner(true), 1500);
       return () => clearTimeout(timer);
     }
@@ -53,9 +44,7 @@ export function IOSInstallBanner() {
   const handleDismiss = () => {
     try {
       localStorage.setItem(DISMISS_KEY, Date.now().toString());
-    } catch {
-      // Ignore localStorage errors
-    }
+    } catch {}
     setShowBanner(false);
   };
 
@@ -72,22 +61,23 @@ export function IOSInstallBanner() {
           <div className="bg-primary/10 backdrop-blur-md border-b border-primary/20">
             <div className="max-w-lg mx-auto px-4 py-3">
               <div className="flex items-start gap-3">
-                {/* Icon */}
                 <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Share className="w-5 h-5 text-primary" />
                 </div>
 
-                {/* Text Content */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground leading-snug">
-                    לחוויה מיטבית באייפון:
+                    {isHe ? 'לחוויה מיטבית באייפון:' : 'For the best iPhone experience:'}
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                    הקישו על <span className="inline-flex items-center gap-0.5 text-primary font-medium"><Share className="w-3 h-3" /> שיתוף</span> ובחרו <span className="inline-flex items-center gap-0.5 text-primary font-medium"><Plus className="w-3 h-3" /> הוספה למסך הבית</span>
+                    {isHe ? (
+                      <>הקישו על <span className="inline-flex items-center gap-0.5 text-primary font-medium"><Share className="w-3 h-3" /> שיתוף</span> ובחרו <span className="inline-flex items-center gap-0.5 text-primary font-medium"><Plus className="w-3 h-3" /> הוספה למסך הבית</span></>
+                    ) : (
+                      <>Tap <span className="inline-flex items-center gap-0.5 text-primary font-medium"><Share className="w-3 h-3" /> Share</span> and choose <span className="inline-flex items-center gap-0.5 text-primary font-medium"><Plus className="w-3 h-3" /> Add to Home Screen</span></>
+                    )}
                   </p>
                 </div>
 
-                {/* Dismiss button */}
                 <Button
                   variant="ghost"
                   size="icon"

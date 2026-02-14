@@ -15,6 +15,7 @@ import { usePWAInstall, DeviceOS } from '@/hooks/usePWAInstall';
 import { trackPWAEvent } from '@/hooks/usePWAAnalytics';
 import { useInstallPromptMessage } from '@/hooks/useInstallPromptMessage';
 import { useBrowserDetection, detectBrowser } from '@/hooks/useBrowserDetection';
+import { useLanguage } from '@/contexts/LanguageContext';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 
 interface InstallPromptProps {
@@ -22,33 +23,24 @@ interface InstallPromptProps {
   showAsModal?: boolean;
 }
 
-// Feature benefits to show
-const features = [
-  { icon: Zap, title: 'גישה מהירה', description: 'פתחו מהמסך הראשי' },
-  { icon: Bell, title: 'התראות', description: 'קבלו עדכונים בזמן אמת' },
-  { icon: Wifi, title: 'עובד אופליין', description: 'גם בלי אינטרנט' },
-];
-
-// Floating Arrow Component for iOS - isolated with high z-index
+// Floating Arrow Component for iOS
 function FloatingArrow() {
+  const { language } = useLanguage();
+  const isHe = language === 'he';
+  
   return (
     <motion.div
       className="fixed left-1/2 -translate-x-1/2 pointer-events-none"
       style={{ zIndex: 9999, bottom: '290px' }}
       initial={{ y: 0 }}
       animate={{ y: [0, 12, 0] }}
-      transition={{ 
-        duration: 1.5, 
-        repeat: Infinity, 
-        ease: "easeInOut" 
-      }}
+      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
     >
       <div className="relative flex flex-col items-center">
-        {/* Glow effect behind arrow */}
         <div className="absolute inset-0 blur-lg bg-primary/50 rounded-full scale-[2]" />
         <ChevronDown className="w-12 h-12 text-primary relative z-10 drop-shadow-lg" strokeWidth={3} />
         <span className="text-sm text-primary font-bold mt-1 relative z-10 whitespace-nowrap bg-background/80 px-3 py-1 rounded-full backdrop-blur-sm">
-          לחצו כאן למטה ↓
+          {isHe ? 'לחצו כאן למטה ↓' : 'Tap here below ↓'}
         </span>
       </div>
     </motion.div>
@@ -58,15 +50,7 @@ function FloatingArrow() {
 // Apple Share Icon SVG
 function AppleShareIcon({ className }: { className?: string }) {
   return (
-    <svg 
-      className={className} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
       <polyline points="16 6 12 2 8 6" />
       <line x1="12" y1="2" x2="12" y2="15" />
@@ -74,11 +58,13 @@ function AppleShareIcon({ className }: { className?: string }) {
   );
 }
 
-// iOS-specific instruction component with floating arrow
+// iOS-specific instruction component
 function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () => void; onDismissPermanently: () => void }) {
+  const { language } = useLanguage();
+  const isHe = language === 'he';
+
   return (
     <>
-      {/* Floating Arrow - positioned separately with fixed positioning */}
       <FloatingArrow />
       
       <motion.div
@@ -89,13 +75,10 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
         className="fixed bottom-0 inset-x-0"
         style={{ zIndex: 9998 }}
       >
-        {/* Main Banner */}
         <div className="bg-card/95 backdrop-blur-xl border-t border-border rounded-t-3xl shadow-2xl">
-          {/* Handle bar */}
           <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-3" />
           
           <div className="p-5 pb-safe max-w-lg mx-auto">
-            {/* Header with dismiss */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center shadow-lg">
@@ -104,10 +87,10 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
                 <div>
                   <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-accent" />
-                    התקינו את BUFF
+                    {isHe ? 'התקינו את BUFF' : 'Install BUFF'}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    הוסיפו לקיצורי הדרך שלכם
+                    {isHe ? 'הוסיפו לקיצורי הדרך שלכם' : 'Add to your home screen'}
                   </p>
                 </div>
               </div>
@@ -116,77 +99,43 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
                 size="icon"
                 onClick={onDismissPermanently}
                 className="h-8 w-8 rounded-full -mt-1 -ml-2"
-                title="סגור לצמיתות"
+                title={isHe ? 'סגור לצמיתות' : 'Dismiss permanently'}
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
 
-            {/* Step-by-step instructions */}
             <div className="space-y-3">
-              {/* Step 1 */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50"
-              >
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                  1
-                </div>
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
+                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">1</div>
                 <div className="flex-1">
-                  <p className="text-foreground font-medium text-sm">
-                    לחצו על כפתור השיתוף
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    בתחתית המסך ב-Safari
-                  </p>
+                  <p className="text-foreground font-medium text-sm">{isHe ? 'לחצו על כפתור השיתוף' : 'Tap the Share button'}</p>
+                  <p className="text-xs text-muted-foreground">{isHe ? 'בתחתית המסך ב-Safari' : 'At the bottom of Safari'}</p>
                 </div>
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <AppleShareIcon className="w-5 h-5 text-primary" />
                 </div>
               </motion.div>
 
-              {/* Step 2 */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50"
-              >
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                  2
-                </div>
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">2</div>
                 <div className="flex-1">
-                  <p className="text-foreground font-medium text-sm">
-                    גללו ובחרו "הוסף למסך הבית"
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Add to Home Screen
-                  </p>
+                  <p className="text-foreground font-medium text-sm">{isHe ? 'גללו ובחרו "הוסף למסך הבית"' : 'Scroll and select "Add to Home Screen"'}</p>
+                  <p className="text-xs text-muted-foreground">Add to Home Screen</p>
                 </div>
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
                   <Plus className="w-5 h-5 text-accent" />
                 </div>
               </motion.div>
 
-              {/* Step 3 */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50"
-              >
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">
-                  3
-                </div>
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
+                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 border border-border/50">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm">3</div>
                 <div className="flex-1">
-                  <p className="text-foreground font-medium text-sm">
-                    לחצו "הוסף" וזהו! 🎉
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    BUFF יופיע במסך הבית
-                  </p>
+                  <p className="text-foreground font-medium text-sm">{isHe ? 'לחצו "הוסף" וזהו! 🎉' : 'Tap "Add" and you\'re done! 🎉'}</p>
+                  <p className="text-xs text-muted-foreground">{isHe ? 'BUFF יופיע במסך הבית' : 'BUFF will appear on your home screen'}</p>
                 </div>
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
                   <CheckCircle2 className="w-5 h-5 text-success" />
@@ -194,7 +143,6 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
               </motion.div>
             </div>
 
-            {/* Dismiss text */}
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -202,7 +150,7 @@ function IOSInstallGuide({ onDismiss, onDismissPermanently }: { onDismiss: () =>
               onClick={onDismiss}
               className="w-full mt-4 text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
             >
-              לא עכשיו, הזכירו לי מאוחר יותר
+              {isHe ? 'לא עכשיו, הזכירו לי מאוחר יותר' : 'Not now, remind me later'}
             </motion.button>
           </div>
         </div>
@@ -234,21 +182,29 @@ function AndroidDesktopInstructions({
   menuLocation,
   installAction,
 }: AndroidDesktopInstructionsProps) {
-  const isDesktop = deviceOS === 'desktop';
-  // Adjust font size based on message length and number of children
+  const { language } = useLanguage();
+  const isHe = language === 'he';
+  
+  const features = isHe
+    ? [
+        { icon: Zap, title: 'גישה מהירה', description: 'פתחו מהמסך הראשי' },
+        { icon: Bell, title: 'התראות', description: 'קבלו עדכונים בזמן אמת' },
+        { icon: Wifi, title: 'עובד אופליין', description: 'גם בלי אינטרנט' },
+      ]
+    : [
+        { icon: Zap, title: 'Quick Access', description: 'Open from home screen' },
+        { icon: Bell, title: 'Notifications', description: 'Get real-time updates' },
+        { icon: Wifi, title: 'Works Offline', description: 'Even without internet' },
+      ];
+
   const getMessageStyle = () => {
-    if (childrenCount >= 3 || personalizedMessage.length > 70) {
-      return 'text-sm leading-relaxed';
-    }
-    if (childrenCount >= 2 || personalizedMessage.length > 50) {
-      return 'text-base leading-relaxed';
-    }
+    if (childrenCount >= 3 || personalizedMessage.length > 70) return 'text-sm leading-relaxed';
+    if (childrenCount >= 2 || personalizedMessage.length > 50) return 'text-base leading-relaxed';
     return 'text-lg';
   };
   
   return (
     <div className="space-y-6">
-      {/* Hero Section with personalized message */}
       <div className="text-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -259,7 +215,6 @@ function AndroidDesktopInstructions({
           <img src={buffLogoNoBg} alt="BUFF" className="w-16 h-16 object-contain" />
         </motion.div>
         
-        {/* Dynamic personalized header */}
         <motion.h2 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -270,7 +225,6 @@ function AndroidDesktopInstructions({
         </motion.h2>
       </div>
 
-      {/* Features Grid */}
       <div className="grid grid-cols-3 gap-3">
         {features.map((feature, index) => (
           <motion.div
@@ -287,7 +241,6 @@ function AndroidDesktopInstructions({
         ))}
       </div>
 
-      {/* Install CTA or Alternative Instructions */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -300,34 +253,35 @@ function AndroidDesktopInstructions({
             className="w-full h-14 text-lg font-bold gap-3 bg-gradient-primary shadow-buff-glow hover:shadow-buff-glow-intense transition-all"
           >
             <Sparkles className="w-5 h-5" />
-            התקן עכשיו
+            {isHe ? 'התקן עכשיו' : 'Install Now'}
             <Sparkles className="w-5 h-5" />
           </Button>
         ) : (
           <div className="space-y-4">
-            {/* Explanation why install isn't available */}
             <div className="p-4 rounded-xl bg-muted/50 border border-border text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                ההתקנה האוטומטית לא זמינה כרגע
+                {isHe ? 'ההתקנה האוטומטית לא זמינה כרגע' : 'Auto-install is not available right now'}
               </p>
               <p className="text-xs text-muted-foreground/70">
-                {browserName !== 'דפדפן' 
-                  ? `אתם משתמשים ב-${browserName}. נסו לפתוח ב-Chrome או Edge.`
-                  : 'נסו להשתמש ב-Chrome או Edge'}
+                {isHe
+                  ? (browserName !== 'דפדפן' 
+                      ? `אתם משתמשים ב-${browserName}. נסו לפתוח ב-Chrome או Edge.`
+                      : 'נסו להשתמש ב-Chrome או Edge')
+                  : `Try opening in Chrome or Edge for the best experience.`
+                }
               </p>
             </div>
             
-            {/* Manual installation instructions */}
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground text-center">
-                להתקנה ידנית ב-{browserName}:
+                {isHe ? `להתקנה ידנית ב-${browserName}:` : `To install manually in ${browserName}:`}
               </p>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                   <span className="text-sm font-bold text-primary">1</span>
                 </div>
                 <p className="text-sm text-foreground">
-                  לחצו על {menuIcon} {menuLocation}
+                  {isHe ? `לחצו על ${menuIcon} ${menuLocation}` : `Tap ${menuIcon} ${menuLocation}`}
                 </p>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
@@ -335,7 +289,7 @@ function AndroidDesktopInstructions({
                   <span className="text-sm font-bold text-primary">2</span>
                 </div>
                 <p className="text-sm text-foreground">
-                  בחרו "{installAction}"
+                  {isHe ? `בחרו "${installAction}"` : `Select "${installAction}"`}
                 </p>
               </div>
             </div>
@@ -347,6 +301,8 @@ function AndroidDesktopInstructions({
 }
 
 export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProps) {
+  const { language } = useLanguage();
+  const isHe = language === 'he';
   const { 
     deviceOS, 
     canShowPrompt,
@@ -365,7 +321,6 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
   const [isVisible, setIsVisible] = useState(true);
   const impressionTracked = useRef(false);
 
-  // Track impression when prompt is shown - including message type and browser
   useEffect(() => {
     if (!isInstalled && canShowPrompt && !impressionTracked.current) {
       trackPWAEvent('pwa_prompt_impression', deviceOS, {
@@ -377,10 +332,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     }
   }, [isInstalled, canShowPrompt, deviceOS, messageType, templateIndex, browser]);
 
-  // Don't render if already installed or can't show prompt
-  if (isInstalled || !canShowPrompt) {
-    return null;
-  }
+  if (isInstalled || !canShowPrompt) return null;
 
   const handleInstall = async () => {
     const success = await triggerInstall();
@@ -391,7 +343,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
   };
 
   const handleDismiss = () => {
-    dismiss(24); // Dismiss for 24 hours
+    dismiss(24);
     setIsVisible(false);
     onClose?.();
   };
@@ -404,7 +356,6 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
 
   if (!isVisible) return null;
 
-  // iOS gets the special floating arrow guide
   if (deviceOS === 'ios') {
     return (
       <AnimatePresence>
@@ -416,7 +367,6 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     );
   }
 
-  // Full-screen modal version for Android/Desktop
   if (showAsModal) {
     return (
       <AnimatePresence>
@@ -434,18 +384,16 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
             transition={{ type: 'spring', duration: 0.5 }}
             className="w-full max-w-md bg-card rounded-3xl p-6 shadow-2xl border border-border relative"
           >
-            {/* Close button - dismisses permanently */}
             <Button
               variant="ghost"
               size="icon"
               onClick={handleDismissPermanently}
               className="absolute top-4 left-4 h-8 w-8 rounded-full"
-              title="סגור לצמיתות"
+              title={isHe ? 'סגור לצמיתות' : 'Dismiss permanently'}
             >
               <X className="w-4 h-4" />
             </Button>
 
-            {/* Glow effect */}
             <div className="absolute inset-0 rounded-3xl bg-gradient-glow opacity-50 pointer-events-none" />
 
             <div className="relative">
@@ -462,13 +410,12 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
               />
             </div>
 
-            {/* Dismiss option - temporary */}
             <div className="mt-6 text-center">
               <button
                 onClick={handleDismiss}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                לא עכשיו, הזכירו לי מאוחר יותר
+                {isHe ? 'לא עכשיו, הזכירו לי מאוחר יותר' : 'Not now, remind me later'}
               </button>
             </div>
           </motion.div>
@@ -477,7 +424,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
     );
   }
 
-  // Bottom sheet version (compact) for non-modal display
+  // Bottom sheet version
   return (
     <AnimatePresence>
       <motion.div
@@ -490,43 +437,30 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
       >
         <div className="bg-card border-t border-border rounded-t-3xl p-4 pb-safe shadow-2xl">
           <div className="max-w-lg mx-auto">
-            {/* Handle bar */}
             <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mb-4" />
 
             <div className="flex items-center gap-4">
-              {/* Logo */}
               <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#DCFCE7] flex items-center justify-center shadow-lg">
                 <img src={buffLogoNoBg} alt="BUFF" className="w-12 h-12 object-contain" />
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-foreground flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />
-                  שדרגו לחוויה מלאה
+                  {isHe ? 'שדרגו לחוויה מלאה' : 'Upgrade to the full experience'}
                 </h3>
                 <p className="text-sm text-muted-foreground truncate">
-                  התקינו את BUFF למסך הבית
+                  {isHe ? 'התקינו את BUFF למסך הבית' : 'Install BUFF to your home screen'}
                 </p>
               </div>
 
-              {/* Actions */}
               <div className="flex-shrink-0 flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDismissPermanently}
-                  className="text-muted-foreground"
-                >
+                <Button variant="ghost" size="sm" onClick={handleDismissPermanently} className="text-muted-foreground">
                   <X className="w-4 h-4" />
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleInstall}
-                  className="gap-1.5 bg-gradient-primary shadow-buff-glow"
-                >
+                <Button size="sm" onClick={handleInstall} className="gap-1.5 bg-gradient-primary shadow-buff-glow">
                   <Zap className="w-4 h-4" />
-                  התקן
+                  {isHe ? 'התקן' : 'Install'}
                 </Button>
               </div>
             </div>
