@@ -930,6 +930,9 @@ const translations: Record<Language, Record<string, string>> = {
     'commandCenter.petToggleLabel': 'הצג ביצה / חיית מחמד',
     'commandCenter.petToggleDesc': 'הסתר או הצג את השותף שלך',
     'commandCenter.save': 'שמור שינויים',
+    'commandCenter.soundLabel': 'צלילים',
+    'commandCenter.soundOnDesc': 'אפקטים קוליים פעילים',
+    'commandCenter.soundOffDesc': 'האפליקציה מושתקת',
     'commandCenter.muteLabel': 'השתק צלילים',
     'commandCenter.muteDesc': 'כבה אפקטים קוליים',
 
@@ -1856,6 +1859,9 @@ const translations: Record<Language, Record<string, string>> = {
     'commandCenter.petToggleLabel': 'Show Egg / Pet',
     'commandCenter.petToggleDesc': 'Hide or show your buddy',
     'commandCenter.save': 'Save Changes',
+    'commandCenter.soundLabel': 'Sound Effects',
+    'commandCenter.soundOnDesc': 'Sound effects are enabled',
+    'commandCenter.soundOffDesc': 'App is muted',
     'commandCenter.muteLabel': 'Mute Sounds',
     'commandCenter.muteDesc': 'Turn off sound effects',
 

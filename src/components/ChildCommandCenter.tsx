@@ -37,7 +37,7 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
   const [ageMode, setAgeMode] = useState<AgeMode>(preferences.age_mode);
   const [theme, setTheme] = useState<ChildTheme>(preferences.theme);
   const [petEnabled, setPetEnabled] = useState(preferences.pet_enabled);
-  const [soundMuted, setSoundMuted] = useState(isMuted());
+  const [soundEnabled, setSoundEnabled] = useState(!isMuted());
   const [saving, setSaving] = useState(false);
 
   const isTeen = ageMode === 'teen';
@@ -241,28 +241,27 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
               </section>
             )}
 
-            {/* Section 4: Sound / Mute Toggle */}
-            <section className="bg-card rounded-2xl border border-border p-4 space-y-4">
-              <h2 className="font-bold text-foreground flex items-center gap-2">
-                <span className="text-lg">{soundMuted ? '🔇' : '🔊'}</span>
-                {t('commandCenter.muteLabel')}
-              </h2>
-
+            <section className="bg-card rounded-2xl border border-border p-4">
               <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
-                <div>
-                  <p className="font-semibold text-sm text-foreground flex items-center gap-2">
-                    {soundMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    {t('commandCenter.muteLabel')}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t('commandCenter.muteDesc')}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {soundEnabled
+                    ? <Volume2 className="w-5 h-5 text-primary" />
+                    : <VolumeX className="w-5 h-5 text-muted-foreground" />
+                  }
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">
+                      {t('commandCenter.soundLabel')}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {soundEnabled ? t('commandCenter.soundOnDesc') : t('commandCenter.soundOffDesc')}
+                    </p>
+                  </div>
                 </div>
                 <Switch
-                  checked={soundMuted}
+                  checked={soundEnabled}
                   onCheckedChange={(val) => {
-                    setSoundMuted(val);
-                    setMuted(val);
+                    setSoundEnabled(val);
+                    setMuted(!val);
                   }}
                 />
               </div>
