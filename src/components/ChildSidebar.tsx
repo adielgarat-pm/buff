@@ -38,7 +38,7 @@ export function ChildSidebar({ onOpenCommandCenter, isViewingAsChild }: ChildSid
         size="icon"
         onClick={handleToggle}
         className={`fixed ${isViewingAsChild ? 'top-16' : 'top-4'} z-[70] rounded-xl w-10 h-10 border-border bg-card shadow-sm hover:bg-secondary hover:scale-105 transition-all`}
-        style={{ [isRTL ? 'left' : 'left']: '1rem' }}
+        style={{ [isRTL ? 'right' : 'left']: '1rem' }}
       >
         {open ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
       </Button>
