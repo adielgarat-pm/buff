@@ -60,11 +60,11 @@ export function ChildSidebar({ onOpenCommandCenter }: ChildSidebarProps) {
       <AnimatePresence>
         {open && (
           <motion.aside
-            initial={{ x: isRTL ? -280 : -280 }}
+            initial={{ x: isRTL ? 280 : -280 }}
             animate={{ x: 0 }}
-            exit={{ x: isRTL ? -280 : -280 }}
+            exit={{ x: isRTL ? 280 : -280 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 z-35 h-full w-[260px] bg-card border-e border-border shadow-xl flex flex-col"
+            className="fixed top-0 z-[35] h-full w-[260px] bg-card border-e border-border shadow-xl flex flex-col"
             style={{ [isRTL ? 'right' : 'left']: 0 }}
           >
             {/* Header */}
