@@ -110,18 +110,7 @@ export function Header({
           </Button>
         )}
 
-        {/* Child-friendly language toggle - prominent globe outside menu */}
-        {childAvatar !== undefined && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl w-10 h-10 touch-target border-primary/30 bg-primary/10 hover:bg-primary/20 shadow-sm hover:shadow-md transition-all"
-            onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
-            title={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
-          >
-            <Globe className="w-5 h-5 text-primary" />
-          </Button>
-        )}
+        {/* Globe removed from child header — now lives in ChildSidebar */}
 
         {/* Philosophy Info Icon - for parent view */}
         {showPhilosophyIcon && (
