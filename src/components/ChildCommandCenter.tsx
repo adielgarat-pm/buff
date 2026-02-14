@@ -47,8 +47,10 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
     if (a >= 12) {
       setAgeMode('teen');
       setPetEnabled(false);
+      setTheme('gamer');
     } else {
       setAgeMode('kid');
+      setTheme('mint');
     }
   }, []);
 
