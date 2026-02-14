@@ -163,10 +163,10 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                           skin.id === 'gamer'
-                            ? 'bg-gradient-to-br from-[hsl(185,80%,55%)] to-[hsl(270,70%,65%)]'
-                            : 'bg-gradient-to-br from-[hsl(156,64%,67%)] to-[hsl(142,77%,93%)]'
+                            ? 'bg-gradient-to-br from-accent/40 to-accent/20'
+                            : 'bg-gradient-to-br from-primary/30 to-primary/10'
                         }`}>
-                          <Icon className="w-6 h-6 text-white" />
+                          <Icon className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
