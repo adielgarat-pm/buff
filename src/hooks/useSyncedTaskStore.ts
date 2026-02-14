@@ -540,7 +540,7 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
       .eq('task_id', taskId)
       .eq('child_id', targetChildId);
 
-    await supabase
+    const { error: insertError } = await supabase
       .from('daily_progress')
       .insert({
         family_id: familyId,
@@ -550,6 +550,18 @@ export function useSyncedTaskStore(viewingAsChildId?: string) {
         completed: true,
         completed_at: new Date().toISOString(),
       });
+
+    if (insertError) {
+      console.error('[task_completed] Failed to save progress:', insertError);
+    } else {
+      console.log('[task_completed] ✅ Task completed successfully:', {
+        taskId,
+        taskTitle: task.title,
+        childId: targetChildId,
+        credits: task.credits,
+        date: todayKey,
+      });
+    }
 
     // Calculate effective credits (1.5x for protocol tasks)
     const effectiveCredits = getEffectiveCredits(task);
