@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Leaf, Gamepad2, Lock, Crown, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { X, Leaf, Gamepad2, Lock, Crown, Check, Volume2, VolumeX } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { ChildPreferences, ChildTheme, AgeMode } from '@/hooks/useChildPreferences';
@@ -113,10 +113,10 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
                   <button
                     key={a}
                     onClick={() => handleAgeSelect(a)}
-                    className={`py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    className={`relative py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
                       age === a
-                        ? 'bg-primary text-primary-foreground scale-105 shadow-md'
-                        : 'bg-secondary text-foreground hover:bg-secondary/80'
+                        ? 'bg-primary text-primary-foreground scale-110 shadow-lg ring-2 ring-primary/30 ring-offset-2 ring-offset-card'
+                        : 'bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent hover:border-border'
                     }`}
                   >
                     {a}
@@ -145,65 +145,76 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
                 {t('commandCenter.skinsTitle')}
               </h2>
 
-              <div className="space-y-3">
-                {SKINS.map((skin) => {
-                  const isSelected = theme === skin.id;
-                  const accessible = canAccessSkin(skin.tier);
-                  const Icon = skin.icon;
+              <LayoutGroup>
+                <div className="space-y-3">
+                  {SKINS.map((skin) => {
+                    const isSelected = theme === skin.id;
+                    const accessible = canAccessSkin(skin.tier);
+                    const Icon = skin.icon;
 
-                  return (
-                    <button
-                      key={skin.id}
-                      onClick={() => accessible && setTheme(skin.id)}
-                      disabled={!accessible}
-                      className={`w-full p-4 rounded-2xl border-2 transition-all active:scale-[0.98] text-start ${
-                        isSelected
-                          ? 'border-primary bg-primary/10'
-                          : accessible
-                            ? 'border-border bg-card hover:border-primary/50'
-                            : 'border-border/50 bg-muted/30 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          skin.id === 'gamer'
-                            ? 'bg-gradient-to-br from-accent/40 to-accent/20'
-                            : 'bg-gradient-to-br from-primary/30 to-primary/10'
-                        }`}>
-                          <Icon className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-foreground">
-                              {t(`commandCenter.skin.${skin.id}`)}
-                            </h3>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                              skin.tier === 'FREE'
-                                ? 'bg-success/20 text-success-foreground'
-                                : skin.tier === 'PRO'
-                                  ? 'bg-reward/20 text-reward'
-                                  : 'bg-streak/20 text-streak'
-                            }`}>
-                              {skin.tier}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t(`commandCenter.skinDesc.${skin.id}`)}
-                          </p>
-                        </div>
-                        {!accessible && (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Lock className="w-4 h-4" />
-                          </div>
-                        )}
+                    return (
+                      <motion.button
+                        key={skin.id}
+                        layout
+                        onClick={() => accessible && setTheme(skin.id)}
+                        disabled={!accessible}
+                        className={`relative w-full p-4 rounded-2xl transition-all duration-200 active:scale-[0.98] text-start ${
+                          isSelected
+                            ? 'border-2 border-primary bg-primary/10 shadow-[0_0_16px_-4px_hsl(var(--primary)/0.4)]'
+                            : accessible
+                              ? 'border border-border/60 bg-card hover:border-primary/40 hover:shadow-sm'
+                              : 'border border-border/30 bg-muted/20 opacity-50'
+                        }`}
+                      >
+                        {/* Checkmark badge */}
                         {isSelected && (
-                          <Sparkles className="w-5 h-5 text-primary" />
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute top-3 end-3 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md"
+                          >
+                            <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />
+                          </motion.div>
                         )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                            skin.id === 'gamer'
+                              ? 'bg-gradient-to-br from-accent/40 to-accent/20'
+                              : 'bg-gradient-to-br from-primary/30 to-primary/10'
+                          }`}>
+                            <Icon className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-bold text-foreground">
+                                {t(`commandCenter.skin.${skin.id}`)}
+                              </h3>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                isSelected
+                                  ? 'bg-primary/20 text-primary'
+                                  : skin.tier === 'FREE'
+                                    ? 'bg-success/20 text-success-foreground'
+                                    : skin.tier === 'PRO'
+                                      ? 'bg-reward/20 text-reward'
+                                      : 'bg-streak/20 text-streak'
+                              }`}>
+                                {isSelected ? t('commandCenter.skinActive') : skin.tier}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t(`commandCenter.skinDesc.${skin.id}`)}
+                            </p>
+                          </div>
+                          {!accessible && (
+                            <Lock className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </LayoutGroup>
 
               {/* Locked nudge for future */}
               {!isBeta && !isProUser && (
