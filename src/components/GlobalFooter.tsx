@@ -23,7 +23,7 @@ export function GlobalFooter({ className }: GlobalFooterProps) {
         
         {/* Lovable Attribution */}
         <p className="text-xs text-muted-foreground/70">
-          פותח באהבה באמצעות{' '}
+          {t('footer.lovableAttribution')}{' '}
           <a
             href="https://lovable.dev/invite/PKVK9J3"
             target="_blank"

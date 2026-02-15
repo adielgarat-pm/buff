@@ -934,5 +934,6 @@
   "familyCode.shareError": "Failed to share",
   "familyCode.shareTitle": "Join BUFF",
   "familyCode.familyCode": "Family Code",
-  "familyCode.link": "Link:"
+  "familyCode.link": "Link:",
+  "footer.lovableAttribution": "Made with love using"
 }
