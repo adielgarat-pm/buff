@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { format, parse, isValid, differenceInYears } from 'date-fns';
-import { he } from 'date-fns/locale';
 import { CalendarDays, Loader2, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface BirthDatePickerProps {
   value: Date | undefined;
@@ -14,34 +14,30 @@ interface BirthDatePickerProps {
   saving?: boolean;
 }
 
+const MONTHS_EN = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const MONTHS_HE = [
+  'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+  'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר',
+];
+
 export function BirthDatePicker({ value, onChange, saving }: BirthDatePickerProps) {
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | undefined>();
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>();
   const [selectedDay, setSelectedDay] = useState<number | undefined>();
 
-  // Generate years (from 2000 to current year)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1999 }, (_, i) => currentYear - i);
 
-  // Generate months
-  const months = [
-    { value: 0, label: 'ינואר' },
-    { value: 1, label: 'פברואר' },
-    { value: 2, label: 'מרץ' },
-    { value: 3, label: 'אפריל' },
-    { value: 4, label: 'מאי' },
-    { value: 5, label: 'יוני' },
-    { value: 6, label: 'יולי' },
-    { value: 7, label: 'אוגוסט' },
-    { value: 8, label: 'ספטמבר' },
-    { value: 9, label: 'אוקטובר' },
-    { value: 10, label: 'נובמבר' },
-    { value: 11, label: 'דצמבר' },
-  ];
+  const monthLabels = language === 'he' ? MONTHS_HE : MONTHS_EN;
+  const months = monthLabels.map((label, i) => ({ value: i, label }));
 
-  // Generate days based on selected year and month
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
   };
@@ -119,7 +115,7 @@ export function BirthDatePicker({ value, onChange, saving }: BirthDatePickerProp
   const calculateAge = (date: Date | undefined): string => {
     if (!date) return '';
     const age = differenceInYears(new Date(), date);
-    return `גיל ${age}`;
+    return `${t('birthDate.age')} ${age}`;
   };
 
   return (
@@ -141,15 +137,14 @@ export function BirthDatePicker({ value, onChange, saving }: BirthDatePickerProp
                 <span className="text-xs text-muted-foreground">({calculateAge(value)})</span>
               </span>
             ) : (
-              <span>בחר תאריך</span>
+              <span>{t('birthDate.selectDate')}</span>
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-4 bg-popover border-border z-50" align="end">
           <div className="space-y-4">
-            {/* Manual Input */}
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">הקלד תאריך (DD/MM/YYYY)</label>
+              <label className="text-xs text-muted-foreground mb-1 block">{t('birthDate.typeDate')}</label>
               <Input
                 type="text"
                 placeholder="01/01/2015"
@@ -160,76 +155,57 @@ export function BirthDatePicker({ value, onChange, saving }: BirthDatePickerProp
               />
             </div>
 
-            <div className="text-xs text-center text-muted-foreground">או בחר מהרשימות</div>
+            <div className="text-xs text-center text-muted-foreground">{t('birthDate.orSelectFromLists')}</div>
 
-            {/* Year Selector */}
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">שנה</label>
-              <Select
-                value={selectedYear?.toString() || ''}
-                onValueChange={handleYearChange}
-              >
+              <label className="text-xs text-muted-foreground mb-1 block">{t('birthDate.year')}</label>
+              <Select value={selectedYear?.toString() || ''} onValueChange={handleYearChange}>
                 <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="בחר שנה" />
+                  <SelectValue placeholder={t('birthDate.selectYear')} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border z-50 max-h-48">
                   {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Month Selector */}
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">חודש</label>
-              <Select
-                value={selectedMonth?.toString() || ''}
-                onValueChange={handleMonthChange}
-              >
+              <label className="text-xs text-muted-foreground mb-1 block">{t('birthDate.month')}</label>
+              <Select value={selectedMonth?.toString() || ''} onValueChange={handleMonthChange}>
                 <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="בחר חודש" />
+                  <SelectValue placeholder={t('birthDate.selectMonth')} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border z-50 max-h-48">
                   {months.map((month) => (
-                    <SelectItem key={month.value} value={month.value.toString()}>
-                      {month.label}
-                    </SelectItem>
+                    <SelectItem key={month.value} value={month.value.toString()}>{month.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Day Selector */}
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">יום</label>
-              <Select
-                value={selectedDay?.toString() || ''}
-                onValueChange={handleDayChange}
-              >
+              <label className="text-xs text-muted-foreground mb-1 block">{t('birthDate.day')}</label>
+              <Select value={selectedDay?.toString() || ''} onValueChange={handleDayChange}>
                 <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="בחר יום" />
+                  <SelectValue placeholder={t('birthDate.selectDay')} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border z-50 max-h-48">
                   {days.map((day) => (
-                    <SelectItem key={day} value={day.toString()}>
-                      {day}
-                    </SelectItem>
+                    <SelectItem key={day} value={day.toString()}>{day}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Confirm Button */}
             <Button
               onClick={handleConfirm}
               disabled={selectedYear === undefined || selectedMonth === undefined || selectedDay === undefined}
               className="w-full"
             >
               <Check className="w-4 h-4 ml-2" />
-              אישור
+              {t('birthDate.confirm')}
             </Button>
           </div>
         </PopoverContent>

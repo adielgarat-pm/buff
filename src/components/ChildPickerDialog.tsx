@@ -1,6 +1,7 @@
 import { Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Child {
   id: string;
@@ -22,9 +23,13 @@ export function ChildPickerDialog({
   onClose,
   children,
   onSelectChild,
-  title = 'בחר ילד',
-  description = 'בחר את הילד שברצונך לצפות בחוויה שלו',
+  title,
+  description,
 }: ChildPickerDialogProps) {
+  const { t } = useLanguage();
+  const resolvedTitle = title || t('childPicker.title');
+  const resolvedDescription = description || t('childPicker.description');
+
   const handleSelect = (childId: string) => {
     onSelectChild(childId);
     onClose();
@@ -36,10 +41,10 @@ export function ChildPickerDialog({
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
             <Eye className="w-5 h-5 text-accent" />
-            {title}
+            {resolvedTitle}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {description}
+            {resolvedDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -61,7 +66,7 @@ export function ChildPickerDialog({
               </div>
               <div className="flex-1 text-right">
                 <p className="font-semibold text-foreground">{child.displayName}</p>
-                <p className="text-xs text-muted-foreground">לחץ לצפייה</p>
+                <p className="text-xs text-muted-foreground">{t('childPicker.clickToView')}</p>
               </div>
               <Eye className="w-5 h-5 text-accent/60" />
             </button>
