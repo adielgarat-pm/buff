@@ -63,6 +63,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translateTitle } from '@/utils/displayTranslation';
 
 function SimulateProToggle() {
   const { language } = useLanguage();
@@ -409,7 +410,7 @@ const AVATAR_OPTIONS = [
 ];
 
 function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete }: { childId: string; childName: string; fridayEnabled: boolean; onBackAfterDelete?: () => void }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { familyId } = useAuth();
   const { children: familyChildren, refetch: refetchMembers } = useFamilyMembers();
   const {
@@ -1029,7 +1030,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled, onBackAfterDelete
                       className="flex flex-col items-center gap-2 w-full"
                     >
                       <span className="text-2xl">{reward.icon}</span>
-                      <span className="text-sm font-medium text-foreground line-clamp-2">{reward.title}</span>
+                      <span className="text-sm font-medium text-foreground line-clamp-2">{translateTitle(reward.title, language)}</span>
                       <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
                       {reward.claimed && (
                         <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{t('parentSettings.sold')}</span>
@@ -1183,7 +1184,7 @@ function ChildTasksEditor({
   onDuplicateTask?: (task: Task) => void;
   showDuplicateButton?: boolean;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const categoryOptions = useCategoryOptions();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -1436,7 +1437,7 @@ function ChildTasksEditor({
                 /* View Mode */
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:bg-secondary/50 transition-colors">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm truncate">{task.title}</p>
+                    <p className="font-medium text-foreground text-sm truncate">{translateTitle(task.title, language)}</p>
                     <p className="text-xs text-muted-foreground">
                       {task.time} • {task.credits} {t('parentSettings.credits')} • {categoryOptions.find(c => c.value === task.category)?.label || task.category}
                     </p>

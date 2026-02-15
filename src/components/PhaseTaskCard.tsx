@@ -4,6 +4,7 @@ import { Check, Clock, Zap, Book, Calendar, Sparkles, Home, Activity, Cpu } from
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STRATEGIES, getStrategyById } from '@/data/cogFunStrategies';
+import { translateTitle } from '@/utils/displayTranslation';
 import { BuffActivationModal } from './BuffActivationModal';
 import { ConfettiEffect } from './ConfettiEffect';
 import { XPFlyAnimation } from './XPFlyAnimation';
@@ -167,7 +168,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
                     ? "text-protocol-cyan"
                     : "text-foreground"
               )}>
-                {task.title}
+                {translateTitle(task.title, language)}
               </h3>
               
               {/* Credits - Compact */}
