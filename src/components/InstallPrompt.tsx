@@ -315,7 +315,7 @@ export function InstallPrompt({ onClose, showAsModal = true }: InstallPromptProp
   
   const { message: personalizedMessage, messageType, templateIndex, childrenCount } = useInstallPromptMessage();
   const isDesktop = deviceOS === 'desktop';
-  const browserInfo = useBrowserDetection(isDesktop);
+  const browserInfo = useBrowserDetection(isDesktop, language);
   const browser = detectBrowser();
   
   const [isVisible, setIsVisible] = useState(true);
