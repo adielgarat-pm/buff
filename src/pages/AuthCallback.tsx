@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { translations, type Language } from '@/contexts/LanguageContext';
 import { Loader2, Users, User, Zap, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -443,7 +444,10 @@ export default function AuthCallback() {
             const packTasks = packDef.tasks.map((task) => ({
               family_id: familyId,
               assigned_to: childProfile.id,
-              title: task.titleKey.replace('pack.task.', '').replace(/_/g, ' '),
+              title: (() => {
+                const lang = (localStorage.getItem('buff-language') || 'en') as Language;
+                return translations[lang]?.[task.titleKey] || task.titleKey.replace('pack.task.', '').replace(/_/g, ' ');
+              })(),
               category: task.category,
               time: task.time,
               credits: task.credits,
