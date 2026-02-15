@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Progress } from './ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Trash2, Plus, Save, X, Book, CalendarCheck, Sparkles, Home, Zap, Calendar, Bell, Gift, Users, User, Crown, Settings, TrendingUp, Upload, ChevronRight, Camera, FileSpreadsheet } from 'lucide-react';
+import { translateTitle } from '@/utils/displayTranslation';
 import { TimetableImporter } from './TimetableImporter';
 import { TimetableEditor } from './TimetableEditor';
 import { StoreRewardEditor } from './StoreRewardEditor';
@@ -71,7 +72,7 @@ export function ParentDashboard({
   onBack,
 }: ParentDashboardProps) {
   const { familyId, familyShortCode } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { members, children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading } = useChildProgress();
   
@@ -268,7 +269,7 @@ export function ParentDashboard({
 
 // Child Configuration Panel (embedded in accordion)
 function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: string; childName: string; fridayEnabled: boolean }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     tasks,
     timetable,
@@ -421,7 +422,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
                     )}
                   >
                     <span className="text-2xl">{reward.icon}</span>
-                    <span className="text-sm font-medium text-foreground line-clamp-2">{reward.title}</span>
+                    <span className="text-sm font-medium text-foreground line-clamp-2">{translateTitle(reward.title, language)}</span>
                     <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
                     {reward.claimed && (
                       <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">Claimed</span>
@@ -506,6 +507,7 @@ function ChildTasks({
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
 }) {
+  const { language } = useLanguage();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -588,7 +590,7 @@ function ChildTasks({
             className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
+              <p className="text-sm font-medium text-foreground truncate">{translateTitle(task.title, language)}</p>
               <p className="text-xs text-muted-foreground">
                 {task.time} • {task.credits} credits
               </p>

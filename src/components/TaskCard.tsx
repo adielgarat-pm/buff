@@ -3,6 +3,8 @@ import { Task, TaskCategory } from '@/types/task';
 import { Book, CalendarCheck, Sparkles as SparklesIcon, Home, Zap, Check, Cookie, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStrategyById, STRATEGY_CATEGORIES } from '@/data/cogFunStrategies';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { translateTitle } from '@/utils/displayTranslation';
 
 interface TaskCardProps {
   task: Task;
@@ -31,6 +33,8 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showBuffTip, setShowBuffTip] = useState(false);
   const [showBuffActivated, setShowBuffActivated] = useState(false);
+  const { language } = useLanguage();
+  const displayTitle = translateTitle(task.title, language);
   
   const config = categoryConfig[task.category];
   const Icon = getTaskIcon(task);
@@ -104,7 +108,7 @@ export function TaskCard({ task, onComplete, onUncomplete }: TaskCardProps) {
               'font-semibold text-foreground transition-all',
               task.completed && 'line-through text-muted-foreground'
             )}>
-              {task.title}
+              {displayTitle}
             </h3>
             {/* Daily Buff Power-up Icon */}
             {buff && !task.completed && (

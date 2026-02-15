@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StoreReward } from '@/types/task';
+import { translateTitle } from '@/utils/displayTranslation';
 import { Button } from './ui/button';
 import { Vault, Gift, Check, Lock, ChevronLeft, ChevronRight, Sparkles, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,7 +22,7 @@ interface RewardsStoreProps {
 }
 
 export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, onClose, showBackButton = false }: RewardsStoreProps) {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
   const [confirmUnclaimReward, setConfirmUnclaimReward] = useState<StoreReward | null>(null);
@@ -124,7 +125,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
                       
                       {/* Reward name in middle */}
                       <h3 className="font-semibold text-foreground mb-2 text-sm line-clamp-2 min-h-[2.5rem]">
-                        {reward.title}
+                        {translateTitle(reward.title, language)}
                       </h3>
                       
                       {/* Progress indicator */}
@@ -185,7 +186,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
                       className="p-4 rounded-2xl bg-success/10 border border-success/30 flex flex-col items-center text-center"
                     >
                       <span className="text-3xl opacity-75 mb-2">{reward.icon}</span>
-                      <h3 className="font-medium text-foreground text-sm mb-1">{reward.title}</h3>
+                      <h3 className="font-medium text-foreground text-sm mb-1">{translateTitle(reward.title, language)}</h3>
                       <div className="flex items-center gap-1 text-success text-xs mb-2">
                         <Check className="w-4 h-4" />
                         <span>{t('store.claimed')}</span>
