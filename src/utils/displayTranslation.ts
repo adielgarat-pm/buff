@@ -5,6 +5,16 @@
  */
 
 const HE_TO_EN: Record<string, string> = {
+  // Default trigger tasks (create_default_tasks_for_child)
+  'התלבשות ונעליים': 'Get Dressed & Shoes',
+  'ארוחת בוקר ותרופות': 'Breakfast & Meds',
+  'בדיקת תיק': 'Bag Check',
+  'פריקת תיק': 'Unpack Bag',
+  'התחלת שיעורי בית': 'Start Homework',
+  'הכנה למחר': 'Prepare for Tomorrow',
+  'כיבוי מסכים שעה לפני השינה': 'Screens Off 1hr Before Bed',
+  'מקלחת וצחצוח שיניים': 'Shower & Brush Teeth',
+
   // Starter pack tasks
   'הכנה לשיעור': 'Class Prep',
   'הקשבה פעילה': 'Active Listening',
@@ -26,6 +36,24 @@ const HE_TO_EN: Record<string, string> = {
   'שתייה': 'Hydration',
   'חטיף בריא': 'Healthy Snack',
   'משחק ללא מסכים': 'Screen-free Play',
+  'לפתור תרגיל אחד': 'Solve One Exercise',
+  'שיעורי בית': 'Homework',
+
+  // Common variant titles
+  'ארוחת בוקר': 'Breakfast',
+  'נטילת תרופה': 'Take Medication',
+  'מקלחת': 'Shower',
+  'סידור מיטה וחדר': 'Make Bed & Tidy Room',
+  'קריאת ספר': 'Read a Book',
+  'עזרה בבית': 'Help at Home',
+  'כיבוי מסכים בזמן': 'Screens Off on Time',
+
+  // Default rewards (from trigger)
+  'עוד 15 דקות מסך': '15 Extra Screen Minutes',
+  'פטור ממטלה מעצבנת': 'Skip an Annoying Chore',
+  'ערב סרט ופופקורן': 'Movie & Popcorn Night',
+  'ערב פיצה או סושי': 'Pizza or Sushi Night',
+  'יום כיף': 'Fun Day Out',
 };
 
 const EN_TO_HE: Record<string, string> = Object.fromEntries(
