@@ -3,6 +3,7 @@ import { Download, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { InstallVideoModal } from './InstallVideoModal';
 import { Button } from './ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const DISMISS_KEY = 'buff_browser_banner_dismissed';
 const DISMISS_DURATION = 24 * 60 * 60 * 1000; // 24 hours in ms
@@ -36,6 +37,7 @@ function wasDismissed(): boolean {
 }
 
 export function BrowserDetectionBanner() {
+  const { t } = useLanguage();
   const [showBanner, setShowBanner] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
@@ -83,7 +85,7 @@ export function BrowserDetectionBanner() {
                     <Download className="w-4 h-4 text-primary" />
                   </div>
                   <p className="text-sm font-medium text-foreground flex-1">
-                    להתקנה מהירה וגישה קלה, לחצו כאן
+                    {t('browserBanner.installMessage')}
                   </p>
                 </button>
 

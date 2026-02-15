@@ -27,42 +27,13 @@ export interface BrowserInfo {
 export function detectBrowser(): BrowserType {
   const ua = navigator.userAgent.toLowerCase();
   
-  // Order matters - more specific checks first
-  
-  // Samsung Internet
-  if (ua.includes('samsungbrowser')) {
-    return 'samsung';
-  }
-  
-  // Brave (has Chrome in UA but also has Brave)
-  if ((navigator as any).brave?.isBrave) {
-    return 'brave';
-  }
-  
-  // Edge (Chromium-based)
-  if (ua.includes('edg/') || ua.includes('edge/')) {
-    return 'edge';
-  }
-  
-  // Opera
-  if (ua.includes('opr/') || ua.includes('opera')) {
-    return 'opera';
-  }
-  
-  // Firefox
-  if (ua.includes('firefox') || ua.includes('fxios')) {
-    return 'firefox';
-  }
-  
-  // Chrome (check after other Chromium browsers)
-  if (ua.includes('chrome') || ua.includes('crios')) {
-    return 'chrome';
-  }
-  
-  // Safari (check after Chrome as Chrome also has Safari in UA)
-  if (ua.includes('safari') && !ua.includes('chrome')) {
-    return 'safari';
-  }
+  if (ua.includes('samsungbrowser')) return 'samsung';
+  if ((navigator as any).brave?.isBrave) return 'brave';
+  if (ua.includes('edg/') || ua.includes('edge/')) return 'edge';
+  if (ua.includes('opr/') || ua.includes('opera')) return 'opera';
+  if (ua.includes('firefox') || ua.includes('fxios')) return 'firefox';
+  if (ua.includes('chrome') || ua.includes('crios')) return 'chrome';
+  if (ua.includes('safari') && !ua.includes('chrome')) return 'safari';
   
   return 'unknown';
 }
@@ -70,71 +41,77 @@ export function detectBrowser(): BrowserType {
 /**
  * Get browser-specific installation instructions
  */
-export function getBrowserInfo(browser: BrowserType, isDesktop: boolean): BrowserInfo {
+export function getBrowserInfo(browser: BrowserType, isDesktop: boolean, language: 'he' | 'en' = 'he'): BrowserInfo {
+  const isHe = language === 'he';
+
   const browserConfigs: Record<BrowserType, BrowserInfo> = {
     chrome: {
       browser: 'chrome',
       displayName: 'Chrome',
       supportsInstall: true,
       menuIcon: '⋮',
-      menuLocation: isDesktop ? 'בפינה הימנית העליונה' : 'למעלה',
-      installAction: isDesktop ? 'התקן אפליקציה' : 'הוסף למסך הבית',
+      menuLocation: isHe
+        ? (isDesktop ? 'בפינה הימנית העליונה' : 'למעלה')
+        : (isDesktop ? 'in the top-right corner' : 'at the top'),
+      installAction: isHe
+        ? (isDesktop ? 'התקן אפליקציה' : 'הוסף למסך הבית')
+        : (isDesktop ? 'Install app' : 'Add to Home Screen'),
     },
     edge: {
       browser: 'edge',
       displayName: 'Edge',
       supportsInstall: true,
       menuIcon: '⋯',
-      menuLocation: 'בפינה הימנית העליונה',
-      installAction: 'התקן אתר כאפליקציה',
+      menuLocation: isHe ? 'בפינה הימנית העליונה' : 'in the top-right corner',
+      installAction: isHe ? 'התקן אתר כאפליקציה' : 'Install site as an app',
     },
     firefox: {
       browser: 'firefox',
       displayName: 'Firefox',
       supportsInstall: false,
       menuIcon: '☰',
-      menuLocation: 'בפינה הימנית העליונה',
-      installAction: 'לא נתמך - נסו Chrome',
+      menuLocation: isHe ? 'בפינה הימנית העליונה' : 'in the top-right corner',
+      installAction: isHe ? 'לא נתמך - נסו Chrome' : 'Not supported — try Chrome',
     },
     safari: {
       browser: 'safari',
       displayName: 'Safari',
-      supportsInstall: true, // Via share menu
+      supportsInstall: true,
       menuIcon: '↑',
-      menuLocation: 'בתחתית המסך',
-      installAction: 'הוסף למסך הבית',
+      menuLocation: isHe ? 'בתחתית המסך' : 'at the bottom of the screen',
+      installAction: isHe ? 'הוסף למסך הבית' : 'Add to Home Screen',
     },
     samsung: {
       browser: 'samsung',
       displayName: 'Samsung Internet',
       supportsInstall: true,
       menuIcon: '☰',
-      menuLocation: 'למטה',
-      installAction: 'הוסף לדף הבית',
+      menuLocation: isHe ? 'למטה' : 'at the bottom',
+      installAction: isHe ? 'הוסף לדף הבית' : 'Add to Home Screen',
     },
     opera: {
       browser: 'opera',
       displayName: 'Opera',
       supportsInstall: true,
       menuIcon: '⋮',
-      menuLocation: 'בפינה הימנית העליונה',
-      installAction: 'הוסף למסך הבית',
+      menuLocation: isHe ? 'בפינה הימנית העליונה' : 'in the top-right corner',
+      installAction: isHe ? 'הוסף למסך הבית' : 'Add to Home Screen',
     },
     brave: {
       browser: 'brave',
       displayName: 'Brave',
       supportsInstall: true,
       menuIcon: '☰',
-      menuLocation: 'בפינה הימנית העליונה',
-      installAction: 'התקן אפליקציה',
+      menuLocation: isHe ? 'בפינה הימנית העליונה' : 'in the top-right corner',
+      installAction: isHe ? 'התקן אפליקציה' : 'Install app',
     },
     unknown: {
       browser: 'unknown',
-      displayName: 'דפדפן',
+      displayName: isHe ? 'דפדפן' : 'Browser',
       supportsInstall: false,
       menuIcon: '⋮',
-      menuLocation: 'בתפריט',
-      installAction: 'הוסף למסך הבית',
+      menuLocation: isHe ? 'בתפריט' : 'in the menu',
+      installAction: isHe ? 'הוסף למסך הבית' : 'Add to Home Screen',
     },
   };
   
@@ -144,7 +121,7 @@ export function getBrowserInfo(browser: BrowserType, isDesktop: boolean): Browse
 /**
  * Hook to get current browser detection
  */
-export function useBrowserDetection(isDesktop: boolean = false): BrowserInfo {
+export function useBrowserDetection(isDesktop: boolean = false, language: 'he' | 'en' = 'he'): BrowserInfo {
   const browser = detectBrowser();
-  return getBrowserInfo(browser, isDesktop);
+  return getBrowserInfo(browser, isDesktop, language);
 }

@@ -894,6 +894,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.generic.2': 'אל תחפשו אותנו בדפדפן בכל בוקר. Buff מחכה לכם על מסך הבית.',
     'install.generic.3': 'גישה מהירה לבוקר שפוי. התקינו את האפליקציה עכשיו.',
 
+    // Browser Detection Banner
+    'browserBanner.installMessage': 'להתקנה מהירה וגישה קלה, לחצו כאן',
+
     // Old ParentDashboard
     'oldDashboard.familySettings': 'הגדרות משפחה',
     'oldDashboard.familySettingsDesc': 'הגדרות כלליות וקוד משפחה',
@@ -1946,6 +1949,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'install.generic.1': 'A morning of success starts here. Put your tools front and center.',
     'install.generic.2': 'Don\'t search for us in the browser every morning. Buff is waiting on your home screen.',
     'install.generic.3': 'Quick access to a sane morning. Install the app now.',
+
+    // Browser Detection Banner
+    'browserBanner.installMessage': 'For quick install and easy access, tap here',
 
     // Old ParentDashboard
     'oldDashboard.familySettings': 'Family Settings',
