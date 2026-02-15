@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Users, Send, Link2, Sparkles, Smartphone, Loader2, QrCode, Share2 } from 'lucide-react';
+import { Copy, Check, Users, Sparkles, Smartphone, Loader2, QrCode, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,18 +31,18 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
   const [childName, setChildName] = useState('');
   const [noSeparateDevice, setNoSeparateDevice] = useState(false);
   const [isCreatingChild, setIsCreatingChild] = useState(false);
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const { profile } = useAuth();
-  const isHe = language === 'he';
 
-  const handleCopy = async () => {
+  // Copy code only
+  const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(shortCode);
       setCopied(true);
-      toast.success(isHe ? 'הקוד הועתק!' : 'Code copied!');
+      toast.success(t('familyCode.codeCopied'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error(isHe ? 'שגיאה בהעתקה' : 'Failed to copy');
+      toast.error(t('familyCode.copyError'));
     }
   };
 
@@ -56,11 +56,11 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
 
   const handleCreateChildWithoutDevice = async () => {
     if (!childName.trim()) {
-      toast.error(isHe ? 'נא להזין שם הילד/ה' : 'Please enter child\'s name');
+      toast.error(t('familyCode.enterChildName'));
       return;
     }
     if (!profile?.family_id) {
-      toast.error(isHe ? 'שגיאה: לא נמצאה משפחה' : 'Error: No family found');
+      toast.error(t('familyCode.noFamilyError'));
       return;
     }
 
@@ -77,39 +77,38 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
 
       if (error) {
         console.error('Error creating child:', error);
-        toast.error(isHe ? 'שגיאה ביצירת פרופיל הילד' : 'Failed to create child profile');
+        toast.error(t('familyCode.createError'));
         return;
       }
 
-      toast.success(isHe ? `${childName.trim()} נוסף/ה בהצלחה! 🎉` : `${childName.trim()} added successfully! 🎉`);
+      toast.success(t('familyCode.addedSuccess').replace('{name}', childName.trim()));
       setShowMagicLinkDialog(false);
       setChildName('');
       setNoSeparateDevice(false);
       onChildAdded?.();
     } catch (err) {
       console.error('Unexpected error:', err);
-      toast.error(isHe ? 'שגיאה לא צפויה' : 'Unexpected error');
+      toast.error(t('familyCode.unexpectedError'));
     } finally {
       setIsCreatingChild(false);
     }
   };
 
+  // Native Share via Web Share API, fallback to clipboard
   const handleNativeShare = async () => {
-    const displayName = childName.trim() || (isHe ? 'הילד/ה' : 'your child');
+    const displayName = childName.trim() || 'your child';
     const magicLink = getMagicLinkUrl(childName);
 
-    const shareText = isHe
-      ? `🎮 היי ${displayName}! ה-Buff שלך מחכה!\n\nלחץ/י על הקישור כדי להצטרף למשחק:\n${magicLink}\n\n🚀 פתח והתחל לצבור נקודות!`
-      : `🎮 Hey ${displayName}! Your Buff is waiting!\n\nClick the link to join the game:\n${magicLink}\n\n🚀 Open and start earning points!`;
+    const shareText = `🎮 Hey ${displayName}! Your Buff is waiting!\n\nClick the link to join the game:\n${magicLink}\n\n🚀 Open and start earning points!`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: isHe ? `הזמנה ל-BUFF עבור ${displayName}` : `BUFF Invite for ${displayName}`,
+          title: t('familyCode.shareTitle'),
           text: shareText,
           url: magicLink,
         });
-        toast.success(isHe ? 'נשלח בהצלחה!' : 'Shared successfully!');
+        toast.success(t('familyCode.sharedSuccess'));
         setShowMagicLinkDialog(false);
         setChildName('');
         return;
@@ -121,27 +120,26 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
     // Fallback: copy to clipboard
     try {
       await navigator.clipboard.writeText(shareText);
-      toast.success(isHe ? 'ההודעה הועתקה! שלח לילד/ה' : 'Message copied! Send it to your child');
+      toast.success(t('familyCode.messageCopied'));
       setShowMagicLinkDialog(false);
       setChildName('');
     } catch {
-      toast.error(isHe ? 'שגיאה בשיתוף' : 'Failed to share');
+      toast.error(t('familyCode.shareError'));
     }
   };
 
-  const handleLegacyShare = async () => {
+  // Share button on the main card — uses native share sheet
+  const handleShareCode = async () => {
     const appUrl = 'https://buff.lovable.app';
-    const shareText = isHe
-      ? `🎮 הצטרף/י למשפחה שלנו ב-BUFF!\n\n📱 איך להצטרף:\n1. היכנס/י לאפליקציה: ${appUrl}\n2. לחץ/י על "הרשמה"\n3. בחר/י "אני נער/ה"\n4. הזן/י את הקוד המשפחתי:\n\n🔑 ${shortCode}\n\nנתראה באפליקציה! ✨`
-      : `🎮 Join our family on BUFF!\n\n📱 How to join:\n1. Go to: ${appUrl}\n2. Click "Sign Up"\n3. Choose "Teen"\n4. Enter the family code:\n\n🔑 ${shortCode}\n\nSee you in the app! ✨`;
+    const shareText = `🎮 Join our family on BUFF!\n\n📱 How to join:\n1. Go to: ${appUrl}\n2. Click "Sign Up"\n3. Choose "Teen"\n4. Enter the family code:\n\n🔑 ${shortCode}\n\nSee you in the app! ✨`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: isHe ? 'הצטרף ל-BUFF' : 'Join BUFF',
+          title: t('familyCode.shareTitle'),
           text: shareText,
         });
-        toast.success(isHe ? 'נשלח בהצלחה!' : 'Shared successfully!');
+        toast.success(t('familyCode.sharedSuccess'));
         return;
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
@@ -151,9 +149,9 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
     // Fallback: copy to clipboard
     try {
       await navigator.clipboard.writeText(shareText);
-      toast.success(isHe ? 'ההודעה הועתקה!' : 'Message copied!');
+      toast.success(t('familyCode.messageCopied'));
     } catch {
-      toast.error(isHe ? 'שגיאה בשיתוף' : 'Failed to share');
+      toast.error(t('familyCode.shareError'));
     }
   };
 
@@ -167,36 +165,38 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
 
   return (
     <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 space-y-3">
-      {/* Header with micro-copy */}
+      {/* Header */}
       <div className="flex items-center gap-2">
         <Users className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-foreground">
-          {isHe ? 'קוד משפחה' : 'Family Code'}
+          {t('familyCode.familyCode')}
         </span>
       </div>
 
       {/* Micro-copy: No phone needed */}
       <p className="text-xs text-muted-foreground leading-relaxed">
-        {isHe
-          ? '💡 הילדים לא צריכים טלפון או ווטסאפ — פשוט הזינו את הקוד אצלם!'
-          : '💡 Kids don\'t need a phone or WhatsApp — they just need this code to join!'}
+        💡 {t('familyCode.microcopy')}
       </p>
 
-      {/* Large code display */}
+      {/* Large code display with separate Copy button */}
       <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-3 px-5 py-3 rounded-xl bg-card border-2 border-primary/40 hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98]"
-        >
-          <span className="text-2xl font-mono font-bold tracking-[0.3em] text-primary" dir="ltr">
+        <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-card border-2 border-primary/40">
+          <span className="text-2xl font-mono font-bold tracking-[0.3em] text-primary select-all" dir="ltr">
             {shortCode}
           </span>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleCopyCode}
+          className="h-12 w-12 shrink-0"
+        >
           {copied ? (
-            <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+            <Check className="w-5 h-5 text-green-500" />
           ) : (
-            <Copy className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            <Copy className="w-5 h-5" />
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Action buttons row */}
@@ -206,16 +206,16 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="flex-1 h-9 text-xs gap-1.5">
               <QrCode className="w-3.5 h-3.5" />
-              {isHe ? 'הצג QR' : 'Show QR'}
+              {t('familyCode.showQR')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-xs">
             <DialogHeader>
               <DialogTitle className="text-center">
-                {isHe ? 'סרוק כדי להצטרף' : 'Scan to Join'}
+                {t('familyCode.scanToJoin')}
               </DialogTitle>
               <DialogDescription className="text-center">
-                {isHe ? 'סרוק עם מצלמת הטלפון' : 'Scan with your phone camera'}
+                {t('familyCode.scanWithCamera')}
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center py-4">
@@ -229,20 +229,20 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
               </div>
             </div>
             <p className="text-center text-xs text-muted-foreground">
-              {isHe ? `קוד משפחה: ${shortCode}` : `Family Code: ${shortCode}`}
+              {t('familyCode.familyCode')}: {shortCode}
             </p>
           </DialogContent>
         </Dialog>
 
-        {/* Native Share button */}
+        {/* Native Share button (separate from Copy) */}
         <Button
           variant="outline"
           size="sm"
-          onClick={handleLegacyShare}
+          onClick={handleShareCode}
           className="flex-1 h-9 text-xs gap-1.5"
         >
           <Share2 className="w-3.5 h-3.5" />
-          {isHe ? 'שתף' : 'Share'}
+          {t('familyCode.share')}
         </Button>
 
         {/* Add child button */}
@@ -250,29 +250,27 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
           <DialogTrigger asChild>
             <Button size="sm" className="flex-1 h-9 text-xs gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              {isHe ? 'הוסף ילד/ה' : 'Add Child'}
+              {t('familyCode.addChild')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Link2 className="w-5 h-5 text-primary" />
-                {isHe ? 'הוספת ילד/ה' : 'Add Child'}
+                <Sparkles className="w-5 h-5 text-primary" />
+                {t('familyCode.addChildTitle')}
               </DialogTitle>
               <DialogDescription>
-                {isHe
-                  ? 'הוסף ילד/ה למשפחה או שלח לינק הזמנה'
-                  : 'Add a child to your family or send an invite link'}
+                {t('familyCode.addChildDesc')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="child-name">
-                  {isHe ? 'שם הילד/ה' : 'Child\'s Name'}
+                  {t('familyCode.childName')}
                 </Label>
                 <Input
                   id="child-name"
-                  placeholder={isHe ? 'לדוגמה: דני' : 'e.g., Danny'}
+                  placeholder={t('familyCode.childNamePlaceholder')}
                   value={childName}
                   onChange={(e) => setChildName(e.target.value)}
                 />
@@ -282,9 +280,7 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
                 <div className="flex items-center gap-2">
                   <Smartphone className="w-4 h-4 text-muted-foreground" />
                   <Label htmlFor="no-device" className="text-sm font-normal cursor-pointer">
-                    {isHe
-                      ? 'הילד משתמש במכשיר שלי (אין לו טלפון משלו)'
-                      : 'Child uses my device (no separate phone)'}
+                    {t('familyCode.noSeparateDevice')}
                   </Label>
                 </div>
                 <Switch
@@ -296,7 +292,7 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
 
               {!noSeparateDevice && childName && (
                 <div className="p-3 rounded-lg bg-muted/50 border text-xs break-all">
-                  <p className="text-muted-foreground mb-1">{isHe ? 'קישור:' : 'Link:'}</p>
+                  <p className="text-muted-foreground mb-1">{t('familyCode.link')}</p>
                   <code className="text-primary">{getMagicLinkUrl(childName)}</code>
                 </div>
               )}
@@ -304,9 +300,7 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
               {noSeparateDevice && (
                 <div className="p-3 rounded-lg bg-accent/10 border border-accent/30 text-sm">
                   <p className="text-muted-foreground">
-                    {isHe
-                      ? '📱 הילד/ה יופיע/תופיע ברשימת הילדים ותוכל/י לפתוח את מסך המשימות שלו/ה ישירות מהמכשיר שלך.'
-                      : '📱 The child will appear in your children list and you can open their quest screen directly from your device.'}
+                    {t('familyCode.noDeviceInfo')}
                   </p>
                 </div>
               )}
@@ -318,7 +312,7 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
                 className="w-full sm:w-auto"
                 disabled={isCreatingChild}
               >
-                {isHe ? 'ביטול' : 'Cancel'}
+                {t('familyCode.cancel')}
               </Button>
               {noSeparateDevice ? (
                 <Button
@@ -329,12 +323,12 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
                   {isCreatingChild ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      {isHe ? 'מוסיף...' : 'Adding...'}
+                      {t('familyCode.adding')}
                     </>
                   ) : (
                     <>
                       <Users className="w-4 h-4" />
-                      {isHe ? 'הוסף ילד/ה' : 'Add Child'}
+                      {t('familyCode.addChild')}
                     </>
                   )}
                 </Button>
@@ -344,7 +338,7 @@ export function FamilyCodeDisplay({ shortCode, onChildAdded }: FamilyCodeDisplay
                   className="w-full sm:w-auto gap-2"
                 >
                   <Share2 className="w-4 h-4" />
-                  {isHe ? 'שלח הזמנה' : 'Send Invite'}
+                  {t('familyCode.sendInvite')}
                 </Button>
               )}
             </DialogFooter>
