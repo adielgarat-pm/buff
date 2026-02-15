@@ -9,9 +9,11 @@ import { ChildView } from '@/components/ChildView';
 import { ParentView } from '@/components/ParentView';
 import { Loader2 } from 'lucide-react';
 import { WeekDay } from '@/types/task';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Index = () => {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const [weeklySummaryOpen, setWeeklySummaryOpen] = useState(false);
   const [weeklySummaryDismissed, setWeeklySummaryDismissed] = useState(() => {
     const dismissed = localStorage.getItem('weeklySummaryDismissed');
@@ -141,7 +143,7 @@ const Index = () => {
       <div className="min-h-[100dvh] bg-background flex items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">טוען את המשימות שלך...</p>
+          <p className="text-muted-foreground">{t('loadingTasks')}</p>
         </div>
       </div>
     );

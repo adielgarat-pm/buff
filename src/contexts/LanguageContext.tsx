@@ -223,6 +223,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'טוען...',
+    'loadingTasks': 'טוען את המשימות שלך...',
     'common.loadingDataFor': 'טוען נתונים עבור',
     'common.child': 'ילד',
     'common.error': 'שגיאה',
@@ -1279,6 +1280,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'Loading...',
+    'loadingTasks': 'Loading your tasks...',
     'common.loadingDataFor': 'Loading data for',
     'common.child': 'child',
     'common.error': 'Error',
