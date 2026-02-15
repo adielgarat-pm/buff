@@ -22,13 +22,13 @@ const queryClient = new QueryClient();
 
 // Loading component with Buff logo
 function LoadingScreen() {
-  const { language } = useLanguage();
+  const lang = localStorage.getItem('buff-language') || 'en';
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
       <img src={buffLogo} alt="Buff" className="w-20 h-20 animate-pulse" />
       <div className="flex items-center gap-2">
         <Loader2 className="w-5 h-5 animate-spin text-primary" />
-        <p className="text-muted-foreground">{language === 'he' ? 'טוען...' : 'Loading...'}</p>
+        <p className="text-muted-foreground">{lang === 'he' ? 'טוען...' : 'Loading...'}</p>
       </div>
     </div>
   );
