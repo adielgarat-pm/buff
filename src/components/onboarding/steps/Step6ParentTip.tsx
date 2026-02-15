@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket, Copy, Check, Share2, ClipboardCopy } from 'lucide-react';
+import { Rocket, Copy, Check, Share2, ClipboardCopy, QrCode } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
+import { QRCodeSVG } from 'qrcode.react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Step6ParentTipProps {
   childName: string;
@@ -16,11 +23,13 @@ interface Step6ParentTipProps {
 
 export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Step6ParentTipProps) {
   const { profile } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const [familyCode, setFamilyCode] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [instructionsCopied, setInstructionsCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const isHe = language === 'he';
 
   useEffect(() => {
     const fetchFamilyCode = async () => {
@@ -70,11 +79,30 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
     }
   };
 
-  const handleShareWhatsApp = () => {
+  const handleNativeShare = async () => {
     if (!familyCode) return;
     const message = getConnectionInstructions();
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.location.href = whatsappUrl;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: isHe ? `הזמנה ל-BUFF עבור ${childName}` : `BUFF Invite for ${childName}`,
+          text: message,
+        });
+        toast.success(isHe ? 'נשלח בהצלחה!' : 'Shared successfully!');
+        return;
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+      }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success(isHe ? 'ההודעה הועתקה!' : 'Message copied!');
+    } catch {
+      toast.error(t('onboarding.step6.copyError'));
+    }
   };
 
   const handleLaunch = () => {
@@ -122,14 +150,33 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
           )}
         </div>
 
-        <button
-          onClick={handleShareWhatsApp}
-          disabled={!familyCode}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20 transition-colors active:scale-[0.98] disabled:opacity-50"
-        >
-          <Share2 className="w-4 h-4" />
-          <span className="text-sm font-medium">{t('onboarding.step6.shareWhatsApp').replace('{name}', childName)}</span>
-        </button>
+        {/* Micro-copy */}
+        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+          {isHe
+            ? '💡 הילדים לא צריכים טלפון או ווטסאפ — פשוט הזינו את הקוד אצלם!'
+            : '💡 Kids don\'t need a phone or WhatsApp — they just need this code to join!'}
+        </p>
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowQR(true)}
+            disabled={!familyCode}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-secondary/50 border border-border text-foreground hover:bg-secondary transition-colors active:scale-[0.98] disabled:opacity-50"
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="text-sm font-medium">{isHe ? 'QR' : 'QR Code'}</span>
+          </button>
+
+          <button
+            onClick={handleNativeShare}
+            disabled={!familyCode}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors active:scale-[0.98] disabled:opacity-50"
+          >
+            <Share2 className="w-4 h-4" />
+            <span className="text-sm font-medium">{isHe ? 'שתף' : 'Share'}</span>
+          </button>
+        </div>
 
         <button
           onClick={handleCopyInstructions}
@@ -154,7 +201,30 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
             dangerouslySetInnerHTML={{ __html: t('onboarding.step6.callToAction').replace('{name}', childName) }}
           />
         </div>
-      </div>
+        </div>
+
+        {/* QR Code Dialog */}
+        <Dialog open={showQR} onOpenChange={setShowQR}>
+          <DialogContent className="sm:max-w-xs">
+            <DialogHeader>
+              <DialogTitle className="text-center">
+                {isHe ? 'סרוק כדי להצטרף' : 'Scan to Join'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex justify-center py-4">
+              <div className="bg-white p-4 rounded-2xl">
+                <QRCodeSVG
+                  value={`https://buff.lovable.app/join?code=${familyCode}`}
+                  size={200}
+                  level="M"
+                />
+              </div>
+            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              {isHe ? `קוד משפחה: ${familyCode}` : `Family Code: ${familyCode}`}
+            </p>
+          </DialogContent>
+        </Dialog>
 
       <div className="px-5 pb-6 pt-4 flex-shrink-0 bg-background">
         <Button 
