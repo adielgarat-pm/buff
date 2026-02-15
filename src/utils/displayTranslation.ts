@@ -11,6 +11,7 @@ const HE_TO_EN: Record<string, string> = {
   'רישום שיעורי בית': 'Record Homework',
   'בדיקה אם יש שיעורי בית': 'Check for Homework',
   'השלמת שיעורי בית': 'Complete Homework',
+  'הכנת שיעורי בית': 'Homework Preparation',
   'משימה אקדמית בונוס': 'Bonus Academic Task',
   'מוכן בזמן': 'Ready on Time',
   'צחצוח שיניים': 'Brush Teeth',
