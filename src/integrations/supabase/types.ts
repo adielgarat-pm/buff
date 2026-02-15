@@ -285,6 +285,7 @@ export type Database = {
           onboarding_data: Json | null
           onboarding_step: number | null
           pet_state: Json | null
+          preferred_language: string
           pro_settings: Json | null
           role: string
           school_quest_enabled: boolean
@@ -312,6 +313,7 @@ export type Database = {
           onboarding_data?: Json | null
           onboarding_step?: number | null
           pet_state?: Json | null
+          preferred_language?: string
           pro_settings?: Json | null
           role?: string
           school_quest_enabled?: boolean
@@ -339,6 +341,7 @@ export type Database = {
           onboarding_data?: Json | null
           onboarding_step?: number | null
           pet_state?: Json | null
+          preferred_language?: string
           pro_settings?: Json | null
           role?: string
           school_quest_enabled?: boolean
