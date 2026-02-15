@@ -27,7 +27,7 @@ export function V2OnboardingFlow({ onComplete }: V2OnboardingFlowProps) {
   const { t, isRTL } = useLanguage();
   const [currentStep, setCurrentStep] = useState<V2Step>('language');
   const [quizData, setQuizData] = useState<V2QuizData>({
-    language: 'he',
+    language: 'en',
     childName: '',
     childAge: '',
     morningChallenge: '',
