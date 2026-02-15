@@ -9,7 +9,7 @@ import { ConfettiEffect } from './ConfettiEffect';
 import { XPFlyAnimation } from './XPFlyAnimation';
 import { CoreSyncAnimation } from './CoreSyncAnimation';
 import { isProtocolTask, getEffectiveCredits } from '@/utils/protocolTaskUtils';
-import { CATEGORY_LABELS_HE, TaskCategory } from '@/types/task';
+import { CATEGORY_LABELS, CATEGORY_LABELS_HE, TaskCategory } from '@/types/task';
 
 interface PhaseTaskCardProps {
   task: Task;
@@ -72,7 +72,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
     : categoryColors[task.category];
   const categoryLabel = isProtocol 
     ? (language === 'he' ? 'פרוטוקול' : 'Protocol')
-    : (language === 'he' ? CATEGORY_LABELS_HE[task.category] : task.category);
+    : (language === 'he' ? CATEGORY_LABELS_HE[task.category] : CATEGORY_LABELS[task.category]);
   const strategy = getRandomStrategy(task.strategyId);
 
   const handleComplete = () => {
@@ -186,7 +186,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
             
             {/* Task Notes - Only show if present */}
             {task.description && !task.completed && (
-              <p className="text-[11px] text-muted-foreground/80 mt-0.5 leading-tight line-clamp-1 text-start" dir="rtl">
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5 leading-tight line-clamp-1 text-start" dir={language === 'he' ? 'rtl' : 'ltr'}>
                 📝 {task.description}
               </p>
             )}
