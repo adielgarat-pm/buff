@@ -59,7 +59,7 @@ export default function AuthCallback() {
         try {
           const { data: newFamily, error: familyError } = await supabase
             .from('families')
-            .insert({ name: `${existingProfile.display_name}'s Family` } as any)
+            .insert({ name: `${existingProfile.display_name}'s Family`, preferred_language: localStorage.getItem('buff-language') || 'en' } as any)
             .select()
             .single();
 
@@ -305,9 +305,11 @@ export default function AuthCallback() {
       }
 
       // Create new family
+      const lang = localStorage.getItem('buff-language') || 'en';
+      const familyName = lang === 'he' ? `משפחת ${displayName}` : `${displayName}'s Family`;
       const { data: newFamily, error: familyError } = await supabase
         .from('families')
-        .insert({ name: `משפחת ${displayName}` } as any)
+        .insert({ name: familyName, preferred_language: lang } as any)
         .select()
         .single();
 
@@ -366,9 +368,11 @@ export default function AuthCallback() {
         familyId = existingProfile.family_id;
       } else {
         // Create new family
+        const lang = localStorage.getItem('buff-language') || 'en';
+        const familyName = lang === 'he' ? `משפחת ${displayName}` : `${displayName}'s Family`;
         const { data: newFamily, error: familyError } = await supabase
           .from('families')
-          .insert({ name: `משפחת ${displayName}` } as any)
+          .insert({ name: familyName, preferred_language: lang } as any)
           .select()
           .single();
 
@@ -579,9 +583,11 @@ export default function AuthCallback() {
           console.log('[UPSERT] Using existing family:', familyId);
         } else {
           // Create new family
+          const emailLang = localStorage.getItem('buff-language') || 'en';
+          const emailFamilyName = emailLang === 'he' ? `משפחת ${displayName}` : `${displayName}'s Family`;
           const { data: newFamily, error: familyError } = await supabase
             .from('families')
-            .insert({ name: `${displayName}'s Family` } as any)
+            .insert({ name: emailFamilyName, preferred_language: emailLang } as any)
             .select()
             .single();
 
