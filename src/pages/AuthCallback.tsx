@@ -12,6 +12,10 @@ import { toast } from 'sonner';
 import buffLogo from '@/assets/buff-logo.png';
 import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 import { ParentOnboarding, OnboardingData } from '@/components/onboarding';
+import { V2OnboardingFlow } from '@/components/onboarding/v2';
+
+// Feature toggle: set to true to use the new Value-First onboarding flow
+const USE_V2_ONBOARDING = true;
 
 type SetupStep = 'loading' | 'role-selection' | 'parent-onboarding' | 'family-code' | 'creating' | 'error';
 
@@ -806,6 +810,11 @@ export default function AuthCallback() {
 
   // Parent onboarding flow
   if (step === 'parent-onboarding') {
+    if (USE_V2_ONBOARDING) {
+      return (
+        <V2OnboardingFlow onComplete={() => navigate('/dashboard', { replace: true })} />
+      );
+    }
     return (
       <ParentOnboarding onComplete={handleOnboardingComplete} />
     );
