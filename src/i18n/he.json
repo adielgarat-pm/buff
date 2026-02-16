@@ -963,5 +963,7 @@
   "v2.goal.independence": "עצמאות",
   "v2.goal.confidence": "ביטחון עצמי",
   "v2.goal.organization": "ארגון",
-  "v2.goal.calm_mornings": "בקרים רגועים"
+  "v2.goal.calm_mornings": "בקרים רגועים",
+  "notification.rewardRedeemed.title": "זמן לחגיגה! 🏆",
+  "notification.rewardRedeemed.body": "{childName} מימש עכשיו את הפרס: {rewardName}. איזה אלוף!"
 }

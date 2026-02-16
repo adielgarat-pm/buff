@@ -963,5 +963,7 @@
   "v2.goal.independence": "Independence",
   "v2.goal.confidence": "Confidence",
   "v2.goal.organization": "Organization",
-  "v2.goal.calm_mornings": "Calm Mornings"
+  "v2.goal.calm_mornings": "Calm Mornings",
+  "notification.rewardRedeemed.title": "Victory Alert! 🏆",
+  "notification.rewardRedeemed.body": "{childName} just claimed their reward: {rewardName}. Time for a high-five!"
 }
