@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { ParentOnboarding, OnboardingData } from './onboarding/ParentOnboarding';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRewardRedemptionNotifier } from '@/hooks/useRewardRedemptionNotifier';
 
 /** Silent Launch mode: insights are open to all users */
 function ProGatedInsights({ children }: { children: React.ReactNode }) {
@@ -50,6 +51,9 @@ export function ParentView() {
   }, []);
 
   useNavigationHistory(activeTab, handleTabChange, ['overview', 'settings', 'reports']);
+
+  // Realtime: notify parent when a child redeems a reward
+  useRewardRedemptionNotifier(profile?.family_id, true);
 
   const {
     loading,
