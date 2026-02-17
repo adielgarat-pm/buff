@@ -73,7 +73,7 @@ export function ParentReports() {
             <p className="text-xs text-muted-foreground">{t('reports.weeklyAnalysis')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-row-reverse">
           <NotificationBell />
           <Select value={selectedChildId} onValueChange={setSelectedChildId}>
             <SelectTrigger className="w-auto min-w-[100px] h-8 text-xs bg-secondary border-border">
