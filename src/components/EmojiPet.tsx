@@ -18,6 +18,10 @@ const PET_TYPES: Record<string, string> = {
   owl: '🦉',
   unicorn: '🦄',
   bear: '🐻',
+  puppy: '🐶',
+  ginger_cat: '🐈',
+  rabbit: '🐰',
+  panda: '🐼',
   default: '🐾',
 };
 

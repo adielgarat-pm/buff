@@ -368,6 +368,12 @@ export function useChildPet(childId?: string) {
     await savePetState(newState);
   }, [petState, savePetState]);
 
+  // Change pet skin
+  const changeSkin = useCallback(async (skinId: string) => {
+    const newState: PetState = { ...petState, current_skin: skinId };
+    await savePetState(newState);
+  }, [petState, savePetState]);
+
   // Record an interaction (tap)
   const recordInteraction = useCallback(async () => {
     if (isResting) return;
@@ -406,6 +412,7 @@ export function useChildPet(childId?: string) {
     grantExperience,
     useRestCard,
     addRestCards,
+    changeSkin,
     xpProgress,
     xpInLevel,
     xpNeeded,

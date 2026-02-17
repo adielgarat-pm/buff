@@ -488,6 +488,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         onClose={() => setShowCommandCenter(false)}
         preferences={childPrefs}
         onSave={savePreferences}
+        childId={profile?.id}
       />
     </div>
   );
