@@ -965,5 +965,7 @@
   "v2.goal.organization": "Organization",
   "v2.goal.calm_mornings": "Calm Mornings",
   "notification.rewardRedeemed.title": "Victory Alert! 🏆",
-  "notification.rewardRedeemed.body": "{childName} just claimed their reward: {rewardName}. Time for a high-five!"
+  "notification.rewardRedeemed.body": "{childName} just claimed their reward: {rewardName}. Time for a high-five!",
+  "notification.taskCompleted.title": "Quest Complete! ⚡",
+  "notification.taskCompleted.body": "{childName} just crushed it: {taskName}. They're on fire today!"
 }
