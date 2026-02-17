@@ -4,13 +4,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useParentNotifications, ParentNotification } from '@/hooks/useParentNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-
-interface NotificationBellProps {
-  familyId: string | null | undefined;
-  isParent: boolean;
-}
 
 function NotificationItem({
   notification,
@@ -54,7 +50,10 @@ function NotificationItem({
   );
 }
 
-export function NotificationBell({ familyId, isParent }: NotificationBellProps) {
+export function NotificationBell() {
+  const { profile } = useAuth();
+  const familyId = profile?.family_id;
+  const isParent = profile?.role === 'parent';
   const { t } = useLanguage();
   const [panelOpen, setPanelOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);

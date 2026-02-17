@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { PHASES } from '@/types/phase';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { NotificationBell } from './NotificationBell';
 
 export function ParentReports() {
   const { t, language } = useLanguage();
@@ -44,12 +45,15 @@ export function ParentReports() {
   if (children.length === 0) {
     return (
       <div className="space-y-3 pb-6">
-        <div className="flex items-center gap-3">
-          <img src={buffLogoNoBg} alt="BUFF Logo" className="h-10 w-10 object-contain" />
-          <div>
-            <h1 className="text-xl font-bold text-foreground font-display">{t('reports.title')}</h1>
-            <p className="text-xs text-muted-foreground">{t('reports.analysis')}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={buffLogoNoBg} alt="BUFF Logo" className="h-10 w-10 object-contain" />
+            <div>
+              <h1 className="text-xl font-bold text-foreground font-display">{t('reports.title')}</h1>
+              <p className="text-xs text-muted-foreground">{t('reports.analysis')}</p>
+            </div>
           </div>
+          <NotificationBell />
         </div>
         <div className="p-4 rounded-xl bg-card border border-border text-center">
           <Lightbulb className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
@@ -69,21 +73,24 @@ export function ParentReports() {
             <p className="text-xs text-muted-foreground">{t('reports.weeklyAnalysis')}</p>
           </div>
         </div>
-        <Select value={selectedChildId} onValueChange={setSelectedChildId}>
-          <SelectTrigger className="w-auto min-w-[100px] h-8 text-xs bg-secondary border-border">
-            <SelectValue placeholder={t('reports.selectChild')} />
-          </SelectTrigger>
-          <SelectContent>
-            {children.map((child) => (
-              <SelectItem key={child.id} value={child.id}>
-                <div className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" />
-                  {child.displayName}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <Select value={selectedChildId} onValueChange={setSelectedChildId}>
+            <SelectTrigger className="w-auto min-w-[100px] h-8 text-xs bg-secondary border-border">
+              <SelectValue placeholder={t('reports.selectChild')} />
+            </SelectTrigger>
+            <SelectContent>
+              {children.map((child) => (
+                <SelectItem key={child.id} value={child.id}>
+                  <div className="flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5" />
+                    {child.displayName}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {selectedChildId && (

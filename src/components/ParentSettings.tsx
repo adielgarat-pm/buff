@@ -64,6 +64,7 @@ import { z } from 'zod';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translateTitle } from '@/utils/displayTranslation';
+import { NotificationBell } from './NotificationBell';
 
 function SimulateProToggle() {
   const { language } = useLanguage();
@@ -149,12 +150,15 @@ export function ParentSettings({
             </p>
           </div>
         </div>
-        {selectedChildId && onBackFromChild && (
-          <Button variant="ghost" size="sm" onClick={onBackFromChild} className="text-muted-foreground">
-            <ArrowRight className="w-4 h-4 ml-1" />
-            {t('parentSettings.back')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          {selectedChildId && onBackFromChild && (
+            <Button variant="ghost" size="sm" onClick={onBackFromChild} className="text-muted-foreground">
+              <ArrowRight className="w-4 h-4 ml-1" />
+              {t('parentSettings.back')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* If child selected, show child config only */}
