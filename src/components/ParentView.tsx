@@ -52,9 +52,6 @@ export function ParentView() {
 
   useNavigationHistory(activeTab, handleTabChange, ['overview', 'settings', 'reports']);
 
-  // Realtime: notify parent when a child redeems a reward
-  useRewardRedemptionNotifier(profile?.family_id, true);
-
   const {
     loading,
     appTitle,
@@ -64,6 +61,10 @@ export function ParentView() {
     toggleLessonReminders,
     // toggleFridayEnabled removed - Friday is now auto-managed from schedule imports
   } = useSyncedTaskStore();
+
+  // Realtime: notify parent when a child redeems a reward
+  // Must be called here (after useSyncedTaskStore, before any early returns) to keep hooks order stable
+  useRewardRedemptionNotifier(profile?.family_id, true);
 
   // Loading state
   if (loading) {
