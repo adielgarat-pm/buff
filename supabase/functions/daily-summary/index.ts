@@ -57,12 +57,8 @@ serve(async (req) => {
       });
     }
 
-    if (!parentProfile.is_pro && !parentProfile.is_lifetime_access) {
-      return new Response(JSON.stringify({ error: "Pro feature" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Silent Launch: Pro gate bypassed — all users can access this feature
+    // (is_pro / is_lifetime_access check removed until launch)
 
     const { child_id, language } = await req.json();
     if (!child_id) {
