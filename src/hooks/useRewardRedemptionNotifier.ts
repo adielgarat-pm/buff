@@ -10,6 +10,10 @@ import { useAuth } from '@/contexts/AuthContext';
  * - When a reward is claimed (UPDATE with claimed=true), shows a celebratory toast
  *   AND persists a record in the `notifications` table for later retrieval.
  * - When a task is completed (INSERT with completed=true), same behaviour.
+ *
+ * Fix: `t` and other frequently-recreated values are kept in refs so the
+ * useEffect deps only contain stable IDs — preventing duplicate subscriptions
+ * (and therefore duplicate DB inserts) on re-renders.
  */
 export function useRewardRedemptionNotifier(
   familyId: string | null | undefined,
@@ -18,13 +22,21 @@ export function useRewardRedemptionNotifier(
   const { t } = useLanguage();
   const { profile } = useAuth();
   const { children } = useFamilyMembers();
+
+  // Keep latest values in refs — stable references, never cause effect re-runs
+  const tRef = useRef(t);
+  const profileRef = useRef(profile);
   const childrenRef = useRef(children);
+
+  tRef.current = t;
+  profileRef.current = profile;
   childrenRef.current = children;
 
   // Cache tasks by ID for task-completion notifications
   const taskCacheRef = useRef<Map<string, string>>(new Map());
 
   // ── Helper: persist notification to DB ─────────────────────────────────
+  // Checks for an existing notification first to guard against duplicate events
   const persistNotification = async (params: {
     type: 'reward_redeemed' | 'task_completed';
     childId: string;
@@ -32,13 +44,31 @@ export function useRewardRedemptionNotifier(
     entityId: string;
     entityName: string;
   }) => {
-    if (!familyId || !profile?.id) return;
+    const currentFamilyId = familyId;
+    const currentProfile = profileRef.current;
+    if (!currentFamilyId || !currentProfile?.id) return;
+
+    // Dedup guard: check if a notification for this exact entity already exists today
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('family_id', currentFamilyId)
+      .eq('entity_id', params.entityId)
+      .eq('type', params.type)
+      .gte('created_at', `${today}T00:00:00Z`)
+      .maybeSingle();
+
+    if (existing) {
+      console.log('[ParentNotifier] Duplicate notification skipped for entity:', params.entityId);
+      return;
+    }
 
     console.log('[ParentNotifier] Persisting notification:', params);
 
     const { error } = await supabase.from('notifications').insert({
-      family_id: familyId,
-      parent_id: profile.id,
+      family_id: currentFamilyId,
+      parent_id: currentProfile.id,
       type: params.type,
       child_id: params.childId,
       child_name: params.childName,
@@ -54,6 +84,7 @@ export function useRewardRedemptionNotifier(
     }
   };
 
+  // Effect only depends on stable primitives — not on `t`, `profile`, or `children`
   useEffect(() => {
     if (!familyId || !isParent) {
       console.log('[ParentNotifier] Skipping — familyId:', familyId, 'isParent:', isParent);
@@ -70,7 +101,7 @@ export function useRewardRedemptionNotifier(
       .then(({ data }) => {
         if (data) {
           const cache = new Map<string, string>();
-          data.forEach(t => cache.set(t.id, t.title));
+          data.forEach(task => cache.set(task.id, task.title));
           taskCacheRef.current = cache;
           console.log('[ParentNotifier] Task cache loaded:', cache.size, 'tasks');
         }
@@ -106,15 +137,15 @@ export function useRewardRedemptionNotifier(
 
             console.log('[ParentNotifier] Reward claimed! Child:', childName, 'Reward:', rewardName);
 
-            // Show live toast
-            const title = t('notification.rewardRedeemed.title');
-            const body = t('notification.rewardRedeemed.body')
+            // Show live toast using latest t from ref
+            const title = tRef.current('notification.rewardRedeemed.title');
+            const body = tRef.current('notification.rewardRedeemed.body')
               .replace('{childName}', childName)
               .replace('{rewardName}', rewardName);
 
             toast.success(title, { description: body, duration: 6000, icon: '🏆' });
 
-            // Persist to DB for offline/later retrieval
+            // Persist to DB (with dedup guard)
             if (newRow.assigned_to) {
               persistNotification({
                 type: 'reward_redeemed',
@@ -155,14 +186,14 @@ export function useRewardRedemptionNotifier(
             );
 
             // Show live toast
-            const title = t('notification.taskCompleted.title');
-            const body = t('notification.taskCompleted.body')
+            const title = tRef.current('notification.taskCompleted.title');
+            const body = tRef.current('notification.taskCompleted.body')
               .replace('{childName}', childName)
               .replace('{taskName}', taskName);
 
             toast.success(title, { description: body, duration: 4000, icon: '⚡' });
 
-            // Persist to DB for offline/later retrieval
+            // Persist to DB (with dedup guard)
             persistNotification({
               type: 'task_completed',
               childId: newRow.child_id,
@@ -181,6 +212,7 @@ export function useRewardRedemptionNotifier(
       console.log('[ParentNotifier] Cleaning up realtime channel');
       supabase.removeChannel(channel);
     };
+    // Intentionally only depend on stable primitives to prevent duplicate subscriptions
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [familyId, isParent, t]);
+  }, [familyId, isParent]);
 }
