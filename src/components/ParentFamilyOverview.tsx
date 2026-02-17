@@ -169,7 +169,7 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <NotificationBell familyId={profile?.family_id} isParent={true} />
+          <NotificationBell />
           <Button
             variant="ghost"
             size="icon"
