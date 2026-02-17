@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { X, Leaf, Gamepad2, Lock, Crown, Check, Volume2, VolumeX } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useChildPet } from '@/hooks/useChildPet';
 import { ChildPreferences, ChildTheme, AgeMode } from '@/hooks/useChildPreferences';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
@@ -13,6 +14,7 @@ interface ChildCommandCenterProps {
   onClose: () => void;
   preferences: ChildPreferences;
   onSave: (prefs: ChildPreferences) => Promise<void>;
+  childId?: string;
 }
 
 type SkinTier = 'FREE' | 'PRO' | 'LIFE';
@@ -23,14 +25,29 @@ interface SkinOption {
   tier: SkinTier;
 }
 
+// Cute pet skins available to all (free tier)
+const PET_SKIN_OPTIONS = [
+  { id: 'dragon',     emoji: '🐉', nameKey: 'pet.skin.dragon' },
+  { id: 'puppy',      emoji: '🐶', nameKey: 'pet.skin.puppy' },
+  { id: 'ginger_cat', emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
+  { id: 'rabbit',     emoji: '🐰', nameKey: 'pet.skin.rabbit' },
+  { id: 'panda',      emoji: '🐼', nameKey: 'pet.skin.panda' },
+  { id: 'cat',        emoji: '🐱', nameKey: 'pet.skin.cat' },
+  { id: 'fox',        emoji: '🦊', nameKey: 'pet.skin.fox' },
+  { id: 'unicorn',    emoji: '🦄', nameKey: 'pet.skin.unicorn' },
+  { id: 'bear',       emoji: '🐻', nameKey: 'pet.skin.bear' },
+  { id: 'dino',       emoji: '🦖', nameKey: 'pet.skin.dino' },
+];
+
 const SKINS: SkinOption[] = [
   { id: 'mint', icon: Leaf, tier: 'FREE' },
   { id: 'gamer', icon: Gamepad2, tier: 'FREE' },
 ];
 
-export function ChildCommandCenter({ open, onClose, preferences, onSave }: ChildCommandCenterProps) {
+export function ChildCommandCenter({ open, onClose, preferences, onSave, childId }: ChildCommandCenterProps) {
   const { t, language } = useLanguage();
   const { isProUser } = useSubscription();
+  const { petState, changeSkin } = useChildPet(childId);
   const isRTL = language === 'he';
 
   const [age, setAge] = useState<number | null>(preferences.age_mode === 'teen' ? 13 : 10);
@@ -39,6 +56,7 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
   const [petEnabled, setPetEnabled] = useState(preferences.pet_enabled);
   const [soundEnabled, setSoundEnabled] = useState(!isMuted());
   const [saving, setSaving] = useState(false);
+  const [selectedSkin, setSelectedSkin] = useState(petState.current_skin || 'dragon');
 
   const isTeen = ageMode === 'teen';
 
@@ -54,8 +72,17 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
     }
   }, []);
 
+  // Sync selectedSkin once petState loads
+  useEffect(() => {
+    if (petState.current_skin) setSelectedSkin(petState.current_skin);
+  }, [petState.current_skin]);
+
   const handleSave = useCallback(async () => {
     setSaving(true);
+    // Save skin to pet_state
+    if (selectedSkin !== petState.current_skin) {
+      await changeSkin(selectedSkin);
+    }
     await onSave({
       theme,
       pet_enabled: petEnabled,
@@ -64,7 +91,7 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
     });
     setSaving(false);
     onClose();
-  }, [theme, petEnabled, ageMode, onSave, onClose]);
+  }, [theme, petEnabled, ageMode, onSave, onClose, selectedSkin, petState.current_skin, changeSkin]);
 
   // During beta all skins are accessible
   const isBeta = true;
@@ -227,7 +254,48 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave }: Child
               )}
             </section>
 
-            {/* Section 3: Pet Toggle (only for kid mode & Pro families) */}
+            {/* Section 3: Pet Buddy Picker */}
+            {!isTeen && (
+              <section className="bg-card rounded-2xl border border-border p-4 space-y-4">
+                <h2 className="font-bold text-foreground flex items-center gap-2">
+                  <span className="text-lg">🐾</span>
+                  {isRTL ? 'בחר/י את החיה שלך' : 'Choose Your Buddy'}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {isRTL ? 'הביצה תיראה כמו החיה שבחרת כשתבקע!' : 'Your egg will hatch into the buddy you pick!'}
+                </p>
+                <div className="grid grid-cols-5 gap-2">
+                  {PET_SKIN_OPTIONS.map((skin) => (
+                    <motion.button
+                      key={skin.id}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setSelectedSkin(skin.id)}
+                      className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
+                        selectedSkin === skin.id
+                          ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
+                          : 'bg-secondary/50 border border-border/60 hover:border-primary/40'
+                      }`}
+                    >
+                      {selectedSkin === skin.id && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
+                        >
+                          <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+                        </motion.div>
+                      )}
+                      <span className="text-2xl">{skin.emoji}</span>
+                      <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
+                        {t(skin.nameKey)}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Section 4: Pet Toggle (only for kid mode & Pro families) */}
             {!isTeen && isProUser && (
               <section className="bg-card rounded-2xl border border-border p-4 space-y-4">
                 <h2 className="font-bold text-foreground flex items-center gap-2">

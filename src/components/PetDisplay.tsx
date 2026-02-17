@@ -18,6 +18,10 @@ const PET_SKINS: Record<string, { emoji: string; nameKey: string }> = {
   owl: { emoji: '🦉', nameKey: 'pet.skin.owl' },
   bear: { emoji: '🐻', nameKey: 'pet.skin.bear' },
   dino: { emoji: '🦖', nameKey: 'pet.skin.dino' },
+  puppy: { emoji: '🐶', nameKey: 'pet.skin.puppy' },
+  ginger_cat: { emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
+  rabbit: { emoji: '🐰', nameKey: 'pet.skin.rabbit' },
+  panda: { emoji: '🐼', nameKey: 'pet.skin.panda' },
 };
 
 // Egg crack visuals based on completion progress
