@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WelcomeHomeScreen, FirstTaskNudgeCard, SetupProgressHeader, calculateSetupProgress } from './dashboard';
 import { useSubscription } from '@/hooks/useSubscription';
+import { NotificationBell } from './NotificationBell';
 
 import { ProGate } from './ProGate';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,7 +42,7 @@ function getCurrentPhase(t: (key: string) => string): { name: string; emoji: str
 }
 
 export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnboarding, onAddTask }: ParentFamilyOverviewProps) {
-  const { familyShortCode } = useAuth();
+  const { familyShortCode, profile } = useAuth();
   const { t } = useLanguage();
   const { children, loading: membersLoading, refetch: refetchMembers } = useFamilyMembers();
   const { childrenProgress, loading: progressLoading, refetch } = useChildProgress();
@@ -167,14 +168,17 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
             </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowPhilosophy(true)}
-          className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <Info className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <NotificationBell familyId={profile?.family_id} isParent={true} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowPhilosophy(true)}
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <Info className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">

@@ -263,6 +263,67 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          child_id: string | null
+          child_name: string
+          created_at: string
+          entity_id: string | null
+          entity_name: string
+          family_id: string
+          id: string
+          is_read: boolean
+          parent_id: string
+          type: string
+        }
+        Insert: {
+          child_id?: string | null
+          child_name?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string
+          family_id: string
+          id?: string
+          is_read?: boolean
+          parent_id: string
+          type?: string
+        }
+        Update: {
+          child_id?: string | null
+          child_name?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string
+          family_id?: string
+          id?: string
+          is_read?: boolean
+          parent_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar: string | null
