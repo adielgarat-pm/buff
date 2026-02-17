@@ -967,5 +967,9 @@
   "notification.rewardRedeemed.title": "Victory Alert! 🏆",
   "notification.rewardRedeemed.body": "{childName} just claimed their reward: {rewardName}. Time for a high-five!",
   "notification.taskCompleted.title": "Quest Complete! ⚡",
-  "notification.taskCompleted.body": "{childName} just crushed it: {taskName}. They're on fire today!"
+  "notification.taskCompleted.body": "{childName} just crushed it: {taskName}. They're on fire today!",
+  "notifications.title": "Notifications",
+  "notifications.empty": "No notifications yet",
+  "notifications.emptyHint": "You'll be notified when your child completes a quest or redeems a reward.",
+  "notifications.markAllRead": "Mark all read"
 }

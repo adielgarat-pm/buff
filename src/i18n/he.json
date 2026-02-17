@@ -967,5 +967,9 @@
   "notification.rewardRedeemed.title": "זמן לחגיגה! 🏆",
   "notification.rewardRedeemed.body": "{childName} מימש עכשיו את הפרס: {rewardName}. איזה אלוף!",
   "notification.taskCompleted.title": "משימה הושלמה! ⚡",
-  "notification.taskCompleted.body": "{childName} סיים עכשיו: {taskName}. איזה כוכב!"
+  "notification.taskCompleted.body": "{childName} סיים עכשיו: {taskName}. איזה כוכב!",
+  "notifications.title": "התראות",
+  "notifications.empty": "אין התראות עדיין",
+  "notifications.emptyHint": "תקבל התראה כשהילד ישלים משימה או יממש פרס.",
+  "notifications.markAllRead": "סמן הכל כנקרא"
 }
