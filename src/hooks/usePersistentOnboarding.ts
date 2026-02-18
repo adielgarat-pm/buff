@@ -37,72 +37,72 @@ export function usePersistentOnboarding() {
   const [isSyncing, setIsSyncing] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Hydrate from localStorage and Supabase on mount
+  // Hydrate from localStorage instantly, then optionally merge from Supabase
   useEffect(() => {
-    const hydrate = async () => {
-      let mergedDraft = getEmptyDraft();
-
-      // 1. Check localStorage first (instant)
-      // Only restore if the draft is genuinely in-progress (has a childProfileId and step < 6)
-      try {
-        const localData = localStorage.getItem(STORAGE_KEY);
-        if (localData) {
-          const parsed = JSON.parse(localData) as OnboardingDraft;
-          const isActiveSession =
-            parsed.childProfileId &&
-            parsed.lastCompletedStep > 0 &&
-            parsed.lastCompletedStep < 6;
-          if (isActiveSession) {
-            mergedDraft = { ...mergedDraft, ...parsed };
-          }
+    // Phase 1: Restore from localStorage immediately — no async wait
+    let mergedDraft = getEmptyDraft();
+    try {
+      const localData = localStorage.getItem(STORAGE_KEY);
+      if (localData) {
+        const parsed = JSON.parse(localData) as OnboardingDraft;
+        // Only restore if genuinely in-progress (has a childProfileId and step < 6)
+        const isActiveSession =
+          parsed.childProfileId &&
+          parsed.lastCompletedStep > 0 &&
+          parsed.lastCompletedStep < 6;
+        if (isActiveSession) {
+          mergedDraft = { ...mergedDraft, ...parsed };
         }
-      } catch (e) {
-        console.warn('Failed to parse localStorage onboarding draft:', e);
       }
+    } catch (e) {
+      console.warn('Failed to parse localStorage onboarding draft:', e);
+    }
 
-      // 2. Check Supabase if user is logged in (might be more recent)
-      if (user && profile?.id) {
+    // Mark as hydrated immediately — no more loading screen
+    setDraft(mergedDraft);
+    setIsHydrated(true);
+
+    // Phase 2: Optionally sync from Supabase in the background (won't block UI)
+    if (user && profile?.id) {
+      const profileId = profile.id;
+      (async () => {
         try {
           const { data, error } = await supabase
             .from('profiles')
             .select('onboarding_step, onboarding_data')
-            .eq('id', profile.id)
+            .eq('id', profileId)
             .single();
 
           if (!error && data) {
             const dbStep = data.onboarding_step || 0;
             const dbData = (data.onboarding_data || {}) as Partial<OnboardingDraft>;
 
-            // Only restore if the DB has an ACTIVE in-progress onboarding:
-            // - step must be between 1-5 (0 = not started, 6 = already completed)
-            // - must have a childProfileId (child was already created at step 1)
+            // Only merge if DB has a more recent in-progress session
             const isActiveDbSession =
               dbStep > 0 &&
               dbStep < 6 &&
               dbData.childProfileId;
 
             if (isActiveDbSession) {
-              const dbUpdatedAt = dbData.updatedAt || '1970-01-01';
-              if (dbUpdatedAt > mergedDraft.updatedAt || dbStep > mergedDraft.lastCompletedStep) {
-                mergedDraft = {
-                  ...mergedDraft,
-                  ...dbData,
-                  lastCompletedStep: Math.max(dbStep, mergedDraft.lastCompletedStep),
-                  updatedAt: dbUpdatedAt > mergedDraft.updatedAt ? dbUpdatedAt : mergedDraft.updatedAt,
-                };
-              }
+              setDraft(prev => {
+                const dbUpdatedAt = dbData.updatedAt || '1970-01-01';
+                if (dbUpdatedAt > prev.updatedAt || dbStep > prev.lastCompletedStep) {
+                  return {
+                    ...prev,
+                    ...dbData,
+                    lastCompletedStep: Math.max(dbStep, prev.lastCompletedStep),
+                    updatedAt: dbUpdatedAt > prev.updatedAt ? dbUpdatedAt : prev.updatedAt,
+                  };
+                }
+                return prev;
+              });
             }
           }
         } catch (e) {
           console.warn('Failed to fetch onboarding data from Supabase:', e);
         }
-      }
-
-      setDraft(mergedDraft);
-      setIsHydrated(true);
-    };
-
-    hydrate();
+      })();
+    }
   }, [user, profile?.id]);
 
   // Save to localStorage immediately
