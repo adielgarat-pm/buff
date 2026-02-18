@@ -339,7 +339,7 @@ export default function Auth() {
                     htmlFor="marketing-consent" 
                     className="text-xs text-foreground leading-snug cursor-pointer"
                   >
-                    אשמח לקבל ממך (עדי) טיפים קטנים לסופ"ש ועדכונים על פיצ'רים חדשים ב-BUFF
+                    I'd love to receive tips and updates about new BUFF features
                   </Label>
                 </div>
 
