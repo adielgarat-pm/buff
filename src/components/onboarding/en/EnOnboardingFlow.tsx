@@ -280,7 +280,7 @@ function StepHook({ onNext }: { onNext: () => void }) {
         <p className="text-sm text-muted-foreground leading-relaxed">
           Join hundreds of families using{' '}
           <span className="font-semibold text-foreground">positive coaching</span>{' '}
-          to help their children thrive. Let's build your personalised support plan.
+          to help their children thrive. Let's build your personalized support plan.
         </p>
       </motion.div>
 
@@ -306,13 +306,23 @@ function StepHook({ onNext }: { onNext: () => void }) {
         <Button
           onClick={onNext}
           size="lg"
-          className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-md shadow-primary/25"
+          className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.25)]"
         >
-          Personalise My Plan
+          Personalize My Plan
           <ArrowRight className="w-4 h-4" />
         </Button>
         <p className="text-xs text-muted-foreground">Takes about 90 seconds · No credit card needed</p>
       </motion.div>
+
+      {/* Founder caption */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.55 }}
+        className="text-[10px] text-muted-foreground/50 text-center tracking-wide"
+      >
+        Founded by a mom with a mission.
+      </motion.p>
     </div>
   );
 }
@@ -351,7 +361,7 @@ function StepHero({
         <h2 className="text-2xl font-bold text-foreground leading-tight">
           Who are we supporting today?
         </h2>
-        <p className="text-sm text-muted-foreground">Let's personalise your plan — starting with your child.</p>
+        <p className="text-sm text-muted-foreground">Let's personalize your plan — starting with your child.</p>
       </div>
 
       {/* Name input */}
