@@ -110,7 +110,9 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, step })); } catch {}
   }, [data, step]);
 
-  // Restore step on refresh
+  // Restore step on refresh — only if genuinely mid-flow (steps 1–3).
+  // Never restore step 0 (Hook) — that screen is always the entry point.
+  // Also clear stale sessions if the saved step is 0 or 4 (completed/reset).
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -119,7 +121,12 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
         const s = parsed.step as EnStep;
         const idx = stepIndex(s);
         if (idx > 0 && idx < STEP_ORDER.length - 1) {
+          // Mid-flow: restore data + step
+          setData(prev => ({ ...prev, ...parsed }));
           setStep(s);
+        } else {
+          // Stale / completed session — clear it so step 0 works cleanly
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
     } catch {}
