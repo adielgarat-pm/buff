@@ -166,7 +166,7 @@ export default function AuthCallback() {
           setStep('family-code');
           return;
         
-        case 'needs-role-selection':
+        case 'needs-role-selection': {
           // New user - show role selection
           const name = session.user.user_metadata?.full_name || 
                       session.user.user_metadata?.name ||
@@ -174,8 +174,15 @@ export default function AuthCallback() {
                       'User';
           setDisplayName(name);
           setUserId(currentUserId);
-          setStep('role-selection');
+          // English users skip the Hebrew role-selection screen and go straight to EnOnboardingFlow
+          const lang = localStorage.getItem('buff-language') || 'en';
+          if (lang !== 'he') {
+            setStep('parent-onboarding');
+          } else {
+            setStep('role-selection');
+          }
           return;
+        }
       }
       
     } catch (err) {
@@ -231,15 +238,21 @@ export default function AuthCallback() {
           setStep('family-code');
           return;
         
-        case 'needs-role-selection':
+        case 'needs-role-selection': {
           const name = session.user.user_metadata?.full_name || 
                       session.user.user_metadata?.name ||
                       session.user.email?.split('@')[0] || 
                       'User';
           setDisplayName(name);
           setUserId(session.user.id);
-          setStep('role-selection');
+          const lang2 = localStorage.getItem('buff-language') || 'en';
+          if (lang2 !== 'he') {
+            setStep('parent-onboarding');
+          } else {
+            setStep('role-selection');
+          }
           return;
+        }
       }
     } catch (err) {
       console.error('[Rescue] Error:', err);
