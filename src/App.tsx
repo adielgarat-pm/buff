@@ -15,6 +15,7 @@ import InstallGuide from "./pages/InstallGuide";
 import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AboutPage } from "@/components/AboutPage";
+import { EnOnboardingFlow } from "@/components/onboarding/en";
 import buffLogo from '@/assets/buff-logo.png';
 import { Loader2 } from "lucide-react";
 
@@ -115,6 +116,17 @@ function AboutPageWrapper() {
   return <AboutPage onBack={() => navigate("/dashboard", { replace: true })} />;
 }
 
+/** Test route: renders the new EnOnboardingFlow directly, no auth required.
+ *  Visit /test-onboarding to verify the flow works in isolation. */
+function TestOnboardingPage() {
+  const navigate = useNavigate();
+  const handleComplete = async () => {
+    console.log('[TestOnboarding] Flow completed — navigating to /dashboard');
+    navigate('/dashboard', { replace: true });
+  };
+  return <EnOnboardingFlow onComplete={handleComplete} />;
+}
+
 const AppRoutes = () => (
   <Routes>
     {/* Public marketing landing page - redirects authenticated users to dashboard */}
@@ -140,6 +152,10 @@ const AppRoutes = () => (
     
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />
+
+    {/* ⚡ Test route – renders the new EnOnboardingFlow directly (no auth gate).
+        Use this to verify the flow exists and works: /test-onboarding */}
+    <Route path="/test-onboarding" element={<TestOnboardingPage />} />
     
     {/* Legacy route redirect */}
     <Route path="/app" element={<Navigate to="/dashboard" replace />} />
