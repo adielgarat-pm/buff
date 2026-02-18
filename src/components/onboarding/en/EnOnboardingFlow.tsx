@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap, Sunrise, BookOpen, Bus, Rocket, Check } from 'lucide-react';
+import { ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap, Sunrise, BookOpen, Bus, Rocket, Check, Gamepad2, Zap, Palette, Heart, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
@@ -57,10 +57,11 @@ const STRUGGLE_OPTIONS = [
 ];
 
 const MOTIVATION_OPTIONS = [
-  { key: 'gaming',    emoji: '🎮', label: 'Gaming Time' },
-  { key: 'credits',   emoji: '⭐', label: 'Credits & Rewards' },
-  { key: 'projects',  emoji: '🎨', label: 'Personal Projects' },
-  { key: 'quality',   emoji: '🫶', label: 'Quality Time' },
+  { key: 'gaming',    icon: Gamepad2, label: 'Screen & Gaming',      sub: 'Gaming, apps, or favourite shows' },
+  { key: 'movement',  icon: Zap,      label: 'Movement & Play',      sub: 'Outdoor play, sports, or high-energy' },
+  { key: 'creative',  icon: Palette,  label: 'Creative Projects',    sub: 'Building, drawing, or digital creation' },
+  { key: 'connection',icon: Heart,    label: 'Connection Time',      sub: 'One-on-one time or shared activities' },
+  { key: 'treats',    icon: Star,     label: 'Special Treats',       sub: 'Small privileges, snacks, or bonus time' },
 ];
 
 const AGE_GROUPS: Array<'6-9' | '10-14' | '15-18'> = ['6-9', '10-14', '15-18'];
@@ -668,7 +669,7 @@ function StepFriction({
   );
 }
 
-// ─── Step 3: The Goal ─────────────────────────────────────────────────────────
+// ─── Step 3: The Happy Path ───────────────────────────────────────────────────
 
 function StepGoal({
   data,
@@ -685,11 +686,16 @@ function StepGoal({
   const selectedCount = data.motivations.length;
 
   return (
-    <div className="flex flex-col gap-3 pt-3 max-w-sm mx-auto pb-4">
+    <div className="flex flex-col gap-3 pt-2 max-w-sm mx-auto pb-4">
 
-      {/* Progress label */}
+      {/* Progress hint */}
+      <p className="text-[10px] text-muted-foreground text-center font-medium">
+        Almost there! Just one more step to your custom plan.
+      </p>
+
+      {/* Progress label + mini bar */}
       <div className="space-y-1">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Step 3 · What Drives Them</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Step 3 · The Happy Path</p>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-primary rounded-full"
@@ -702,35 +708,37 @@ function StepGoal({
       {/* Headline */}
       <div className="space-y-0.5">
         <h2 className="text-xl font-bold text-foreground leading-snug">
-          What motivates{' '}
-          <span className="text-primary">{name}</span> the most?
+          What lights{' '}
+          <span className="text-primary">{name}</span> up the most?
         </h2>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          We'll use this to build rewards that actually work for them.
+          Positive reinforcement works best when it's personal. Select what truly motivates{' '}
+          <span className="font-medium text-foreground">{name}</span>.
         </p>
       </div>
 
-      {/* Selection cards — same compact style */}
-      <div className="space-y-2">
+      {/* Selection cards — compact horizontal layout */}
+      <div className="space-y-1.5">
         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Select all that apply</p>
         {MOTIVATION_OPTIONS.map(opt => {
           const selected = data.motivations.includes(opt.key);
+          const Icon = opt.icon;
           return (
             <motion.button
               key={opt.key}
               onClick={() => toggle('motivations', opt.key)}
               whileTap={{ scale: 0.985 }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 text-left transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl border-2 text-left transition-all duration-200 ${
                 selected
                   ? 'border-primary bg-primary/8 shadow-sm shadow-primary/10'
                   : 'border-border hover:border-primary/40 hover:bg-muted/30'
               }`}
             >
-              {/* Emoji pill */}
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-lg transition-colors ${
-                selected ? 'bg-primary' : 'bg-muted'
+              {/* Icon pill */}
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
               }`}>
-                {opt.emoji}
+                <Icon className="w-4 h-4" />
               </div>
 
               {/* Text */}
@@ -738,6 +746,7 @@ function StepGoal({
                 <p className={`font-semibold text-sm leading-none ${selected ? 'text-primary' : 'text-foreground'}`}>
                   {opt.label}
                 </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{opt.sub}</p>
               </div>
 
               {/* Animated checkmark */}
@@ -759,6 +768,7 @@ function StepGoal({
         })}
       </div>
 
+      {/* CTA */}
       <Button
         onClick={onNext}
         disabled={!canProceed}
@@ -767,7 +777,7 @@ function StepGoal({
           canProceed ? 'shadow-md shadow-primary/25 opacity-100' : 'opacity-40 shadow-none'
         }`}
       >
-        Build My Reward System <ArrowRight className="w-4 h-4" />
+        Create {name}'s Happy Path <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
   );
@@ -815,8 +825,8 @@ function StepConfirm({
     transitions: '🔄 Transitions', initiation: '🚀 Task Initiation',
   };
   const MOTIVATION_MAP: Record<string, string> = {
-    gaming: '🎮 Gaming Time', credits: '⭐ Credits & Rewards',
-    projects: '🎨 Personal Projects', quality: '🫶 Quality Time',
+    gaming: '🎮 Screen & Gaming', movement: '⚡ Movement & Play',
+    creative: '🎨 Creative Projects', connection: '🫶 Connection Time', treats: '⭐ Special Treats',
   };
 
   return (
