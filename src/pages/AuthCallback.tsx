@@ -13,9 +13,7 @@ import buffLogo from '@/assets/buff-logo.png';
 import { trackRegistrationStep, trackRegistrationError } from '@/hooks/useRegistrationAnalytics';
 import { ParentOnboarding, OnboardingData } from '@/components/onboarding';
 import { V2OnboardingFlow } from '@/components/onboarding/v2';
-
-// Feature toggle: set to true to use the new Value-First onboarding flow
-const USE_V2_ONBOARDING = true;
+import { EnOnboardingFlow, EnOnboardingData } from '@/components/onboarding/en';
 
 type SetupStep = 'loading' | 'role-selection' | 'parent-onboarding' | 'family-code' | 'creating' | 'error';
 
@@ -546,6 +544,86 @@ export default function AuthCallback() {
     }
   }
 
+  /** Handle completion of the new English onboarding flow */
+  const handleEnOnboardingComplete = async (enData: EnOnboardingData) => {
+    if (!userId) {
+      setError('User ID not found');
+      setStep('error');
+      return;
+    }
+
+    trackRegistrationStep('profile_creation_started', { role: 'parent', method: 'google', flow: 'en_v2' });
+    setStep('creating');
+
+    try {
+      // Ensure parent profile + family exist (idempotent)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      let familyId: string;
+
+      if (existingProfile?.family_id) {
+        familyId = existingProfile.family_id;
+      } else {
+        const { data: newFamily, error: familyError } = await supabase
+          .from('families')
+          .insert({ name: `${displayName}'s Family`, preferred_language: 'en' } as any)
+          .select()
+          .single();
+
+        if (familyError) throw familyError;
+        familyId = newFamily.id;
+
+        if (existingProfile) {
+          await supabase.from('profiles').update({ family_id: familyId }).eq('id', existingProfile.id);
+        } else {
+          await supabase.from('profiles').insert({
+            user_id: userId,
+            family_id: familyId,
+            display_name: displayName,
+            role: 'parent',
+          });
+        }
+      }
+
+      // Save onboarding quiz data to parent profile
+      await supabase.from('profiles').update({
+        onboarding_data: {
+          en_v2: true,
+          childName: enData.childName,
+          ageGroup: enData.ageGroup,
+          struggles: enData.struggles,
+          motivations: enData.motivations,
+        },
+        onboarding_step: 6,
+        is_activated: true,
+        preferred_language: 'en',
+      }).eq('user_id', userId);
+
+      // Create child profile (triggers default tasks/rewards/vault via DB trigger)
+      await supabase.from('profiles').insert({
+        family_id: familyId,
+        display_name: enData.childName || 'My Child',
+        role: 'child',
+        daily_goal: 100,
+      });
+
+      // Initialize family settings (idempotent)
+      await initializeFamilyDataSafe(familyId);
+
+      await refreshProfile(userId);
+      trackRegistrationStep('onboarding_complete', { role: 'parent', method: 'google', flow: 'en_v2' });
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      console.error('[EnOnboarding] Completion error:', err);
+      setError('Something went wrong. Please try again.');
+      setStep('error');
+    }
+  };
+
   const handleJoinFamily = async () => {
     if (!familyCode.trim()) {
       toast.error('אנא הזן קוד משפחה');
@@ -810,13 +888,18 @@ export default function AuthCallback() {
 
   // Parent onboarding flow
   if (step === 'parent-onboarding') {
-    if (USE_V2_ONBOARDING) {
+    const lang = localStorage.getItem('buff-language') || 'en';
+
+    // English users → new Cal AI–style flow
+    if (lang === 'en') {
       return (
-        <V2OnboardingFlow onComplete={() => navigate('/dashboard', { replace: true })} />
+        <EnOnboardingFlow onComplete={handleEnOnboardingComplete} />
       );
     }
+
+    // Hebrew users → existing V2 flow
     return (
-      <ParentOnboarding onComplete={handleOnboardingComplete} />
+      <V2OnboardingFlow onComplete={() => navigate('/dashboard', { replace: true })} />
     );
   }
 
