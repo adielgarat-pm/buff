@@ -888,20 +888,34 @@ export default function AuthCallback() {
 
   // Parent onboarding flow
   if (step === 'parent-onboarding') {
-    // Only show the Hebrew V2 flow if the user EXPLICITLY chose Hebrew
-    // (e.g. from a Hebrew landing page). Browsing any Hebrew page previously
-    // should NOT override the default English flow.
     const lang = localStorage.getItem('buff-language');
     const browserIsHebrew = navigator.language?.startsWith('he');
 
-    if (lang === 'he' && browserIsHebrew) {
-      // Hebrew users → existing V2 flow
+    console.log('🧭 Onboarding Trigger Check:', {
+      lang,
+      browserIsHebrew,
+      navigatorLanguage: navigator.language,
+      userId,
+      displayName,
+    });
+
+    // Show new English flow for EVERYONE by default.
+    // The old Hebrew V2 flow is only shown if the user has EXPLICITLY
+    // set the language to Hebrew inside the app (via a dedicated language
+    // selection action — not just because their browser is in Hebrew).
+    // We detect "explicit" by checking a separate key set only by the
+    // in-app language selector.
+    const explicitlySetHebrew = localStorage.getItem('buff-language-explicit') === 'he';
+
+    if (explicitlySetHebrew) {
+      console.log('🇮🇱 Routing to Hebrew V2 flow (explicit preference)');
       return (
         <V2OnboardingFlow onComplete={() => navigate('/dashboard', { replace: true })} />
       );
     }
 
-    // Default → new Cal AI–style English flow
+    // Default → new Cal AI–style English flow (covers English AND Hebrew browser users)
+    console.log('🇺🇸 Routing to new English onboarding flow');
     return (
       <EnOnboardingFlow onComplete={handleEnOnboardingComplete} />
     );
