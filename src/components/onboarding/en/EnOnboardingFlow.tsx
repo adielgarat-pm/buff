@@ -162,26 +162,23 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col" dir="ltr">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
-        {step > 0 ? (
+      {/* Header — logo always centered */}
+      <div className="flex items-center justify-center px-5 pt-5 pb-2 shrink-0 relative">
+        {step > 0 && (
           <button
             onClick={goBack}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute left-5 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Back
           </button>
-        ) : (
-          <div className="w-16" />
         )}
-        <img src={buffLogoNoBg} alt="BUFF" className="h-8 opacity-80" />
-        <div className="w-16" />
+        <img src={buffLogoNoBg} alt="BUFF" className="h-9" />
       </div>
 
-      {/* Progress bar */}
-      <div className="px-5 pb-4 shrink-0">
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
+      {/* Progress bar — slightly thicker + label */}
+      <div className="px-5 pt-2 pb-5 shrink-0 space-y-1.5">
+        <div className="h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
           <motion.div
             className="h-full bg-primary rounded-full"
             animate={{ width: `${progress}%` }}
@@ -239,12 +236,15 @@ function StepHook({ onNext }: { onNext: () => void }) {
         className="space-y-3"
       >
         <h1 className="text-2xl font-bold text-foreground leading-snug">
-          Ready to turn daily chaos<br />into calm connection?
+          Ready for calmer mornings<br />and brighter days?
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Join 5,000+ parents using{' '}
           <span className="font-semibold text-foreground">positive coaching</span>{' '}
           to help their children thrive. Let's build your personalised support plan.
+        </p>
+        <p className="text-xs text-primary font-semibold mt-1">
+          ✨ Joined by 5,000+ parents creating calmer homes.
         </p>
       </motion.div>
 
@@ -298,28 +298,18 @@ function StepHero({
   onNext: () => void;
   canProceed: boolean;
 }) {
-  const heroName = data.childName.trim() || 'your little hero';
+  const trimmedName = data.childName.trim();
   const ageMeta = data.ageGroup ? AGE_GROUP_META[data.ageGroup] : null;
 
   return (
-    <div className="flex flex-col gap-6 pt-6 max-w-sm mx-auto">
-      {/* Progress label */}
-      <div className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 1 · Setting the Foundation</p>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-primary rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: '25%' }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          />
-        </div>
-      </div>
+    <div className="flex flex-col gap-6 pt-4 max-w-sm mx-auto pb-6">
+      {/* Step label */}
+      <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 1 · Setting the Foundation</p>
 
       {/* Headline */}
       <div className="space-y-1">
         <h2 className="text-2xl font-bold text-foreground leading-tight">
-          Who are we<br />supporting today?
+          Who are we supporting today?
         </h2>
         <p className="text-sm text-muted-foreground">Let's personalise your plan — starting with your child.</p>
       </div>
@@ -327,7 +317,7 @@ function StepHero({
       {/* Name input */}
       <div className="space-y-2">
         <label htmlFor="child-name" className="text-sm font-semibold text-foreground">
-          What's your little hero's name?
+          What's your child's name?
         </label>
         <Input
           id="child-name"
@@ -343,12 +333,15 @@ function StepHero({
 
       {/* Age group */}
       <div className="space-y-2">
+        {/* Dynamic label: empty → "How old is your child?", filled → "How old is Alex?" */}
         <label className="text-sm font-semibold text-foreground">
-          How old is{' '}
-          <span className="text-primary">
-            {data.childName.trim() ? data.childName.trim() : 'your child'}
-          </span>?
+          {trimmedName ? (
+            <>How old is <span className="text-primary">{trimmedName}</span>?</>
+          ) : (
+            'How old is your child?'
+          )}
         </label>
+
         <div className="grid grid-cols-3 gap-3">
           {AGE_GROUPS.map(ag => {
             const meta = AGE_GROUP_META[ag];
@@ -372,7 +365,7 @@ function StepHero({
           })}
         </div>
 
-        {/* Instant feedback */}
+        {/* Instant feedback hint */}
         <AnimatePresence mode="wait">
           {ageMeta && (
             <motion.p
@@ -389,14 +382,18 @@ function StepHero({
         </AnimatePresence>
       </div>
 
-      {/* CTA */}
+      {/* CTA — vibrant purple only when both name + age filled */}
       <Button
         onClick={onNext}
         disabled={!canProceed}
         size="lg"
-        className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-md shadow-primary/20 mt-1"
+        className={`w-full h-14 rounded-2xl text-base font-semibold gap-2 transition-all duration-300 ${
+          canProceed
+            ? 'shadow-lg shadow-primary/30 opacity-100'
+            : 'opacity-40 shadow-none'
+        }`}
       >
-        Personalise My Plan <ArrowRight className="w-4 h-4" />
+        Start My Plan <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
   );
