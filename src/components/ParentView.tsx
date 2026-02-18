@@ -32,7 +32,7 @@ function ProGatedInsights({ children }: { children: React.ReactNode }) {
 
 export function ParentView() {
   const { signOut, profile, refreshProfile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { children, refetch: refetchChildren } = useFamilyMembers();
   
   const [activeTab, setActiveTab] = useState<ParentNavTab>('overview');
@@ -369,7 +369,16 @@ export function ParentView() {
         <ParentWelcomeBanner 
           userId={profile.id} 
           onNavigateToSettings={() => setActiveTab('settings')}
-          onStartOnboarding={() => setEnOnboardingOpen(true)}
+          onStartOnboarding={() => {
+            if (language === 'he') {
+              // Hebrew users → legacy Hebrew onboarding dialog
+              setOnboardingKey(k => k + 1);
+              setOnboardingOpen(true);
+            } else {
+              // English users → new Cal AI–style flow
+              setEnOnboardingOpen(true);
+            }
+          }}
         />
       )}
 
