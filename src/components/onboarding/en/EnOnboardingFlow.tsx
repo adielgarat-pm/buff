@@ -783,7 +783,28 @@ function StepGoal({
   );
 }
 
-// ─── Step 4: Confirm / Calculating ───────────────────────────────────────────
+// ─── Step 4: Plan Reveal ─────────────────────────────────────────────────────
+
+const STRUGGLE_LABELS: Record<string, string> = {
+  morning: 'Morning Routine',
+  homework: 'Homework & Focus',
+  transitions: 'Transitions & School',
+  initiation: 'Getting Started',
+};
+
+const MOTIVATION_LABELS: Record<string, string> = {
+  gaming: 'Screen & Gaming',
+  movement: 'Movement & Play',
+  creative: 'Creative Projects',
+  connection: 'Connection Time',
+  treats: 'Special Treats',
+};
+
+const AGE_FORECAST: Record<string, string> = {
+  '6-9':   'Parents of 6–9 year olds typically see a 40% reduction in power struggles within the first week.',
+  '10-14': 'Parents of 10–14 year olds typically see a 40% reduction in friction within the first week.',
+  '15-18': 'Parents of 15–18 year olds typically see a 35% improvement in task initiation within the first week.',
+};
 
 function StepConfirm({
   data,
@@ -794,129 +815,203 @@ function StepConfirm({
   onLaunch: () => void;
   isSubmitting: boolean;
 }) {
-  const [progress, setProgress] = useState(0);
-  const [done, setDone] = useState(false);
+  const [loadingDone, setLoadingDone] = useState(false);
+  const [loadingPct, setLoadingPct] = useState(0);
 
-  // 5-second fake "calculating" progress
+  // 3-second loading bar before revealing the plan
   useEffect(() => {
     let frame: number;
     let start: number | null = null;
-    const DURATION = 5000;
-
+    const DURATION = 3000;
     const tick = (ts: number) => {
       if (!start) start = ts;
-      const elapsed = ts - start;
-      const pct = Math.min((elapsed / DURATION) * 100, 100);
-      setProgress(pct);
+      const pct = Math.min(((ts - start) / DURATION) * 100, 100);
+      setLoadingPct(pct);
       if (pct < 100) {
         frame = requestAnimationFrame(tick);
       } else {
-        setDone(true);
+        setLoadingDone(true);
       }
     };
-
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const name = data.childName || 'your child';
-  const STRUGGLE_MAP: Record<string, string> = {
-    morning: '🌅 Morning Routine', homework: '📚 Homework Battles',
-    transitions: '🔄 Transitions', initiation: '🚀 Task Initiation',
-  };
-  const MOTIVATION_MAP: Record<string, string> = {
-    gaming: '🎮 Screen & Gaming', movement: '⚡ Movement & Play',
-    creative: '🎨 Creative Projects', connection: '🫶 Connection Time', treats: '⭐ Special Treats',
-  };
+  const name = data.childName.trim() || 'Your child';
+  const struggles = data.struggles.map(s => STRUGGLE_LABELS[s] || s);
+  const motivations = data.motivations.map(m => MOTIVATION_LABELS[m] || m);
+  const forecast = data.ageGroup ? AGE_FORECAST[data.ageGroup] : AGE_FORECAST['6-9'];
 
   return (
-    <div className="flex flex-col gap-7 pt-6 max-w-sm mx-auto">
-      <div className="space-y-2 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Step 4 of 4</p>
-        <h2 className="text-2xl font-bold text-foreground leading-tight">
-          {done
-            ? `${name}'s External Brain is ready! 🧠`
-            : `Customizing ${name}'s\nExternal Brain...`}
-        </h2>
-      </div>
+    <div className="flex flex-col gap-5 pt-4 max-w-sm mx-auto pb-6">
 
-      {/* Progress bar */}
-      <AnimatePresence>
-        {!done && (
-          <motion.div exit={{ opacity: 0, height: 0 }} className="space-y-2">
-            <div className="h-3 bg-muted rounded-full overflow-hidden">
+      {/* Loading phase */}
+      {!loadingDone && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center gap-6 min-h-[70vh] text-center"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+            className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center"
+          >
+            <Sparkles className="w-9 h-9 text-primary" />
+          </motion.div>
+
+          <div className="space-y-1.5 w-full max-w-[240px]">
+            <p className="text-sm font-semibold text-foreground">Building {name}'s plan…</p>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-primary rounded-full"
-                style={{ width: `${progress}%` }}
+                style={{ width: `${loadingPct}%` }}
               />
             </div>
+            <p className="text-xs text-muted-foreground">Personalising your coaching strategy</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Reveal phase */}
+      {loadingDone && (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="flex flex-col gap-4"
+        >
+          {/* Hero header */}
+          <div className="space-y-1 text-center">
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
+              className="text-4xl mb-2 select-none"
+            >
+              🎁
+            </motion.div>
+            <h2 className="text-xl font-bold text-foreground leading-snug">
+              <span className="text-primary">{name}</span>'s Positive Support Plan is ready!
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Based on {name}'s profile, we've tailored a <strong className="text-foreground">7-day kickstart</strong> to transform your daily routine.
+            </p>
+          </div>
+
+          {/* Plan Overview box */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="rounded-2xl border-2 border-primary/25 bg-gradient-to-br from-primary/5 to-primary/10 p-4 space-y-3"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <p className="text-xs font-bold text-primary uppercase tracking-wider">Plan Overview</p>
+            </div>
+
+            {/* Two-column focus + fuel */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Column 1 – The Focus */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">🎯 Focus Areas</p>
+                {struggles.length > 0 ? (
+                  <div className="flex flex-col gap-1">
+                    {struggles.map(s => (
+                      <span
+                        key={s}
+                        className="text-[11px] font-semibold text-foreground bg-background/70 rounded-lg px-2 py-1 border border-border/50 leading-tight"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">All areas</span>
+                )}
+              </div>
+
+              {/* Column 2 – The Fuel */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">⚡ Motivators</p>
+                {motivations.length > 0 ? (
+                  <div className="flex flex-col gap-1">
+                    {motivations.map(m => (
+                      <span
+                        key={m}
+                        className="text-[11px] font-semibold text-foreground bg-background/70 rounded-lg px-2 py-1 border border-border/50 leading-tight"
+                      >
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">All types</span>
+                )}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-primary/15" />
+
+            {/* Success forecast */}
+            <div className="flex items-start gap-2">
+              <span className="text-base select-none shrink-0">📈</span>
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                <span className="font-semibold text-foreground">Success Forecast: </span>
+                {forecast}
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Method pill */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="flex items-center justify-center gap-2"
+          >
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-[11px] font-medium text-muted-foreground">
+              <Brain className="w-3 h-3" />
+              Executive Function coaching · Dopamine Bridge approach
+            </span>
+          </motion.div>
+
+          {/* Primary CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="space-y-2"
+          >
+            <motion.div
+              animate={{ boxShadow: ['0 0 0 0 hsl(var(--primary) / 0.3)', '0 0 0 10px hsl(var(--primary) / 0)', '0 0 0 0 hsl(var(--primary) / 0)'] }}
+              transition={{ repeat: Infinity, duration: 2, ease: 'easeOut', delay: 0.6 }}
+              className="rounded-2xl"
+            >
+              <Button
+                onClick={onLaunch}
+                disabled={isSubmitting}
+                size="lg"
+                className="w-full h-14 rounded-2xl text-base font-bold gap-2 shadow-lg shadow-primary/30"
+              >
+                {isSubmitting ? (
+                  'Setting up your dashboard…'
+                ) : (
+                  <>
+                    <ArrowRight className="w-5 h-5" />
+                    Unlock {name}'s Full Plan
+                  </>
+                )}
+              </Button>
+            </motion.div>
             <p className="text-xs text-muted-foreground text-center">
-              Building your personalised plan…
+              Start your 7-day free trial · Cancel anytime
             </p>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Summary card */}
-      <AnimatePresence>
-        {done && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-5 space-y-4"
-          >
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-primary" />
-              <p className="font-semibold text-foreground text-sm">Your personalised plan</p>
-            </div>
-
-            <div className="space-y-2 text-sm">
-              <SummaryRow label="Child" value={`${name}, age ${data.ageGroup}`} />
-              <SummaryRow
-                label="Focus areas"
-                value={data.struggles.map(s => STRUGGLE_MAP[s] || s).join(' · ')}
-              />
-              <SummaryRow
-                label="Motivation"
-                value={data.motivations.map(m => MOTIVATION_MAP[m] || m).join(' · ')}
-              />
-              <SummaryRow label="Method" value="Executive Function coaching — Dopamine Bridge approach" />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Launch button */}
-      <AnimatePresence>
-        {done && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Button
-              onClick={onLaunch}
-              disabled={isSubmitting}
-              size="lg"
-              className="w-full h-14 rounded-2xl text-base font-semibold gap-2"
-            >
-              {isSubmitting ? (
-                <>Setting up your dashboard…</>
-              ) : (
-                <>
-                  <Brain className="w-5 h-5" />
-                  Launch BUFF
-                </>
-              )}
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-muted-foreground uppercase tracking-wider">{label}</span>
-      <span className="font-medium text-foreground leading-snug">{value}</span>
+        </motion.div>
+      )}
     </div>
   );
 }
