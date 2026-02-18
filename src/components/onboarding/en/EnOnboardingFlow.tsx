@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap } from 'lucide-react';
+import { ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap, Sunrise, BookOpen, Bus, Rocket, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
@@ -29,10 +29,30 @@ const emptyData = (): EnOnboardingData => ({
 // ─── Step options ─────────────────────────────────────────────────────────────
 
 const STRUGGLE_OPTIONS = [
-  { key: 'morning',     emoji: '🌅', label: 'Morning Routine' },
-  { key: 'homework',    emoji: '📚', label: 'Homework Battles' },
-  { key: 'transitions', emoji: '🔄', label: 'School Transitions' },
-  { key: 'initiation',  emoji: '🚀', label: 'Task Initiation' },
+  {
+    key: 'morning',
+    icon: Sunrise,
+    label: 'Morning Routine',
+    sub: 'The race against the clock',
+  },
+  {
+    key: 'homework',
+    icon: BookOpen,
+    label: 'Homework & Focus',
+    sub: 'Taming the study monster',
+  },
+  {
+    key: 'transitions',
+    icon: Bus,
+    label: 'Transitions & School',
+    sub: "The 'shifting gears' struggle",
+  },
+  {
+    key: 'initiation',
+    icon: Rocket,
+    label: 'Getting Started',
+    sub: "Breaking through the 'I can't' wall",
+  },
 ];
 
 const MOTIVATION_OPTIONS = [
@@ -395,53 +415,104 @@ function StepFriction({
   onNext: () => void;
   canProceed: boolean;
 }) {
-  const name = data.childName || 'your child';
+  const name = data.childName.trim() || 'your child';
+  const selectedCount = data.struggles.length;
+
   return (
-    <div className="flex flex-col gap-7 pt-6 max-w-sm mx-auto">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Step 2 of 4</p>
-        <h2 className="text-2xl font-bold text-foreground leading-tight">
-          Where is the biggest<br />struggle?
-        </h2>
-        <p className="text-sm text-muted-foreground">Select all that apply for {name}.</p>
+    <div className="flex flex-col gap-5 pt-6 max-w-sm mx-auto pb-4">
+
+      {/* Progress label */}
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 2 · Finding the Friction Points</p>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-primary rounded-full"
+            animate={{ width: `${25 + selectedCount * 6}%` }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
+        </div>
       </div>
 
-      <div className="space-y-3">
+      {/* Headline */}
+      <div className="space-y-1.5">
+        <h2 className="text-2xl font-bold text-foreground leading-tight">
+          What part of the day needs more sunshine for{' '}
+          <span className="text-primary">{name}</span>?
+        </h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Every child's ADHD journey is different. Tell us where the friction is, so we can focus on the wins that matter most to your family.
+        </p>
+      </div>
+
+      {/* Validation badge */}
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 self-start">
+        <span className="text-xs text-primary font-medium">🤝 You're not alone — 85% of parents struggle with these same moments</span>
+      </div>
+
+      {/* Selection cards */}
+      <div className="space-y-2.5">
+        <p className="text-xs text-muted-foreground font-medium">Select all that apply</p>
         {STRUGGLE_OPTIONS.map(opt => {
           const selected = data.struggles.includes(opt.key);
+          const Icon = opt.icon;
           return (
-            <button
+            <motion.button
               key={opt.key}
               onClick={() => toggle('struggles', opt.key)}
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
+              whileTap={{ scale: 0.98 }}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
                 selected
-                  ? 'border-primary bg-primary/8 shadow-sm'
-                  : 'border-border hover:border-primary/40'
+                  ? 'border-primary bg-primary/8 shadow-md shadow-primary/15'
+                  : 'border-border hover:border-primary/40 hover:bg-muted/30'
               }`}
             >
-              <span className="text-2xl">{opt.emoji}</span>
-              <span className={`font-semibold text-sm ${selected ? 'text-primary' : 'text-foreground'}`}>
-                {opt.label}
-              </span>
-              {selected && (
-                <span className="ml-auto w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                  <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
-            </button>
+              {/* Icon pill */}
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                <Icon className="w-5 h-5" />
+              </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p className={`font-semibold text-sm leading-tight ${selected ? 'text-primary' : 'text-foreground'}`}>
+                  {opt.label}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">{opt.sub}</p>
+              </div>
+
+              {/* Checkmark */}
+              <AnimatePresence>
+                {selected && (
+                  <motion.span
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0"
+                  >
+                    <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           );
         })}
       </div>
 
+      {/* "Why" factor micro-copy */}
+      <p className="text-xs text-muted-foreground text-center">
+        💡 Selecting these helps us prioritise your daily coaching tips
+      </p>
+
+      {/* CTA */}
       <Button
         onClick={onNext}
         disabled={!canProceed}
         size="lg"
-        className="w-full h-13 rounded-2xl text-base font-semibold"
+        className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-md shadow-primary/20"
       >
-        Continue <ArrowRight className="w-4 h-4 ml-1" />
+        Analyse My Struggles <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
   );
