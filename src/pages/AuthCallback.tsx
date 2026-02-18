@@ -888,18 +888,22 @@ export default function AuthCallback() {
 
   // Parent onboarding flow
   if (step === 'parent-onboarding') {
-    const lang = localStorage.getItem('buff-language') || 'en';
+    // Only show the Hebrew V2 flow if the user EXPLICITLY chose Hebrew
+    // (e.g. from a Hebrew landing page). Browsing any Hebrew page previously
+    // should NOT override the default English flow.
+    const lang = localStorage.getItem('buff-language');
+    const browserIsHebrew = navigator.language?.startsWith('he');
 
-    // English users → new Cal AI–style flow
-    if (lang === 'en') {
+    if (lang === 'he' && browserIsHebrew) {
+      // Hebrew users → existing V2 flow
       return (
-        <EnOnboardingFlow onComplete={handleEnOnboardingComplete} />
+        <V2OnboardingFlow onComplete={() => navigate('/dashboard', { replace: true })} />
       );
     }
 
-    // Hebrew users → existing V2 flow
+    // Default → new Cal AI–style English flow
     return (
-      <V2OnboardingFlow onComplete={() => navigate('/dashboard', { replace: true })} />
+      <EnOnboardingFlow onComplete={handleEnOnboardingComplete} />
     );
   }
 
