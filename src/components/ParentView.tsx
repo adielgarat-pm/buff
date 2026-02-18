@@ -41,6 +41,8 @@ export function ParentView() {
   const [selectedChildIdForSettings, setSelectedChildIdForSettings] = useState<string | null>(null);
   const [childPickerOpen, setChildPickerOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  // Increment this key each time the dialog opens to guarantee a fresh mount
+  const [onboardingKey, setOnboardingKey] = useState(0);
 
   // Sync internal navigation with browser history for proper back gesture
   const handleTabChange = useCallback((tab: string) => {
@@ -202,7 +204,7 @@ export function ParentView() {
           <ParentFamilyOverview
             onSelectChild={handleSelectChildForSettings}
             onViewAsChild={handleViewAsChild}
-            onStartOnboarding={() => setOnboardingOpen(true)}
+            onStartOnboarding={() => { setOnboardingKey(k => k + 1); setOnboardingOpen(true); }}
             onAddTask={(childId) => {
               // Navigate to settings for that child to add tasks
               setSelectedChildIdForSettings(childId);
@@ -270,8 +272,8 @@ export function ParentView() {
       {activeTab === 'overview' && children.length > 0 && (
         <DashboardFAB
           hasChildren={true}
-          onAddChild={() => setOnboardingOpen(true)}
-          onAddTask={() => setOnboardingOpen(true)} // Both actions now trigger Add Child
+          onAddChild={() => { setOnboardingKey(k => k + 1); setOnboardingOpen(true); }}
+          onAddTask={() => { setOnboardingKey(k => k + 1); setOnboardingOpen(true); }}
         />
       )}
 
@@ -290,7 +292,8 @@ export function ParentView() {
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">{t('parentView.addChildTitle')}</DialogTitle>
-          <ParentOnboarding onComplete={handleOnboardingComplete} />
+          {/* key forces a full remount each time the dialog opens, guaranteeing a clean slate */}
+          <ParentOnboarding key={onboardingKey} onComplete={handleOnboardingComplete} />
         </DialogContent>
       </Dialog>
 
@@ -309,7 +312,7 @@ export function ParentView() {
         <ParentWelcomeBanner 
           userId={profile.id} 
           onNavigateToSettings={() => setActiveTab('settings')}
-          onStartOnboarding={() => setOnboardingOpen(true)}
+          onStartOnboarding={() => { setOnboardingKey(k => k + 1); setOnboardingOpen(true); }}
         />
       )}
     </div>

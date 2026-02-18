@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { OnboardingProgress } from './OnboardingProgress';
 import { Step1Profile, GradeOption } from './steps/Step1Profile';
 import { Step2FocusArea, FocusArea } from './steps/Step2FocusArea';
@@ -45,13 +45,28 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Restore step from persistent state on hydration
+  // Track whether the flow was completed so we know if cleanup is needed on unmount
+  const isCompletedRef = useRef(false);
+
+  // Restore step from persistent state on hydration (only if genuinely in-progress)
   useEffect(() => {
-    if (isHydrated && draft.lastCompletedStep > 0) {
+    if (isHydrated && draft.lastCompletedStep > 0 && draft.lastCompletedStep < 6) {
       const nextStep = Math.min(draft.lastCompletedStep + 1, TOTAL_STEPS);
       setCurrentStep(nextStep);
     }
   }, [isHydrated, draft.lastCompletedStep]);
+
+  // Cleanup: if dialog is closed without completing, wipe the draft so the
+  // next "Add New Child" always starts fresh without stale data / zombie children.
+  useEffect(() => {
+    return () => {
+      if (!isCompletedRef.current) {
+        // Fire-and-forget: clear localStorage immediately; Supabase async
+        clearDraft();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const goToStep = useCallback((step: number) => {
     setCurrentStep(Math.max(1, Math.min(step, TOTAL_STEPS)));
@@ -187,6 +202,8 @@ export function ParentOnboarding({ onComplete }: ParentOnboardingProps) {
         weekendReward: draft.weekendReward || 'בילוי משותף',
         childProfileId: draft.childProfileId,
       });
+      // Mark as completed BEFORE clearing so the unmount cleanup doesn't double-clear
+      isCompletedRef.current = true;
       await clearDraft();
     } finally {
       setIsLoading(false);

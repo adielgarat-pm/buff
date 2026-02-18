@@ -43,11 +43,18 @@ export function usePersistentOnboarding() {
       let mergedDraft = getEmptyDraft();
 
       // 1. Check localStorage first (instant)
+      // Only restore if the draft is genuinely in-progress (has a childProfileId and step < 6)
       try {
         const localData = localStorage.getItem(STORAGE_KEY);
         if (localData) {
           const parsed = JSON.parse(localData) as OnboardingDraft;
-          mergedDraft = { ...mergedDraft, ...parsed };
+          const isActiveSession =
+            parsed.childProfileId &&
+            parsed.lastCompletedStep > 0 &&
+            parsed.lastCompletedStep < 6;
+          if (isActiveSession) {
+            mergedDraft = { ...mergedDraft, ...parsed };
+          }
         }
       } catch (e) {
         console.warn('Failed to parse localStorage onboarding draft:', e);
@@ -65,16 +72,25 @@ export function usePersistentOnboarding() {
           if (!error && data) {
             const dbStep = data.onboarding_step || 0;
             const dbData = (data.onboarding_data || {}) as Partial<OnboardingDraft>;
-            
-            // Merge: take the more recent data
-            const dbUpdatedAt = dbData.updatedAt || '1970-01-01';
-            if (dbUpdatedAt > mergedDraft.updatedAt || dbStep > mergedDraft.lastCompletedStep) {
-              mergedDraft = {
-                ...mergedDraft,
-                ...dbData,
-                lastCompletedStep: Math.max(dbStep, mergedDraft.lastCompletedStep),
-                updatedAt: dbUpdatedAt > mergedDraft.updatedAt ? dbUpdatedAt : mergedDraft.updatedAt,
-              };
+
+            // Only restore if the DB has an ACTIVE in-progress onboarding:
+            // - step must be between 1-5 (0 = not started, 6 = already completed)
+            // - must have a childProfileId (child was already created at step 1)
+            const isActiveDbSession =
+              dbStep > 0 &&
+              dbStep < 6 &&
+              dbData.childProfileId;
+
+            if (isActiveDbSession) {
+              const dbUpdatedAt = dbData.updatedAt || '1970-01-01';
+              if (dbUpdatedAt > mergedDraft.updatedAt || dbStep > mergedDraft.lastCompletedStep) {
+                mergedDraft = {
+                  ...mergedDraft,
+                  ...dbData,
+                  lastCompletedStep: Math.max(dbStep, mergedDraft.lastCompletedStep),
+                  updatedAt: dbUpdatedAt > mergedDraft.updatedAt ? dbUpdatedAt : mergedDraft.updatedAt,
+                };
+              }
             }
           }
         } catch (e) {
