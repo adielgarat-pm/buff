@@ -257,7 +257,7 @@ function StepHook({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] text-center gap-6 max-w-xs mx-auto">
 
-      {/* Illustration / Hero visual */}
+      {/* Illustration */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -278,23 +278,22 @@ function StepHook({ onNext }: { onNext: () => void }) {
           Ready for calmer mornings<br />and brighter days?
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Join 5,000+ parents using{' '}
+          Join hundreds of families using{' '}
           <span className="font-semibold text-foreground">positive coaching</span>{' '}
           to help their children thrive. Let's build your personalised support plan.
         </p>
-        <p className="text-xs text-primary font-semibold mt-1">
-          ✨ Joined by 5,000+ parents creating calmer homes.
-        </p>
       </motion.div>
 
-      {/* Trust badge */}
+      {/* Single trust badge */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.28 }}
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/25 bg-primary/5"
       >
-        <span className="text-xs text-primary font-semibold">⭐ 92% of parents report reduced morning stress within 7 days</span>
+        <span className="text-xs text-primary font-semibold">
+          ✨ Designed by parents, for parents navigating the ADHD journey.
+        </span>
       </motion.div>
 
       {/* CTA */}
@@ -317,6 +316,8 @@ function StepHook({ onNext }: { onNext: () => void }) {
     </div>
   );
 }
+
+
 
 // ─── Step 1: The Hero ─────────────────────────────────────────────────────────
 
@@ -341,7 +342,7 @@ function StepHero({
   const ageMeta = data.ageGroup ? AGE_GROUP_META[data.ageGroup] : null;
 
   return (
-    <div className="flex flex-col gap-6 pt-4 max-w-sm mx-auto pb-6">
+    <div className="flex flex-col gap-7 pt-4 max-w-sm mx-auto pb-6">
       {/* Step label */}
       <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 1 · Setting the Foundation</p>
 
