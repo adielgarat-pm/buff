@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
@@ -138,6 +138,14 @@ function MobileMockup() {
 
 export default function Landing() {
   const { language, setLanguage, t, isRTL } = useLanguage();
+  const navigate = useNavigate();
+
+  // When coming from English landing page, ensure language is set to English
+  const goToAuthAsEnglish = () => {
+    setLanguage('en');
+    localStorage.setItem('buff-language', 'en');
+    navigate('/auth');
+  };
 
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
@@ -170,17 +178,13 @@ export default function Landing() {
                 <Globe className="w-4 h-4" />
               </Button>
               
-              <Link to="/auth">
-                <Button variant="ghost" className="rounded-2xl">
-                  {t('nav.login')}
-                </Button>
-              </Link>
-              <Link to="/auth">
-                <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button">
-                  {t('nav.getStarted')}
-                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
-                </Button>
-              </Link>
+              <Button variant="ghost" className="rounded-2xl" onClick={goToAuthAsEnglish}>
+                {t('nav.login')}
+              </Button>
+              <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button" onClick={goToAuthAsEnglish}>
+                {t('nav.getStarted')}
+                <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
+              </Button>
             </div>
           </div>
         </div>
@@ -216,12 +220,14 @@ export default function Landing() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/auth">
-              <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 cta-buff-button animate-cta-glow">
-                <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
-                {t('landing.tryFree')}
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 cta-buff-button animate-cta-glow"
+              onClick={goToAuthAsEnglish}
+            >
+              <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
+              {t('landing.tryFree')}
+            </Button>
             <a href="#features">
               <Button size="lg" variant="outline" className="rounded-2xl text-lg px-8 py-6">
                 {t('landing.seeHow')}
@@ -361,12 +367,14 @@ export default function Landing() {
           <p className="text-muted-foreground mb-10 leading-relaxed">
             {t('landing.joinFamilies')}
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 cta-buff-button animate-cta-glow">
-              <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
-              {t('landing.startFreeTrial')}
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 cta-buff-button animate-cta-glow"
+            onClick={goToAuthAsEnglish}
+          >
+            <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
+            {t('landing.startFreeTrial')}
+          </Button>
         </div>
       </section>
 
@@ -388,7 +396,7 @@ export default function Landing() {
                 <Heart className="w-3 h-3" />
                 {language === 'he' ? 'אודות' : 'About'}
               </Link>
-              <Link to="/auth" className="hover:text-foreground transition-colors">{t('nav.getStarted')}</Link>
+              <button onClick={goToAuthAsEnglish} className="hover:text-foreground transition-colors">{t('nav.getStarted')}</button>
             </div>
           </div>
           
