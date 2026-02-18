@@ -14,7 +14,8 @@ export interface EnOnboardingData {
   motivations: string[];    // multi-select
 }
 
-type EnStep = 0 | 1 | 2 | 3 | 4;
+// 'analysis' is a special interstitial between step 2 and step 3
+type EnStep = 0 | 1 | 2 | 'analysis' | 3 | 4;
 const TOTAL_STEPS = 5;
 
 const STORAGE_KEY = 'buff_en_onboarding_v2';
@@ -82,6 +83,13 @@ interface EnOnboardingFlowProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// Numeric ordering for progress/navigation — 'analysis' sits between 2 and 3
+const STEP_ORDER: EnStep[] = [0, 1, 2, 'analysis', 3, 4];
+
+function stepIndex(s: EnStep): number {
+  return STEP_ORDER.indexOf(s);
+}
+
 export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   const [step, setStep] = useState<EnStep>(0);
   const [dir, setDir] = useState(1);
@@ -95,8 +103,9 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Persist to localStorage on every change (no DB writes until final step)
+  // Persist to localStorage on every change (skip 'analysis' — it's transient)
   useEffect(() => {
+    if (step === 'analysis') return;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, step })); } catch {}
   }, [data, step]);
 
@@ -106,8 +115,10 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.step && parsed.step > 0 && parsed.step < TOTAL_STEPS - 1) {
-          setStep(parsed.step as EnStep);
+        const s = parsed.step as EnStep;
+        const idx = stepIndex(s);
+        if (idx > 0 && idx < STEP_ORDER.length - 1) {
+          setStep(s);
         }
       }
     } catch {}
@@ -127,19 +138,31 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     });
   }, []);
 
-  const goNext = useCallback(() => {
+  const goNext = useCallback((override?: EnStep) => {
     setDir(1);
-    setStep(s => Math.min(s + 1, TOTAL_STEPS - 1) as EnStep);
+    if (override !== undefined) {
+      setStep(override);
+      return;
+    }
+    setStep(s => {
+      const idx = stepIndex(s);
+      return STEP_ORDER[Math.min(idx + 1, STEP_ORDER.length - 1)];
+    });
   }, []);
 
   const goBack = useCallback(() => {
     setDir(-1);
-    setStep(s => Math.max(s - 1, 0) as EnStep);
+    setStep(s => {
+      const idx = stepIndex(s);
+      // Skip 'analysis' on back — go straight back to step 2
+      const prev = STEP_ORDER[Math.max(idx - 1, 0)];
+      return prev === 'analysis' ? 2 : prev;
+    });
   }, []);
 
   const canProceed = (): boolean => {
     switch (step) {
-      case 0: return true; // Hook — always
+      case 0: return true;
       case 1: return data.childName.trim().length >= 2 && data.ageGroup !== '';
       case 2: return data.struggles.length >= 1;
       case 3: return data.motivations.length >= 1;
@@ -158,13 +181,15 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     }
   };
 
-  const progress = ((step) / (TOTAL_STEPS - 1)) * 100;
+  // Map step to a numeric progress value (skip 'analysis' — same as step 3's progress)
+  const progressStepNum = step === 'analysis' ? 3 : (step as number);
+  const progress = (progressStepNum / (TOTAL_STEPS - 1)) * 100;
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col" dir="ltr">
       {/* Header — logo always centered */}
       <div className="flex items-center justify-center px-5 pt-5 pb-2 shrink-0 relative">
-        {step > 0 && (
+        {stepIndex(step) > 0 && step !== 'analysis' && (
           <button
             onClick={goBack}
             className="absolute left-5 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -202,7 +227,20 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
           >
             {step === 0 && <StepHook onNext={goNext} />}
             {step === 1 && <StepHero data={data} update={update} onNext={goNext} canProceed={canProceed()} />}
-            {step === 2 && <StepFriction data={data} toggle={toggleArray} onNext={goNext} canProceed={canProceed()} />}
+            {step === 2 && (
+              <StepFriction
+                data={data}
+                toggle={toggleArray}
+                onNext={() => goNext('analysis')}
+                canProceed={canProceed()}
+              />
+            )}
+            {step === 'analysis' && (
+              <StepAnalysis
+                childName={data.childName.trim() || 'your child'}
+                onDone={() => goNext(3)}
+              />
+            )}
             {step === 3 && <StepGoal data={data} toggle={toggleArray} onNext={goNext} canProceed={canProceed()} />}
             {step === 4 && <StepConfirm data={data} onLaunch={handleLaunch} isSubmitting={isSubmitting} />}
           </motion.div>
@@ -395,6 +433,119 @@ function StepHero({
       >
         Start My Plan <ArrowRight className="w-4 h-4" />
       </Button>
+    </div>
+  );
+}
+
+// ─── Step Analysis: Interstitial ─────────────────────────────────────────────
+
+const ANALYSIS_PHRASES = [
+  (name: string) => `Analyzing ${name}'s daily routine...`,
+  (_name: string) => 'Tailoring positive reinforcement strategies...',
+  (_name: string) => 'Building your custom coaching plan...',
+];
+
+function StepAnalysis({ childName, onDone }: { childName: string; onDone: () => void }) {
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [ringProgress, setRingProgress] = useState(0);
+
+  // Cycle through phrases every 1 second, auto-advance after 3 seconds
+  useEffect(() => {
+    const phraseTimer = setInterval(() => {
+      setPhraseIdx(prev => Math.min(prev + 1, ANALYSIS_PHRASES.length - 1));
+    }, 1000);
+
+    const doneTimer = setTimeout(() => {
+      clearInterval(phraseTimer);
+      onDone();
+    }, 3000);
+
+    return () => {
+      clearInterval(phraseTimer);
+      clearTimeout(doneTimer);
+    };
+  }, [onDone]);
+
+  // Smooth ring fill over 3 seconds
+  useEffect(() => {
+    let frame: number;
+    let start: number | null = null;
+    const tick = (ts: number) => {
+      if (!start) start = ts;
+      const pct = Math.min(((ts - start) / 3000) * 100, 100);
+      setRingProgress(pct);
+      if (pct < 100) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const RADIUS = 44;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  const strokeDashoffset = CIRCUMFERENCE * (1 - ringProgress / 100);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] gap-8 max-w-xs mx-auto text-center">
+
+      {/* Circular progress ring with brain icon inside */}
+      <motion.div
+        initial={{ scale: 0.85, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="relative w-32 h-32"
+      >
+        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r={RADIUS} fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+          <circle
+            cx="50" cy="50" r={RADIUS} fill="none"
+            stroke="hsl(var(--primary))" strokeWidth="6" strokeLinecap="round"
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={strokeDashoffset}
+            style={{ transition: 'stroke-dashoffset 0.05s linear' }}
+          />
+        </svg>
+        <motion.div
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+            <Brain className="w-9 h-9 text-primary" />
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Dynamic phrase */}
+      <div className="space-y-3 min-h-[4rem] flex flex-col items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={phraseIdx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="text-base font-semibold text-foreground leading-snug px-4"
+          >
+            {ANALYSIS_PHRASES[phraseIdx](childName)}
+          </motion.p>
+        </AnimatePresence>
+
+        {/* Animated dots */}
+        <div className="flex gap-1.5 items-center">
+          {[0, 1, 2].map(i => (
+            <motion.span
+              key={i}
+              className="w-1.5 h-1.5 rounded-full bg-primary inline-block"
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2, ease: 'easeInOut' }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <p className="text-xs text-muted-foreground px-6 leading-relaxed">
+        Our coaching engine is reading your selections to build the perfect plan.
+      </p>
     </div>
   );
 }
