@@ -17,11 +17,10 @@ import { IOSInstallBanner } from './IOSInstallBanner';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { GlobalFooter } from './GlobalFooter';
 import { DashboardFAB } from './dashboard';
-import { Loader2, Crown, Lightbulb, Lock } from 'lucide-react';
-import { useSubscription } from '@/hooks/useSubscription';
-import { UpgradeModal } from './UpgradeModal';
+import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { ParentOnboarding, OnboardingData } from './onboarding/ParentOnboarding';
+import { EnOnboardingFlow, EnOnboardingData } from './onboarding/en';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useRewardRedemptionNotifier } from '@/hooks/useRewardRedemptionNotifier';
@@ -43,6 +42,8 @@ export function ParentView() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   // Increment this key each time the dialog opens to guarantee a fresh mount
   const [onboardingKey, setOnboardingKey] = useState(0);
+  // New English onboarding full-screen flow (shown to new parents with no children)
+  const [enOnboardingOpen, setEnOnboardingOpen] = useState(false);
 
   // Sync internal navigation with browser history for proper back gesture
   const handleTabChange = useCallback((tab: string) => {
@@ -197,6 +198,62 @@ export function ParentView() {
     }
   };
 
+  // Handle completion of the new English onboarding flow (first-time parents with no children)
+  const handleEnOnboardingComplete = async (enData: EnOnboardingData) => {
+    if (!profile?.family_id) {
+      toast.error('Family not found. Please try again.');
+      return;
+    }
+    try {
+      // Create child profile — the DB trigger auto-creates default tasks/rewards/vault
+      const { data: childProfile, error: childError } = await supabase
+        .from('profiles')
+        .insert({
+          family_id: profile.family_id,
+          display_name: enData.childName || 'My Child',
+          role: 'child',
+          daily_goal: 100,
+        })
+        .select()
+        .single();
+
+      if (childError) {
+        console.error('[EnOnboarding] child insert error:', childError);
+        toast.error('Could not create child profile. Please try again.');
+        return;
+      }
+
+      // Mark parent onboarding as complete
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_step: 6,
+          is_activated: true,
+          onboarding_data: {
+            en_v2: true,
+            childName: enData.childName,
+            ageGroup: enData.ageGroup,
+            struggles: enData.struggles,
+            motivations: enData.motivations,
+          },
+        })
+        .eq('id', profile.id);
+
+      setEnOnboardingOpen(false);
+      await refetchChildren();
+      toast.success(`${enData.childName || 'Your child'} has been added! 🎉`);
+
+      // Navigate to the new child's settings so parent can customise
+      if (childProfile?.id) {
+        setSelectedChildIdForSettings(childProfile.id);
+        setActiveTab('settings');
+      }
+    } catch (err) {
+      console.error('[EnOnboarding] completion error:', err);
+      toast.error('Something went wrong. Please try again.');
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -307,13 +364,20 @@ export function ParentView() {
       {/* Smart PWA Install Prompt */}
       <InstallPrompt showAsModal={true} />
       
-      {/* Parent Welcome Onboarding */}
+      {/* Parent Welcome Onboarding — for first-time parents with no children, opens new English flow */}
       {profile?.id && (
         <ParentWelcomeBanner 
           userId={profile.id} 
           onNavigateToSettings={() => setActiveTab('settings')}
-          onStartOnboarding={() => { setOnboardingKey(k => k + 1); setOnboardingOpen(true); }}
+          onStartOnboarding={() => setEnOnboardingOpen(true)}
         />
+      )}
+
+      {/* New English Onboarding — full-screen overlay for first-time signup / welcome banner CTA */}
+      {enOnboardingOpen && (
+        <div className="fixed inset-0 z-[100] bg-background">
+          <EnOnboardingFlow onComplete={handleEnOnboardingComplete} />
+        </div>
       )}
     </div>
   );
