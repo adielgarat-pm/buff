@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ArrowRight, Brain, Sparkles } from 'lucide-react';
+import { ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
@@ -199,54 +199,73 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
 
 function StepHook({ onNext }: { onNext: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[75vh] text-center gap-8 max-w-xs mx-auto">
-      {/* Icon */}
+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center gap-6 max-w-xs mx-auto">
+
+      {/* Illustration / Hero visual */}
       <motion.div
-        initial={{ scale: 0.7, opacity: 0 }}
+        initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, type: 'spring', stiffness: 260, damping: 20 }}
-        className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center"
+        transition={{ delay: 0.05, type: 'spring', stiffness: 240, damping: 22 }}
+        className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/15"
       >
-        <Brain className="w-12 h-12 text-primary" />
+        <span className="text-5xl select-none">🧠✨</span>
       </motion.div>
 
+      {/* Headline + sub */}
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
+        initial={{ y: 24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="space-y-4"
+        transition={{ delay: 0.15 }}
+        className="space-y-3"
       >
-        <h1 className="text-2xl font-bold text-foreground leading-tight">
-          From "Policewoman"<br />to Positive Coach.
+        <h1 className="text-2xl font-bold text-foreground leading-snug">
+          Ready to turn daily chaos<br />into calm connection?
         </h1>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          Let's build your child's{' '}
-          <span className="font-semibold text-foreground">External Brain</span>{' '}
-          together — supporting their Executive Function, Autonomy, and confidence.
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Join 5,000+ parents using{' '}
+          <span className="font-semibold text-foreground">positive coaching</span>{' '}
+          to help their children thrive. Let's build your personalised support plan.
         </p>
       </motion.div>
 
+      {/* Trust badge */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.28 }}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/25 bg-primary/5"
+      >
+        <span className="text-xs text-primary font-semibold">⭐ 92% of parents report reduced morning stress within 7 days</span>
+      </motion.div>
+
+      {/* CTA */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.35 }}
-        className="w-full"
+        transition={{ delay: 0.38 }}
+        className="w-full space-y-2"
       >
         <Button
           onClick={onNext}
           size="lg"
-          className="w-full h-14 rounded-2xl text-base font-semibold gap-2"
+          className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-md shadow-primary/25"
         >
-          Let's get started
+          Personalise My Plan
           <ArrowRight className="w-4 h-4" />
         </Button>
-        <p className="text-xs text-muted-foreground mt-3">Takes about 90 seconds</p>
+        <p className="text-xs text-muted-foreground">Takes about 90 seconds · No credit card needed</p>
       </motion.div>
     </div>
   );
 }
 
 // ─── Step 1: The Hero ─────────────────────────────────────────────────────────
+
+const AGE_GROUP_META: Record<string, { icon: React.ReactNode; hint: string }> = {
+  '6-9':   { icon: <Backpack className="w-5 h-5" />,      hint: 'Great! We have a specialized track for younger learners 🌱' },
+  '10-14': { icon: <GraduationCap className="w-5 h-5" />, hint: 'Perfect! Our middle-school coaching track is highly effective ✨' },
+  '15-18': { icon: <Headphones className="w-5 h-5" />,    hint: 'Awesome! Teens respond especially well to the autonomy approach 🚀' },
+};
 
 function StepHero({
   data,
@@ -259,23 +278,43 @@ function StepHero({
   onNext: () => void;
   canProceed: boolean;
 }) {
+  const heroName = data.childName.trim() || 'your little hero';
+  const ageMeta = data.ageGroup ? AGE_GROUP_META[data.ageGroup] : null;
+
   return (
-    <div className="flex flex-col gap-7 pt-6 max-w-sm mx-auto">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Step 1 of 4</p>
+    <div className="flex flex-col gap-6 pt-6 max-w-sm mx-auto">
+      {/* Progress label */}
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 1 · Setting the Foundation</p>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-primary rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: '25%' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          />
+        </div>
+      </div>
+
+      {/* Headline */}
+      <div className="space-y-1">
         <h2 className="text-2xl font-bold text-foreground leading-tight">
-          Who are we<br />supporting?
+          Who are we<br />supporting today?
         </h2>
+        <p className="text-sm text-muted-foreground">Let's personalise your plan — starting with your child.</p>
       </div>
 
       {/* Name input */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Child's first name</label>
+      <div className="space-y-2">
+        <label htmlFor="child-name" className="text-sm font-semibold text-foreground">
+          What's your little hero's name?
+        </label>
         <Input
+          id="child-name"
           value={data.childName}
           onChange={e => update('childName', e.target.value)}
           placeholder="e.g. Alex"
-          className="h-13 text-base rounded-xl border-2 focus:border-primary"
+          className="h-13 text-base rounded-xl border-2 focus-visible:ring-primary focus-visible:border-primary"
           autoFocus
           maxLength={40}
           onKeyDown={e => { if (e.key === 'Enter' && canProceed) onNext(); }}
@@ -283,32 +322,61 @@ function StepHero({
       </div>
 
       {/* Age group */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">Age group</label>
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-foreground">
+          How old is{' '}
+          <span className="text-primary">
+            {data.childName.trim() ? data.childName.trim() : 'your child'}
+          </span>?
+        </label>
         <div className="grid grid-cols-3 gap-3">
-          {AGE_GROUPS.map(ag => (
-            <button
-              key={ag}
-              onClick={() => update('ageGroup', ag)}
-              className={`py-4 rounded-2xl border-2 text-sm font-semibold transition-all ${
-                data.ageGroup === ag
-                  ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                  : 'border-border hover:border-primary/50 text-foreground'
-              }`}
-            >
-              {ag}
-            </button>
-          ))}
+          {AGE_GROUPS.map(ag => {
+            const meta = AGE_GROUP_META[ag];
+            const selected = data.ageGroup === ag;
+            return (
+              <button
+                key={ag}
+                onClick={() => update('ageGroup', ag)}
+                className={`flex flex-col items-center gap-1.5 py-4 px-2 rounded-2xl border-2 text-sm font-semibold transition-all ${
+                  selected
+                    ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                    : 'border-border hover:border-primary/50 text-foreground'
+                }`}
+              >
+                <span className={selected ? 'text-primary-foreground' : 'text-muted-foreground'}>
+                  {meta.icon}
+                </span>
+                <span>{ag}</span>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Instant feedback */}
+        <AnimatePresence mode="wait">
+          {ageMeta && (
+            <motion.p
+              key={data.ageGroup}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="text-xs text-primary font-medium bg-primary/8 rounded-xl px-3 py-2"
+            >
+              {ageMeta.hint}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* CTA */}
       <Button
         onClick={onNext}
         disabled={!canProceed}
         size="lg"
-        className="w-full h-13 rounded-2xl text-base font-semibold mt-2"
+        className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-md shadow-primary/20 mt-1"
       >
-        Continue <ArrowRight className="w-4 h-4 ml-1" />
+        Personalise My Plan <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
   );
