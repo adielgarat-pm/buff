@@ -15,9 +15,9 @@ export interface EnOnboardingData {
 }
 
 // 'analysis' is a special interstitial between step 2 and step 3
-// Step 0 now includes name+age (merged Hook+Hero). Step 1 is removed.
-type EnStep = 0 | 2 | 'analysis' | 3 | 4;
-const TOTAL_STEPS = 4;
+// Step 0 = Hook (emotional), Step 1 = Identity (name + age)
+type EnStep = 0 | 1 | 2 | 'analysis' | 3 | 4;
+const TOTAL_STEPS = 5;
 
 const STORAGE_KEY = 'buff_en_onboarding_v2';
 
@@ -86,7 +86,7 @@ interface EnOnboardingFlowProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 // Numeric ordering for progress/navigation — 'analysis' sits between 2 and 3
-const STEP_ORDER: EnStep[] = [0, 2, 'analysis', 3, 4];
+const STEP_ORDER: EnStep[] = [0, 1, 2, 'analysis', 3, 4];
 
 function stepIndex(s: EnStep): number {
   return STEP_ORDER.indexOf(s);
@@ -171,7 +171,8 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
 
   const canProceed = (): boolean => {
     switch (step) {
-      case 0: return data.childName.trim().length >= 2 && data.ageGroup !== '';
+      case 0: return true;
+      case 1: return data.childName.trim().length >= 2 && data.ageGroup !== '';
       case 2: return data.struggles.length >= 1;
       case 3: return data.motivations.length >= 1;
       case 4: return true;
@@ -189,9 +190,10 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     }
   };
 
-  // Map step to a numeric progress value (skip 'analysis' — same as step 3's progress)
-  const progressStepNum = step === 'analysis' ? 3 : (step as number);
-  const progress = (progressStepNum / (TOTAL_STEPS - 1)) * 100;
+  // Progress: 0% on Hook (step 0), 25% on Identity (step 1), 50% on Struggles (step 2),
+  // 75% on Motivations (step 3), 100% on Confirm (step 4). 'analysis' keeps step 2's 50%.
+  const progressStepNum = step === 'analysis' ? 2 : (step as number);
+  const progress = (progressStepNum / 4) * 100;
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col" dir="ltr">
@@ -233,7 +235,8 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
             transition={transition}
             className="absolute inset-0 overflow-y-auto px-5 pb-32"
           >
-            {step === 0 && <StepHook data={data} update={update} onNext={goNext} canProceed={canProceed()} />}
+            {step === 0 && <StepHook onNext={goNext} />}
+            {step === 1 && <StepIdentity data={data} update={update} onNext={goNext} canProceed={canProceed()} />}
             {step === 2 && (
               <StepFriction
                 data={data}
@@ -257,7 +260,83 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   );
 }
 
-// ─── Step 0: Combined Hook + Hero (Cal AI style — one screen, immediate commitment) ───
+// ─── Step 0: The Hook (emotional entry — no data entry yet) ──────────────────
+
+function StepHook({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center gap-6 max-w-xs mx-auto">
+
+      {/* Illustration */}
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.05, type: 'spring', stiffness: 240, damping: 22 }}
+        className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/15"
+      >
+        <span className="text-5xl select-none">🧠✨</span>
+      </motion.div>
+
+      {/* Headline + sub */}
+      <motion.div
+        initial={{ y: 24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.15 }}
+        className="space-y-3"
+      >
+        <h1 className="text-2xl font-bold text-foreground leading-snug">
+          Ready for calmer mornings<br />and brighter days?
+        </h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Join hundreds of families using{' '}
+          <span className="font-semibold text-foreground">positive coaching</span>{' '}
+          to help their children thrive. Let's build your personalized support plan.
+        </p>
+      </motion.div>
+
+      {/* Trust badge */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.28 }}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/25 bg-primary/5"
+      >
+        <span className="text-xs text-primary font-semibold">
+          ✨ Designed by parents, for parents navigating the ADHD journey.
+        </span>
+      </motion.div>
+
+      {/* CTA */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.38 }}
+        className="w-full space-y-2"
+      >
+        <Button
+          onClick={onNext}
+          size="lg"
+          className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.25)]"
+        >
+          Get Started
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+        <p className="text-xs text-muted-foreground">Takes about 90 seconds · No credit card needed</p>
+      </motion.div>
+
+      {/* Founder caption */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.55 }}
+        className="text-[10px] text-muted-foreground/50 text-center tracking-wide"
+      >
+        Founded by a mom with a mission.
+      </motion.p>
+    </div>
+  );
+}
+
+// ─── Step 1: Identity — airy, focused name + age screen ──────────────────────
 
 const AGE_GROUP_META: Record<string, { icon: React.ReactNode; hint: string }> = {
   '6-9':   { icon: <Backpack className="w-5 h-5" />,      hint: 'Great! We have a specialized track for younger learners 🌱' },
@@ -265,7 +344,7 @@ const AGE_GROUP_META: Record<string, { icon: React.ReactNode; hint: string }> = 
   '15-18': { icon: <Headphones className="w-5 h-5" />,    hint: 'Awesome! Teens respond especially well to the autonomy approach 🚀' },
 };
 
-function StepHook({
+function StepIdentity({
   data,
   update,
   onNext,
@@ -280,128 +359,106 @@ function StepHook({
   const ageMeta = data.ageGroup ? AGE_GROUP_META[data.ageGroup] : null;
 
   return (
-    <div className="flex flex-col items-center text-center gap-5 max-w-xs mx-auto pt-2 pb-6">
+    <div className="flex flex-col gap-8 pt-6 max-w-sm mx-auto pb-8">
 
-      {/* Illustration */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.05, type: 'spring', stiffness: 240, damping: 22 }}
-        className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/15"
-      >
-        <span className="text-4xl select-none">🧠✨</span>
-      </motion.div>
-
-      {/* Headline + sub */}
+      {/* Headline */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.12 }}
-        className="space-y-2"
+        transition={{ delay: 0.08 }}
+        className="space-y-1.5"
       >
-        <h1 className="text-2xl font-bold text-foreground leading-snug">
-          Ready for calmer mornings<br />and brighter days?
-        </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Join hundreds of families using{' '}
-          <span className="font-semibold text-foreground">positive coaching</span>{' '}
-          to help their children thrive.
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 1 · Getting to Know You</p>
+        <h2 className="text-2xl font-bold text-foreground leading-tight">
+          Who are we supporting today?
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Let's personalize your plan — starting with your child.
         </p>
       </motion.div>
 
-      {/* Trust badge */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.22 }}
-        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/5"
-      >
-        <span className="text-xs text-primary font-semibold">
-          ✨ Designed by parents, for parents navigating the ADHD journey.
-        </span>
-      </motion.div>
-
-      {/* ── Input fields ── */}
+      {/* Name field */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.32 }}
-        className="w-full space-y-4 text-left"
+        transition={{ delay: 0.18 }}
+        className="space-y-2"
       >
-        {/* Name */}
-        <div className="space-y-1.5">
-          <label htmlFor="child-name" className="text-sm font-semibold text-foreground">
-            What's your child's name?
-          </label>
-          <Input
-            id="child-name"
-            value={data.childName}
-            onChange={e => update('childName', e.target.value)}
-            placeholder="e.g. Alex"
-            className="h-12 text-base rounded-xl border-2 focus-visible:ring-primary focus-visible:border-primary"
-            autoFocus
-            maxLength={40}
-            onKeyDown={e => { if (e.key === 'Enter' && canProceed) onNext(); }}
-          />
-        </div>
+        <label htmlFor="child-name" className="text-sm font-semibold text-foreground">
+          What's your child's name?
+        </label>
+        <Input
+          id="child-name"
+          value={data.childName}
+          onChange={e => update('childName', e.target.value)}
+          placeholder="e.g. Alex"
+          className="h-13 text-base rounded-xl border-2 focus-visible:ring-primary focus-visible:border-primary"
+          autoFocus
+          maxLength={40}
+          onKeyDown={e => { if (e.key === 'Enter' && canProceed) onNext(); }}
+        />
+      </motion.div>
 
-        {/* Age group */}
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">
-            {trimmedName ? (
-              <>How old is <span className="text-primary">{trimmedName}</span>?</>
-            ) : (
-              'How old is your child?'
-            )}
-          </label>
+      {/* Age group */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.26 }}
+        className="space-y-3"
+      >
+        <label className="text-sm font-semibold text-foreground">
+          {trimmedName ? (
+            <>How old is <span className="text-primary">{trimmedName}</span>?</>
+          ) : (
+            'How old is your child?'
+          )}
+        </label>
 
-          <div className="grid grid-cols-3 gap-2.5">
-            {AGE_GROUPS.map(ag => {
-              const meta = AGE_GROUP_META[ag];
-              const selected = data.ageGroup === ag;
-              return (
-                <button
-                  key={ag}
-                  onClick={() => update('ageGroup', ag)}
-                  className={`flex flex-col items-center gap-1 py-3 px-2 rounded-2xl border-2 text-sm font-semibold transition-all ${
-                    selected
-                      ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-                      : 'border-border hover:border-primary/50 text-foreground'
-                  }`}
-                >
-                  <span className={selected ? 'text-primary-foreground' : 'text-muted-foreground'}>
-                    {meta.icon}
-                  </span>
-                  <span>{ag}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Age hint */}
-          <AnimatePresence mode="wait">
-            {ageMeta && (
-              <motion.p
-                key={data.ageGroup}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.22 }}
-                className="text-xs text-primary font-medium bg-primary/8 rounded-xl px-3 py-2 text-left"
+        <div className="grid grid-cols-3 gap-3">
+          {AGE_GROUPS.map(ag => {
+            const meta = AGE_GROUP_META[ag];
+            const selected = data.ageGroup === ag;
+            return (
+              <button
+                key={ag}
+                onClick={() => update('ageGroup', ag)}
+                className={`flex flex-col items-center gap-1.5 py-5 px-2 rounded-2xl border-2 text-sm font-semibold transition-all duration-200 ${
+                  selected
+                    ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                    : 'border-border hover:border-primary/40 text-foreground bg-background'
+                }`}
               >
-                {ageMeta.hint}
-              </motion.p>
-            )}
-          </AnimatePresence>
+                <span className={selected ? 'text-primary-foreground' : 'text-muted-foreground'}>
+                  {meta.icon}
+                </span>
+                <span>{ag}</span>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Instant feedback hint */}
+        <AnimatePresence mode="wait">
+          {ageMeta && (
+            <motion.p
+              key={data.ageGroup}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="text-xs text-primary font-medium bg-primary/8 rounded-xl px-3 py-2.5"
+            >
+              {ageMeta.hint}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* CTA */}
       <motion.div
-        initial={{ y: 16, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.42 }}
-        className="w-full space-y-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.34 }}
       >
         <Button
           onClick={onNext}
@@ -410,29 +467,16 @@ function StepHook({
           className={`w-full h-14 rounded-2xl text-base font-semibold gap-2 transition-all duration-300 ${
             canProceed
               ? 'shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.25)] opacity-100'
-              : 'opacity-40 shadow-none'
+              : 'opacity-35 shadow-none'
           }`}
         >
-          Personalize My Plan
+          Continue
           <ArrowRight className="w-4 h-4" />
         </Button>
-        <p className="text-xs text-muted-foreground">Takes about 90 seconds · No credit card needed</p>
       </motion.div>
-
-      {/* Founder caption */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-[10px] text-muted-foreground/50 tracking-wide"
-      >
-        Founded by a mom with a mission.
-      </motion.p>
     </div>
   );
 }
-
-// (StepHero is now merged into StepHook above — no separate Step 1 exists)
 
 // ─── Step Analysis: Interstitial ─────────────────────────────────────────────
 
