@@ -456,7 +456,8 @@ function StepAuth({ formData, onNext, onBack }: StepAuthProps) {
     // Save session so formData survives the redirect
     saveSession(formData, 3);
     setLoading(true);
-    const { error } = await signInWithGoogle();
+    // Redirect back to /onboarding after Google OAuth completes
+    const { error } = await signInWithGoogle(`${window.location.origin}/auth/callback`);
     if (error) { setErrorMsg(error.message); setLoading(false); }
   };
 
