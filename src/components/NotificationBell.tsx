@@ -118,56 +118,74 @@ export function NotificationBell() {
       {/* Dropdown Panel */}
       <AnimatePresence>
         {panelOpen && (
-          <motion.div
-            ref={panelRef}
-            key="panel"
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-11 z-50 w-80 bg-card rounded-xl shadow-lg border border-border overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
-              <div className="flex items-center gap-1">
-                {unreadCount > 0 && (
-                  <button
-                    onClick={handleMarkAllRead}
-                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-2 py-1 rounded-md hover:bg-muted"
-                  >
-                    <CheckCheck className="w-3.5 h-3.5" />
-                    Mark all read
-                  </button>
-                )}
-                <button
-                  onClick={() => setPanelOpen(false)}
-                  className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="max-h-80 overflow-y-auto">
-              {loading ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>
-              ) : notifications.length === 0 ? (
-                <div className="py-10 text-center">
-                  <Bell className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">No notifications yet</p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">
-                    You'll be notified when your child completes a quest or redeems a reward.
-                  </p>
-                </div>
-              ) : (
-                notifications.map((n) => (
-                  <NotificationItem key={n.id} notification={n} onMarkRead={markAsRead} />
-                ))
+          <>
+            {/* Mobile backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+              onClick={() => setPanelOpen(false)}
+            />
+            <motion.div
+              ref={panelRef}
+              key="panel"
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ duration: 0.15 }}
+              className={cn(
+                'absolute z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
+                // Mobile: full-width anchored just below the button, left-aligned to prevent clipping
+                'right-0 top-11',
+                // On very small screens keep it from overflowing the viewport
+                'w-[calc(100vw-2rem)] max-w-xs sm:w-80',
               )}
-            </div>
-          </motion.div>
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+                <div className="flex items-center gap-1">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-2 py-1 rounded-md hover:bg-muted"
+                    >
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      Mark all read
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setPanelOpen(false)}
+                    className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="max-h-72 overflow-y-auto">
+                {loading ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>
+                ) : notifications.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <Bell className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">No notifications yet</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">
+                      You'll be notified when your child completes a quest or redeems a reward.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <NotificationItem key={n.id} notification={n} onMarkRead={markAsRead} />
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
