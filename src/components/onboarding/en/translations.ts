@@ -1,8 +1,9 @@
-// ─── EN Onboarding Translations ───────────────────────────────────────────────
-// Single source of truth for all strings used in the English onboarding flow.
-// No hardcoded strings should appear inside component JSX.
+// ─── Onboarding Translations ──────────────────────────────────────────────────
+// Dual-language: EN + HE. The active language is determined at runtime.
 
-export const T = {
+export type OnboardingLang = 'en' | 'he';
+
+const EN = {
   // ── Step 0: Hook ────────────────────────────────────────────────────────────
   hook: {
     headline: 'Ready for calmer mornings\nand brighter days?',
@@ -21,6 +22,7 @@ export const T = {
     startFreshBtn: 'Start fresh',
     teenMessage: "Ask your parent to set up BUFF and invite you as a family member.",
     teenTitle: "Hi there! 👋",
+    langToggle: 'עברית',
   },
 
   // ── Step 1: Identity ─────────────────────────────────────────────────────────
@@ -79,7 +81,31 @@ export const T = {
     ],
   },
 
-  // ── Step 4: Reveal ───────────────────────────────────────────────────────────
+  // ── Step Auth: Embedded Sign-up ──────────────────────────────────────────────
+  auth: {
+    headline: (name: string) => `Save ${name}'s plan!`,
+    subHeadline: 'Sign in to see your personalized strategy.',
+    emailLabel: 'Email',
+    emailPlaceholder: 'you@example.com',
+    passwordLabel: 'Password',
+    passwordPlaceholder: '••••••••',
+    nameLabel: 'Your name',
+    namePlaceholder: 'e.g. Sarah',
+    cta: 'Create Account & See Plan',
+    ctaLogin: 'Sign In & See Plan',
+    ctaLoading: 'Setting up...',
+    googleCta: 'Continue with Google',
+    divider: 'or',
+    loginToggle: 'Already have an account? Sign in',
+    signupToggle: "Don't have an account? Sign up",
+    errorFillFields: 'Please fill in all fields',
+    errorPasswordMin: 'Password must be at least 6 characters',
+    errorGeneric: 'Something went wrong. Please try again.',
+    successCreated: 'Account created! Loading your plan...',
+    successLogin: 'Welcome back! Loading your plan...',
+  },
+
+  // ── Step 5: Reveal ──────────────────────────────────────────────────────────
   reveal: {
     loadingPhrases: [
       (name: string) => `Analyzing ${name}'s profile...`,
@@ -109,13 +135,162 @@ export const T = {
 
   // ── Shared ───────────────────────────────────────────────────────────────────
   back: 'Back',
-} as const;
+};
 
-// Lookup maps used in the Reveal step
+const HE = {
+  hook: {
+    headline: 'מוכנים לבקרים שקטים\nוימים מוצלחים יותר?',
+    subHeadline: 'הצטרפו למאות משפחות שמשתמשות באימון חיובי כדי לעזור לילדים שלהן לפרוח.',
+    trustBadge: '✨ עוצב על ידי הורים, בשביל הורים במסע ה-ADHD.',
+    roleQuestion: 'איך תרצו להשתמש ב-BUFF היום?',
+    roleParentLabel: 'אני הורה',
+    roleParentSub: 'בניית תוכנית לילד שלי',
+    roleTeenLabel: 'אני נער/ה',
+    roleTeenSub: 'הצטרפות לתוכנית המשפחה',
+    cta: 'התאמה אישית של התוכנית שלי',
+    footer: 'לוקח כ-90 שניות · ללא כרטיס אשראי',
+    founder: 'נוסד על ידי אמא עם משימה.',
+    resumeBanner: 'היית באמצע בניית התוכנית שלך!',
+    resumeBtn: 'המשך →',
+    startFreshBtn: 'התחל מחדש',
+    teenMessage: 'בקש מההורה שלך להגדיר את BUFF ולהזמין אותך כחבר משפחה.',
+    teenTitle: 'היי! 👋',
+    langToggle: 'English',
+  },
+  identity: {
+    stepLabel: 'שלב 1 · היכרות',
+    headline: 'למי אנחנו בונים תוכנית?',
+    subHeadline: 'בואו נתאים אישית את התוכנית — נתחיל מהילד שלכם.',
+    nameLabel: 'מה שם הילד/ה שלך?',
+    namePlaceholder: 'לדוגמה: נועם',
+    ageLabel: 'כמה שנים הילד/ה?',
+    ageLabelDynamic: (name: string) => `כמה שנים ${name}?`,
+    ageMeta: {
+      '6-9':   { hint: 'מצוין! יש לנו מסלול מותאם ללומדים צעירים 🌱' },
+      '10-14': { hint: 'מושלם! מסלול חטיבת הביניים שלנו מאוד יעיל ✨' },
+      '15-18': { hint: 'מדהים! מתבגרים מגיבים במיוחד לגישת העצמאות 🚀' },
+    } as Record<string, { hint: string }>,
+    cta: 'המשך',
+  },
+  struggles: {
+    stepLabel: 'שלב 2 · מציאת נקודות החיכוך',
+    headline: (name: string) => `איזה חלק ביום דורש יותר אור עבור ${name}?`,
+    subHeadline: 'סמנו את כל מה שרלוונטי — נתמקד בתוכנית שלכם ברגעים האלה.',
+    empathyBadge: '💛 אתם לא לבד — 85% מההורים מתמודדים עם אותם רגעים.',
+    cta: 'ניתוח האתגרים שלי',
+    options: [
+      { key: 'morning',     label: 'שגרת בוקר',         sub: 'המרוץ נגד השעון' },
+      { key: 'homework',    label: 'שיעורי בית ופוקוס', sub: 'אילוף מפלצת הלמידה' },
+      { key: 'transitions', label: 'מעברים ובית ספר',   sub: "האתגר של 'החלפת הילוכים'" },
+      { key: 'initiation',  label: 'התחלת משימות',      sub: "שבירת מחסום ה'אני לא יכול'" },
+    ],
+  },
+  analysis: {
+    phrases: [
+      (name: string) => `מנתחים את הפרופיל של ${name}...`,
+      () => 'מתאימים אסטרטגיות...',
+      () => 'בונים את מפת הדרכים ל-7 ימים...',
+    ] as ((name: string) => string)[],
+    engineCaption: 'מנוע האימון שלנו קורא את הבחירות שלך כדי לבנות את התוכנית המושלמת.',
+  },
+  motivators: {
+    stepLabel: 'שלב 3 · המסלול המאושר',
+    headline: (name: string) => `מה הכי מדליק את ${name}?`,
+    subHeadline: 'חיזוק חיובי עובד הכי טוב כשהוא אישי.',
+    cta: (name: string) => `ליצור את המסלול של ${name}`,
+    options: [
+      { key: 'gaming',     label: 'מסכים ומשחקים',    sub: 'משחקים, אפליקציות או תוכניות אהובות' },
+      { key: 'movement',   label: 'תנועה ומשחק',      sub: 'משחק בחוץ, ספורט או פעילות אנרגטית' },
+      { key: 'creative',   label: 'פרויקטים יצירתיים', sub: 'בנייה, ציור או יצירה דיגיטלית' },
+      { key: 'connection', label: 'זמן איכות',         sub: 'זמן אחד-על-אחד או פעילויות משותפות' },
+    ],
+  },
+  auth: {
+    headline: (name: string) => `שמרו את התוכנית של ${name}!`,
+    subHeadline: 'היכנסו כדי לראות את האסטרטגיה המותאמת אישית.',
+    emailLabel: 'אימייל',
+    emailPlaceholder: 'you@example.com',
+    passwordLabel: 'סיסמה',
+    passwordPlaceholder: '••••••••',
+    nameLabel: 'השם שלך',
+    namePlaceholder: 'לדוגמה: שרה',
+    cta: 'יצירת חשבון וצפייה בתוכנית',
+    ctaLogin: 'כניסה וצפייה בתוכנית',
+    ctaLoading: 'מגדירים...',
+    googleCta: 'המשך עם Google',
+    divider: 'או',
+    loginToggle: 'כבר יש לך חשבון? התחבר',
+    signupToggle: 'אין לך חשבון? הירשם',
+    errorFillFields: 'אנא מלא את כל השדות',
+    errorPasswordMin: 'הסיסמה חייבת להכיל לפחות 6 תווים',
+    errorGeneric: 'משהו השתבש. אנא נסה שוב.',
+    successCreated: 'חשבון נוצר! טוען את התוכנית...',
+    successLogin: 'ברוך הבא בחזרה! טוען את התוכנית...',
+  },
+  reveal: {
+    loadingPhrases: [
+      (name: string) => `מנתחים את הפרופיל של ${name}...`,
+      () => 'מתאימים אסטרטגיות...',
+      () => 'בונים את מפת הדרכים ל-7 ימים...',
+    ] as ((name: string) => string)[],
+    loadingCaption: 'מתאימים אישית את אסטרטגיית האימון',
+    headline: (name: string) => `ההמתנה נגמרה! התוכנית החיובית של ${name} מוכנה.`,
+    sub: (name: string) =>
+      `בהתבסס על הפרופיל של ${name}, התאמנו 7 ימים ראשונים להפוך את השגרה היומית.`,
+    planOverview: 'סקירת התוכנית',
+    focusLabel: '🎯 הפוקוס',
+    fuelLabel: '⚡ הדלק',
+    allAreas: 'כל התחומים',
+    allTypes: 'כל הסוגים',
+    successForecast: 'תחזית הצלחה: ',
+    forecast: {
+      '6-9':   'הורים לילדים בגילאי 6–9 רואים ירידה של 40% בעימותים כבר בשבוע הראשון.',
+      '10-14': 'הורים לילדים בגילאי 10–14 רואים ירידה של 40% בחיכוכים כבר בשבוע הראשון.',
+      '15-18': 'הורים לילדים בגילאי 15–18 רואים שיפור של 35% ביוזמת משימות כבר בשבוע הראשון.',
+    } as Record<string, string>,
+    methodPill: 'אימון תפקודי ניהולי · גישת גשר הדופמין',
+    cta: (name: string) => `פתיחת התוכנית המלאה של ${name}`,
+    ctaLoading: 'מגדירים את לוח הבקרה…',
+    trialDisclaimer: 'תקופת ניסיון של 7 ימים · ביטול בכל עת',
+  },
+  back: 'חזרה',
+};
+
+// ─── Runtime helpers ──────────────────────────────────────────────────────────
+
+let _lang: OnboardingLang = 'en';
+
+export function setOnboardingLang(lang: OnboardingLang) {
+  _lang = lang;
+}
+
+export function getOnboardingLang(): OnboardingLang {
+  return _lang;
+}
+
+/** Current translation object — call after setOnboardingLang() */
+export function getT() {
+  return _lang === 'he' ? HE : EN;
+}
+
+// Legacy named export — always returns EN for backward compat (used in existing code)
+export const T = EN;
+
+// Lookup maps
 export const STRUGGLE_LABELS: Record<string, string> = Object.fromEntries(
-  T.struggles.options.map(o => [o.key, o.label])
+  EN.struggles.options.map(o => [o.key, o.label])
 );
 
 export const MOTIVATION_LABELS: Record<string, string> = Object.fromEntries(
-  T.motivators.options.map(o => [o.key, o.label])
+  EN.motivators.options.map(o => [o.key, o.label])
 );
+
+export function getStruggleLabels(lang: OnboardingLang) {
+  const src = lang === 'he' ? HE : EN;
+  return Object.fromEntries(src.struggles.options.map(o => [o.key, o.label]));
+}
+
+export function getMotivationLabels(lang: OnboardingLang) {
+  const src = lang === 'he' ? HE : EN;
+  return Object.fromEntries(src.motivators.options.map(o => [o.key, o.label]));
+}
