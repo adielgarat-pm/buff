@@ -508,11 +508,26 @@ function StepAuth({ formData, onNext, onBack }: StepAuthProps) {
   );
 }
 
-/** Persist quiz data to the newly-created parent profile */
+/** Persist quiz data + create child profile after email signup */
 async function saveEnQuizData(formData: EnOnboardingData) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+
+    // 1. Fetch the parent profile (already created by signUp in AuthContext)
+    const { data: parentProfile } = await supabase
+      .from('profiles')
+      .select('id, family_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!parentProfile?.family_id) {
+      console.warn('[saveEnQuizData] Parent profile/family not found yet');
+      return;
+    }
+    const familyId = parentProfile.family_id;
+
+    // 2. Save quiz data to parent profile
     await supabase.from('profiles').update({
       onboarding_data: {
         en_v2: true,
@@ -525,6 +540,25 @@ async function saveEnQuizData(formData: EnOnboardingData) {
       is_activated: true,
       preferred_language: 'en',
     }).eq('user_id', user.id);
+
+    // 3. Create child profile if name given (DB trigger auto-creates tasks/rewards/vault)
+    if (formData.childName?.trim()) {
+      const { data: existingChild } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('family_id', familyId)
+        .eq('role', 'child')
+        .maybeSingle();
+
+      if (!existingChild) {
+        await supabase.from('profiles').insert({
+          family_id: familyId,
+          display_name: formData.childName.trim(),
+          role: 'child',
+          daily_goal: 100,
+        });
+      }
+    }
   } catch (err) {
     console.warn('[saveEnQuizData] Non-critical error:', err);
   }
