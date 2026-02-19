@@ -43,7 +43,9 @@ export function ParentView() {
   // Increment this key each time the dialog opens to guarantee a fresh mount
   const [onboardingKey, setOnboardingKey] = useState(0);
   // New English onboarding full-screen flow (shown to new parents with no children)
+  // Auto-show English onboarding for new parents with no children
   const [enOnboardingOpen, setEnOnboardingOpen] = useState(false);
+  const [autoOnboardingChecked, setAutoOnboardingChecked] = useState(false);
 
   // Sync internal navigation with browser history for proper back gesture
   const handleTabChange = useCallback((tab: string) => {
@@ -68,6 +70,15 @@ export function ParentView() {
   // Realtime: notify parent when a child redeems a reward
   // Must be called here (after useSyncedTaskStore, before any early returns) to keep hooks order stable
   useRewardRedemptionNotifier(profile?.family_id, true);
+
+  // Auto-launch onboarding wizard for new parents with zero children
+  // Only trigger once after initial data load
+  if (!loading && !autoOnboardingChecked) {
+    setAutoOnboardingChecked(true);
+    if (children.length === 0 && language !== 'he') {
+      setEnOnboardingOpen(true);
+    }
+  }
 
   // Loading state
   if (loading) {
@@ -385,7 +396,7 @@ export function ParentView() {
       {/* New English Onboarding — full-screen overlay for first-time signup / welcome banner CTA */}
       {enOnboardingOpen && (
         <div className="fixed inset-0 z-[100] bg-background">
-          <EnOnboardingFlow onComplete={handleEnOnboardingComplete} />
+          <EnOnboardingFlow onComplete={handleEnOnboardingComplete} skipAuth />
         </div>
       )}
     </div>
