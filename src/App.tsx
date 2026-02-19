@@ -17,15 +17,6 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import { AboutPage } from "@/components/AboutPage";
 import { EnOnboardingFlow } from "@/components/onboarding/en";
 import buffLogo from '@/assets/buff-logo.png';
-
-/** /onboarding — guest-first entry point. No auth required. */
-function OnboardingPage() {
-  const navigate = useNavigate();
-  const handleComplete = async () => {
-    navigate('/dashboard', { replace: true });
-  };
-  return <EnOnboardingFlow onComplete={handleComplete} />;
-}
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -125,6 +116,16 @@ function AboutPageWrapper() {
   return <AboutPage onBack={() => navigate("/dashboard", { replace: true })} />;
 }
 
+/** Test route: renders the new EnOnboardingFlow directly, no auth required.
+ *  Visit /test-onboarding to verify the flow works in isolation. */
+function TestOnboardingPage() {
+  const navigate = useNavigate();
+  const handleComplete = async () => {
+    console.log('[TestOnboarding] Flow completed — navigating to /dashboard');
+    navigate('/dashboard', { replace: true });
+  };
+  return <EnOnboardingFlow onComplete={handleComplete} />;
+}
 
 const AppRoutes = () => (
   <Routes>
@@ -152,11 +153,9 @@ const AppRoutes = () => (
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />
 
-    {/* /onboarding — guest-first funnel, no auth required */}
-    <Route path="/onboarding" element={<OnboardingPage />} />
-
-    {/* Legacy test-onboarding redirect */}
-    <Route path="/test-onboarding" element={<Navigate to="/onboarding" replace />} />
+    {/* ⚡ Test route – renders the new EnOnboardingFlow directly (no auth gate).
+        Use this to verify the flow exists and works: /test-onboarding */}
+    <Route path="/test-onboarding" element={<TestOnboardingPage />} />
     
     {/* Legacy route redirect */}
     <Route path="/app" element={<Navigate to="/dashboard" replace />} />

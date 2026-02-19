@@ -3,16 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap,
   Sunrise, BookOpen, Bus, Rocket, Check, Gamepad2, Zap, Palette, Heart, Star,
-  Users, User, Loader2, Lock,
+  Users, User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { T, STRUGGLE_LABELS, MOTIVATION_LABELS } from './translations';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,11 +20,11 @@ export interface EnOnboardingData {
   motivations: string[];
 }
 
-// Steps: 0=Hook+Role, 1=Identity, 2=Struggles, 'analysis'=interstitial, 3=Motivators, 'auth'=signup, 4=Reveal
-type EnStep = 0 | 1 | 2 | 'analysis' | 3 | 'auth' | 4;
+// Steps: 0=Hook+Role, 1=Identity, 2=Struggles, 'analysis'=interstitial, 3=Motivators, 4=Reveal
+type EnStep = 0 | 1 | 2 | 'analysis' | 3 | 4;
 
-const STEP_ORDER: EnStep[] = [0, 1, 2, 'analysis', 3, 'auth', 4];
-// Persisted steps are 1–3 (analysis and auth are transient; 0 always starts fresh)
+const STEP_ORDER: EnStep[] = [0, 1, 2, 'analysis', 3, 4];
+// Persisted steps are 1–3 (analysis is transient; 0 always starts fresh)
 const STORAGE_KEY = 'buff_en_onboarding_v4';
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
@@ -38,7 +34,7 @@ function clearSession() {
 }
 
 function saveSession(data: EnOnboardingData, step: EnStep) {
-  if (step === 0 || step === 'analysis' || step === 'auth') return; // never persist hook, analysis, or auth
+  if (step === 0 || step === 'analysis') return; // never persist hook or analysis
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step, savedAt: Date.now() })); } catch { /* ignore */ }
 }
 
@@ -135,49 +131,22 @@ function ConfettiBurst() {
 
 export interface EnOnboardingFlowProps {
   onComplete: (data: EnOnboardingData) => Promise<void>;
-  /** When true, skip Step 0 (Hook/Role) and the Auth step — user is already authenticated */
-  skipAuth?: boolean;
 }
 
 // ─── Root component ───────────────────────────────────────────────────────────
 
-export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingFlowProps) {
-  const { user } = useAuth();
-
-  // Check if returning from Google OAuth with completed auth
-  const postAuthComplete = useRef(() => {
-    try {
-      const flag = localStorage.getItem('en_onboarding_auth_complete');
-      if (flag) {
-        localStorage.removeItem('en_onboarding_auth_complete');
-        return true;
-      }
-    } catch { /* ignore */ }
-    return false;
-  });
-
+export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   // Check for a resumable session once (before first render)
   const resumableSession = useRef(loadSession());
   const [hasResumable] = useState(() => hasSession());
 
   // Initialise from saved session (or fresh)
-  const [formData, setFormData] = useState<EnOnboardingData>(() => {
-    const saved = resumableSession.current;
-    if (saved) return saved.data;
-    // If skipAuth, pre-set role to parent so validation passes
-    if (skipAuth) return { ...emptyData(), role: 'parent' };
-    return emptyData();
-  });
-  const [step, setStep] = useState<EnStep>(() => {
-    // If returning from Google OAuth, jump straight to Reveal
-    if (postAuthComplete.current()) {
-      const saved = resumableSession.current;
-      return saved ? 4 : 0;
-    }
-    // If skipAuth, start at Identity (step 1) — skip the Hook/Role screen
-    if (skipAuth && !resumableSession.current) return 1;
-    return resumableSession.current ? resumableSession.current.step : 0;
-  });
+  const [formData, setFormData] = useState<EnOnboardingData>(() =>
+    resumableSession.current ? resumableSession.current.data : emptyData()
+  );
+  const [step, setStep] = useState<EnStep>(() =>
+    resumableSession.current ? resumableSession.current.step : 0
+  );
   const [dir, setDir] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -217,8 +186,8 @@ export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingF
 
   const goNext = useCallback((override?: EnStep) => {
     // Guard: ignore if called with a non-EnStep value (e.g. a MouseEvent from onClick)
-    if (override !== undefined && (typeof override !== 'number' && override !== 'analysis' && override !== 'auth')) {
-      // Called without a valid override — just advance
+    if (override !== undefined && (typeof override !== 'number' && override !== 'analysis')) {
+      // Called without a valid override (e.g. directly from onClick handler) — just advance
       setDir(1);
       setStep(s => {
         isRestoredSession.current = false;
@@ -240,14 +209,9 @@ export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingF
     setStep(s => {
       const idx = STEP_ORDER.indexOf(s);
       const prev = STEP_ORDER[Math.max(idx - 1, 0)];
-      // skip analysis and auth when going back
-      if (prev === 'analysis') return 2;
-      if (prev === 'auth') return 3;
-      // In skipAuth mode, don't go back to step 0
-      if (skipAuth && prev === 0) return 1;
-      return prev;
+      return prev === 'analysis' ? 2 : prev; // skip analysis when going back
     });
-  }, [skipAuth]);
+  }, []);
 
   const startFresh = useCallback(() => {
     clearSession();
@@ -294,13 +258,13 @@ export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingF
 
   // ── Progress bar ────────────────────────────────────────────────────────────
 
-  // Map steps to progress %: 0=0, 1=25, 2=50, analysis=50, 3=75, auth=87, 4=100
+  // Map steps to progress %: 0=0, 1=25, 2=50, analysis=50, 3=75, 4=100
   const progressMap: Record<string, number> = {
-    '0': 0, '1': 25, '2': 50, 'analysis': 50, '3': 75, 'auth': 87, '4': 100,
+    '0': 0, '1': 25, '2': 50, 'analysis': 50, '3': 75, '4': 100,
   };
   const progress = progressMap[String(step)] ?? 0;
   const snapProgress = isRestoredSession.current;
-  const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis' && step !== 4 && !(skipAuth && step === 1);
+  const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis';
 
   // ── Step content renderer ───────────────────────────────────────────────────
 
@@ -349,15 +313,7 @@ export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingF
             formData={formData}
             toggle={toggleArray}
             canProceed={canProceed()}
-            onNext={() => goNext(skipAuth ? 4 : 'auth')}
-          />
-        );
-      case 'auth':
-        return skipAuth ? null : (
-          <StepAuth
-            formData={formData}
-            onNext={() => goNext(4)}
-            onBack={goBack}
+            onNext={goNext}
           />
         );
       case 4:
@@ -423,178 +379,8 @@ export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingF
   );
 }
 
-// ─── Step 'auth': Account Creation ───────────────────────────────────────────
 
-interface StepAuthProps {
-  formData: EnOnboardingData;
-  onNext: () => void;
-  onBack: () => void;
-}
 
-function StepAuth({ formData, onNext, onBack }: StepAuthProps) {
-  const { signUp, signInWithGoogle } = useAuth();
-  const name = formData.childName.trim() || 'your child';
-
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
-  const [parentName, setParentName] = useState('');
-  const [marketing, setMarketing]   = useState(false);
-  const [loading, setLoading]       = useState(false);
-  const [errorMsg, setErrorMsg]     = useState('');
-
-  const handleEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg('');
-    if (!email || !password || !parentName) { setErrorMsg('Please fill in all fields.'); return; }
-    if (password.length < 6) { setErrorMsg('Password must be at least 6 characters.'); return; }
-
-    setLoading(true);
-    try {
-      const { error } = await signUp(email, password, parentName, 'parent', undefined, marketing);
-      if (error) { setErrorMsg(error.message); return; }
-      await saveEnQuizData(formData);
-      onNext();
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    localStorage.setItem('en_onboarding_quiz', JSON.stringify(formData));
-    // Save session so formData survives the redirect
-    saveSession(formData, 3);
-    setLoading(true);
-    // Redirect back to /onboarding after Google OAuth completes
-    const { error } = await signInWithGoogle(`${window.location.origin}/auth/callback`);
-    if (error) { setErrorMsg(error.message); setLoading(false); }
-  };
-
-  return (
-    <div className="flex flex-col gap-5 pt-3 max-w-sm mx-auto pb-6">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Lock className="w-4 h-4 text-primary" />
-          </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Almost there</p>
-        </div>
-        <h2 className="text-xl font-bold text-foreground leading-snug">
-          Save <span className="text-primary">{name}</span>'s plan & start your free trial
-        </h2>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Create an account to unlock {name}'s full 7-day program. Free to start, cancel anytime.
-        </p>
-      </motion.div>
-
-      <Button variant="outline" className="w-full rounded-2xl h-12 font-semibold" onClick={handleGoogle} disabled={loading}>
-        <svg className="w-4 h-4 mr-2 shrink-0" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        Continue with Google
-      </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">or email</span>
-        </div>
-      </div>
-
-      <form onSubmit={handleEmail} className="space-y-3">
-        <div className="space-y-1">
-          <Label htmlFor="en-name" className="text-xs font-medium">Your name</Label>
-          <Input id="en-name" value={parentName} onChange={e => setParentName(e.target.value)} placeholder="e.g. Sarah" disabled={loading} className="h-10 rounded-xl" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="en-email" className="text-xs font-medium">Email</Label>
-          <Input id="en-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" disabled={loading} dir="ltr" className="h-10 rounded-xl" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="en-password" className="text-xs font-medium">Password</Label>
-          <Input id="en-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" disabled={loading} dir="ltr" className="h-10 rounded-xl" />
-        </div>
-
-        <div className="flex items-start gap-2 p-2.5 rounded-xl bg-primary/5 border border-primary/10">
-          <Checkbox id="en-marketing" checked={marketing} onCheckedChange={v => setMarketing(v === true)} disabled={loading} className="mt-0.5" />
-          <Label htmlFor="en-marketing" className="text-xs text-foreground leading-snug cursor-pointer">
-            Send me tips & progress updates for {name} (optional)
-          </Label>
-        </div>
-
-        {errorMsg && <p className="text-xs text-destructive bg-destructive/10 rounded-xl px-3 py-2">{errorMsg}</p>}
-
-        <Button type="submit" size="lg" className="w-full h-12 rounded-2xl font-bold gap-2 shadow-md shadow-primary/25" disabled={loading}>
-          {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</>) : (<><Zap className="w-4 h-4" /> Create Account & Save Plan</>)}
-        </Button>
-
-        <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
-          By continuing you agree to our Terms of Service. 7-day free trial · No credit card required.
-        </p>
-      </form>
-    </div>
-  );
-}
-
-/** Persist quiz data + create child profile after email signup */
-async function saveEnQuizData(formData: EnOnboardingData) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // 1. Fetch the parent profile (already created by signUp in AuthContext)
-    const { data: parentProfile } = await supabase
-      .from('profiles')
-      .select('id, family_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!parentProfile?.family_id) {
-      console.warn('[saveEnQuizData] Parent profile/family not found yet');
-      return;
-    }
-    const familyId = parentProfile.family_id;
-
-    // 2. Save quiz data to parent profile
-    await supabase.from('profiles').update({
-      onboarding_data: {
-        en_v2: true,
-        childName: formData.childName,
-        ageGroup: formData.ageGroup,
-        struggles: formData.struggles,
-        motivations: formData.motivations,
-      },
-      onboarding_step: 6,
-      is_activated: true,
-      preferred_language: 'en',
-    }).eq('user_id', user.id);
-
-    // 3. Create child profile if name given (DB trigger auto-creates tasks/rewards/vault)
-    if (formData.childName?.trim()) {
-      const { data: existingChild } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('family_id', familyId)
-        .eq('role', 'child')
-        .maybeSingle();
-
-      if (!existingChild) {
-        await supabase.from('profiles').insert({
-          family_id: familyId,
-          display_name: formData.childName.trim(),
-          role: 'child',
-          daily_goal: 100,
-        });
-      }
-    }
-  } catch (err) {
-    console.warn('[saveEnQuizData] Non-critical error:', err);
-  }
-}
 
 // ─── Step 0: The Hook + Role Segmentation ─────────────────────────────────────
 

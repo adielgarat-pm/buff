@@ -141,10 +141,10 @@ export default function Landing() {
   const navigate = useNavigate();
 
   // When coming from English landing page, ensure language is set to English
-  const goToOnboarding = () => {
+  const goToAuthAsEnglish = () => {
     setLanguage('en');
     localStorage.setItem('buff-language', 'en');
-    navigate('/onboarding');
+    navigate('/auth');
   };
 
   return (
@@ -178,10 +178,10 @@ export default function Landing() {
                 <Globe className="w-4 h-4" />
               </Button>
               
-              <Button variant="ghost" className="rounded-2xl" onClick={goToOnboarding}>
+              <Button variant="ghost" className="rounded-2xl" onClick={goToAuthAsEnglish}>
                 {t('nav.login')}
               </Button>
-              <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button" onClick={goToOnboarding}>
+              <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button" onClick={goToAuthAsEnglish}>
                 {t('nav.getStarted')}
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
               </Button>
@@ -223,7 +223,7 @@ export default function Landing() {
             <Button
               size="lg"
               className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 cta-buff-button animate-cta-glow"
-              onClick={goToOnboarding}
+              onClick={goToAuthAsEnglish}
             >
               <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
               {t('landing.tryFree')}
@@ -370,7 +370,7 @@ export default function Landing() {
           <Button
             size="lg"
             className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 cta-buff-button animate-cta-glow"
-            onClick={goToOnboarding}
+            onClick={goToAuthAsEnglish}
           >
             <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
             {t('landing.startFreeTrial')}
@@ -396,7 +396,7 @@ export default function Landing() {
                 <Heart className="w-3 h-3" />
                 {language === 'he' ? 'אודות' : 'About'}
               </Link>
-              <button onClick={goToOnboarding} className="hover:text-foreground transition-colors">{t('nav.getStarted')}</button>
+              <button onClick={goToAuthAsEnglish} className="hover:text-foreground transition-colors">{t('nav.getStarted')}</button>
             </div>
           </div>
           

@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 
 interface Profile {
   id: string;
@@ -23,7 +22,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, displayName: string, role: 'parent' | 'child', familyCode?: string, marketingConsent?: boolean) => Promise<{ error: Error | null }>;
-  signInWithGoogle: (redirectTo?: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   /**
    * Re-fetches the profile from the backend and updates context state.
@@ -211,13 +210,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signInWithGoogle = async (redirectTo?: string) => {
-    const redirectUrl = redirectTo || `${window.location.origin}/auth/callback`;
-
-    const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: redirectUrl,
+  const signInWithGoogle = async () => {
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+      },
     });
-    return { error: result.error ? (result.error instanceof Error ? result.error : new Error(String(result.error))) : null };
+    return { error };
   };
 
   const signUp = async (

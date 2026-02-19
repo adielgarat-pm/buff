@@ -31,8 +31,6 @@ export default function AuthCallback() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [showRescueButton, setShowRescueButton] = useState(false);
-  // Holds quiz data from the English onboarding when user chose Google sign-in
-  const pendingEnQuizRef = useRef<import('@/components/onboarding/en').EnOnboardingData | null>(null);
   
   // Prevent double initialization
   const hasInitialized = useRef(false);
@@ -176,22 +174,6 @@ export default function AuthCallback() {
                       'User';
           setDisplayName(name);
           setUserId(currentUserId);
-
-          // If the user came from the English onboarding auth step via Google,
-          // store quiz data and set step to trigger handleEnOnboardingComplete after render.
-          const savedQuiz = localStorage.getItem('en_onboarding_quiz');
-          if (savedQuiz) {
-            try {
-              const quizData = JSON.parse(savedQuiz) as import('@/components/onboarding/en').EnOnboardingData;
-              localStorage.removeItem('en_onboarding_quiz');
-              pendingEnQuizRef.current = quizData;
-              setStep('parent-onboarding'); // will be handled by useEffect below
-              return;
-            } catch {
-              // If parsing fails, fall through to normal flow
-            }
-          }
-
           // English users skip the Hebrew role-selection screen and go straight to EnOnboardingFlow
           const lang = localStorage.getItem('buff-language') || 'en';
           if (lang !== 'he') {
@@ -295,15 +277,6 @@ export default function AuthCallback() {
       }
     };
   }, []);
-
-  // Process pending English quiz data after Google OAuth redirect
-  useEffect(() => {
-    if (pendingEnQuizRef.current && step === 'parent-onboarding' && userId) {
-      const quiz = pendingEnQuizRef.current;
-      pendingEnQuizRef.current = null;
-      handleEnOnboardingComplete(quiz);
-    }
-  }, [step, userId]);
 
   const handleRetry = async () => {
     setIsRetrying(true);
@@ -656,9 +629,7 @@ export default function AuthCallback() {
 
       await refreshProfile(userId);
       trackRegistrationStep('onboarding_complete', { role: 'parent', method: 'google', flow: 'en_v2' });
-      // Signal the onboarding wizard to resume at the Reveal step
-      localStorage.setItem('en_onboarding_auth_complete', 'true');
-      navigate('/onboarding', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error('[EnOnboarding] Completion error:', err);
       setError('Something went wrong. Please try again.');
