@@ -44,12 +44,15 @@ function loadSession(): { data: EnOnboardingData; step: EnStep } | null {
     if (idx > 0 && idx < STEP_ORDER.length - 1 && parsed.step !== 'analysis') {
       return parsed;
     }
-    clearSession();
     return null;
   } catch {
-    clearSession();
     return null;
   }
+}
+
+/** Returns true if a resumable mid-flow session exists without consuming it */
+function hasSession(): boolean {
+  return loadSession() !== null;
 }
 
 // ─── Initial state ────────────────────────────────────────────────────────────
@@ -154,24 +157,25 @@ export interface EnOnboardingFlowProps {
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
-  // Initialise state from a saved mid-flow session (or fresh)
-  const [formData, setFormData] = useState<EnOnboardingData>(() => {
-    const saved = loadSession();
-    return saved ? saved.data : emptyData();
-  });
-  const [step, setStep] = useState<EnStep>(() => {
-    const saved = loadSession();
-    return saved ? saved.step : 0;
-  });
+  // Check for a resumable session before first render (computed once)
+  const resumableSession = useRef(loadSession());
+
+  // Initialise from a saved mid-flow session (or fresh)
+  const [formData, setFormData] = useState<EnOnboardingData>(() =>
+    resumableSession.current ? resumableSession.current.data : emptyData()
+  );
+  const [step, setStep] = useState<EnStep>(() =>
+    resumableSession.current ? resumableSession.current.step : 0
+  );
   const [dir, setDir] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Always clear storage when on Step 0 (the Hook) to guarantee a fresh entry
-  useEffect(() => {
-    if (step === 0) clearSession();
-  }, [step]);
+  // Whether a resumable session existed when the component mounted
+  const [hasResumable] = useState(() => hasSession());
+  // Whether we entered via resume (so the progress bar should snap, not animate, on mount)
+  const isRestoredSession = useRef(resumableSession.current !== null);
 
-  // Persist whenever formData or step changes (except analysis/hook)
+  // Persist whenever formData or step changes (skip step 0 and analysis)
   useEffect(() => {
     if (step === 0 || step === 'analysis') return;
     saveSession(formData, step);
@@ -198,21 +202,37 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   const goTo = useCallback((target: EnStep, direction: number = 1) => {
     setDir(direction);
     setStep(target);
+    // Once user navigates away from hook, disable snap mode
+    isRestoredSession.current = false;
   }, []);
 
   const goNext = useCallback((override?: EnStep) => {
     if (override !== undefined) { goTo(override, 1); return; }
     setDir(1);
-    setStep(s => STEP_ORDER[Math.min(STEP_ORDER.indexOf(s) + 1, STEP_ORDER.length - 1)]);
+    setStep(s => {
+      isRestoredSession.current = false;
+      return STEP_ORDER[Math.min(STEP_ORDER.indexOf(s) + 1, STEP_ORDER.length - 1)];
+    });
   }, [goTo]);
 
   const goBack = useCallback(() => {
     setDir(-1);
+    isRestoredSession.current = false;
     setStep(s => {
       const idx = STEP_ORDER.indexOf(s);
       const prev = STEP_ORDER[Math.max(idx - 1, 0)];
       return prev === 'analysis' ? 2 : prev; // skip analysis on back
     });
+  }, []);
+
+  /** Start fresh: wipe storage and reset to step 0 */
+  const startFresh = useCallback(() => {
+    clearSession();
+    resumableSession.current = null;
+    isRestoredSession.current = false;
+    setFormData(emptyData());
+    setDir(1);
+    setStep(0);
   }, []);
 
   // ── Validation ─────────────────────────────────────────────────────────────
@@ -244,6 +264,8 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
 
   const progressStep = step === 'analysis' ? 2 : (step as number);
   const progress = (progressStep / 4) * 100;
+  // Snap the bar instantly when returning to a mid-flow step
+  const snapProgress = isRestoredSession.current;
   const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis';
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -264,13 +286,13 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
         <img src={buffLogoNoBg} alt="BUFF" className="h-9" />
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar — snaps instantly when restoring a saved session */}
       <div className="px-5 pt-2 pb-4 shrink-0">
         <div className="h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
           <motion.div
             className="h-full bg-primary rounded-full"
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={snapProgress ? { duration: 0 } : { duration: 0.4, ease: 'easeOut' }}
           />
         </div>
       </div>
@@ -280,7 +302,19 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
         <AnimatePresence initial={false} custom={dir} mode="wait">
           <StepWrapper key={String(step)} dir={dir}>
             {step === 0 && (
-              <StepHook onNext={goNext} />
+              <StepHook
+                onNext={goNext}
+                hasResumable={hasResumable}
+                onResume={() => {
+                  const saved = loadSession();
+                  if (saved) {
+                    setFormData(saved.data);
+                    isRestoredSession.current = false;
+                    goTo(saved.step, 1);
+                  }
+                }}
+                onStartFresh={startFresh}
+              />
             )}
             {step === 1 && (
               <StepIdentity
@@ -351,7 +385,14 @@ StepWrapper.displayName = 'StepWrapper';
 
 // ─── Step 0: The Hook ────────────────────────────────────────────────────────
 
-function StepHook({ onNext }: { onNext: () => void }) {
+interface StepHookProps {
+  onNext: () => void;
+  hasResumable: boolean;
+  onResume: () => void;
+  onStartFresh: () => void;
+}
+
+function StepHook({ onNext, hasResumable, onResume, onStartFresh }: StepHookProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] text-center gap-5 max-w-xs mx-auto">
 
@@ -393,6 +434,38 @@ function StepHook({ onNext }: { onNext: () => void }) {
           ✨ Designed by parents, for parents navigating the ADHD journey.
         </span>
       </motion.div>
+
+      {/* Resume banner — shown only when a mid-flow session exists */}
+      <AnimatePresence>
+        {hasResumable && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ delay: 0.32, duration: 0.28 }}
+            className="w-full rounded-2xl border border-primary/30 bg-primary/8 px-4 py-3 flex flex-col gap-2 text-left"
+          >
+            <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 shrink-0" />
+              You were in the middle of building your plan!
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={onResume}
+                className="flex-1 h-9 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Resume →
+              </button>
+              <button
+                onClick={onStartFresh}
+                className="h-9 px-3 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+              >
+                Start fresh
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* CTA */}
       <motion.div
