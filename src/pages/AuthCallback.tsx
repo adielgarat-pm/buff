@@ -656,7 +656,9 @@ export default function AuthCallback() {
 
       await refreshProfile(userId);
       trackRegistrationStep('onboarding_complete', { role: 'parent', method: 'google', flow: 'en_v2' });
-      navigate('/dashboard', { replace: true });
+      // Signal the onboarding wizard to resume at the Reveal step
+      localStorage.setItem('en_onboarding_auth_complete', 'true');
+      navigate('/onboarding', { replace: true });
     } catch (err) {
       console.error('[EnOnboarding] Completion error:', err);
       setError('Something went wrong. Please try again.');

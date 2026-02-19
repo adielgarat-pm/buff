@@ -140,6 +140,20 @@ export interface EnOnboardingFlowProps {
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
+  const { user } = useAuth();
+
+  // Check if returning from Google OAuth with completed auth
+  const postAuthComplete = useRef(() => {
+    try {
+      const flag = localStorage.getItem('en_onboarding_auth_complete');
+      if (flag) {
+        localStorage.removeItem('en_onboarding_auth_complete');
+        return true;
+      }
+    } catch { /* ignore */ }
+    return false;
+  });
+
   // Check for a resumable session once (before first render)
   const resumableSession = useRef(loadSession());
   const [hasResumable] = useState(() => hasSession());
@@ -148,9 +162,14 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   const [formData, setFormData] = useState<EnOnboardingData>(() =>
     resumableSession.current ? resumableSession.current.data : emptyData()
   );
-  const [step, setStep] = useState<EnStep>(() =>
-    resumableSession.current ? resumableSession.current.step : 0
-  );
+  const [step, setStep] = useState<EnStep>(() => {
+    // If returning from Google OAuth, jump straight to Reveal
+    if (postAuthComplete.current()) {
+      const saved = resumableSession.current;
+      return saved ? 4 : 0;
+    }
+    return resumableSession.current ? resumableSession.current.step : 0;
+  });
   const [dir, setDir] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -434,6 +453,8 @@ function StepAuth({ formData, onNext, onBack }: StepAuthProps) {
 
   const handleGoogle = async () => {
     localStorage.setItem('en_onboarding_quiz', JSON.stringify(formData));
+    // Save session so formData survives the redirect
+    saveSession(formData, 3);
     setLoading(true);
     const { error } = await signInWithGoogle();
     if (error) { setErrorMsg(error.message); setLoading(false); }
