@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, forwardRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap,
@@ -256,6 +256,69 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   const snapProgress = isRestoredSession.current;
   const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis';
 
+  // ── Step content renderer ───────────────────────────────────────────────────
+
+  function renderStep() {
+    switch (step) {
+      case 0:
+        return (
+          <StepHook
+            formData={formData}
+            updateField={updateField}
+            onNext={goNext}
+            hasResumable={hasResumable}
+            onResume={handleResume}
+            onStartFresh={startFresh}
+            canProceed={canProceed()}
+          />
+        );
+      case 1:
+        return (
+          <StepIdentity
+            formData={formData}
+            updateField={updateField}
+            canProceed={canProceed()}
+            onNext={goNext}
+          />
+        );
+      case 2:
+        return (
+          <StepFriction
+            formData={formData}
+            toggle={toggleArray}
+            canProceed={canProceed()}
+            onNext={() => goNext('analysis')}
+          />
+        );
+      case 'analysis':
+        return (
+          <StepAnalysis
+            childName={formData.childName.trim() || 'your child'}
+            onDone={() => goNext(3)}
+          />
+        );
+      case 3:
+        return (
+          <StepMotivators
+            formData={formData}
+            toggle={toggleArray}
+            canProceed={canProceed()}
+            onNext={goNext}
+          />
+        );
+      case 4:
+        return (
+          <StepReveal
+            formData={formData}
+            onLaunch={handleLaunch}
+            isSubmitting={isSubmitting}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -288,84 +351,26 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
       {/* Step content */}
       <div className="flex-1 overflow-hidden relative">
         <AnimatePresence initial={false} custom={dir} mode="wait">
-          <StepWrapper key={String(step)} dir={dir}>
-            {step === 0 && (
-              <StepHook
-                formData={formData}
-                updateField={updateField}
-                onNext={goNext}
-                hasResumable={hasResumable}
-                onResume={handleResume}
-                onStartFresh={startFresh}
-                canProceed={canProceed()}
-              />
-            )}
-            {step === 1 && (
-              <StepIdentity
-                formData={formData}
-                updateField={updateField}
-                canProceed={canProceed()}
-                onNext={goNext}
-              />
-            )}
-            {step === 2 && (
-              <StepFriction
-                formData={formData}
-                toggle={toggleArray}
-                canProceed={canProceed()}
-                onNext={() => goNext('analysis')}
-              />
-            )}
-            {step === 'analysis' && (
-              <StepAnalysis
-                childName={formData.childName.trim() || 'your child'}
-                onDone={() => goNext(3)}
-              />
-            )}
-            {step === 3 && (
-              <StepMotivators
-                formData={formData}
-                toggle={toggleArray}
-                canProceed={canProceed()}
-                onNext={goNext}
-              />
-            )}
-            {step === 4 && (
-              <StepReveal
-                formData={formData}
-                onLaunch={handleLaunch}
-                isSubmitting={isSubmitting}
-              />
-            )}
-          </StepWrapper>
+          <motion.div
+            key={String(step)}
+            custom={dir}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={slideTrans}
+            className="absolute inset-0 overflow-y-auto px-5 pb-32"
+          >
+            {renderStep()}
+          </motion.div>
         </AnimatePresence>
       </div>
     </div>
   );
 }
 
-// ─── Step wrapper (named forwardRef for AnimatePresence) ──────────────────────
 
-interface StepWrapperProps {
-  dir: number;
-  children: React.ReactNode;
-}
 
-const StepWrapper = forwardRef<HTMLDivElement, StepWrapperProps>(({ dir, children }, ref) => (
-  <motion.div
-    ref={ref}
-    custom={dir}
-    variants={slideVariants}
-    initial="enter"
-    animate="center"
-    exit="exit"
-    transition={slideTrans}
-    className="absolute inset-0 overflow-y-auto px-5 pb-32"
-  >
-    {children}
-  </motion.div>
-));
-StepWrapper.displayName = 'StepWrapper';
 
 // ─── Step 0: The Hook + Role Segmentation ─────────────────────────────────────
 
