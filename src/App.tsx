@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { AboutPage } from "@/components/AboutPage";
 import { EnOnboardingFlow } from "@/components/onboarding/en";
+import Onboarding from "@/pages/Onboarding";
 import buffLogo from '@/assets/buff-logo.png';
 import { Loader2 } from "lucide-react";
 
@@ -153,8 +154,10 @@ const AppRoutes = () => (
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />
 
-    {/* ⚡ Test route – renders the new EnOnboardingFlow directly (no auth gate).
-        Use this to verify the flow exists and works: /test-onboarding */}
+    {/* Unified onboarding with embedded auth */}
+    <Route path="/onboarding" element={<Onboarding />} />
+
+    {/* ⚡ Test route – renders the new EnOnboardingFlow directly (no auth gate). */}
     <Route path="/test-onboarding" element={<TestOnboardingPage />} />
     
     {/* Legacy route redirect */}

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable';
 import { toast } from 'sonner';
 import {
   type OnboardingLang, getT, setOnboardingLang, getOnboardingLang,
@@ -1184,15 +1185,12 @@ function StepAuth({ childName, lang }: StepAuthProps) {
     // Save session and mark that we're going to OAuth
     markAuthReturn();
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/onboarding',
-      },
+    const { error } = await lovable.auth.signInWithOAuth('google', {
+      redirect_uri: window.location.origin + '/onboarding',
     });
     if (error) {
       clearAuthReturn();
-      toast.error(error.message || t.auth.errorGeneric);
+      toast.error(error instanceof Error ? error.message : t.auth.errorGeneric);
     }
   };
 
