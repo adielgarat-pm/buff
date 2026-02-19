@@ -185,6 +185,16 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   }, []);
 
   const goNext = useCallback((override?: EnStep) => {
+    // Guard: ignore if called with a non-EnStep value (e.g. a MouseEvent from onClick)
+    if (override !== undefined && (typeof override !== 'number' && override !== 'analysis')) {
+      // Called without a valid override (e.g. directly from onClick handler) — just advance
+      setDir(1);
+      setStep(s => {
+        isRestoredSession.current = false;
+        return STEP_ORDER[Math.min(STEP_ORDER.indexOf(s) + 1, STEP_ORDER.length - 1)];
+      });
+      return;
+    }
     if (override !== undefined) { goTo(override, 1); return; }
     setDir(1);
     setStep(s => {
@@ -348,8 +358,8 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
         </div>
       </div>
 
-      {/* Step content */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* Step content — use min-h-0 to ensure flex-1 has a defined height for absolute children */}
+      <div className="flex-1 min-h-0 overflow-hidden relative">
         <AnimatePresence initial={false} custom={dir} mode="wait">
           <motion.div
             key={String(step)}
