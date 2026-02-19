@@ -17,6 +17,8 @@ import { AdminDashboard } from "@/components/AdminDashboard";
 import { AboutPage } from "@/components/AboutPage";
 import { EnOnboardingFlow } from "@/components/onboarding/en";
 import Onboarding from "@/pages/Onboarding";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 import buffLogo from '@/assets/buff-logo.png';
 import { Loader2 } from "lucide-react";
 
@@ -151,6 +153,10 @@ const AppRoutes = () => (
     {/* Admin dashboard - restricted to specific admin email */}
     <Route path="/admin" element={<ProtectedRoute><AdminGuard><AdminDashboard /></AdminGuard></ProtectedRoute>} />
     
+    {/* Legal pages */}
+    <Route path="/privacy" element={<Privacy />} />
+    <Route path="/terms" element={<Terms />} />
+
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />
 
