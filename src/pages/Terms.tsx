@@ -64,7 +64,7 @@ export default function Terms() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground">9. Contact</h2>
-            <p>Questions? Reach out at <a href="mailto:support@buff-app.com" className="text-primary hover:underline">support@buff-app.com</a>.</p>
+            <p>Questions? Reach out at <a href="mailto:buff.parenting@gmail.com" className="text-primary hover:underline">buff.parenting@gmail.com</a>.</p>
           </section>
         </div>
       </div>
