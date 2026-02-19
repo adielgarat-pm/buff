@@ -135,11 +135,13 @@ function ConfettiBurst() {
 
 export interface EnOnboardingFlowProps {
   onComplete: (data: EnOnboardingData) => Promise<void>;
+  /** When true, skip Step 0 (Hook/Role) and the Auth step — user is already authenticated */
+  skipAuth?: boolean;
 }
 
 // ─── Root component ───────────────────────────────────────────────────────────
 
-export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
+export function EnOnboardingFlow({ onComplete, skipAuth = false }: EnOnboardingFlowProps) {
   const { user } = useAuth();
 
   // Check if returning from Google OAuth with completed auth
@@ -159,15 +161,21 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   const [hasResumable] = useState(() => hasSession());
 
   // Initialise from saved session (or fresh)
-  const [formData, setFormData] = useState<EnOnboardingData>(() =>
-    resumableSession.current ? resumableSession.current.data : emptyData()
-  );
+  const [formData, setFormData] = useState<EnOnboardingData>(() => {
+    const saved = resumableSession.current;
+    if (saved) return saved.data;
+    // If skipAuth, pre-set role to parent so validation passes
+    if (skipAuth) return { ...emptyData(), role: 'parent' };
+    return emptyData();
+  });
   const [step, setStep] = useState<EnStep>(() => {
     // If returning from Google OAuth, jump straight to Reveal
     if (postAuthComplete.current()) {
       const saved = resumableSession.current;
       return saved ? 4 : 0;
     }
+    // If skipAuth, start at Identity (step 1) — skip the Hook/Role screen
+    if (skipAuth && !resumableSession.current) return 1;
     return resumableSession.current ? resumableSession.current.step : 0;
   });
   const [dir, setDir] = useState(1);
@@ -235,9 +243,11 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
       // skip analysis and auth when going back
       if (prev === 'analysis') return 2;
       if (prev === 'auth') return 3;
+      // In skipAuth mode, don't go back to step 0
+      if (skipAuth && prev === 0) return 1;
       return prev;
     });
-  }, []);
+  }, [skipAuth]);
 
   const startFresh = useCallback(() => {
     clearSession();
@@ -290,7 +300,7 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   };
   const progress = progressMap[String(step)] ?? 0;
   const snapProgress = isRestoredSession.current;
-  const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis' && step !== 4;
+  const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis' && step !== 4 && !(skipAuth && step === 1);
 
   // ── Step content renderer ───────────────────────────────────────────────────
 
@@ -339,11 +349,11 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
             formData={formData}
             toggle={toggleArray}
             canProceed={canProceed()}
-            onNext={() => goNext('auth')}
+            onNext={() => goNext(skipAuth ? 4 : 'auth')}
           />
         );
       case 'auth':
-        return (
+        return skipAuth ? null : (
           <StepAuth
             formData={formData}
             onNext={() => goNext(4)}
