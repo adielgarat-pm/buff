@@ -3,35 +3,39 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, ArrowRight, Brain, Sparkles, Backpack, Headphones, GraduationCap,
   Sunrise, BookOpen, Bus, Rocket, Check, Gamepad2, Zap, Palette, Heart, Star,
+  Users, User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
+import { T, STRUGGLE_LABELS, MOTIVATION_LABELS } from './translations';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface EnOnboardingData {
+  role: 'parent' | 'teen' | '';
   childName: string;
   ageGroup: '6-9' | '10-14' | '15-18' | '';
   struggles: string[];
   motivations: string[];
 }
 
+// Steps: 0=Hook+Role, 1=Identity, 2=Struggles, 'analysis'=interstitial, 3=Motivators, 4=Reveal
 type EnStep = 0 | 1 | 2 | 'analysis' | 3 | 4;
 
 const STEP_ORDER: EnStep[] = [0, 1, 2, 'analysis', 3, 4];
-const TOTAL_STEPS = 5; // Hook=0%, Identity=25%, Struggles=50%, Motivators=75%, Reveal=100%
-const STORAGE_KEY = 'buff_en_onboarding_v3';
+// Persisted steps are 1–3 (analysis is transient; 0 always starts fresh)
+const STORAGE_KEY = 'buff_en_onboarding_v4';
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 
 function clearSession() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
 }
 
 function saveSession(data: EnOnboardingData, step: EnStep) {
-  if (step === 'analysis') return; // transient — never persist
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step })); } catch {}
+  if (step === 0 || step === 'analysis') return; // never persist hook or analysis
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step, savedAt: Date.now() })); } catch { /* ignore */ }
 }
 
 function loadSession(): { data: EnOnboardingData; step: EnStep } | null {
@@ -40,7 +44,7 @@ function loadSession(): { data: EnOnboardingData; step: EnStep } | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { data: EnOnboardingData; step: EnStep };
     const idx = STEP_ORDER.indexOf(parsed.step);
-    // Only restore if genuinely mid-flow (steps 1–3, not analysis)
+    // Only restore if genuinely mid-flow (steps 1–3, never analysis)
     if (idx > 0 && idx < STEP_ORDER.length - 1 && parsed.step !== 'analysis') {
       return parsed;
     }
@@ -50,7 +54,6 @@ function loadSession(): { data: EnOnboardingData; step: EnStep } | null {
   }
 }
 
-/** Returns true if a resumable mid-flow session exists without consuming it */
 function hasSession(): boolean {
   return loadSession() !== null;
 }
@@ -58,47 +61,23 @@ function hasSession(): boolean {
 // ─── Initial state ────────────────────────────────────────────────────────────
 
 function emptyData(): EnOnboardingData {
-  return { childName: '', ageGroup: '', struggles: [], motivations: [] };
+  return { role: '', childName: '', ageGroup: '', struggles: [], motivations: [] };
 }
 
 // ─── Static option data ───────────────────────────────────────────────────────
 
-const STRUGGLE_OPTIONS = [
-  { key: 'morning',     Icon: Sunrise,   label: 'Morning Routine',     sub: 'The race against the clock' },
-  { key: 'homework',    Icon: BookOpen,  label: 'Homework & Focus',    sub: 'Taming the study monster' },
-  { key: 'transitions', Icon: Bus,       label: 'Transitions & School', sub: "The 'shifting gears' struggle" },
-  { key: 'initiation',  Icon: Rocket,    label: 'Getting Started',     sub: "Breaking through the 'I can't' wall" },
-] as const;
+const STRUGGLE_ICONS: Record<string, React.ElementType> = {
+  morning: Sunrise, homework: BookOpen, transitions: Bus, initiation: Rocket,
+};
 
-const MOTIVATION_OPTIONS = [
-  { key: 'gaming',      Icon: Gamepad2, label: 'Screen & Gaming',   sub: 'Gaming, apps, or favourite shows' },
-  { key: 'movement',    Icon: Zap,      label: 'Movement & Play',   sub: 'Outdoor play, sports, or high-energy fun' },
-  { key: 'creative',    Icon: Palette,  label: 'Creative Projects', sub: 'Building, drawing, or digital creation' },
-  { key: 'connection',  Icon: Heart,    label: 'Connection Time',   sub: 'One-on-one time or shared activities' },
-] as const;
+const MOTIVATION_ICONS: Record<string, React.ElementType> = {
+  gaming: Gamepad2, movement: Zap, creative: Palette, connection: Heart,
+};
 
 const AGE_GROUPS = ['6-9', '10-14', '15-18'] as const;
 
-const AGE_META: Record<string, { Icon: React.ElementType; hint: string }> = {
-  '6-9':   { Icon: Backpack,      hint: 'Great! We have a specialized track for younger learners 🌱' },
-  '10-14': { Icon: GraduationCap, hint: 'Perfect! Our middle-school coaching track is highly effective ✨' },
-  '15-18': { Icon: Headphones,    hint: 'Awesome! Teens respond especially well to the autonomy approach 🚀' },
-};
-
-const STRUGGLE_LABELS: Record<string, string> = {
-  morning: 'Morning Routine', homework: 'Homework & Focus',
-  transitions: 'Transitions & School', initiation: 'Getting Started',
-};
-
-const MOTIVATION_LABELS: Record<string, string> = {
-  gaming: 'Screen & Gaming', movement: 'Movement & Play',
-  creative: 'Creative Projects', connection: 'Connection Time',
-};
-
-const AGE_FORECAST: Record<string, string> = {
-  '6-9':   'Parents of 6–9 year olds typically see a 40% reduction in power struggles within the first week.',
-  '10-14': 'Parents of 10–14 year olds typically see a 40% reduction in friction within the first week.',
-  '15-18': 'Parents of 15–18 year olds typically see a 35% improvement in task initiation within the first week.',
+const AGE_ICONS: Record<string, React.ElementType> = {
+  '6-9': Backpack, '10-14': GraduationCap, '15-18': Headphones,
 };
 
 // ─── Animation config ─────────────────────────────────────────────────────────
@@ -119,7 +98,7 @@ const CONFETTI_COLORS = [
 ];
 
 function ConfettiBurst() {
-  const pieces = Array.from({ length: 18 }, (_, i) => i);
+  const pieces = Array.from({ length: 22 }, (_, i) => i);
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
       {pieces.map(i => {
@@ -157,10 +136,11 @@ export interface EnOnboardingFlowProps {
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
-  // Check for a resumable session before first render (computed once)
+  // Check for a resumable session once (before first render)
   const resumableSession = useRef(loadSession());
+  const [hasResumable] = useState(() => hasSession());
 
-  // Initialise from a saved mid-flow session (or fresh)
+  // Initialise from saved session (or fresh)
   const [formData, setFormData] = useState<EnOnboardingData>(() =>
     resumableSession.current ? resumableSession.current.data : emptyData()
   );
@@ -170,18 +150,15 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   const [dir, setDir] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Whether a resumable session existed when the component mounted
-  const [hasResumable] = useState(() => hasSession());
-  // Whether we entered via resume (so the progress bar should snap, not animate, on mount)
+  // Whether the progress bar should snap (no animation) on first render
   const isRestoredSession = useRef(resumableSession.current !== null);
 
-  // Persist whenever formData or step changes (skip step 0 and analysis)
+  // Auto-save: whenever step or data changes, persist (skips step 0 & analysis)
   useEffect(() => {
-    if (step === 0 || step === 'analysis') return;
     saveSession(formData, step);
   }, [formData, step]);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Field helpers ───────────────────────────────────────────────────────────
 
   const updateField = useCallback(<K extends keyof EnOnboardingData>(
     key: K, value: EnOnboardingData[K],
@@ -199,10 +176,11 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     });
   }, []);
 
-  const goTo = useCallback((target: EnStep, direction: number = 1) => {
+  // ── Navigation ──────────────────────────────────────────────────────────────
+
+  const goTo = useCallback((target: EnStep, direction = 1) => {
     setDir(direction);
     setStep(target);
-    // Once user navigates away from hook, disable snap mode
     isRestoredSession.current = false;
   }, []);
 
@@ -221,11 +199,10 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     setStep(s => {
       const idx = STEP_ORDER.indexOf(s);
       const prev = STEP_ORDER[Math.max(idx - 1, 0)];
-      return prev === 'analysis' ? 2 : prev; // skip analysis on back
+      return prev === 'analysis' ? 2 : prev; // skip analysis when going back
     });
   }, []);
 
-  /** Start fresh: wipe storage and reset to step 0 */
   const startFresh = useCallback(() => {
     clearSession();
     resumableSession.current = null;
@@ -235,11 +212,20 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     setStep(0);
   }, []);
 
-  // ── Validation ─────────────────────────────────────────────────────────────
+  const handleResume = useCallback(() => {
+    const saved = loadSession();
+    if (saved) {
+      setFormData(saved.data);
+      isRestoredSession.current = false;
+      goTo(saved.step, 1);
+    }
+  }, [goTo]);
+
+  // ── Validation ──────────────────────────────────────────────────────────────
 
   const canProceed = useCallback((): boolean => {
     switch (step) {
-      case 0: return true;
+      case 0: return formData.role === 'parent'; // must pick Parent to continue
       case 1: return formData.childName.trim().length >= 2 && formData.ageGroup !== '';
       case 2: return formData.struggles.length >= 1;
       case 3: return formData.motivations.length >= 1;
@@ -248,7 +234,7 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     }
   }, [step, formData]);
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ── Submit ──────────────────────────────────────────────────────────────────
 
   const handleLaunch = useCallback(async () => {
     setIsSubmitting(true);
@@ -260,15 +246,17 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
     }
   }, [onComplete, formData]);
 
-  // ── Progress ───────────────────────────────────────────────────────────────
+  // ── Progress bar ────────────────────────────────────────────────────────────
 
-  const progressStep = step === 'analysis' ? 2 : (step as number);
-  const progress = (progressStep / 4) * 100;
-  // Snap the bar instantly when returning to a mid-flow step
+  // Map steps to progress %: 0=0, 1=25, 2=50, analysis=50, 3=75, 4=100
+  const progressMap: Record<string, number> = {
+    '0': 0, '1': 25, '2': 50, 'analysis': 50, '3': 75, '4': 100,
+  };
+  const progress = progressMap[String(step)] ?? 0;
   const snapProgress = isRestoredSession.current;
   const showBack = STEP_ORDER.indexOf(step) > 0 && step !== 'analysis';
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col" dir="ltr">
@@ -280,13 +268,13 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
             className="absolute left-5 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            Back
+            {T.back}
           </button>
         )}
         <img src={buffLogoNoBg} alt="BUFF" className="h-9" />
       </div>
 
-      {/* Progress bar — snaps instantly when restoring a saved session */}
+      {/* Progress bar */}
       <div className="px-5 pt-2 pb-4 shrink-0">
         <div className="h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
           <motion.div
@@ -297,23 +285,19 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
         </div>
       </div>
 
-      {/* Step content — AnimatePresence with named components */}
+      {/* Step content */}
       <div className="flex-1 overflow-hidden relative">
         <AnimatePresence initial={false} custom={dir} mode="wait">
           <StepWrapper key={String(step)} dir={dir}>
             {step === 0 && (
               <StepHook
+                formData={formData}
+                updateField={updateField}
                 onNext={goNext}
                 hasResumable={hasResumable}
-                onResume={() => {
-                  const saved = loadSession();
-                  if (saved) {
-                    setFormData(saved.data);
-                    isRestoredSession.current = false;
-                    goTo(saved.step, 1);
-                  }
-                }}
+                onResume={handleResume}
                 onStartFresh={startFresh}
+                canProceed={canProceed()}
               />
             )}
             {step === 1 && (
@@ -360,7 +344,7 @@ export function EnOnboardingFlow({ onComplete }: EnOnboardingFlowProps) {
   );
 }
 
-// ─── Step wrapper (required named component for AnimatePresence) ──────────────
+// ─── Step wrapper (named forwardRef for AnimatePresence) ──────────────────────
 
 interface StepWrapperProps {
   dir: number;
@@ -383,38 +367,41 @@ const StepWrapper = forwardRef<HTMLDivElement, StepWrapperProps>(({ dir, childre
 ));
 StepWrapper.displayName = 'StepWrapper';
 
-// ─── Step 0: The Hook ────────────────────────────────────────────────────────
+// ─── Step 0: The Hook + Role Segmentation ─────────────────────────────────────
 
 interface StepHookProps {
+  formData: EnOnboardingData;
+  updateField: <K extends keyof EnOnboardingData>(key: K, value: EnOnboardingData[K]) => void;
   onNext: () => void;
   hasResumable: boolean;
   onResume: () => void;
   onStartFresh: () => void;
+  canProceed: boolean;
 }
 
-function StepHook({ onNext, hasResumable, onResume, onStartFresh }: StepHookProps) {
+function StepHook({ formData, updateField, onNext, hasResumable, onResume, onStartFresh, canProceed }: StepHookProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center gap-5 max-w-xs mx-auto">
+    <div className="flex flex-col items-center gap-5 pt-4 max-w-xs mx-auto text-center">
 
-      {/* Illustration */}
+      {/* Brain illustration */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.05, type: 'spring', stiffness: 240, damping: 22 }}
-        className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/15"
+        className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/15"
       >
-        <span className="text-5xl select-none">🧠✨</span>
+        <span className="text-4xl select-none">🧠✨</span>
       </motion.div>
 
       {/* Headline */}
       <motion.div
-        initial={{ y: 24, opacity: 0 }}
+        initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.15 }}
-        className="space-y-2.5"
+        transition={{ delay: 0.13 }}
+        className="space-y-2"
       >
-        <h1 className="text-2xl font-bold text-foreground leading-snug">
-          Ready for calmer mornings<br />and brighter days?
+        <h1 className="text-2xl font-bold text-foreground leading-snug whitespace-pre-line">
+          {T.hook.headline}
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Join hundreds of families using{' '}
@@ -427,40 +414,128 @@ function StepHook({ onNext, hasResumable, onResume, onStartFresh }: StepHookProp
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.28 }}
-        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-primary/25 bg-primary/5"
+        transition={{ delay: 0.22 }}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/25 bg-primary/5"
       >
-        <span className="text-xs text-primary font-semibold">
-          ✨ Designed by parents, for parents navigating the ADHD journey.
-        </span>
+        <span className="text-xs text-primary font-semibold">{T.hook.trustBadge}</span>
       </motion.div>
 
-      {/* Resume banner — shown only when a mid-flow session exists */}
+      {/* Role segmentation */}
+      <motion.div
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="w-full space-y-3"
+      >
+        <p className="text-sm font-semibold text-foreground">{T.hook.roleQuestion}</p>
+
+        <div className="grid grid-cols-2 gap-3 w-full">
+          {/* Parent option */}
+          <button
+            onClick={() => updateField('role', 'parent')}
+            className={`flex flex-col items-center gap-2.5 py-5 px-3 rounded-2xl border-2 transition-all duration-200 ${
+              formData.role === 'parent'
+                ? 'border-primary bg-primary/10 shadow-md shadow-primary/20'
+                : 'border-border hover:border-primary/40 bg-background'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+              formData.role === 'parent' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              <Users className="w-5 h-5" />
+            </div>
+            <div className="text-center">
+              <p className={`text-sm font-bold leading-none ${formData.role === 'parent' ? 'text-primary' : 'text-foreground'}`}>
+                {T.hook.roleParentLabel}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1 leading-tight">{T.hook.roleParentSub}</p>
+            </div>
+            {formData.role === 'parent' && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+              >
+                <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />
+              </motion.div>
+            )}
+          </button>
+
+          {/* Teen option */}
+          <button
+            onClick={() => updateField('role', 'teen')}
+            className={`flex flex-col items-center gap-2.5 py-5 px-3 rounded-2xl border-2 transition-all duration-200 ${
+              formData.role === 'teen'
+                ? 'border-primary bg-primary/10 shadow-md shadow-primary/20'
+                : 'border-border hover:border-primary/40 bg-background'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+              formData.role === 'teen' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              <User className="w-5 h-5" />
+            </div>
+            <div className="text-center">
+              <p className={`text-sm font-bold leading-none ${formData.role === 'teen' ? 'text-primary' : 'text-foreground'}`}>
+                {T.hook.roleTeenLabel}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1 leading-tight">{T.hook.roleTeenSub}</p>
+            </div>
+            {formData.role === 'teen' && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+              >
+                <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />
+              </motion.div>
+            )}
+          </button>
+        </div>
+
+        {/* Teen redirect message */}
+        <AnimatePresence>
+          {formData.role === 'teen' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="w-full rounded-2xl border border-border bg-muted/40 px-4 py-3 text-left"
+            >
+              <p className="text-sm font-semibold text-foreground">{T.hook.teenTitle}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{T.hook.teenMessage}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Resume banner */}
       <AnimatePresence>
-        {hasResumable && (
+        {hasResumable && formData.role !== 'teen' && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ delay: 0.32, duration: 0.28 }}
+            transition={{ delay: 0.35, duration: 0.25 }}
             className="w-full rounded-2xl border border-primary/30 bg-primary/8 px-4 py-3 flex flex-col gap-2 text-left"
           >
             <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
               <Star className="w-3.5 h-3.5 shrink-0" />
-              You were in the middle of building your plan!
+              {T.hook.resumeBanner}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={onResume}
                 className="flex-1 h-9 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
               >
-                Resume →
+                {T.hook.resumeBtn}
               </button>
               <button
                 onClick={onStartFresh}
                 className="h-9 px-3 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
               >
-                Start fresh
+                {T.hook.startFreshBtn}
               </button>
             </div>
           </motion.div>
@@ -469,20 +544,25 @@ function StepHook({ onNext, hasResumable, onResume, onStartFresh }: StepHookProp
 
       {/* CTA */}
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
+        initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.38 }}
+        transition={{ delay: 0.4 }}
         className="w-full space-y-2"
       >
         <Button
           onClick={onNext}
+          disabled={!canProceed}
           size="lg"
-          className="w-full h-14 rounded-2xl text-base font-semibold gap-2 shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.25)]"
+          className={`w-full h-14 rounded-2xl text-base font-semibold gap-2 transition-all duration-300 ${
+            canProceed
+              ? 'shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.25)] opacity-100'
+              : 'opacity-35 shadow-none'
+          }`}
         >
-          Personalize My Plan
+          {T.hook.cta}
           <ArrowRight className="w-4 h-4" />
         </Button>
-        <p className="text-xs text-muted-foreground">Takes about 90 seconds · No credit card needed</p>
+        <p className="text-xs text-muted-foreground">{T.hook.footer}</p>
       </motion.div>
 
       {/* Founder caption */}
@@ -490,9 +570,9 @@ function StepHook({ onNext, hasResumable, onResume, onStartFresh }: StepHookProp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.55 }}
-        className="text-[10px] text-muted-foreground/50 tracking-wide"
+        className="text-[10px] text-muted-foreground/50 tracking-wide pb-4"
       >
-        Founded by a mom with a mission.
+        {T.hook.founder}
       </motion.p>
     </div>
   );
@@ -509,7 +589,7 @@ interface StepIdentityProps {
 
 function StepIdentity({ formData, updateField, canProceed, onNext }: StepIdentityProps) {
   const trimmedName = formData.childName.trim();
-  const ageMeta = formData.ageGroup ? AGE_META[formData.ageGroup] : null;
+  const ageMeta = formData.ageGroup ? T.identity.ageMeta[formData.ageGroup] : null;
 
   return (
     <div className="flex flex-col gap-8 pt-6 max-w-sm mx-auto pb-8">
@@ -521,11 +601,9 @@ function StepIdentity({ formData, updateField, canProceed, onNext }: StepIdentit
         transition={{ delay: 0.08 }}
         className="space-y-1.5"
       >
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Step 1 · Getting to Know You</p>
-        <h2 className="text-2xl font-bold text-foreground leading-tight">
-          Who are we supporting today?
-        </h2>
-        <p className="text-sm text-muted-foreground">Let's personalize your plan — starting with your child.</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">{T.identity.stepLabel}</p>
+        <h2 className="text-2xl font-bold text-foreground leading-tight">{T.identity.headline}</h2>
+        <p className="text-sm text-muted-foreground">{T.identity.subHeadline}</p>
       </motion.div>
 
       {/* Name field */}
@@ -536,13 +614,13 @@ function StepIdentity({ formData, updateField, canProceed, onNext }: StepIdentit
         className="space-y-2"
       >
         <label htmlFor="child-name" className="text-sm font-semibold text-foreground">
-          What's your child's name?
+          {T.identity.nameLabel}
         </label>
         <Input
           id="child-name"
           value={formData.childName}
           onChange={e => updateField('childName', e.target.value)}
-          placeholder="e.g. Alex"
+          placeholder={T.identity.namePlaceholder}
           className="h-12 text-base rounded-xl border-2 focus-visible:ring-primary focus-visible:border-primary"
           autoFocus
           maxLength={40}
@@ -559,15 +637,17 @@ function StepIdentity({ formData, updateField, canProceed, onNext }: StepIdentit
       >
         <label className="text-sm font-semibold text-foreground">
           {trimmedName ? (
-            <>How old is <span className="text-primary">{trimmedName}</span>?</>
+            <>
+              How old is <span className="text-primary">{trimmedName}</span>?
+            </>
           ) : (
-            'How old is your child?'
+            T.identity.ageLabel
           )}
         </label>
 
         <div className="grid grid-cols-3 gap-3">
           {AGE_GROUPS.map(ag => {
-            const { Icon } = AGE_META[ag];
+            const Icon = AGE_ICONS[ag];
             const selected = formData.ageGroup === ag;
             return (
               <button
@@ -618,7 +698,7 @@ function StepIdentity({ formData, updateField, canProceed, onNext }: StepIdentit
               : 'opacity-35 shadow-none'
           }`}
         >
-          Continue
+          {T.identity.cta}
           <ArrowRight className="w-4 h-4" />
         </Button>
       </motion.div>
@@ -626,7 +706,7 @@ function StepIdentity({ formData, updateField, canProceed, onNext }: StepIdentit
   );
 }
 
-// ─── Step 2: Struggles (The Friction) ────────────────────────────────────────
+// ─── Step 2: Struggles (Friction) ─────────────────────────────────────────────
 
 interface StepFrictionProps {
   formData: EnOnboardingData;
@@ -641,26 +721,22 @@ function StepFriction({ formData, toggle, canProceed, onNext }: StepFrictionProp
   return (
     <div className="flex flex-col gap-4 pt-3 max-w-sm mx-auto pb-4">
       <div className="space-y-0.5">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Step 2 · Finding the Friction Points</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">{T.struggles.stepLabel}</p>
         <h2 className="text-xl font-bold text-foreground leading-snug">
-          What part of the day needs more sunshine for{' '}
-          <span className="text-primary">{name}</span>?
+          {T.struggles.headline(name)}
         </h2>
-        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-          Select all that apply — we'll focus your plan on these exact moments.
-        </p>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{T.struggles.subHeadline}</p>
       </div>
 
       {/* Empathy badge */}
       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 self-start">
-        <span className="text-[11px] text-primary font-semibold">
-          💛 You're not alone — 85% of parents struggle with these same moments.
-        </span>
+        <span className="text-[11px] text-primary font-semibold">{T.struggles.empathyBadge}</span>
       </div>
 
       {/* Cards */}
       <div className="space-y-2">
-        {STRUGGLE_OPTIONS.map(({ key, Icon, label, sub }) => {
+        {T.struggles.options.map(({ key, label, sub }) => {
+          const Icon = STRUGGLE_ICONS[key];
           const selected = formData.struggles.includes(key);
           return (
             <motion.button
@@ -708,7 +784,7 @@ function StepFriction({ formData, toggle, canProceed, onNext }: StepFrictionProp
           canProceed ? 'shadow-md shadow-primary/25 opacity-100' : 'opacity-40 shadow-none'
         }`}
       >
-        Analyze My Struggles
+        {T.struggles.cta}
         <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
@@ -716,12 +792,6 @@ function StepFriction({ formData, toggle, canProceed, onNext }: StepFrictionProp
 }
 
 // ─── Analysis interstitial ────────────────────────────────────────────────────
-
-const ANALYSIS_PHRASES = [
-  (name: string) => `Analyzing ${name}'s profile...`,
-  () => 'Tailoring strategies...',
-  () => 'Building your 7-day roadmap...',
-];
 
 interface StepAnalysisProps {
   childName: string;
@@ -736,7 +806,7 @@ function StepAnalysis({ childName, onDone }: StepAnalysisProps) {
 
   useEffect(() => {
     const phraseTimer = setInterval(() => {
-      setPhraseIdx(prev => Math.min(prev + 1, ANALYSIS_PHRASES.length - 1));
+      setPhraseIdx(prev => Math.min(prev + 1, T.analysis.phrases.length - 1));
     }, 1000);
     const doneTimer = setTimeout(() => {
       clearInterval(phraseTimer);
@@ -800,7 +870,7 @@ function StepAnalysis({ childName, onDone }: StepAnalysisProps) {
             transition={{ duration: 0.35 }}
             className="text-base font-semibold text-foreground leading-snug"
           >
-            {ANALYSIS_PHRASES[phraseIdx](childName)}
+            {T.analysis.phrases[phraseIdx](childName)}
           </motion.p>
         </AnimatePresence>
         <div className="flex gap-1.5">
@@ -815,14 +885,12 @@ function StepAnalysis({ childName, onDone }: StepAnalysisProps) {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground px-6 leading-relaxed">
-        Our coaching engine is reading your selections to build the perfect plan.
-      </p>
+      <p className="text-xs text-muted-foreground px-6 leading-relaxed">{T.analysis.engineCaption}</p>
     </div>
   );
 }
 
-// ─── Step 3: Motivators (The Happy Path) ──────────────────────────────────────
+// ─── Step 3: Motivators ───────────────────────────────────────────────────────
 
 interface StepMotivatorsProps {
   formData: EnOnboardingData;
@@ -837,17 +905,16 @@ function StepMotivators({ formData, toggle, canProceed, onNext }: StepMotivators
   return (
     <div className="flex flex-col gap-4 pt-3 max-w-sm mx-auto pb-4">
       <div className="space-y-0.5">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Step 3 · The Happy Path</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">{T.motivators.stepLabel}</p>
         <h2 className="text-xl font-bold text-foreground leading-snug">
-          What lights <span className="text-primary">{name}</span> up the most?
+          {T.motivators.headline(name)}
         </h2>
-        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-          Positive reinforcement works best when it's personal.
-        </p>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{T.motivators.subHeadline}</p>
       </div>
 
       <div className="space-y-2">
-        {MOTIVATION_OPTIONS.map(({ key, Icon, label, sub }) => {
+        {T.motivators.options.map(({ key, label, sub }) => {
+          const Icon = MOTIVATION_ICONS[key];
           const selected = formData.motivations.includes(key);
           return (
             <motion.button
@@ -895,7 +962,7 @@ function StepMotivators({ formData, toggle, canProceed, onNext }: StepMotivators
           canProceed ? 'shadow-md shadow-primary/25 opacity-100' : 'opacity-40 shadow-none'
         }`}
       >
-        Create {name}'s Happy Path
+        {T.motivators.cta(name)}
         <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
@@ -915,7 +982,6 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
   const [loadingPct, setLoadingPct] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // 3-second loading phase then reveal with confetti
   useEffect(() => {
     let frame: number;
     let start: number | null = null;
@@ -929,7 +995,7 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
       } else {
         setPhase('reveal');
         setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 2200);
+        setTimeout(() => setShowConfetti(false), 2400);
       }
     };
     frame = requestAnimationFrame(tick);
@@ -939,16 +1005,21 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
   const name = formData.childName.trim() || 'Your child';
   const struggles = formData.struggles.map(s => STRUGGLE_LABELS[s] || s);
   const motivations = formData.motivations.map(m => MOTIVATION_LABELS[m] || m);
-  const forecast = formData.ageGroup ? AGE_FORECAST[formData.ageGroup] : AGE_FORECAST['6-9'];
+  const forecast = T.reveal.forecast[formData.ageGroup || '6-9'] ?? T.reveal.forecast['6-9'];
+
+  // Loading phrase by percentage
+  const loadingPhrase =
+    loadingPct < 40 ? T.reveal.loadingPhrases[0](name)
+    : loadingPct < 75 ? T.reveal.loadingPhrases[1](name)
+    : T.reveal.loadingPhrases[2](name);
 
   return (
     <>
       {showConfetti && <ConfettiBurst />}
 
       <div className="flex flex-col gap-5 pt-4 max-w-sm mx-auto pb-6">
-
-        {/* Loading phase */}
         <AnimatePresence mode="wait">
+          {/* Loading phase */}
           {phase === 'loading' && (
             <motion.div
               key="loading"
@@ -967,21 +1038,15 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
 
               <div className="space-y-2 w-full max-w-[260px]">
                 <AnimatePresence mode="wait">
-                  {loadingPct < 40 && (
-                    <motion.p key="p1" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm font-semibold text-foreground">
-                      Analyzing {name}'s profile...
-                    </motion.p>
-                  )}
-                  {loadingPct >= 40 && loadingPct < 75 && (
-                    <motion.p key="p2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm font-semibold text-foreground">
-                      Tailoring strategies...
-                    </motion.p>
-                  )}
-                  {loadingPct >= 75 && (
-                    <motion.p key="p3" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm font-semibold text-foreground">
-                      Building your 7-day roadmap...
-                    </motion.p>
-                  )}
+                  <motion.p
+                    key={loadingPhrase}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    {loadingPhrase}
+                  </motion.p>
                 </AnimatePresence>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div
@@ -989,7 +1054,7 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                     style={{ width: `${loadingPct}%` }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Personalizing your coaching strategy</p>
+                <p className="text-xs text-muted-foreground">{T.reveal.loadingCaption}</p>
               </div>
             </motion.div>
           )}
@@ -1017,10 +1082,7 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                   The wait is over!{' '}
                   <span className="text-primary">{name}</span>'s Positive Plan is ready.
                 </h2>
-                <p className="text-xs text-muted-foreground">
-                  Based on {name}'s profile, we've tailored a{' '}
-                  <strong className="text-foreground">7-day kickstart</strong> to transform your daily routine.
-                </p>
+                <p className="text-xs text-muted-foreground">{T.reveal.sub(name)}</p>
               </div>
 
               {/* Plan summary card */}
@@ -1032,13 +1094,12 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
               >
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <p className="text-xs font-bold text-primary uppercase tracking-wider">Plan Overview</p>
+                  <p className="text-xs font-bold text-primary uppercase tracking-wider">{T.reveal.planOverview}</p>
                 </div>
 
-                {/* Two columns */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">🎯 The Focus</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">{T.reveal.focusLabel}</p>
                     {struggles.length > 0 ? (
                       <div className="flex flex-col gap-1">
                         {struggles.map(s => (
@@ -1047,11 +1108,11 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                           </span>
                         ))}
                       </div>
-                    ) : <span className="text-xs text-muted-foreground">All areas</span>}
+                    ) : <span className="text-xs text-muted-foreground">{T.reveal.allAreas}</span>}
                   </div>
 
                   <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">⚡ The Fuel</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">{T.reveal.fuelLabel}</p>
                     {motivations.length > 0 ? (
                       <div className="flex flex-col gap-1">
                         {motivations.map(m => (
@@ -1060,7 +1121,7 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                           </span>
                         ))}
                       </div>
-                    ) : <span className="text-xs text-muted-foreground">All types</span>}
+                    ) : <span className="text-xs text-muted-foreground">{T.reveal.allTypes}</span>}
                   </div>
                 </div>
 
@@ -1069,7 +1130,7 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                 <div className="flex items-start gap-2">
                   <span className="text-base shrink-0">📈</span>
                   <p className="text-[11px] text-muted-foreground leading-snug">
-                    <span className="font-semibold text-foreground">Success Forecast: </span>
+                    <span className="font-semibold text-foreground">{T.reveal.successForecast}</span>
                     {forecast}
                   </p>
                 </div>
@@ -1084,11 +1145,11 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
               >
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-[11px] font-medium text-muted-foreground">
                   <Brain className="w-3 h-3" />
-                  Executive Function coaching · Dopamine Bridge approach
+                  {T.reveal.methodPill}
                 </span>
               </motion.div>
 
-              {/* Primary CTA */}
+              {/* Primary CTA — pulsing shadow */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1099,7 +1160,7 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                   animate={{
                     boxShadow: [
                       '0 0 0 0 hsl(var(--primary) / 0.35)',
-                      '0 0 0 10px hsl(var(--primary) / 0)',
+                      '0 0 0 12px hsl(var(--primary) / 0)',
                       '0 0 0 0 hsl(var(--primary) / 0)',
                     ],
                   }}
@@ -1112,19 +1173,15 @@ function StepReveal({ formData, onLaunch, isSubmitting }: StepRevealProps) {
                     size="lg"
                     className="w-full h-14 rounded-2xl text-base font-bold gap-2 shadow-lg shadow-primary/30"
                   >
-                    {isSubmitting ? (
-                      'Setting up your dashboard…'
-                    ) : (
+                    {isSubmitting ? T.reveal.ctaLoading : (
                       <>
-                        Unlock {name}'s Full Plan
+                        {T.reveal.cta(name)}
                         <ArrowRight className="w-5 h-5" />
                       </>
                     )}
                   </Button>
                 </motion.div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Start 7-day free trial · Cancel anytime
-                </p>
+                <p className="text-xs text-muted-foreground text-center">{T.reveal.trialDisclaimer}</p>
               </motion.div>
             </motion.div>
           )}
