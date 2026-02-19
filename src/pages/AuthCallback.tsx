@@ -864,19 +864,22 @@ export default function AuthCallback() {
   }
 
   if (step === 'loading' || step === 'creating') {
+    const isEnglish = localStorage.getItem('buff-language-explicit') !== 'he';
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">
-            {step === 'loading' ? 'מאמת את החשבון...' : 'יוצר את החשבון...'}
+            {step === 'loading'
+              ? (isEnglish ? 'Verifying your account...' : 'מאמת את החשבון...')
+              : (isEnglish ? 'Setting up your account...' : 'יוצר את החשבון...')}
           </p>
           
           {/* Rescue Button - appears after 5 seconds */}
           {showRescueButton && (
             <div className="mt-6 pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3">
-                נתקעת? לחץ כאן לרענן
+                {isEnglish ? 'Taking too long? Click to refresh.' : 'נתקעת? לחץ כאן לרענן'}
               </p>
               <Button 
                 variant="outline" 
@@ -890,7 +893,7 @@ export default function AuthCallback() {
                 ) : (
                   <RefreshCw className="w-4 h-4" />
                 )}
-                רענן פרופיל
+                {isEnglish ? 'Refresh' : 'רענן פרופיל'}
               </Button>
             </div>
           )}
