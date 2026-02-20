@@ -133,7 +133,7 @@ export default function Auth() {
           className="rounded-2xl gap-2 h-8 px-2"
         >
           <Globe className="w-4 h-4" />
-          {language === 'he' ? 'EN' : 'עב'}
+          {language === 'he' ? 'EN' : 'HE'}
         </Button>
       </div>
 
