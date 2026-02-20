@@ -1539,7 +1539,7 @@ function StepReveal({ formData, onLaunch, isSubmitting, lang }: StepRevealProps)
                     )}
                   </Button>
                 </motion.div>
-                <p className="text-xs text-muted-foreground text-center">{t.reveal.trialDisclaimer}</p>
+                
               </motion.div>
             </motion.div>
           )}
