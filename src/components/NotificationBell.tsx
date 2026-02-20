@@ -137,11 +137,10 @@ export function NotificationBell() {
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                'absolute z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
-                // Mobile: full-width anchored just below the button, left-aligned to prevent clipping
-                'right-0 top-11',
-                // On very small screens keep it from overflowing the viewport
-                'w-[calc(100vw-2rem)] max-w-xs sm:w-80',
+                'fixed sm:absolute z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
+                // Mobile: centered horizontally with margin
+                'left-4 right-4 top-16 sm:left-auto sm:right-0 sm:top-11',
+                'sm:w-80 max-w-sm',
               )}
             >
               {/* Header */}
