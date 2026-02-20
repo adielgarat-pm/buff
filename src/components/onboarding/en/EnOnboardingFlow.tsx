@@ -47,6 +47,8 @@ function saveSession(data: EnOnboardingData, step: EnStep, lang: OnboardingLang)
   if (step === 0 || step === 'analysis') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, step, lang, savedAt: Date.now() }));
+    // Always keep buff-language in sync so LanguageProvider picks it up after redirect
+    localStorage.setItem('buff-language', lang);
   } catch { /* ignore */ }
 }
 
@@ -1182,7 +1184,8 @@ function StepAuth({ childName, lang }: StepAuthProps) {
   };
 
   const handleGoogleAuth = async () => {
-    // Save session and mark that we're going to OAuth
+    // Explicitly persist language before full-page redirect (auto-save effect may not fire)
+    localStorage.setItem('buff-language', lang);
     markAuthReturn();
 
     const { error } = await lovable.auth.signInWithOAuth('google', {
