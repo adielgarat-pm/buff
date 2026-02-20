@@ -339,7 +339,7 @@ export default function Auth() {
                     htmlFor="marketing-consent" 
                     className="text-xs text-foreground leading-snug cursor-pointer"
                   >
-                    I'd love to receive tips and updates about new BUFF features
+                    {t('auth.marketingConsent')}
                   </Label>
                 </div>
 
