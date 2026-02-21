@@ -9,6 +9,7 @@ import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { isMuted, setMuted } from '@/utils/soundEffects';
 import { playPetTapBlip, playPetConfirmSound } from '@/utils/petSounds';
+import { PET_SKINS, type PetSkinDef } from './PetDisplay';
 
 interface ChildCommandCenterProps {
   open: boolean;
@@ -26,14 +27,8 @@ interface SkinOption {
   tier: SkinTier;
 }
 
-// Cute pet skins available to all (free tier)
-const PET_SKIN_OPTIONS = [
-  { id: 'puppy',      emoji: '🐶', nameKey: 'pet.skin.puppy' },
-  { id: 'ginger_cat', emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
-  { id: 'rabbit',     emoji: '🐰', nameKey: 'pet.skin.rabbit' },
-  { id: 'panda',      emoji: '🐼', nameKey: 'pet.skin.panda' },
-  { id: 'capybara',   emoji: '🐹', nameKey: 'pet.skin.capybara' },
-];
+// Pet skin options derived from shared PET_SKINS
+const PET_SKIN_OPTIONS = Object.entries(PET_SKINS).map(([id, def]) => ({ id, ...def }));
 
 const SKINS: SkinOption[] = [
   { id: 'mint', icon: Leaf, tier: 'FREE' },
@@ -291,13 +286,15 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
                         </motion.div>
                       )}
                       {/* Bounce animation on selected pet */}
-                      <motion.span
-                        className="text-2xl"
+                      <motion.div
+                        className="text-2xl flex items-center justify-center"
                         animate={selectedSkin === skin.id ? { y: [0, -6, 0] } : { y: 0 }}
                         transition={selectedSkin === skin.id ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
                       >
-                        {skin.emoji}
-                      </motion.span>
+                        {skin.type === 'image'
+                          ? <img src={skin.src} alt={t(skin.nameKey)} className="w-8 h-8 object-contain" draggable={false} />
+                          : <span>{skin.emoji}</span>}
+                      </motion.div>
                       <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
                         {t(skin.nameKey)}
                       </span>
