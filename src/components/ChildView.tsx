@@ -27,6 +27,7 @@ import { MyProgress } from './MyProgress';
 import { PackCompletionCelebration } from './PackCompletionCelebration';
 import { PetDisplay } from './PetDisplay';
 import { ChildCommandCenter } from './ChildCommandCenter';
+import { DragonMigrationModal } from './DragonMigrationModal';
 import { ChildSidebar } from './ChildSidebar';
 import { RewardMilestoneToast } from './RewardMilestoneToast';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -450,6 +451,11 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
           permission={permission}
           onRequestPermission={requestPermission}
         />
+      )}
+
+      {/* Dragon Migration - prompt existing dragon users to pick a new pet */}
+      {!isViewingAsChild && profile?.id && (
+        <DragonMigrationModal childId={profile.id} />
       )}
 
       {/* Welcome Banner for new users */}
