@@ -454,8 +454,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
       )}
 
       {/* Dragon Migration - prompt existing dragon users to pick a new pet */}
-      {!isViewingAsChild && profile?.id && (
-        <DragonMigrationModal childId={profile.id} />
+      {(viewingChildId || profile?.id) && (
+        <DragonMigrationModal childId={viewingChildId || profile?.id} />
       )}
 
       {/* Welcome Banner for new users */}
