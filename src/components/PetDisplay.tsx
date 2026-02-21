@@ -12,15 +12,15 @@ import { playHatchSound } from '@/utils/petSounds';
 import capybaraImg from '@/assets/capybara-pet.png';
 
 export type PetSkinDef =
-  | { type: 'emoji'; emoji: string; nameKey: string }
-  | { type: 'image'; src: string; nameKey: string };
+  | { type: 'emoji'; emoji: string; nameKey: string; unlockAt: number }
+  | { type: 'image'; src: string; nameKey: string; unlockAt: number };
 
 export const PET_SKINS: Record<string, PetSkinDef> = {
-  puppy:      { type: 'emoji', emoji: '🐶', nameKey: 'pet.skin.puppy' },
-  ginger_cat: { type: 'emoji', emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
-  rabbit:     { type: 'emoji', emoji: '🐰', nameKey: 'pet.skin.rabbit' },
-  panda:      { type: 'emoji', emoji: '🐼', nameKey: 'pet.skin.panda' },
-  capybara:   { type: 'image', src: capybaraImg, nameKey: 'pet.skin.capybara' },
+  puppy:      { type: 'emoji', emoji: '🐶', nameKey: 'pet.skin.puppy', unlockAt: 0 },
+  ginger_cat: { type: 'emoji', emoji: '🐈', nameKey: 'pet.skin.ginger_cat', unlockAt: 5 },
+  rabbit:     { type: 'emoji', emoji: '🐰', nameKey: 'pet.skin.rabbit', unlockAt: 15 },
+  panda:      { type: 'emoji', emoji: '🐼', nameKey: 'pet.skin.panda', unlockAt: 30 },
+  capybara:   { type: 'image', src: capybaraImg, nameKey: 'pet.skin.capybara', unlockAt: 50 },
 };
 
 // Egg crack visuals based on completion progress

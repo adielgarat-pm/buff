@@ -68,6 +68,27 @@ export function playHatchSound() {
   } catch { /* audio unavailable */ }
 }
 
+/** Soft 'locked' sound – low thud */
+export function playLockedSound() {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } catch { /* audio unavailable */ }
+}
+
 /** Pet-specific cheerful confirmation sounds */
 export function playPetConfirmSound(petId: string) {
   try {

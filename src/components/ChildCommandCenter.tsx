@@ -7,9 +7,11 @@ import { useChildPet } from '@/hooks/useChildPet';
 import { ChildPreferences, ChildTheme, AgeMode } from '@/hooks/useChildPreferences';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { isMuted, setMuted } from '@/utils/soundEffects';
-import { playPetTapBlip, playPetConfirmSound } from '@/utils/petSounds';
+import { playPetTapBlip, playPetConfirmSound, playLockedSound } from '@/utils/petSounds';
 import { PET_SKINS, type PetSkinDef } from './PetDisplay';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChildCommandCenterProps {
   open: boolean;
@@ -48,7 +50,7 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
   const [soundEnabled, setSoundEnabled] = useState(!isMuted());
   const [saving, setSaving] = useState(false);
   const [selectedSkin, setSelectedSkin] = useState(petState.current_skin || 'puppy');
-
+  const [questsCompleted, setQuestsCompleted] = useState(0);
   const isTeen = ageMode === 'teen';
 
   const handleAgeSelect = useCallback((a: number) => {
@@ -67,6 +69,20 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
   useEffect(() => {
     if (petState.current_skin) setSelectedSkin(petState.current_skin);
   }, [petState.current_skin]);
+
+  // Fetch total quests completed for this child
+  useEffect(() => {
+    if (!childId) return;
+    const fetchQuests = async () => {
+      const { count } = await supabase
+        .from('daily_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('child_id', childId)
+        .eq('completed', true);
+      setQuestsCompleted(count ?? 0);
+    };
+    fetchQuests();
+  }, [childId]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -261,46 +277,90 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
                 <p className="text-xs text-muted-foreground">
                   {isRTL ? 'הביצה תיראה כמו החיה שבחרת כשתבקע!' : 'Your egg will hatch into the buddy you pick!'}
                 </p>
+                <TooltipProvider delayDuration={0}>
                 <div className="grid grid-cols-5 gap-2">
-                  {PET_SKIN_OPTIONS.map((skin) => (
-                    <motion.button
-                      key={skin.id}
-                      whileTap={{ scale: 0.92 }}
-                      onClick={() => {
-                        setSelectedSkin(skin.id);
-                        playPetTapBlip();
-                      }}
-                      className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
-                        selectedSkin === skin.id
-                          ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
-                          : 'bg-secondary/50 border border-border/60 hover:border-primary/40'
-                      }`}
-                    >
-                      {selectedSkin === skin.id && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
-                        >
-                          <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
-                        </motion.div>
-                      )}
-                      {/* Bounce animation on selected pet */}
-                      <motion.div
-                        className="text-2xl flex items-center justify-center"
-                        animate={selectedSkin === skin.id ? { y: [0, -6, 0] } : { y: 0 }}
-                        transition={selectedSkin === skin.id ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
+                  {PET_SKIN_OPTIONS.map((skin) => {
+                    const isLocked = questsCompleted < skin.unlockAt;
+                    const remaining = skin.unlockAt - questsCompleted;
+                    const isSelected = selectedSkin === skin.id;
+
+                    const button = (
+                      <motion.button
+                        key={skin.id}
+                        whileTap={isLocked ? undefined : { scale: 0.92 }}
+                        onClick={() => {
+                          if (isLocked) {
+                            playLockedSound();
+                            return;
+                          }
+                          setSelectedSkin(skin.id);
+                          playPetTapBlip();
+                        }}
+                        className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
+                          isLocked
+                            ? 'bg-muted/30 border border-border/30 cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
+                              : 'bg-secondary/50 border border-border/60 hover:border-primary/40'
+                        }`}
                       >
-                        {skin.type === 'image'
-                          ? <img src={skin.src} alt={t(skin.nameKey)} className="w-8 h-8 object-contain" draggable={false} />
-                          : <span>{skin.emoji}</span>}
-                      </motion.div>
-                      <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
-                        {t(skin.nameKey)}
-                      </span>
-                    </motion.button>
-                  ))}
+                        {/* Lock icon overlay */}
+                        {isLocked && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted-foreground/80 flex items-center justify-center shadow z-10">
+                            <Lock className="w-2.5 h-2.5 text-background" strokeWidth={3} />
+                          </div>
+                        )}
+                        {/* Selected checkmark */}
+                        {isSelected && !isLocked && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
+                          >
+                            <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+                          </motion.div>
+                        )}
+                        {/* Pet visual – grayscale when locked */}
+                        <motion.div
+                          className={`text-2xl flex items-center justify-center ${isLocked ? 'grayscale opacity-40' : ''}`}
+                          animate={isSelected && !isLocked ? { y: [0, -6, 0] } : { y: 0 }}
+                          transition={isSelected && !isLocked ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
+                        >
+                          {skin.type === 'image'
+                            ? <img src={skin.src} alt={t(skin.nameKey)} className="w-8 h-8 object-contain" draggable={false} />
+                            : <span>{skin.emoji}</span>}
+                        </motion.div>
+                        <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
+                          {t(skin.nameKey)}
+                        </span>
+                        {/* Progress label for locked pets */}
+                        {isLocked && (
+                          <span className="text-[8px] text-muted-foreground/70 leading-tight text-center">
+                            {isRTL ? `עוד ${remaining}` : `${remaining} more`}
+                          </span>
+                        )}
+                      </motion.button>
+                    );
+
+                    // Wrap locked pets with a tooltip
+                    if (isLocked) {
+                      return (
+                        <Tooltip key={skin.id}>
+                          <TooltipTrigger asChild>
+                            {button}
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs max-w-[160px] text-center">
+                            {isRTL
+                              ? `השלם/י עוד ${remaining} משימות כדי לפתוח! 💪`
+                              : `Complete ${remaining} more quests to unlock! 💪`}
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+                    return button;
+                  })}
                 </div>
+                </TooltipProvider>
               </section>
             )}
 
