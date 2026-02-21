@@ -8,6 +8,7 @@ import { ChildPreferences, ChildTheme, AgeMode } from '@/hooks/useChildPreferenc
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { isMuted, setMuted } from '@/utils/soundEffects';
+import { playPetTapBlip, playPetConfirmSound } from '@/utils/petSounds';
 
 interface ChildCommandCenterProps {
   open: boolean;
@@ -78,15 +79,21 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
     if (selectedSkin !== petState.current_skin) {
       await changeSkin(selectedSkin);
     }
+    // Play pet-specific confirmation sound
+    playPetConfirmSound(selectedSkin);
     await onSave({
       theme,
       pet_enabled: petEnabled,
       age_mode: ageMode,
       child_onboarding_completed: true,
     });
+    // Mark that user explicitly chose a pet
+    if (childId) {
+      localStorage.setItem(`buff-pet-choice-confirmed-${childId}`, 'true');
+    }
     setSaving(false);
     onClose();
-  }, [theme, petEnabled, ageMode, onSave, onClose, selectedSkin, petState.current_skin, changeSkin]);
+  }, [theme, petEnabled, ageMode, onSave, onClose, selectedSkin, petState.current_skin, changeSkin, childId]);
 
   // During beta all skins are accessible
   const isBeta = true;
@@ -264,7 +271,10 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
                     <motion.button
                       key={skin.id}
                       whileTap={{ scale: 0.92 }}
-                      onClick={() => setSelectedSkin(skin.id)}
+                      onClick={() => {
+                        setSelectedSkin(skin.id);
+                        playPetTapBlip();
+                      }}
                       className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
                         selectedSkin === skin.id
                           ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
@@ -280,7 +290,14 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
                           <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
                         </motion.div>
                       )}
-                      <span className="text-2xl">{skin.emoji}</span>
+                      {/* Bounce animation on selected pet */}
+                      <motion.span
+                        className="text-2xl"
+                        animate={selectedSkin === skin.id ? { y: [0, -6, 0] } : { y: 0 }}
+                        transition={selectedSkin === skin.id ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
+                      >
+                        {skin.emoji}
+                      </motion.span>
                       <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
                         {t(skin.nameKey)}
                       </span>

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChildPet } from '@/hooks/useChildPet';
 import { Button } from './ui/button';
 import { Sparkles, Check } from 'lucide-react';
+import { playPetTapBlip, playPetConfirmSound } from '@/utils/petSounds';
 
 const MIGRATION_PETS = [
   { id: 'puppy',      emoji: '🐶', nameKey: 'pet.skin.puppy' },
@@ -13,23 +14,46 @@ const MIGRATION_PETS = [
   { id: 'capybara',   emoji: '🐹', nameKey: 'pet.skin.capybara' },
 ];
 
+const STORAGE_KEY = 'buff-pet-choice-confirmed';
+
 interface DragonMigrationModalProps {
   childId?: string;
 }
 
 export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
   const { t, isRTL } = useLanguage();
-  const { petState, changeSkin } = useChildPet(childId);
+  const { petState, changeSkin, loading } = useChildPet(childId);
   const [selected, setSelected] = useState('puppy');
   const [saving, setSaving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Only show if user still has the dragon skin
-  if (dismissed || petState.current_skin !== 'dragon') return null;
+  // Check if user already confirmed a choice previously
+  useEffect(() => {
+    const confirmed = localStorage.getItem(`${STORAGE_KEY}-${childId}`);
+    if (confirmed) setDismissed(true);
+  }, [childId]);
+
+  // Show modal if:
+  // 1. User still has the legacy 'dragon' skin, OR
+  // 2. User has 'puppy' (the forced default) but never explicitly confirmed a choice
+  const needsMigration =
+    !loading &&
+    !dismissed &&
+    (petState.current_skin === 'dragon' ||
+      (petState.current_skin === 'puppy' && !localStorage.getItem(`${STORAGE_KEY}-${childId}`)));
+
+  if (!needsMigration) return null;
+
+  const handleSelect = (id: string) => {
+    setSelected(id);
+    playPetTapBlip();
+  };
 
   const handleConfirm = async () => {
     setSaving(true);
     await changeSkin(selected);
+    playPetConfirmSound(selected);
+    localStorage.setItem(`${STORAGE_KEY}-${childId}`, 'true');
     setSaving(false);
     setDismissed(true);
   };
@@ -44,12 +68,10 @@ export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
         <div className="text-center space-y-4">
           <div className="text-5xl">🐾</div>
           <h2 className="text-xl font-bold text-foreground">
-            {isRTL ? 'בחר/י חיית מחמד חדשה!' : 'Pick Your New Pet!'}
+            {t('migration.title')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {isRTL
-              ? 'הדרקון יצא לחופשה. בחר/י חיית מחמד חדשה שתגדל איתך!'
-              : 'The dragon has retired. Choose a new buddy to grow with!'}
+            {t('migration.description')}
           </p>
 
           <div className="grid grid-cols-5 gap-2">
@@ -57,7 +79,7 @@ export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
               <motion.button
                 key={pet.id}
                 whileTap={{ scale: 0.92 }}
-                onClick={() => setSelected(pet.id)}
+                onClick={() => handleSelect(pet.id)}
                 className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all ${
                   selected === pet.id
                     ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
@@ -68,12 +90,19 @@ export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
+                    className="absolute -top-1 -end-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
                   >
                     <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
                   </motion.div>
                 )}
-                <span className="text-2xl">{pet.emoji}</span>
+                {/* Bounce animation on selected pet */}
+                <motion.span
+                  className="text-2xl"
+                  animate={selected === pet.id ? { y: [0, -6, 0] } : { y: 0 }}
+                  transition={selected === pet.id ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
+                >
+                  {pet.emoji}
+                </motion.span>
                 <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
                   {t(pet.nameKey)}
                 </span>

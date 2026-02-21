@@ -150,6 +150,8 @@
   "pet.skin.rabbit": "Bunny",
   "pet.skin.panda": "Panda",
   "pet.skin.capybara": "Capybara",
+  "migration.title": "Your dragon has graduated!",
+  "migration.description": "Choose your new companion to start your journey.",
   "nav.tasks": "Tasks",
   "nav.timetable": "Timetable",
   "nav.progress": "Progress",

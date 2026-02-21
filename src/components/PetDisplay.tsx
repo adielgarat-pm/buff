@@ -8,6 +8,7 @@ import { Progress } from './ui/progress';
 import { Sparkles, Moon, Zap, Heart, Flame, Shield, Ticket } from 'lucide-react';
 import Lottie from 'lottie-react';
 import { playCreditDing } from '@/utils/celebrationAudio';
+import { playHatchSound } from '@/utils/petSounds';
 
 const PET_SKINS: Record<string, { emoji: string; nameKey: string }> = {
   puppy: { emoji: '🐶', nameKey: 'pet.skin.puppy' },
@@ -95,6 +96,8 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
     if (petState.evolution_stage !== 'egg') return;
     if (crackStage > prevCrackStage && crackStage > 0) {
       setCrackMessage(t(EGG_CRACK_LABELS[crackStage - 1]));
+      // Play hatch sound on final crack stage
+      if (crackStage >= 3) playHatchSound();
       setTimeout(() => setCrackMessage(''), 3000);
     }
     setPrevCrackStage(crackStage);
