@@ -24,7 +24,7 @@ const DEFAULT_PET_STATE: PetState = {
   level: 1,
   experience: 0,
   energy_level: 50,
-  current_skin: 'dragon',
+  current_skin: 'puppy',
   last_interaction: null,
   evolution_stage: 'egg',
   evolution_days_count: 0,

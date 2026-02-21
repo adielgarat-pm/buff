@@ -27,16 +27,11 @@ interface SkinOption {
 
 // Cute pet skins available to all (free tier)
 const PET_SKIN_OPTIONS = [
-  { id: 'dragon',     emoji: '🐉', nameKey: 'pet.skin.dragon' },
   { id: 'puppy',      emoji: '🐶', nameKey: 'pet.skin.puppy' },
   { id: 'ginger_cat', emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
   { id: 'rabbit',     emoji: '🐰', nameKey: 'pet.skin.rabbit' },
   { id: 'panda',      emoji: '🐼', nameKey: 'pet.skin.panda' },
-  { id: 'cat',        emoji: '🐱', nameKey: 'pet.skin.cat' },
-  { id: 'fox',        emoji: '🦊', nameKey: 'pet.skin.fox' },
-  { id: 'unicorn',    emoji: '🦄', nameKey: 'pet.skin.unicorn' },
-  { id: 'bear',       emoji: '🐻', nameKey: 'pet.skin.bear' },
-  { id: 'dino',       emoji: '🦖', nameKey: 'pet.skin.dino' },
+  { id: 'capybara',   emoji: '🐹', nameKey: 'pet.skin.capybara' },
 ];
 
 const SKINS: SkinOption[] = [
@@ -56,7 +51,7 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
   const [petEnabled, setPetEnabled] = useState(preferences.pet_enabled);
   const [soundEnabled, setSoundEnabled] = useState(!isMuted());
   const [saving, setSaving] = useState(false);
-  const [selectedSkin, setSelectedSkin] = useState(petState.current_skin || 'dragon');
+  const [selectedSkin, setSelectedSkin] = useState(petState.current_skin || 'puppy');
 
   const isTeen = ageMode === 'teen';
 
