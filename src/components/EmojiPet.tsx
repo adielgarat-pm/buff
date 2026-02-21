@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSubscription, ProSettings } from '@/hooks/useSubscription';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PET_SKINS } from './PetDisplay';
 
 interface EmojiPetProps {
   isHappy?: boolean;
@@ -10,14 +11,11 @@ interface EmojiPetProps {
   interactive?: boolean;
 }
 
-const PET_TYPES: Record<string, string> = {
-  puppy: '🐶',
-  ginger_cat: '🐈',
-  rabbit: '🐰',
-  panda: '🐼',
-  capybara: '🐹',
-  default: '🐾',
-};
+// Derive emoji lookup from shared PET_SKINS; fallback for legacy/image types
+const PET_TYPES: Record<string, string> = Object.fromEntries(
+  Object.entries(PET_SKINS).map(([id, def]) => [id, def.type === 'emoji' ? def.emoji : '🐾'])
+);
+PET_TYPES['default'] = '🐾';
 
 const REST_KEY = 'buff_pet_rest';
 const REST_DURATION_MS = 15 * 60 * 1000; // 15 minutes rest

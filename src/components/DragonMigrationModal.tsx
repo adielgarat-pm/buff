@@ -5,14 +5,9 @@ import { useChildPet } from '@/hooks/useChildPet';
 import { Button } from './ui/button';
 import { Sparkles, Check } from 'lucide-react';
 import { playPetTapBlip, playPetConfirmSound } from '@/utils/petSounds';
+import { PET_SKINS } from './PetDisplay';
 
-const MIGRATION_PETS = [
-  { id: 'puppy',      emoji: '🐶', nameKey: 'pet.skin.puppy' },
-  { id: 'ginger_cat', emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
-  { id: 'rabbit',     emoji: '🐰', nameKey: 'pet.skin.rabbit' },
-  { id: 'panda',      emoji: '🐼', nameKey: 'pet.skin.panda' },
-  { id: 'capybara',   emoji: '🐹', nameKey: 'pet.skin.capybara' },
-];
+const MIGRATION_PETS = Object.entries(PET_SKINS).map(([id, def]) => ({ id, ...def }));
 
 const STORAGE_KEY = 'buff-pet-choice-confirmed';
 
@@ -96,13 +91,15 @@ export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
                   </motion.div>
                 )}
                 {/* Bounce animation on selected pet */}
-                <motion.span
-                  className="text-2xl"
+                <motion.div
+                  className="text-2xl flex items-center justify-center"
                   animate={selected === pet.id ? { y: [0, -6, 0] } : { y: 0 }}
                   transition={selected === pet.id ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
                 >
-                  {pet.emoji}
-                </motion.span>
+                  {pet.type === 'image'
+                    ? <img src={pet.src} alt={t(pet.nameKey)} className="w-8 h-8 object-contain" draggable={false} />
+                    : <span>{pet.emoji}</span>}
+                </motion.div>
                 <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
                   {t(pet.nameKey)}
                 </span>

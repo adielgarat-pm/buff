@@ -9,13 +9,18 @@ import { Sparkles, Moon, Zap, Heart, Flame, Shield, Ticket } from 'lucide-react'
 import Lottie from 'lottie-react';
 import { playCreditDing } from '@/utils/celebrationAudio';
 import { playHatchSound } from '@/utils/petSounds';
+import capybaraImg from '@/assets/capybara-pet.png';
 
-const PET_SKINS: Record<string, { emoji: string; nameKey: string }> = {
-  puppy: { emoji: '🐶', nameKey: 'pet.skin.puppy' },
-  ginger_cat: { emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
-  rabbit: { emoji: '🐰', nameKey: 'pet.skin.rabbit' },
-  panda: { emoji: '🐼', nameKey: 'pet.skin.panda' },
-  capybara: { emoji: '🐹', nameKey: 'pet.skin.capybara' },
+export type PetSkinDef =
+  | { type: 'emoji'; emoji: string; nameKey: string }
+  | { type: 'image'; src: string; nameKey: string };
+
+export const PET_SKINS: Record<string, PetSkinDef> = {
+  puppy:      { type: 'emoji', emoji: '🐶', nameKey: 'pet.skin.puppy' },
+  ginger_cat: { type: 'emoji', emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
+  rabbit:     { type: 'emoji', emoji: '🐰', nameKey: 'pet.skin.rabbit' },
+  panda:      { type: 'emoji', emoji: '🐼', nameKey: 'pet.skin.panda' },
+  capybara:   { type: 'image', src: capybaraImg, nameKey: 'pet.skin.capybara' },
 };
 
 // Egg crack visuals based on completion progress
@@ -86,10 +91,19 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
     ? getEggCrackStage(completedToday, totalToday)
     : 0;
 
-  // For egg stage, show crack-based emoji; at final crack stage show the chosen pet skin
-  const displayEmoji = petState.evolution_stage === 'egg'
-    ? (crackStage >= 3 ? skin.emoji : '🥚')
-    : skin.emoji;
+  // Determine what to show: egg, hatching skin, or current skin
+  const showSkinVisual = petState.evolution_stage === 'egg'
+    ? crackStage >= 3 // hatching — show chosen pet
+    : true; // post-egg — always show pet
+  const showEgg = petState.evolution_stage === 'egg' && crackStage < 3;
+
+  /** Renders the pet visual — either emoji text or an <img> */
+  const renderPetVisual = (sizeClass: string) => {
+    if (skin.type === 'image') {
+      return <img src={skin.src} alt={petName} className={`${sizeClass} object-contain select-none pointer-events-none`} draggable={false} />;
+    }
+    return <span>{skin.emoji}</span>;
+  };
 
   // Show crack message when stage advances
   useEffect(() => {
@@ -239,7 +253,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
           style={isResting ? { filter: 'grayscale(0.4)', opacity: 0.6 } : undefined}
           whileTap={!isResting ? { scale: 1.15 } : undefined}
         >
-          {isResting ? '😴' : displayEmoji}
+          {isResting ? '😴' : showEgg ? '🥚' : renderPetVisual('w-16 h-16')}
         </motion.button>
 
         {/* Energy indicator dot */}
