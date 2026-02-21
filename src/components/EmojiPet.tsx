@@ -11,17 +11,11 @@ interface EmojiPetProps {
 }
 
 const PET_TYPES: Record<string, string> = {
-  dragon: '🐉',
-  cat: '🐱',
-  dog: '🐶',
-  fox: '🦊',
-  owl: '🦉',
-  unicorn: '🦄',
-  bear: '🐻',
   puppy: '🐶',
   ginger_cat: '🐈',
   rabbit: '🐰',
   panda: '🐼',
+  capybara: '🐹',
   default: '🐾',
 };
 

@@ -10,18 +10,11 @@ import Lottie from 'lottie-react';
 import { playCreditDing } from '@/utils/celebrationAudio';
 
 const PET_SKINS: Record<string, { emoji: string; nameKey: string }> = {
-  dragon: { emoji: '🐉', nameKey: 'pet.skin.dragon' },
-  robot: { emoji: '🤖', nameKey: 'pet.skin.robot' },
-  cat: { emoji: '🐱', nameKey: 'pet.skin.cat' },
-  fox: { emoji: '🦊', nameKey: 'pet.skin.fox' },
-  unicorn: { emoji: '🦄', nameKey: 'pet.skin.unicorn' },
-  owl: { emoji: '🦉', nameKey: 'pet.skin.owl' },
-  bear: { emoji: '🐻', nameKey: 'pet.skin.bear' },
-  dino: { emoji: '🦖', nameKey: 'pet.skin.dino' },
   puppy: { emoji: '🐶', nameKey: 'pet.skin.puppy' },
   ginger_cat: { emoji: '🐈', nameKey: 'pet.skin.ginger_cat' },
   rabbit: { emoji: '🐰', nameKey: 'pet.skin.rabbit' },
   panda: { emoji: '🐼', nameKey: 'pet.skin.panda' },
+  capybara: { emoji: '🐹', nameKey: 'pet.skin.capybara' },
 };
 
 // Egg crack visuals based on completion progress
@@ -83,7 +76,7 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
   const [crackMessage, setCrackMessage] = useState('');
 
   const petName = proSettings?.virtualPet?.name || 'Buddy';
-  const skin = PET_SKINS[petState.current_skin] || PET_SKINS.dragon;
+  const skin = PET_SKINS[petState.current_skin] || PET_SKINS.puppy;
   const stage = EVOLUTION_VISUALS[petState.evolution_stage];
   const isMaxEvolution = petState.evolution_stage === 'guardian';
 
@@ -92,9 +85,9 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
     ? getEggCrackStage(completedToday, totalToday)
     : 0;
 
-  // For egg stage, show crack-based emoji; for higher stages show the pet skin
+  // For egg stage, show crack-based emoji; at final crack stage show the chosen pet skin
   const displayEmoji = petState.evolution_stage === 'egg'
-    ? (crackStage >= 3 ? '🐣' : '🥚')
+    ? (crackStage >= 3 ? skin.emoji : '🥚')
     : skin.emoji;
 
   // Show crack message when stage advances
