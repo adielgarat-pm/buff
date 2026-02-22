@@ -30,7 +30,9 @@ import { ChildCommandCenter } from './ChildCommandCenter';
 import { DragonMigrationModal } from './DragonMigrationModal';
 import { ChildSidebar } from './ChildSidebar';
 import { RewardMilestoneToast } from './RewardMilestoneToast';
+import { StickerCelebration } from './StickerCelebration';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useChildStickers } from '@/hooks/useChildStickers';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePackCompletion } from '@/hooks/usePackCompletion';
@@ -45,12 +47,16 @@ interface ChildViewProps {
 }
 
 export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, familyId } = useAuth();
   const { t } = useLanguage();
   const { isProUser } = useSubscription();
   const [activeTab, setActiveTab] = useState<ChildNavTab>('tasks');
   const [showNightMission, setShowNightMission] = useState(false);
   const [showCommandCenter, setShowCommandCenter] = useState(false);
+
+  // Sticker celebration for child
+  const effectiveChildId = viewingChildId || profile?.id;
+  const { pendingSticker, dismissSticker } = useChildStickers(effectiveChildId, familyId);
 
   // Child preferences (theme, pet toggle, age mode)
   const isOwnDevice = profile?.role === 'child' && profile?.user_id !== null;
@@ -495,6 +501,14 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         preferences={childPrefs}
         onSave={savePreferences}
         childId={profile?.id}
+      />
+
+      {/* Sticker Celebration from Parent */}
+      <StickerCelebration
+        show={!!pendingSticker}
+        stickerType={pendingSticker?.sticker_type || 'star'}
+        message={pendingSticker?.message}
+        onDismiss={dismissSticker}
       />
     </div>
   );

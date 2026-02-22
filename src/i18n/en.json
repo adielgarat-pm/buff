@@ -976,5 +976,14 @@
   "notifications.title": "Notifications",
   "notifications.empty": "No notifications yet",
   "notifications.emptyHint": "You'll be notified when your child completes a quest or redeems a reward.",
-  "notifications.markAllRead": "Mark all read"
+  "notifications.markAllRead": "Mark all read",
+  "notification.milestone.title": "Milestone Reached! 🌟",
+  "notification.milestone.body": "{childName} just completed {count} quests total! Amazing persistence!",
+  "notification.milestone.short": "Reached {count} quests!",
+  "sticker.send": "Send Sticker",
+  "sticker.sent": "Sticker sent!",
+  "sticker.sendError": "Couldn't send sticker",
+  "sticker.pickOne": "Pick a sticker to send:",
+  "sticker.fromParent": "Your parent is proud of you!",
+  "sticker.tapToDismiss": "Tap anywhere to continue"
 }

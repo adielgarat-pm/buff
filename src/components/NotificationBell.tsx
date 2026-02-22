@@ -1,22 +1,88 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Check, CheckCheck, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useParentNotifications, ParentNotification } from '@/hooks/useParentNotifications';
+import { useSendSticker } from '@/hooks/useSendSticker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 
+const STICKER_OPTIONS = [
+  { type: 'star', emoji: '⭐' },
+  { type: 'heart', emoji: '💖' },
+  { type: 'fire', emoji: '🔥' },
+  { type: 'rocket', emoji: '🚀' },
+  { type: 'crown', emoji: '👑' },
+  { type: 'muscle', emoji: '💪' },
+];
+
+function StickerPicker({
+  onSend,
+  onCancel,
+  sending,
+}: {
+  onSend: (type: string) => void;
+  onCancel: () => void;
+  sending: boolean;
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className="px-4 py-3 border-b border-border bg-muted/30">
+      <p className="text-xs font-medium text-muted-foreground mb-2">{t('sticker.pickOne')}</p>
+      <div className="flex gap-2 flex-wrap">
+        {STICKER_OPTIONS.map((s) => (
+          <button
+            key={s.type}
+            onClick={() => onSend(s.type)}
+            disabled={sending}
+            className="text-2xl hover:scale-125 transition-transform disabled:opacity-50 p-1"
+          >
+            {s.emoji}
+          </button>
+        ))}
+        <button
+          onClick={onCancel}
+          className="text-xs text-muted-foreground hover:text-foreground ml-auto self-center"
+        >
+          {t('common.cancel')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function NotificationItem({
   notification,
   onMarkRead,
+  onSendSticker,
 }: {
   notification: ParentNotification;
   onMarkRead: (id: string) => void;
+  onSendSticker?: (childId: string) => void;
 }) {
-  const icon = notification.type === 'reward_redeemed' ? '🏆' : '⚡';
+  const { t } = useLanguage();
+  const icon =
+    notification.type === 'reward_redeemed'
+      ? '🏆'
+      : notification.type === 'quest_milestone'
+      ? '🌟'
+      : '⚡';
   const timeLabel = format(new Date(notification.created_at), 'HH:mm');
+
+  const description =
+    notification.type === 'reward_redeemed'
+      ? t('notification.rewardRedeemed.body')
+          .replace('{childName}', '')
+          .replace('{rewardName}', notification.entity_name)
+          .trim()
+      : notification.type === 'quest_milestone'
+      ? t('notification.milestone.short').replace('{count}', notification.entity_name)
+      : t('notification.taskCompleted.body')
+          .replace('{childName}', '')
+          .replace('{taskName}', notification.entity_name)
+          .trim();
 
   return (
     <div
@@ -30,12 +96,22 @@ function NotificationItem({
         <p className="text-sm font-medium text-foreground leading-snug">
           {notification.child_name}
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-          {notification.type === 'reward_redeemed'
-            ? `Redeemed "${notification.entity_name}"`
-            : `Completed "${notification.entity_name}"`}
-        </p>
-        <p className="text-xs text-muted-foreground/60 mt-1">{timeLabel}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs text-muted-foreground/60">{timeLabel}</p>
+          {notification.child_id && onSendSticker && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSendSticker(notification.child_id!);
+              }}
+              className="text-xs text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
+            >
+              <Send className="w-3 h-3" />
+              {t('sticker.send')}
+            </button>
+          )}
+        </div>
       </div>
       {!notification.is_read && (
         <button
@@ -56,11 +132,14 @@ export function NotificationBell() {
   const isParent = profile?.role === 'parent';
   const { t } = useLanguage();
   const [panelOpen, setPanelOpen] = useState(false);
+  const [stickerTargetChildId, setStickerTargetChildId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } =
     useParentNotifications(familyId, isParent);
+
+  const { sendSticker, sending } = useSendSticker(familyId, profile?.id);
 
   // Close panel on outside click
   useEffect(() => {
@@ -72,6 +151,7 @@ export function NotificationBell() {
         !buttonRef.current.contains(e.target as Node)
       ) {
         setPanelOpen(false);
+        setStickerTargetChildId(null);
       }
     };
     if (panelOpen) document.addEventListener('mousedown', handleOutside);
@@ -80,10 +160,17 @@ export function NotificationBell() {
 
   const handleOpen = () => {
     setPanelOpen((v) => !v);
+    if (panelOpen) setStickerTargetChildId(null);
   };
 
   const handleMarkAllRead = async () => {
     await markAllAsRead();
+  };
+
+  const handleSendSticker = async (type: string) => {
+    if (!stickerTargetChildId) return;
+    await sendSticker(stickerTargetChildId, type);
+    setStickerTargetChildId(null);
   };
 
   if (!isParent) return null;
@@ -127,7 +214,10 @@ export function NotificationBell() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               className="fixed inset-0 z-40 bg-black/20 sm:hidden"
-              onClick={() => setPanelOpen(false)}
+              onClick={() => {
+                setPanelOpen(false);
+                setStickerTargetChildId(null);
+              }}
             />
             <motion.div
               ref={panelRef}
@@ -138,14 +228,13 @@ export function NotificationBell() {
               transition={{ duration: 0.15 }}
               className={cn(
                 'fixed sm:absolute z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
-                // Mobile: centered horizontally with margin
                 'left-4 right-4 top-16 sm:left-auto sm:right-0 sm:top-11',
                 'sm:w-80 max-w-sm',
               )}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('notifications.title')}</h3>
                 <div className="flex items-center gap-1">
                   {unreadCount > 0 && (
                     <button
@@ -153,11 +242,14 @@ export function NotificationBell() {
                       className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-2 py-1 rounded-md hover:bg-muted"
                     >
                       <CheckCheck className="w-3.5 h-3.5" />
-                      Mark all read
+                      {t('notifications.markAllRead')}
                     </button>
                   )}
                   <button
-                    onClick={() => setPanelOpen(false)}
+                    onClick={() => {
+                      setPanelOpen(false);
+                      setStickerTargetChildId(null);
+                    }}
                     className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="w-4 h-4" />
@@ -165,21 +257,35 @@ export function NotificationBell() {
                 </div>
               </div>
 
+              {/* Sticker Picker */}
+              {stickerTargetChildId && (
+                <StickerPicker
+                  onSend={handleSendSticker}
+                  onCancel={() => setStickerTargetChildId(null)}
+                  sending={sending}
+                />
+              )}
+
               {/* Body */}
               <div className="max-h-72 overflow-y-auto">
                 {loading ? (
-                  <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>
+                  <div className="py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</div>
                 ) : notifications.length === 0 ? (
                   <div className="py-10 text-center">
                     <Bell className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">No notifications yet</p>
+                    <p className="text-sm text-muted-foreground">{t('notifications.empty')}</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">
-                      You'll be notified when your child completes a quest or redeems a reward.
+                      {t('notifications.emptyHint')}
                     </p>
                   </div>
                 ) : (
                   notifications.map((n) => (
-                    <NotificationItem key={n.id} notification={n} onMarkRead={markAsRead} />
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
+                      onMarkRead={markAsRead}
+                      onSendSticker={(childId) => setStickerTargetChildId(childId)}
+                    />
                   ))
                 )}
               </div>
