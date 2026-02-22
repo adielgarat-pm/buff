@@ -10,17 +10,39 @@ import Lottie from 'lottie-react';
 import { playCreditDing } from '@/utils/celebrationAudio';
 import { playHatchSound } from '@/utils/petSounds';
 import capybaraImg from '@/assets/capybara-pet.png';
+import tigerImg from '@/assets/tiger-pet.png';
+import wolfImg from '@/assets/wolf-pet.png';
+import sharkImg from '@/assets/shark-pet.png';
+import dragonImg from '@/assets/dragon-pet.png';
+
+export type PetPath = 'sweet' | 'heroic';
 
 export type PetSkinDef =
-  | { type: 'emoji'; emoji: string; nameKey: string; unlockAt: number }
-  | { type: 'image'; src: string; nameKey: string; unlockAt: number };
+  | { type: 'emoji'; emoji: string; nameKey: string; unlockAt: number; path: PetPath }
+  | { type: 'image'; src: string; nameKey: string; unlockAt: number; path: PetPath };
 
+// Sweet Friends path — emoji-based cute pets
+export const SWEET_SKINS: Record<string, PetSkinDef> = {
+  puppy:      { type: 'emoji', emoji: '🐶', nameKey: 'pet.skin.puppy', unlockAt: 0, path: 'sweet' },
+  ginger_cat: { type: 'emoji', emoji: '🐈', nameKey: 'pet.skin.ginger_cat', unlockAt: 5, path: 'sweet' },
+  rabbit:     { type: 'emoji', emoji: '🐰', nameKey: 'pet.skin.rabbit', unlockAt: 15, path: 'sweet' },
+  panda:      { type: 'emoji', emoji: '🐼', nameKey: 'pet.skin.panda', unlockAt: 30, path: 'sweet' },
+  capybara:   { type: 'image', src: capybaraImg, nameKey: 'pet.skin.capybara', unlockAt: 50, path: 'sweet' },
+  unicorn:    { type: 'emoji', emoji: '🦄', nameKey: 'pet.skin.unicorn', unlockAt: 100, path: 'sweet' },
+};
+
+// Action Heroes path — image-based heroic pets
+export const HEROIC_SKINS: Record<string, PetSkinDef> = {
+  tiger:      { type: 'image', src: tigerImg, nameKey: 'pet.skin.tiger', unlockAt: 0, path: 'heroic' },
+  wolf:       { type: 'image', src: wolfImg, nameKey: 'pet.skin.wolf', unlockAt: 5, path: 'heroic' },
+  shark:      { type: 'image', src: sharkImg, nameKey: 'pet.skin.shark', unlockAt: 15, path: 'heroic' },
+  epic_dragon:{ type: 'image', src: dragonImg, nameKey: 'pet.skin.epic_dragon', unlockAt: 30, path: 'heroic' },
+};
+
+// Combined registry for rendering & migration compatibility
 export const PET_SKINS: Record<string, PetSkinDef> = {
-  puppy:      { type: 'emoji', emoji: '🐶', nameKey: 'pet.skin.puppy', unlockAt: 0 },
-  ginger_cat: { type: 'emoji', emoji: '🐈', nameKey: 'pet.skin.ginger_cat', unlockAt: 5 },
-  rabbit:     { type: 'emoji', emoji: '🐰', nameKey: 'pet.skin.rabbit', unlockAt: 15 },
-  panda:      { type: 'emoji', emoji: '🐼', nameKey: 'pet.skin.panda', unlockAt: 30 },
-  capybara:   { type: 'image', src: capybaraImg, nameKey: 'pet.skin.capybara', unlockAt: 50 },
+  ...SWEET_SKINS,
+  ...HEROIC_SKINS,
 };
 
 // Egg crack visuals based on completion progress
