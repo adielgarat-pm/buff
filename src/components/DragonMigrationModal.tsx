@@ -5,9 +5,11 @@ import { useChildPet } from '@/hooks/useChildPet';
 import { Button } from './ui/button';
 import { Sparkles, Check } from 'lucide-react';
 import { playPetTapBlip, playPetConfirmSound } from '@/utils/petSounds';
-import { PET_SKINS } from './PetDisplay';
+import { SWEET_SKINS, HEROIC_SKINS } from './PetDisplay';
 
-const MIGRATION_PETS = Object.entries(PET_SKINS).map(([id, def]) => ({ id, ...def }));
+const MIGRATION_SWEET = Object.entries(SWEET_SKINS).filter(([, d]) => d.unlockAt === 0).map(([id, def]) => ({ id, ...def }));
+const MIGRATION_HEROIC = Object.entries(HEROIC_SKINS).filter(([, d]) => d.unlockAt === 0).map(([id, def]) => ({ id, ...def }));
+const MIGRATION_PETS = [...MIGRATION_SWEET, ...MIGRATION_HEROIC];
 
 const STORAGE_KEY = 'buff-pet-choice-confirmed';
 

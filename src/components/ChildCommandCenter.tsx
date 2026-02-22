@@ -10,7 +10,7 @@ import { Switch } from './ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { isMuted, setMuted } from '@/utils/soundEffects';
 import { playPetTapBlip, playPetConfirmSound, playLockedSound } from '@/utils/petSounds';
-import { PET_SKINS, type PetSkinDef } from './PetDisplay';
+import { PET_SKINS, SWEET_SKINS, HEROIC_SKINS, type PetSkinDef } from './PetDisplay';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ChildCommandCenterProps {
@@ -29,8 +29,9 @@ interface SkinOption {
   tier: SkinTier;
 }
 
-// Pet skin options derived from shared PET_SKINS
-const PET_SKIN_OPTIONS = Object.entries(PET_SKINS).map(([id, def]) => ({ id, ...def }));
+// Pet skin options split by path
+const SWEET_OPTIONS = Object.entries(SWEET_SKINS).map(([id, def]) => ({ id, ...def }));
+const HEROIC_OPTIONS = Object.entries(HEROIC_SKINS).map(([id, def]) => ({ id, ...def }));
 
 const SKINS: SkinOption[] = [
   { id: 'mint', icon: Leaf, tier: 'FREE' },
@@ -114,6 +115,80 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
     if (tier === 'FREE') return true;
     if (tier === 'PRO' && isProUser) return true;
     return false;
+  };
+
+  const renderPetButton = (skin: { id: string; type: string; nameKey: string; unlockAt: number; emoji?: string; src?: string }) => {
+    const isLocked = questsCompleted < skin.unlockAt;
+    const remaining = skin.unlockAt - questsCompleted;
+    const isSelected = selectedSkin === skin.id;
+
+    const button = (
+      <motion.button
+        key={skin.id}
+        whileTap={isLocked ? undefined : { scale: 0.92 }}
+        onClick={() => {
+          if (isLocked) {
+            playLockedSound();
+            return;
+          }
+          setSelectedSkin(skin.id);
+          playPetTapBlip();
+        }}
+        className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
+          isLocked
+            ? 'bg-muted/30 border border-border/30 cursor-not-allowed'
+            : isSelected
+              ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
+              : 'bg-secondary/50 border border-border/60 hover:border-primary/40'
+        }`}
+      >
+        {isLocked && (
+          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted-foreground/80 flex items-center justify-center shadow z-10">
+            <Lock className="w-2.5 h-2.5 text-background" strokeWidth={3} />
+          </div>
+        )}
+        {isSelected && !isLocked && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
+          >
+            <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
+          </motion.div>
+        )}
+        <motion.div
+          className={`text-2xl flex items-center justify-center ${isLocked ? 'grayscale opacity-40' : ''}`}
+          animate={isSelected && !isLocked ? { y: [0, -6, 0] } : { y: 0 }}
+          transition={isSelected && !isLocked ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
+        >
+          {skin.type === 'image'
+            ? <img src={skin.src} alt={t(skin.nameKey)} className="w-8 h-8 object-contain" draggable={false} />
+            : <span>{skin.emoji}</span>}
+        </motion.div>
+        <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
+          {t(skin.nameKey)}
+        </span>
+        {isLocked && (
+          <span className="text-[8px] text-muted-foreground/70 leading-tight text-center">
+            {isRTL ? `עוד ${remaining}` : `${remaining} more`}
+          </span>
+        )}
+      </motion.button>
+    );
+
+    if (isLocked) {
+      return (
+        <Tooltip key={skin.id}>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent side="top" className="text-xs max-w-[160px] text-center">
+            {isRTL
+              ? `השלם/י עוד ${remaining} משימות כדי לפתוח! 💪`
+              : `Complete ${remaining} more quests to unlock! 💪`}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+    return button;
   };
 
   if (!open) return null;
@@ -267,7 +342,7 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
               )}
             </section>
 
-            {/* Section 3: Pet Buddy Picker */}
+            {/* Section 3: Pet Buddy Picker — Dual Path */}
             {!isTeen && (
               <section className="bg-card rounded-2xl border border-border p-4 space-y-4">
                 <h2 className="font-bold text-foreground flex items-center gap-2">
@@ -278,88 +353,24 @@ export function ChildCommandCenter({ open, onClose, preferences, onSave, childId
                   {isRTL ? 'הביצה תיראה כמו החיה שבחרת כשתבקע!' : 'Your egg will hatch into the buddy you pick!'}
                 </p>
                 <TooltipProvider delayDuration={0}>
-                <div className="grid grid-cols-5 gap-2">
-                  {PET_SKIN_OPTIONS.map((skin) => {
-                    const isLocked = questsCompleted < skin.unlockAt;
-                    const remaining = skin.unlockAt - questsCompleted;
-                    const isSelected = selectedSkin === skin.id;
-
-                    const button = (
-                      <motion.button
-                        key={skin.id}
-                        whileTap={isLocked ? undefined : { scale: 0.92 }}
-                        onClick={() => {
-                          if (isLocked) {
-                            playLockedSound();
-                            return;
-                          }
-                          setSelectedSkin(skin.id);
-                          playPetTapBlip();
-                        }}
-                        className={`relative flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
-                          isLocked
-                            ? 'bg-muted/30 border border-border/30 cursor-not-allowed'
-                            : isSelected
-                              ? 'bg-primary/15 border-2 border-primary shadow-[0_0_12px_-4px_hsl(var(--primary)/0.5)]'
-                              : 'bg-secondary/50 border border-border/60 hover:border-primary/40'
-                        }`}
-                      >
-                        {/* Lock icon overlay */}
-                        {isLocked && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted-foreground/80 flex items-center justify-center shadow z-10">
-                            <Lock className="w-2.5 h-2.5 text-background" strokeWidth={3} />
-                          </div>
-                        )}
-                        {/* Selected checkmark */}
-                        {isSelected && !isLocked && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow"
-                          >
-                            <Check className="w-2.5 h-2.5 text-primary-foreground" strokeWidth={3} />
-                          </motion.div>
-                        )}
-                        {/* Pet visual – grayscale when locked */}
-                        <motion.div
-                          className={`text-2xl flex items-center justify-center ${isLocked ? 'grayscale opacity-40' : ''}`}
-                          animate={isSelected && !isLocked ? { y: [0, -6, 0] } : { y: 0 }}
-                          transition={isSelected && !isLocked ? { duration: 0.5, repeat: Infinity, repeatDelay: 1.5 } : {}}
-                        >
-                          {skin.type === 'image'
-                            ? <img src={skin.src} alt={t(skin.nameKey)} className="w-8 h-8 object-contain" draggable={false} />
-                            : <span>{skin.emoji}</span>}
-                        </motion.div>
-                        <span className="text-[9px] font-medium text-muted-foreground leading-none text-center">
-                          {t(skin.nameKey)}
-                        </span>
-                        {/* Progress label for locked pets */}
-                        {isLocked && (
-                          <span className="text-[8px] text-muted-foreground/70 leading-tight text-center">
-                            {isRTL ? `עוד ${remaining}` : `${remaining} more`}
-                          </span>
-                        )}
-                      </motion.button>
-                    );
-
-                    // Wrap locked pets with a tooltip
-                    if (isLocked) {
-                      return (
-                        <Tooltip key={skin.id}>
-                          <TooltipTrigger asChild>
-                            {button}
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs max-w-[160px] text-center">
-                            {isRTL
-                              ? `השלם/י עוד ${remaining} משימות כדי לפתוח! 💪`
-                              : `Complete ${remaining} more quests to unlock! 💪`}
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    }
-                    return button;
-                  })}
-                </div>
+                  {/* Sweet Friends row */}
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase flex items-center gap-1">
+                      🌸 {isRTL ? 'חברים מתוקים' : 'Sweet Friends'}
+                    </p>
+                    <div className="grid grid-cols-6 gap-2">
+                      {SWEET_OPTIONS.map((skin) => renderPetButton(skin))}
+                    </div>
+                  </div>
+                  {/* Action Heroes row */}
+                  <div className="space-y-2 mt-3">
+                    <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase flex items-center gap-1">
+                      ⚡ {isRTL ? 'גיבורי אקשן' : 'Action Heroes'}
+                    </p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {HEROIC_OPTIONS.map((skin) => renderPetButton(skin))}
+                    </div>
+                  </div>
                 </TooltipProvider>
               </section>
             )}
