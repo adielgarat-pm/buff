@@ -35,54 +35,8 @@ export function useRewardRedemptionNotifier(
   // Cache tasks by ID for task-completion notifications
   const taskCacheRef = useRef<Map<string, string>>(new Map());
 
-  // ── Helper: persist notification to DB ─────────────────────────────────
-  // Checks for an existing notification first to guard against duplicate events
-  const persistNotification = async (params: {
-    type: 'reward_redeemed' | 'task_completed';
-    childId: string;
-    childName: string;
-    entityId: string;
-    entityName: string;
-  }) => {
-    const currentFamilyId = familyId;
-    const currentProfile = profileRef.current;
-    if (!currentFamilyId || !currentProfile?.id) return;
-
-    // Dedup guard: check if a notification for this exact entity already exists today
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: existing } = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('family_id', currentFamilyId)
-      .eq('entity_id', params.entityId)
-      .eq('type', params.type)
-      .gte('created_at', `${today}T00:00:00Z`)
-      .maybeSingle();
-
-    if (existing) {
-      console.log('[ParentNotifier] Duplicate notification skipped for entity:', params.entityId);
-      return;
-    }
-
-    console.log('[ParentNotifier] Persisting notification:', params);
-
-    const { error } = await supabase.from('notifications').insert({
-      family_id: currentFamilyId,
-      parent_id: currentProfile.id,
-      type: params.type,
-      child_id: params.childId,
-      child_name: params.childName,
-      entity_id: params.entityId,
-      entity_name: params.entityName,
-      is_read: false,
-    });
-
-    if (error) {
-      console.error('[ParentNotifier] Failed to persist notification:', error);
-    } else {
-      console.log('[ParentNotifier] Notification persisted successfully');
-    }
-  };
+  // Notifications are now created server-side via DB triggers.
+  // This hook only handles live toasts for the parent's open browser.
 
   // Effect only depends on stable primitives — not on `t`, `profile`, or `children`
   useEffect(() => {
@@ -145,16 +99,7 @@ export function useRewardRedemptionNotifier(
 
             toast.success(title, { description: body, duration: 6000, icon: '🏆' });
 
-            // Persist to DB (with dedup guard)
-            if (newRow.assigned_to) {
-              persistNotification({
-                type: 'reward_redeemed',
-                childId: newRow.assigned_to,
-                childName,
-                entityId: newRow.id,
-                entityName: rewardName,
-              });
-            }
+            // Notification is now persisted server-side via DB trigger
           }
         },
       )
@@ -193,14 +138,7 @@ export function useRewardRedemptionNotifier(
 
             toast.success(title, { description: body, duration: 4000, icon: '⚡' });
 
-            // Persist to DB (with dedup guard)
-            persistNotification({
-              type: 'task_completed',
-              childId: newRow.child_id,
-              childName,
-              entityId: newRow.task_id,
-              entityName: taskName,
-            });
+            // Notification is now persisted server-side via DB trigger
           }
         },
       )
