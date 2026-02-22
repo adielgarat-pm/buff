@@ -419,6 +419,51 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          endpoint: string
+          family_id: string
+          id: string
+          p256dh: string
+          profile_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          endpoint: string
+          family_id: string
+          id?: string
+          p256dh: string
+          profile_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          endpoint?: string
+          family_id?: string
+          id?: string
+          p256dh?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pwa_events: {
         Row: {
           browser: string | null
@@ -462,6 +507,61 @@ export type Database = {
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stickers: {
+        Row: {
+          created_at: string
+          family_id: string
+          from_parent_id: string
+          id: string
+          is_seen: boolean
+          message: string | null
+          sticker_type: string
+          to_child_id: string
+        }
+        Insert: {
+          created_at?: string
+          family_id: string
+          from_parent_id: string
+          id?: string
+          is_seen?: boolean
+          message?: string | null
+          sticker_type?: string
+          to_child_id: string
+        }
+        Update: {
+          created_at?: string
+          family_id?: string
+          from_parent_id?: string
+          id?: string
+          is_seen?: boolean
+          message?: string | null
+          sticker_type?: string
+          to_child_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stickers_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stickers_from_parent_id_fkey"
+            columns: ["from_parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stickers_to_child_id_fkey"
+            columns: ["to_child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

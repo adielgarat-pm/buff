@@ -976,5 +976,14 @@
   "notifications.title": "התראות",
   "notifications.empty": "אין התראות עדיין",
   "notifications.emptyHint": "תקבל התראה כשהילד ישלים משימה או יממש פרס.",
-  "notifications.markAllRead": "סמן הכל כנקרא"
+  "notifications.markAllRead": "סמן הכל כנקרא",
+  "notification.milestone.title": "אבן דרך! 🌟",
+  "notification.milestone.body": "כל הכבוד על ההתמדה! {childName} השלים/ה {count} משימות בסך הכל!",
+  "notification.milestone.short": "הגיע ל-{count} משימות!",
+  "sticker.send": "שליחת מדבקה",
+  "sticker.sent": "המדבקה נשלחה!",
+  "sticker.sendError": "לא הצלחנו לשלוח את המדבקה",
+  "sticker.pickOne": "בחר/י מדבקה לשליחה:",
+  "sticker.fromParent": "ההורה שלך גאה בך!",
+  "sticker.tapToDismiss": "לחץ/י בכל מקום כדי להמשיך"
 }

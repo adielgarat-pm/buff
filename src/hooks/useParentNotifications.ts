@@ -7,7 +7,7 @@ export interface ParentNotification {
   id: string;
   family_id: string;
   parent_id: string;
-  type: 'reward_redeemed' | 'task_completed';
+  type: 'reward_redeemed' | 'task_completed' | 'quest_milestone';
   child_id: string | null;
   child_name: string;
   entity_id: string | null;
@@ -65,6 +65,12 @@ export function useParentNotifications(
             .replace('{childName}', n.child_name)
             .replace('{taskName}', n.entity_name);
           toast.success(title, { description: body, duration: 5000, icon: '⚡' });
+        } else if (n.type === 'quest_milestone') {
+          const title = t('notification.milestone.title');
+          const body = t('notification.milestone.body')
+            .replace('{childName}', n.child_name)
+            .replace('{count}', n.entity_name);
+          toast.success(title, { description: body, duration: 8000, icon: '🌟' });
         }
       });
     },
