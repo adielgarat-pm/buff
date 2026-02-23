@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChildPet } from '@/hooks/useChildPet';
@@ -11,8 +11,6 @@ const MIGRATION_SWEET = Object.entries(SWEET_SKINS).filter(([, d]) => d.unlockAt
 const MIGRATION_HEROIC = Object.entries(HEROIC_SKINS).filter(([, d]) => d.unlockAt === 0).map(([id, def]) => ({ id, ...def }));
 const MIGRATION_PETS = [...MIGRATION_SWEET, ...MIGRATION_HEROIC];
 
-const STORAGE_KEY = 'buff-pet-choice-confirmed';
-
 interface DragonMigrationModalProps {
   childId?: string;
 }
@@ -24,20 +22,8 @@ export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
   const [saving, setSaving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Check if user already confirmed a choice previously
-  useEffect(() => {
-    const confirmed = localStorage.getItem(`${STORAGE_KEY}-${childId}`);
-    if (confirmed) setDismissed(true);
-  }, [childId]);
-
-  // Show modal if:
-  // 1. User still has the legacy 'dragon' skin, OR
-  // 2. User has 'puppy' (the forced default) but never explicitly confirmed a choice
-  const needsMigration =
-    !loading &&
-    !dismissed &&
-    (petState.current_skin === 'dragon' ||
-      (petState.current_skin === 'puppy' && !localStorage.getItem(`${STORAGE_KEY}-${childId}`)));
+  // Show modal only if the user still has the legacy 'dragon' skin in DB
+  const needsMigration = !loading && !dismissed && petState.current_skin === 'dragon';
 
   if (!needsMigration) return null;
 
@@ -50,7 +36,6 @@ export function DragonMigrationModal({ childId }: DragonMigrationModalProps) {
     setSaving(true);
     await changeSkin(selected);
     playPetConfirmSound(selected);
-    localStorage.setItem(`${STORAGE_KEY}-${childId}`, 'true');
     setSaving(false);
     setDismissed(true);
   };
