@@ -83,7 +83,7 @@ function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
     };
   }
   return {
-    subject: "Your first \"Win\" is just a task away! 🏆",
+    subject: 'Your first "Win" is just a task away! 🏆',
     html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#333">
       <p>Hi ${name},</p>
       <p>You're all set up! The best way to start is by picking one simple daily task (like "brushing teeth" or "packing bag").</p>
@@ -98,10 +98,35 @@ function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
   };
 }
 
-/* ── SMTP via Deno ───────────────────────────────────────────────── */
+/* ── RFC 2047 UTF-8 Base64 Subject Encoding ─────────────────────── */
 
-async function sendEmail(
-  to: string,
+function encodeSubject(subject: string): string {
+  // Check if subject has non-ASCII characters
+  if (/^[\x00-\x7F]*$/.test(subject)) {
+    return subject; // Pure ASCII — no encoding needed
+  }
+  // RFC 2047: =?charset?encoding?encoded_text?=
+  const encoded = btoa(
+    String.fromCharCode(...new TextEncoder().encode(subject))
+  );
+  return `=?UTF-8?B?${encoded}?=`;
+}
+
+function encodeDisplayName(name: string): string {
+  if (/^[\x00-\x7F]*$/.test(name)) {
+    return `"${name}"`;
+  }
+  const encoded = btoa(
+    String.fromCharCode(...new TextEncoder().encode(name))
+  );
+  return `=?UTF-8?B?${encoded}?=`;
+}
+
+/* ── SMTP: individual send per recipient via raw connection ──────── */
+
+async function sendEmailIndividual(
+  toEmail: string,
+  toName: string,
   subject: string,
   html: string,
   smtpPassword: string
@@ -110,6 +135,32 @@ async function sendEmail(
     "https://deno.land/x/denomailer@1.6.0/mod.ts"
   );
 
+  // Build RFC-compliant headers with proper UTF-8 encoding
+  const encodedSubject = encodeSubject(subject);
+  const encodedFromName = encodeDisplayName(SMTP_FROM_NAME);
+  const encodedToName = encodeDisplayName(toName);
+
+  const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+  // Build raw MIME message
+  const rawMessage = [
+    `From: ${encodedFromName} <${SMTP_FROM}>`,
+    `To: ${encodedToName} <${toEmail}>`,
+    `Subject: ${encodedSubject}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    `Date: ${new Date().toUTCString()}`,
+    ``,
+    `--${boundary}`,
+    `Content-Type: text/html; charset=UTF-8`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    btoa(String.fromCharCode(...new TextEncoder().encode(html))),
+    ``,
+    `--${boundary}--`,
+  ].join("\r\n");
+
+  // Create a fresh connection per email (no BCC batching)
   const client = new SMTPClient({
     connection: {
       hostname: SMTP_HOST,
@@ -122,14 +173,20 @@ async function sendEmail(
     },
   });
 
-  await client.send({
-    from: `${SMTP_FROM_NAME} <${SMTP_FROM}>`,
-    to,
-    subject,
-    html,
-  });
-
-  await client.close();
+  try {
+    await client.send({
+      from: SMTP_FROM,
+      to: toEmail,
+      subject: encodedSubject,
+      content: rawMessage,
+      headers: {
+        "MIME-Version": "1.0",
+        "Content-Type": `multipart/alternative; boundary="${boundary}"`,
+      },
+    });
+  } finally {
+    await client.close();
+  }
 }
 
 /* ── Send-Once Guard ─────────────────────────────────────────────── */
@@ -186,18 +243,30 @@ Deno.serve(async (req) => {
       const template = getTemplate(templateKey, lang, name);
       const token = btoa("test-profile-id");
       const html = template.html.replace(/__TOKEN__/g, token);
-      await sendEmail(testEmail, `[TEST] ${template.subject}`, html, smtpPassword);
+      await sendEmailIndividual(
+        testEmail,
+        name,
+        `[TEST] ${template.subject}`,
+        html,
+        smtpPassword
+      );
 
       return new Response(
-        JSON.stringify({ success: true, message: `Test email sent to ${testEmail}` }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: true,
+          message: `Test email sent to ${testEmail}`,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      return new Response(
-        JSON.stringify({ success: false, error: msg }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: false, error: msg }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
   }
 
@@ -225,7 +294,7 @@ Deno.serve(async (req) => {
 
     for (const profile of stuckUsers || []) {
       try {
-        // Send-Once Guard
+        // Send-Once Guard — checks for ANY prior send of this type (sent OR error)
         if (await alreadySent(supabase, profile.id, "onboarding_nudge")) {
           results.skipped_already_sent++;
           continue;
@@ -253,7 +322,14 @@ Deno.serve(async (req) => {
         const token = btoa(profile.id);
         const html = template.html.replace(/__TOKEN__/g, token);
 
-        await sendEmail(email, template.subject, html, smtpPassword);
+        // Individual send — one connection, one recipient, proper headers
+        await sendEmailIndividual(
+          email,
+          name,
+          template.subject,
+          html,
+          smtpPassword
+        );
 
         await supabase.from("email_logs").insert({
           user_id: profile.user_id,
@@ -315,7 +391,6 @@ Deno.serve(async (req) => {
         const email = authUser.user.email;
         if (!email) continue;
 
-        // Check if family has any task completions
         const { count } = await supabase
           .from("daily_progress")
           .select("id", { count: "exact", head: true })
@@ -334,7 +409,13 @@ Deno.serve(async (req) => {
         const token = btoa(profile.id);
         const html = template.html.replace(/__TOKEN__/g, token);
 
-        await sendEmail(email, template.subject, html, smtpPassword);
+        await sendEmailIndividual(
+          email,
+          name,
+          template.subject,
+          html,
+          smtpPassword
+        );
 
         await supabase.from("email_logs").insert({
           user_id: profile.user_id,
