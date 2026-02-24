@@ -135,32 +135,6 @@ async function sendEmailIndividual(
     "https://deno.land/x/denomailer@1.6.0/mod.ts"
   );
 
-  // Build RFC-compliant headers with proper UTF-8 encoding
-  const encodedSubject = encodeSubject(subject);
-  const encodedFromName = encodeDisplayName(SMTP_FROM_NAME);
-  const encodedToName = encodeDisplayName(toName);
-
-  const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-  // Build raw MIME message
-  const rawMessage = [
-    `From: ${encodedFromName} <${SMTP_FROM}>`,
-    `To: ${encodedToName} <${toEmail}>`,
-    `Subject: ${encodedSubject}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    `Date: ${new Date().toUTCString()}`,
-    ``,
-    `--${boundary}`,
-    `Content-Type: text/html; charset=UTF-8`,
-    `Content-Transfer-Encoding: base64`,
-    ``,
-    btoa(String.fromCharCode(...new TextEncoder().encode(html))),
-    ``,
-    `--${boundary}--`,
-  ].join("\r\n");
-
-  // Create a fresh connection per email (no BCC batching)
   const client = new SMTPClient({
     connection: {
       hostname: SMTP_HOST,
@@ -175,14 +149,11 @@ async function sendEmailIndividual(
 
   try {
     await client.send({
-      from: SMTP_FROM,
-      to: toEmail,
-      subject: encodedSubject,
-      content: rawMessage,
-      headers: {
-        "MIME-Version": "1.0",
-        "Content-Type": `multipart/alternative; boundary="${boundary}"`,
-      },
+      from: `${SMTP_FROM_NAME} <${SMTP_FROM}>`,
+      to: `${toName} <${toEmail}>`,
+      subject: subject,
+      content: "Please view this email in an HTML-capable client.",
+      html: html,
     });
   } finally {
     await client.close();
