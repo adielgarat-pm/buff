@@ -11,8 +11,11 @@ const SMTP_PORT = 465;
 const SMTP_FROM = "buff.parenting@gmail.com";
 const SMTP_FROM_NAME = "Adi from BUFF";
 const APP_URL = "https://buff.lovable.app";
-const UNSUBSCRIBE_URL =
-  "https://iyejaxnugjgjeceqdcky.supabase.co/functions/v1/unsubscribe";
+
+// ── MASTER KILL SWITCH ──────────────────────────────────────────────
+// Set to true to enable cron (automated) sending.
+// Test sends from Admin are always allowed regardless of this flag.
+const CRON_ENABLED = false;
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 
@@ -29,7 +32,12 @@ function detectLanguage(
 
 type TemplateKey = "onboarding_nudge" | "first_task_boost";
 
-function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
+function getUnsubscribeUrl(profileId: string): string {
+  const token = btoa(profileId);
+  return `${APP_URL}/unsubscribe?token=${token}`;
+}
+
+function getTemplate(key: TemplateKey, lang: "en" | "he", name: string, unsubUrl: string) {
   if (key === "onboarding_nudge") {
     if (lang === "he") {
       return {
@@ -43,7 +51,7 @@ function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
             <a href="${APP_URL}/onboarding" style="background:#6366f1;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">לסיום ההגדרה</a>
           </p>
           <p style="font-size:13px;color:#888">
-            <a href="${UNSUBSCRIBE_URL}?token=__TOKEN__" style="color:#888">להסרה מרשימת התפוצה</a>
+            <a href="${unsubUrl}" style="color:#888">להסרה מרשימת התפוצה</a>
           </p>
         </div>`,
       };
@@ -59,7 +67,7 @@ function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
           <a href="${APP_URL}/onboarding" style="background:#6366f1;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">Finish Setup</a>
         </p>
         <p style="font-size:13px;color:#888">
-          <a href="${UNSUBSCRIBE_URL}?token=__TOKEN__" style="color:#888">Unsubscribe</a>
+          <a href="${unsubUrl}" style="color:#888">Unsubscribe</a>
         </p>
       </div>`,
     };
@@ -77,7 +85,7 @@ function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
           <a href="${APP_URL}/dashboard" style="background:#6366f1;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">לבחירת משימה ראשונה</a>
         </p>
         <p style="font-size:13px;color:#888">
-          <a href="${UNSUBSCRIBE_URL}?token=__TOKEN__" style="color:#888">להסרה מרשימת התפוצה</a>
+          <a href="${unsubUrl}" style="color:#888">להסרה מרשימת התפוצה</a>
         </p>
       </div>`,
     };
@@ -92,72 +100,138 @@ function getTemplate(key: TemplateKey, lang: "en" | "he", name: string) {
         <a href="${APP_URL}/dashboard" style="background:#6366f1;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">Pick First Task</a>
       </p>
       <p style="font-size:13px;color:#888">
-        <a href="${UNSUBSCRIBE_URL}?token=__TOKEN__" style="color:#888">Unsubscribe</a>
+        <a href="${unsubUrl}" style="color:#888">Unsubscribe</a>
       </p>
     </div>`,
   };
 }
 
-/* ── RFC 2047 UTF-8 Base64 Subject Encoding ─────────────────────── */
+/* ── RFC 2047 Base64 encoding for headers ────────────────────────── */
 
-function encodeSubject(subject: string): string {
-  // Check if subject has non-ASCII characters
-  if (/^[\x00-\x7F]*$/.test(subject)) {
-    return subject; // Pure ASCII — no encoding needed
+function encodeUtf8Base64(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  // Convert Uint8Array to binary string for btoa
+  let binary = "";
+  for (const b of bytes) {
+    binary += String.fromCharCode(b);
   }
-  // RFC 2047: =?charset?encoding?encoded_text?=
-  const encoded = btoa(
-    String.fromCharCode(...new TextEncoder().encode(subject))
-  );
-  return `=?UTF-8?B?${encoded}?=`;
+  return btoa(binary);
 }
 
-function encodeDisplayName(name: string): string {
-  if (/^[\x00-\x7F]*$/.test(name)) {
-    return `"${name}"`;
-  }
-  const encoded = btoa(
-    String.fromCharCode(...new TextEncoder().encode(name))
-  );
-  return `=?UTF-8?B?${encoded}?=`;
+function mimeEncode(str: string): string {
+  // If pure ASCII, no encoding needed
+  if (/^[\x20-\x7E]*$/.test(str)) return str;
+  return `=?UTF-8?B?${encodeUtf8Base64(str)}?=`;
 }
 
-/* ── SMTP: individual send per recipient via raw connection ──────── */
+/* ── Raw SMTP over TLS ──────────────────────────────────────────── */
 
-async function sendEmailIndividual(
+async function smtpCommand(
+  conn: Deno.TlsConn,
+  command: string
+): Promise<string> {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  await conn.write(encoder.encode(command + "\r\n"));
+
+  const buf = new Uint8Array(4096);
+  const n = await conn.read(buf);
+  if (n === null) throw new Error("SMTP connection closed unexpectedly");
+  return decoder.decode(buf.subarray(0, n));
+}
+
+async function sendEmailRawSmtp(
   toEmail: string,
-  toName: string,
   subject: string,
-  html: string,
+  htmlBody: string,
   smtpPassword: string
 ) {
-  const { SMTPClient } = await import(
-    "https://deno.land/x/denomailer@1.6.0/mod.ts"
-  );
-
-  const client = new SMTPClient({
-    connection: {
-      hostname: SMTP_HOST,
-      port: SMTP_PORT,
-      tls: true,
-      auth: {
-        username: SMTP_FROM,
-        password: smtpPassword,
-      },
-    },
+  // Connect with TLS directly (port 465 = implicit TLS)
+  const conn = await Deno.connectTls({
+    hostname: SMTP_HOST,
+    port: SMTP_PORT,
   });
 
+  const decoder = new TextDecoder();
+  const buf = new Uint8Array(4096);
+
+  // Read server greeting
+  const n = await conn.read(buf);
+  if (n === null) throw new Error("No SMTP greeting");
+  const greeting = decoder.decode(buf.subarray(0, n));
+  if (!greeting.startsWith("220")) throw new Error(`Bad greeting: ${greeting}`);
+
+  // EHLO
+  let resp = await smtpCommand(conn, "EHLO buff.lovable.app");
+  if (!resp.includes("250")) throw new Error(`EHLO failed: ${resp}`);
+
+  // AUTH LOGIN
+  resp = await smtpCommand(conn, "AUTH LOGIN");
+  if (!resp.startsWith("334")) throw new Error(`AUTH failed: ${resp}`);
+
+  // Username (base64)
+  resp = await smtpCommand(conn, btoa(SMTP_FROM));
+  if (!resp.startsWith("334")) throw new Error(`AUTH user failed: ${resp}`);
+
+  // Password (base64)
+  resp = await smtpCommand(conn, btoa(smtpPassword));
+  if (!resp.startsWith("235")) throw new Error(`AUTH pass failed: ${resp}`);
+
+  // MAIL FROM
+  resp = await smtpCommand(conn, `MAIL FROM:<${SMTP_FROM}>`);
+  if (!resp.startsWith("250")) throw new Error(`MAIL FROM failed: ${resp}`);
+
+  // RCPT TO
+  resp = await smtpCommand(conn, `RCPT TO:<${toEmail}>`);
+  if (!resp.startsWith("250")) throw new Error(`RCPT TO failed: ${resp}`);
+
+  // DATA
+  resp = await smtpCommand(conn, "DATA");
+  if (!resp.startsWith("354")) throw new Error(`DATA failed: ${resp}`);
+
+  // Build the full MIME message with proper UTF-8 encoding
+  const encodedSubject = mimeEncode(subject);
+  const encodedFromName = mimeEncode(SMTP_FROM_NAME);
+  const htmlBase64 = encodeUtf8Base64(htmlBody);
+
+  // Split base64 into 76-char lines per RFC 2045
+  const htmlBase64Lines = htmlBase64.match(/.{1,76}/g)?.join("\r\n") || htmlBase64;
+
+  const messageId = `<${Date.now()}.${Math.random().toString(36).slice(2)}@buff.lovable.app>`;
+
+  const message = [
+    `Message-ID: ${messageId}`,
+    `Date: ${new Date().toUTCString()}`,
+    `From: ${encodedFromName} <${SMTP_FROM}>`,
+    `To: <${toEmail}>`,
+    `Subject: ${encodedSubject}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: text/html; charset=UTF-8`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    htmlBase64Lines,
+    ``,
+    `.`,
+  ].join("\r\n");
+
+  const encoder = new TextEncoder();
+  await conn.write(encoder.encode(message + "\r\n"));
+
+  // Read response after DATA
+  const buf2 = new Uint8Array(4096);
+  const n2 = await conn.read(buf2);
+  if (n2 === null) throw new Error("No response after DATA");
+  const dataResp = decoder.decode(buf2.subarray(0, n2));
+  if (!dataResp.startsWith("250")) throw new Error(`DATA send failed: ${dataResp}`);
+
+  // QUIT
   try {
-    await client.send({
-      from: `${SMTP_FROM_NAME} <${SMTP_FROM}>`,
-      to: `${toName} <${toEmail}>`,
-      subject: subject,
-      content: "Please view this email in an HTML-capable client.",
-      html: html,
-    });
-  } finally {
-    await client.close();
+    await smtpCommand(conn, "QUIT");
+  } catch {
+    // ignore quit errors
   }
+
+  try { conn.close(); } catch { /* ignore */ }
 }
 
 /* ── Send-Once Guard ─────────────────────────────────────────────── */
@@ -184,12 +258,6 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // ── DISABLED: Email sending is paused until Hebrew encoding is fixed ──
-  return new Response(
-    JSON.stringify({ success: false, error: "Email sending is currently disabled" }),
-    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-  );
-
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   if (!smtpPassword) {
     return new Response(JSON.stringify({ error: "SMTP_PASSWORD not set" }), {
@@ -202,7 +270,7 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  // ── Test mode: { test_email, template_key, language } ──
+  // ── Parse body (test mode or cron) ──
   let body: Record<string, unknown> = {};
   try {
     body = await req.json();
@@ -210,21 +278,20 @@ Deno.serve(async (req) => {
     // empty body = normal cron run
   }
 
+  // ── Test mode: always allowed regardless of CRON_ENABLED ──
   if (body.test_email && body.template_key) {
     const testEmail = body.test_email as string;
     const templateKey = body.template_key as TemplateKey;
     const lang = (body.language as "en" | "he") || "en";
     const name = (body.test_name as string) || testEmail.split("@")[0];
+    const unsubUrl = getUnsubscribeUrl("test-profile-id");
 
     try {
-      const template = getTemplate(templateKey, lang, name);
-      const token = btoa("test-profile-id");
-      const html = template.html.replace(/__TOKEN__/g, token);
-      await sendEmailIndividual(
+      const template = getTemplate(templateKey, lang, name, unsubUrl);
+      await sendEmailRawSmtp(
         testEmail,
-        name,
         `[TEST] ${template.subject}`,
-        html,
+        template.html,
         smtpPassword
       );
 
@@ -245,6 +312,20 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+  }
+
+  // ── Cron guard ──
+  if (!CRON_ENABLED) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Automated sending is disabled. Only test sends are allowed.",
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   // ── Normal cron run ──
@@ -271,7 +352,6 @@ Deno.serve(async (req) => {
 
     for (const profile of stuckUsers || []) {
       try {
-        // Send-Once Guard — checks for ANY prior send of this type (sent OR error)
         if (await alreadySent(supabase, profile.id, "onboarding_nudge")) {
           results.skipped_already_sent++;
           continue;
@@ -295,18 +375,10 @@ Deno.serve(async (req) => {
           profile.preferred_language
         );
         const name = profile.display_name || email.split("@")[0];
-        const template = getTemplate("onboarding_nudge", lang, name);
-        const token = btoa(profile.id);
-        const html = template.html.replace(/__TOKEN__/g, token);
+        const unsubUrl = getUnsubscribeUrl(profile.id);
+        const template = getTemplate("onboarding_nudge", lang, name, unsubUrl);
 
-        // Individual send — one connection, one recipient, proper headers
-        await sendEmailIndividual(
-          email,
-          name,
-          template.subject,
-          html,
-          smtpPassword
-        );
+        await sendEmailRawSmtp(email, template.subject, template.html, smtpPassword);
 
         await supabase.from("email_logs").insert({
           user_id: profile.user_id,
@@ -350,7 +422,6 @@ Deno.serve(async (req) => {
 
     for (const profile of completedUsers || []) {
       try {
-        // Send-Once Guard
         if (await alreadySent(supabase, profile.id, "first_task_boost")) {
           results.skipped_already_sent++;
           continue;
@@ -382,17 +453,10 @@ Deno.serve(async (req) => {
           profile.preferred_language
         );
         const name = profile.display_name || email.split("@")[0];
-        const template = getTemplate("first_task_boost", lang, name);
-        const token = btoa(profile.id);
-        const html = template.html.replace(/__TOKEN__/g, token);
+        const unsubUrl = getUnsubscribeUrl(profile.id);
+        const template = getTemplate("first_task_boost", lang, name, unsubUrl);
 
-        await sendEmailIndividual(
-          email,
-          name,
-          template.subject,
-          html,
-          smtpPassword
-        );
+        await sendEmailRawSmtp(email, template.subject, template.html, smtpPassword);
 
         await supabase.from("email_logs").insert({
           user_id: profile.user_id,
