@@ -13,7 +13,6 @@ const SMTP_FROM_NAME = "Adi from BUFF";
 const APP_URL = "https://buff.lovable.app";
 const UNSUBSCRIBE_URL = "https://iyejaxnugjgjeceqdcky.supabase.co/functions/v1/unsubscribe";
 const COOLDOWN_DAYS = 7;
-const COOLDOWN_DAYS = 7;
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 
