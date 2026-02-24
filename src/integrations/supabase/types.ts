@@ -630,6 +630,7 @@ export type Database = {
           family_id: string
           icon: string | null
           id: string
+          is_system_generated: boolean
           schedule_days: number[]
           strategy_id: string | null
           time: string
@@ -644,6 +645,7 @@ export type Database = {
           family_id: string
           icon?: string | null
           id?: string
+          is_system_generated?: boolean
           schedule_days?: number[]
           strategy_id?: string | null
           time: string
@@ -658,6 +660,7 @@ export type Database = {
           family_id?: string
           icon?: string | null
           id?: string
+          is_system_generated?: boolean
           schedule_days?: number[]
           strategy_id?: string | null
           time?: string

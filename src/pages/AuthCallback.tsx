@@ -471,6 +471,7 @@ export default function AuthCallback() {
               time: task.time,
               credits: task.credits,
               icon: task.icon,
+              is_system_generated: true,
             }));
             await supabase.from('tasks').insert(packTasks);
           }
