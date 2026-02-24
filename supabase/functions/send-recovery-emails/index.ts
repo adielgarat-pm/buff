@@ -184,6 +184,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // ── DISABLED: Email sending is paused until Hebrew encoding is fixed ──
+  return new Response(
+    JSON.stringify({ success: false, error: "Email sending is currently disabled" }),
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   if (!smtpPassword) {
     return new Response(JSON.stringify({ error: "SMTP_PASSWORD not set" }), {

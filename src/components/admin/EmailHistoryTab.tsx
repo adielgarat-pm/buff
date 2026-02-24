@@ -138,9 +138,9 @@ export function EmailHistoryTab() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleTestSend} disabled={sending || !testEmail} className="gap-2">
-              {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Send Test
+            <Button disabled={true} className="gap-2" title="Disabled until Hebrew encoding is fixed">
+              <Send className="w-4 h-4" />
+              Send Test (Disabled)
             </Button>
           </div>
         </CardContent>
