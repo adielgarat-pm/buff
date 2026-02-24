@@ -19,6 +19,7 @@ import { EnOnboardingFlow } from "@/components/onboarding/en";
 import Onboarding from "@/pages/Onboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Unsubscribe from "@/pages/Unsubscribe";
 import buffLogo from '@/assets/buff-logo.png';
 import { Loader2 } from "lucide-react";
 
@@ -156,6 +157,7 @@ const AppRoutes = () => (
     {/* Legal pages */}
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
+    <Route path="/unsubscribe" element={<Unsubscribe />} />
 
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Mail, Send, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, Mail, Send, RefreshCw, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -62,7 +62,7 @@ export function EmailHistoryTab() {
           test_email: testEmail,
           template_key: testTemplate,
           language: testLang,
-          test_name: 'Test User',
+          test_name: testLang === 'he' ? 'עדי' : 'Test User',
         },
       });
 
@@ -70,7 +70,6 @@ export function EmailHistoryTab() {
 
       if (data?.success) {
         toast.success(`Test email sent to ${testEmail}`);
-        // Refresh logs after short delay
         setTimeout(fetchLogs, 2000);
       } else {
         toast.error(data?.error || 'Failed to send test email');
@@ -87,20 +86,26 @@ export function EmailHistoryTab() {
     switch (key) {
       case 'onboarding_nudge': return 'Onboarding Nudge';
       case 'first_task_boost': return 'First Task Boost';
-      case 'stuck': return 'Stuck (legacy)';
-      case 'inactive': return 'Inactive (legacy)';
       default: return key;
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Status Banner */}
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Automated cron sending is <strong>DISABLED</strong>. Only test sends from this panel work.
+        </p>
+      </div>
+
       {/* Test Send Card */}
       <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Send className="w-4 h-4 text-primary" />
-            Test Send — Send a test email to yourself
+            Test Send — Bypasses all filters, sends directly
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -109,7 +114,7 @@ export function EmailHistoryTab() {
               <label className="text-xs text-muted-foreground mb-1 block">Email</label>
               <Input
                 type="email"
-                placeholder="your@email.com"
+                placeholder="buff.parenting@gmail.com"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
               />
@@ -138,9 +143,9 @@ export function EmailHistoryTab() {
                 </SelectContent>
               </Select>
             </div>
-            <Button disabled={true} className="gap-2" title="Disabled until Hebrew encoding is fixed">
-              <Send className="w-4 h-4" />
-              Send Test (Disabled)
+            <Button onClick={handleTestSend} disabled={sending || !testEmail} className="gap-2">
+              {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Send Test
             </Button>
           </div>
         </CardContent>
