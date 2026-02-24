@@ -278,6 +278,113 @@ Deno.serve(async (req) => {
     // empty body = normal cron run
   }
 
+  // ── Recovery batch mode ──
+  if (body.mode === "recovery_batch") {
+    const results = { sent: 0, errors: [] as string[] };
+
+    try {
+      // Get all users who received gibberish emails in the last 6 hours
+      const { data: affectedLogs, error: logErr } = await supabase
+        .from("email_logs")
+        .select("profile_id, email_to, user_id")
+        .eq("status", "sent")
+        .gte("sent_at", new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
+        .not("profile_id", "is", null);
+
+      if (logErr) throw new Error(`Query error: ${logErr.message}`);
+
+      // Deduplicate by email
+      const seenEmails = new Set<string>();
+      const uniqueRecipients: typeof affectedLogs = [];
+      for (const log of affectedLogs || []) {
+        if (!seenEmails.has(log.email_to)) {
+          seenEmails.add(log.email_to);
+          uniqueRecipients.push(log);
+        }
+      }
+
+      for (const log of uniqueRecipients) {
+        try {
+          // Skip if already sent recovery
+          const { data: alreadyRecovered } = await supabase
+            .from("email_logs")
+            .select("id")
+            .eq("profile_id", log.profile_id)
+            .eq("template_key", "recovery_correction")
+            .eq("status", "sent")
+            .limit(1);
+
+          if (alreadyRecovered && alreadyRecovered.length > 0) continue;
+
+          // Get profile display_name for personalization
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("id", log.profile_id)
+            .single();
+
+          const name = profile?.display_name || log.email_to.split("@")[0];
+          const unsubUrl = getUnsubscribeUrl(log.profile_id!);
+
+          const subject = "אופס... אפילו האפליקציה שלי התרגשה ❤️";
+          const html = `<div dir="rtl" style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#333">
+            <p>היי ${name},</p>
+            <p>אני עדי, היוצרת של BUFF.</p>
+            <p>קיבלת ממני מייל קודם שנראה קצת... מוזר? 😅</p>
+            <p>זה בגלל שהאפליקציה שלי התרגשה כל כך לשלוח לך הודעה שהיא שכחה לדבר בעברית.</p>
+            <p>אז הנה מה שרציתי להגיד:</p>
+            <p>אני אמא לשלושה, וכמוך — אני יודעת כמה זה מאתגר לנהל את הבוקר, את השיעורים, את הסדר. בניתי את BUFF כדי להפוך את כל זה למשחק שהילדים שלנו באמת רוצים לשחק בו.</p>
+            <p>אם עוד לא הספקת לנסות — אני כאן בשבילך, לכל שאלה.</p>
+            <p style="text-align:center;margin:28px 0">
+              <a href="${APP_URL}" style="background:#6366f1;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">לחזור ל-BUFF</a>
+            </p>
+            <p>בהצלחה,<br>עדי 💜</p>
+            <p style="font-size:13px;color:#888">
+              <a href="${unsubUrl}" style="color:#888">להסרה מרשימת התפוצה</a>
+            </p>
+          </div>`;
+
+          await sendEmailRawSmtp(log.email_to, subject, html, smtpPassword);
+
+          await supabase.from("email_logs").insert({
+            user_id: log.user_id,
+            profile_id: log.profile_id,
+            email_to: log.email_to,
+            template_key: "recovery_correction",
+            language: "he",
+            status: "sent",
+          });
+
+          results.sent++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          results.errors.push(`${log.email_to}: ${msg}`);
+
+          await supabase.from("email_logs").insert({
+            user_id: log.user_id,
+            profile_id: log.profile_id,
+            email_to: log.email_to,
+            template_key: "recovery_correction",
+            language: "he",
+            status: "error",
+            error_message: msg,
+          });
+        }
+      }
+
+      return new Response(JSON.stringify(results), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   // ── Test mode: always allowed regardless of CRON_ENABLED ──
   if (body.test_email && body.template_key) {
     const testEmail = body.test_email as string;
