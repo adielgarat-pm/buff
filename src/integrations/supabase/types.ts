@@ -149,6 +149,50 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          email_to: string
+          error_message: string | null
+          id: string
+          language: string
+          profile_id: string | null
+          sent_at: string
+          status: string
+          template_key: string
+          user_id: string | null
+        }
+        Insert: {
+          email_to: string
+          error_message?: string | null
+          id?: string
+          language?: string
+          profile_id?: string | null
+          sent_at?: string
+          status?: string
+          template_key: string
+          user_id?: string | null
+        }
+        Update: {
+          email_to?: string
+          error_message?: string | null
+          id?: string
+          language?: string
+          profile_id?: string | null
+          sent_at?: string
+          status?: string
+          template_key?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       families: {
         Row: {
           created_at: string
