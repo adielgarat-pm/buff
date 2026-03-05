@@ -212,47 +212,48 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </AnimatePresence>
 
-      {/* Pet Container with Progress Ring */}
+      {/* Pet Container */}
       <div className="relative">
-        {/* SVG Progress Ring */}
-        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 120 120">
-          {/* Background ring */}
-          <circle
-            cx="60" cy="60" r="54"
-            fill="none"
-            stroke="hsl(var(--secondary))"
-            strokeWidth="6"
-          />
-          {/* Progress ring */}
-          <circle
-            cx="60" cy="60" r="54"
-            fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 54}`}
-            strokeDashoffset={`${2 * Math.PI * 54 * (1 - (totalToday > 0 ? completedToday / totalToday : 0))}`}
-            className="transition-all duration-700 ease-out"
-          />
-          {/* Glow when complete */}
-          {completedToday === totalToday && totalToday > 0 && (
-            <circle
-              cx="60" cy="60" r="54"
-              fill="none"
-              stroke="hsl(var(--buff))"
-              strokeWidth="6"
-              strokeLinecap="round"
-              className="animate-pulse"
-              opacity="0.6"
-            />
-          )}
-        </svg>
+        {/* Egg crack lines overlay (only during egg stage) */}
+        {petState.evolution_stage === 'egg' && crackStage > 0 && !isResting && (
+          <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+            {crackStage >= 1 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 0.8, scale: 1 }}
+                className="absolute text-3xl -rotate-12 translate-x-3 -translate-y-1"
+              >
+                ✨
+              </motion.div>
+            )}
+            {crackStage >= 2 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 0.9, scale: 1, rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                className="absolute text-2xl rotate-12 -translate-x-4 translate-y-2"
+              >
+                💫
+              </motion.div>
+            )}
+            {crackStage >= 3 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: 1, scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+                className="absolute text-lg translate-y-4"
+              >
+                🌟
+              </motion.div>
+            )}
+          </div>
+        )}
 
         {/* Pet Emoji with breathing/floating animation */}
         <motion.button
           onClick={handleTap}
           disabled={isResting}
-          className="relative text-7xl focus:outline-none cursor-pointer disabled:cursor-default select-none w-[120px] h-[120px] flex items-center justify-center"
+          className="text-7xl focus:outline-none cursor-pointer disabled:cursor-default select-none"
           animate={
             isResting
               ? { y: [0, -3, 0], scale: [0.95, 0.92, 0.95] }
@@ -276,6 +277,17 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         >
           {isResting ? '😴' : showEgg ? '🥚' : renderPetVisual('w-16 h-16')}
         </motion.button>
+
+        {/* Energy indicator dot */}
+        {!isResting && (
+          <motion.div
+            className={`absolute -bottom-1 start-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${
+              isHighEnergy ? 'bg-green-400' : energyLevel >= 30 ? 'bg-yellow-400' : 'bg-muted-foreground/40'
+            }`}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
       </div>
 
       {/* Egg Crack Progress Message */}
@@ -292,9 +304,70 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </AnimatePresence>
 
-      {/* Pet Name only — no level/XP/stats */}
-      <div className="mt-2">
+      {/* Pet Name + Level + Stage Badge */}
+      <div className="flex items-center gap-2 mt-3">
         <span className="text-sm font-bold text-foreground">{petName}</span>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold">
+          Lv.{petState.level}
+        </span>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent-foreground font-semibold flex items-center gap-1">
+          {stage.emoji} {t(stage.labelKey)}
+        </span>
+      </div>
+
+      {/* Coach subtitle — intrinsic growth messaging */}
+      <p className="text-[10px] text-muted-foreground mt-1 italic">
+        {t('pet.coachSubtitle')}
+      </p>
+
+      {/* Evolution Progress */}
+      <div className="w-full max-w-[200px] mt-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+            {isMaxEvolution ? (
+              <><Shield className="w-3 h-3" /> {t('pet.maxEvolution')}</>
+            ) : (
+              <><Sparkles className="w-3 h-3" /> {t('pet.evolutionProgress')}</>
+            )}
+          </span>
+        </div>
+        <Progress value={evolutionProgress} className="h-2" />
+        {!isMaxEvolution && (
+          <p className="text-[10px] text-muted-foreground text-center mt-0.5">
+            {evolutionDaysInStage}/{evolutionDaysNeeded} {t('pet.daysToEvolve')}
+          </p>
+        )}
+      </div>
+
+      {/* Streak + Rest Cards row */}
+      <div className="flex items-center gap-4 mt-2">
+        {/* Daily Streak */}
+        <div className="flex items-center gap-1">
+          <Flame className="w-3.5 h-3.5 text-orange-400" />
+          <span className="text-xs font-bold text-foreground">{petState.daily_streak}</span>
+          <span className="text-[10px] text-muted-foreground">{t('pet.streak')}</span>
+        </div>
+
+        {/* Rest Cards */}
+        <div className="flex items-center gap-1">
+          <Ticket className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-bold text-foreground">{petState.rest_cards_balance}</span>
+          <span className="text-[10px] text-muted-foreground">{t('pet.restCards')}</span>
+        </div>
+
+        {/* Energy */}
+        <div className="flex items-center gap-1">
+          <Zap className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-bold text-foreground">{energyLevel}%</span>
+        </div>
+      </div>
+
+      {/* XP Progress Bar (smaller, secondary) */}
+      <div className="w-full max-w-[160px] mt-2">
+        <Progress value={xpProgress} className="h-1" />
+        <p className="text-[10px] text-muted-foreground text-center mt-0.5">
+          {xpInLevel}/{xpNeeded} XP
+        </p>
       </div>
 
       {/* Coach Greeting / Celebration Bubble */}

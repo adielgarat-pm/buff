@@ -8,9 +8,7 @@ import { DailySchedule } from './DailySchedule';
 import { FocusModeToggle } from './FocusModeToggle';
 import { Timetable } from '@/types/task';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-
-import { motion, AnimatePresence } from 'framer-motion';
+import { Target } from 'lucide-react';
 
 interface PhaseViewProps {
   phase: Phase;
@@ -27,69 +25,6 @@ interface PhaseViewProps {
   schoolEndTime?: string | null;
   isSchoolDay?: boolean;
 }
-
-/* ─── Sub-components ─── */
-
-function StageHeader({ focusMode, onToggleFocus }: {
-  focusMode: boolean;
-  onToggleFocus: () => void;
-}) {
-  return (
-    <div className="flex items-center justify-end">
-      <FocusModeToggle isEnabled={focusMode} onToggle={onToggleFocus} />
-    </div>
-  );
-}
-
-function FocusBanner({ t }: { t: (key: string) => string }) {
-  return (
-    <div className="bg-buff/10 border border-buff/30 rounded-2xl p-4 text-center">
-      <p className="text-buff font-bold mb-1">{t('focus.active')}</p>
-      <p className="text-sm text-muted-foreground">{t('focus.completeFirst')}</p>
-    </div>
-  );
-}
-
-function FocusCard({ task, onComplete, onUncomplete, onBuffActivated }: {
-  task: Task;
-  onComplete: (id: string) => void;
-  onUncomplete: (id: string) => void;
-  onBuffActivated?: () => void;
-}) {
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={task.id}
-        initial={{ opacity: 0, x: 60 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -60 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="flex justify-center"
-      >
-        <div className="w-full max-w-sm">
-          <PhaseTaskCard
-            task={task}
-            onComplete={onComplete}
-            onUncomplete={onUncomplete}
-            onBuffActivated={onBuffActivated}
-          />
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-function AllCompleteBanner({ t }: { t: (key: string) => string }) {
-  return (
-    <div className="text-center py-12 bg-buff/10 rounded-2xl border border-buff/30">
-      <span className="text-6xl mb-4 block">🎉</span>
-      <h3 className="text-xl font-bold text-buff mb-2">{t('focus.allComplete')}</h3>
-      <p className="text-muted-foreground">{t('focus.greatWork')}</p>
-    </div>
-  );
-}
-
-/* ─── Main Component ─── */
 
 export function PhaseView({
   phase,
@@ -110,20 +45,28 @@ export function PhaseView({
   const [focusMode, setFocusMode] = useState(false);
   const phaseConfig = getPhaseConfig(phase);
   
-  // Filter tasks by phase + day
+  // Filter tasks by phase using smart logic that considers actual school end time
+  // Also filter by the current day of the week
   const phaseTasks = useMemo(() => {
-    const currentDayOfWeek = new Date().getDay();
+    const currentDayOfWeek = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+    
     return tasks.filter(task => {
-      const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4, 5];
-      if (!scheduleDays.includes(currentDayOfWeek)) return false;
+      // Check if task is scheduled for today
+      const scheduleDays = task.scheduleDays || [0, 1, 2, 3, 4, 5]; // Default Sun-Fri (includes Friday)
+      if (!scheduleDays.includes(currentDayOfWeek)) {
+        return false;
+      }
+      
+      // Check if task belongs to this phase
       return getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay && schoolQuestEnabled) === phase;
     });
   }, [tasks, phase, schoolEndTime, isSchoolDay, schoolQuestEnabled]);
   
-  // Next incomplete task for focus mode
+  // Get the next incomplete task for focus mode
   const nextTask = useMemo(() => {
     const incompleteTasks = phaseTasks.filter(t => !t.completed);
     if (incompleteTasks.length === 0) return null;
+    // Sort by time and get the first one
     return incompleteTasks.sort((a, b) => a.time.localeCompare(b.time))[0];
   }, [phaseTasks]);
   
@@ -131,37 +74,59 @@ export function PhaseView({
   const earnedCredits = completedTasks.reduce((sum, t) => sum + t.credits, 0);
   const totalCredits = phaseTasks.reduce((sum, t) => sum + t.credits, 0);
 
+  // For school phase, include lessons only if enabled
   const isSchoolPhase = phase === 'school' && schoolQuestEnabled;
   const completedLessons = schoolQuestEnabled ? lessons.filter(l => l.completed) : [];
   const lessonCredits = completedLessons.reduce((sum, l) => sum + l.credits, 0);
   const totalLessonCredits = schoolQuestEnabled ? lessons.reduce((sum, l) => sum + l.credits, 0) : 0;
 
-  const phaseTotal = isSchoolPhase ? phaseTasks.length + lessons.length : phaseTasks.length;
-  const phaseCompleted = isSchoolPhase ? completedTasks.length + completedLessons.length : completedTasks.length;
-  const phaseEarnedCredits = isSchoolPhase ? earnedCredits + lessonCredits : earnedCredits;
-  const phaseTotalCredits = isSchoolPhase ? totalCredits + totalLessonCredits : totalCredits;
+  const phaseTotal = isSchoolPhase 
+    ? phaseTasks.length + lessons.length 
+    : phaseTasks.length;
+  const phaseCompleted = isSchoolPhase 
+    ? completedTasks.length + completedLessons.length 
+    : completedTasks.length;
+  const phaseEarnedCredits = isSchoolPhase 
+    ? earnedCredits + lessonCredits 
+    : earnedCredits;
+  const phaseTotalCredits = isSchoolPhase 
+    ? totalCredits + totalLessonCredits 
+    : totalCredits;
 
+  const phaseLabel = language === 'he' ? phaseConfig.labelHe : phaseConfig.label;
   const remainingCount = phaseTasks.length - completedTasks.length;
+
+  // Determine which tasks to show
   const displayTasks = focusMode && nextTask ? [nextTask] : phaseTasks;
 
   return (
-    <div className="space-y-4">
-      {/* Focus toggle */}
-      <StageHeader
-        focusMode={focusMode}
-        onToggleFocus={() => setFocusMode(!focusMode)}
-      />
+    <div className="space-y-6">
+      {/* Focus Mode Toggle */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Target className="w-4 h-4" />
+          <span className="text-sm">
+            {remainingCount} {t('focus.remaining')}
+          </span>
+        </div>
+        <FocusModeToggle 
+          isEnabled={focusMode} 
+          onToggle={() => setFocusMode(!focusMode)} 
+        />
+      </div>
 
-      {/* Simple progress bar */}
-      <PhaseProgressCircle
-        phase={phaseConfig}
-        completed={phaseCompleted}
-        total={phaseTotal}
-        earnedCredits={phaseEarnedCredits}
-        totalCredits={phaseTotalCredits}
-      />
+      {/* Progress Circle */}
+      <div className="flex justify-center py-4">
+        <PhaseProgressCircle
+          phase={phaseConfig}
+          completed={phaseCompleted}
+          total={phaseTotal}
+          earnedCredits={phaseEarnedCredits}
+          totalCredits={phaseTotalCredits}
+        />
+      </div>
 
-      {/* School content (hidden in focus mode) */}
+      {/* School-specific content */}
       {isSchoolPhase && !focusMode && (
         <div className="space-y-4">
           <DailySchedule timetable={timetable} fridayEnabled={fridayEnabled} />
@@ -174,22 +139,26 @@ export function PhaseView({
         </div>
       )}
 
-      {/* Focus Mode: single large card */}
+      {/* Focus Mode Banner */}
       {focusMode && nextTask && (
-        <>
-          <FocusBanner t={t} />
-          <FocusCard
-            task={nextTask}
-            onComplete={onCompleteTask}
-            onUncomplete={onUncompleteTask}
-            onBuffActivated={onBuffActivated}
-          />
-        </>
+        <div className="bg-buff/10 border border-buff/30 rounded-2xl p-4 text-center">
+          <p className="text-buff font-bold mb-1">
+            {t('focus.active')}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t('focus.completeFirst')}
+          </p>
+        </div>
       )}
 
-      {/* Regular mission list (hidden in focus mode) */}
-      {!focusMode && displayTasks.length > 0 && (
+      {/* Tasks for this phase */}
+      {displayTasks.length > 0 && (
         <div className="space-y-3">
+          {!isSchoolPhase && !focusMode && (
+            <h3 className="text-sm font-medium text-muted-foreground px-1">
+              {t('tasks')}
+            </h3>
+          )}
           {displayTasks.map(task => (
             <PhaseTaskCard
               key={task.id}
@@ -210,9 +179,17 @@ export function PhaseView({
         </div>
       )}
 
-      {/* All complete in focus mode */}
+      {/* All complete state in focus mode */}
       {focusMode && !nextTask && phaseTasks.length > 0 && (
-        <AllCompleteBanner t={t} />
+        <div className="text-center py-12 bg-buff/10 rounded-2xl border border-buff/30">
+          <span className="text-6xl mb-4 block">🎉</span>
+          <h3 className="text-xl font-bold text-buff mb-2">
+            {t('focus.allComplete')}
+          </h3>
+          <p className="text-muted-foreground">
+            {t('focus.greatWork')}
+          </p>
+        </div>
       )}
     </div>
   );
