@@ -304,70 +304,9 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </AnimatePresence>
 
-      {/* Pet Name + Level + Stage Badge */}
-      <div className="flex items-center gap-2 mt-3">
+      {/* Pet Name only — no level/XP/stats */}
+      <div className="mt-2">
         <span className="text-sm font-bold text-foreground">{petName}</span>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold">
-          Lv.{petState.level}
-        </span>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent-foreground font-semibold flex items-center gap-1">
-          {stage.emoji} {t(stage.labelKey)}
-        </span>
-      </div>
-
-      {/* Coach subtitle — intrinsic growth messaging */}
-      <p className="text-[10px] text-muted-foreground mt-1 italic">
-        {t('pet.coachSubtitle')}
-      </p>
-
-      {/* Evolution Progress */}
-      <div className="w-full max-w-[200px] mt-3">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-            {isMaxEvolution ? (
-              <><Shield className="w-3 h-3" /> {t('pet.maxEvolution')}</>
-            ) : (
-              <><Sparkles className="w-3 h-3" /> {t('pet.evolutionProgress')}</>
-            )}
-          </span>
-        </div>
-        <Progress value={evolutionProgress} className="h-2" />
-        {!isMaxEvolution && (
-          <p className="text-[10px] text-muted-foreground text-center mt-0.5">
-            {evolutionDaysInStage}/{evolutionDaysNeeded} {t('pet.daysToEvolve')}
-          </p>
-        )}
-      </div>
-
-      {/* Streak + Rest Cards row */}
-      <div className="flex items-center gap-4 mt-2">
-        {/* Daily Streak */}
-        <div className="flex items-center gap-1">
-          <Flame className="w-3.5 h-3.5 text-orange-400" />
-          <span className="text-xs font-bold text-foreground">{petState.daily_streak}</span>
-          <span className="text-[10px] text-muted-foreground">{t('pet.streak')}</span>
-        </div>
-
-        {/* Rest Cards */}
-        <div className="flex items-center gap-1">
-          <Ticket className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-bold text-foreground">{petState.rest_cards_balance}</span>
-          <span className="text-[10px] text-muted-foreground">{t('pet.restCards')}</span>
-        </div>
-
-        {/* Energy */}
-        <div className="flex items-center gap-1">
-          <Zap className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-bold text-foreground">{energyLevel}%</span>
-        </div>
-      </div>
-
-      {/* XP Progress Bar (smaller, secondary) */}
-      <div className="w-full max-w-[160px] mt-2">
-        <Progress value={xpProgress} className="h-1" />
-        <p className="text-[10px] text-muted-foreground text-center mt-0.5">
-          {xpInLevel}/{xpNeeded} XP
-        </p>
       </div>
 
       {/* Coach Greeting / Celebration Bubble */}
