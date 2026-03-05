@@ -8,10 +8,8 @@ import { useChildPreferences } from '@/hooks/useChildPreferences';
 import { ChildOnboarding } from './ChildOnboarding';
 import { Header } from './Header';
 import { ProgressBar } from './ProgressBar';
-import { PhaseNavigation } from './PhaseNavigation';
 import { PhaseView } from './PhaseView';
 import { RewardsStore } from './RewardsStore';
-import { WeeklyTimetable } from './WeeklyTimetable';
 import { TomorrowsPrep } from './TomorrowsPrep';
 import { NightMission, MorningSafetyNet, DailyEssentials, GearMasterTask } from './GearMaster';
 import { ChildBottomNavigation, ChildNavTab } from './ChildBottomNavigation';
@@ -23,7 +21,6 @@ import { PhaseTransitionBanner } from './PhaseTransitionBanner';
 import { BrowserDetectionBanner } from './BrowserDetectionBanner';
 import { IOSInstallBanner } from './IOSInstallBanner';
 import { BirthdayCelebration } from './BirthdayCelebration';
-import { MyProgress } from './MyProgress';
 import { PackCompletionCelebration } from './PackCompletionCelebration';
 import { PetDisplay } from './PetDisplay';
 import { ChildCommandCenter } from './ChildCommandCenter';
@@ -38,8 +35,25 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { usePackCompletion } from '@/hooks/usePackCompletion';
 import { useChildPet } from '@/hooks/useChildPet';
 import { playSuccessChime } from '@/utils/soundEffects';
-import { Phase, getSmartPhaseForTime } from '@/types/phase';
+import { Phase, PHASES, getSmartPhaseForTime } from '@/types/phase';
 import { TaskCategory } from '@/types/task';
+
+// Simple stage header showing only current active stage
+function StageHeader({ activePhase }: { activePhase: Phase }) {
+  const { t, language } = useLanguage();
+  const phaseConfig = PHASES.find(p => p.id === activePhase);
+  const label = language === 'he' ? phaseConfig?.shortLabelHe : phaseConfig?.shortLabel;
+  const stageWord = language === 'he' ? 'שלב' : 'Stage';
+  
+  return (
+    <div className="flex items-center justify-center gap-2 py-2">
+      <span className="text-xl">{phaseConfig?.icon}</span>
+      <span className="text-base font-bold text-foreground">
+        {stageWord}: {label}
+      </span>
+    </div>
+  );
+}
 
 interface ChildViewProps {
   isViewingAsChild?: boolean;
