@@ -61,44 +61,12 @@ export function PhaseNavigation({
         <LeftArrow className="w-5 h-5" />
       </button>
 
-      {/* Current stage indicator */}
-      <div className="flex-1 flex flex-col items-center gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{activeConfig.icon}</span>
-          <div className="flex flex-col items-start">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {t('stage.current')}
-              </span>
-              {isCurrent && (
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              )}
-            </div>
-            <h2 className="text-base font-bold text-foreground leading-tight">
-              {phaseLabel}
-            </h2>
-          </div>
-        </div>
-
-        {/* Simple progress dots */}
-        {stats.total > 0 && (
-          <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(stats.total, 12) }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "w-2 h-2 rounded-full transition-all duration-300",
-                  i < stats.completed
-                    ? "bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.5)]"
-                    : "bg-secondary"
-                )}
-              />
-            ))}
-            {isComplete && (
-              <span className="text-xs ms-1.5 text-primary font-semibold">✓</span>
-            )}
-          </div>
-        )}
+      {/* Single centered stage label */}
+      <div className="flex-1 text-center">
+        <h2 className="text-base font-bold text-foreground">
+          {language === 'he' ? 'שלב' : 'Stage'}: {phaseLabel}
+          {isCurrent && <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse ms-2 align-middle" />}
+        </h2>
       </div>
 
       {/* Next stage */}
