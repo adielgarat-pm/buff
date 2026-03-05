@@ -91,16 +91,15 @@ export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = fa
         </div>
       )}
       
-      {/* Main Container - Compact */}
+      {/* Main Container - Simplified */}
       <div className={cn(
         "rounded-2xl p-3 border transition-all duration-500",
         isFull 
           ? "bg-buff/10 border-buff/40 shadow-[0_0_20px_rgba(57,255,20,0.3)]" 
           : "bg-gradient-card border-border"
       )}>
-        {/* Compact Layout - Horizontal */}
         <div className="flex items-center gap-3">
-          {/* Circular Meter - Smaller */}
+          {/* Circular Meter */}
           <div className="relative w-16 h-16 flex-shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
               <circle
@@ -133,48 +132,30 @@ export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = fa
                 </linearGradient>
               </defs>
             </svg>
-            
-            {/* Center Percentage */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className={cn(
-                "text-sm font-bold",
-                isFull ? "text-buff" : "text-foreground"
-              )}>
-                {Math.round(percent)}%
-              </span>
-            </div>
           </div>
           
-          {/* Badge & Status - Compact */}
+          {/* Badge Title + Progress Bar Only */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{currentBadge?.icon || '⚡'}</span>
               <span className="font-bold text-sm text-foreground truncate">
                 {language === 'he' ? currentBadge?.nameHe : currentBadge?.name}
               </span>
             </div>
             
-            <p className={cn(
-              "text-xs truncate",
-              isFull ? "text-buff" : "text-muted-foreground"
-            )}>
-              {getStatusText()}
-            </p>
-            
-            {/* Day Type & Goal Info */}
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                {dayTypeLabel}
-              </span>
-              <span className="text-[10px] text-muted-foreground">
-                {language === 'he' 
-                  ? `יעד: ${goal} (70% מ-${totalPossible})`
-                  : `Goal: ${goal} (70% of ${totalPossible})`}
-              </span>
+            {/* Simple progress bar */}
+            <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r",
+                  getMeterColor()
+                )}
+                style={{ width: `${percent}%` }}
+              />
             </div>
             
-            {/* Milestone Dots - Inline */}
-            <div className="flex gap-1.5 mt-1.5">
+            {/* Milestone Dots */}
+            <div className="flex gap-1.5 mt-2">
               {[25, 50, 75, 100].map((milestone) => (
                 <div
                   key={milestone}
@@ -188,14 +169,6 @@ export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = fa
               ))}
             </div>
           </div>
-          
-          {/* Buffs Counter - Compact */}
-          {buffsActivated > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-buff/20 border border-buff/30 flex-shrink-0">
-              <Zap className="w-3.5 h-3.5 text-buff" />
-              <span className="text-xs font-bold text-buff">{buffsActivated}</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
