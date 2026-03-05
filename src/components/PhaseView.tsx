@@ -3,6 +3,7 @@ import { Task, Lesson, PeriodInfo } from '@/types/task';
 import { Phase, getPhaseConfig, getSmartPhaseForTime } from '@/types/phase';
 import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
+import { FocusCard } from './FocusCard';
 import { SchoolDaySection } from './SchoolDaySection';
 import { DailySchedule } from './DailySchedule';
 import { FocusModeToggle } from './FocusModeToggle';
@@ -96,9 +97,6 @@ export function PhaseView({
   const phaseLabel = language === 'he' ? phaseConfig.labelHe : phaseConfig.label;
   const remainingCount = phaseTasks.length - completedTasks.length;
 
-  // Determine which tasks to show
-  const displayTasks = focusMode && nextTask ? [nextTask] : phaseTasks;
-
   return (
     <div className="space-y-6">
       {/* Focus Mode Toggle */}
@@ -115,81 +113,86 @@ export function PhaseView({
         />
       </div>
 
-      {/* Progress Circle */}
-      <div className="flex justify-center py-4">
-        <PhaseProgressCircle
-          phase={phaseConfig}
-          completed={phaseCompleted}
-          total={phaseTotal}
-          earnedCredits={phaseEarnedCredits}
-          totalCredits={phaseTotalCredits}
-        />
-      </div>
-
-      {/* School-specific content */}
-      {isSchoolPhase && !focusMode && (
-        <div className="space-y-4">
-          <DailySchedule timetable={timetable} fridayEnabled={fridayEnabled} />
-          <SchoolDaySection
-            lessons={lessons}
-            todaySchedule={todaySchedule}
-            onToggleLesson={onToggleLesson}
-            fridayEnabled={fridayEnabled}
-          />
-        </div>
-      )}
-
-      {/* Focus Mode Banner */}
-      {focusMode && nextTask && (
-        <div className="bg-buff/10 border border-buff/30 rounded-2xl p-4 text-center">
-          <p className="text-buff font-bold mb-1">
-            {t('focus.active')}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {t('focus.completeFirst')}
-          </p>
-        </div>
-      )}
-
-      {/* Tasks for this phase */}
-      {displayTasks.length > 0 && (
-        <div className="space-y-3">
-          {!isSchoolPhase && !focusMode && (
-            <h3 className="text-sm font-medium text-muted-foreground px-1">
-              {t('tasks')}
-            </h3>
-          )}
-          {displayTasks.map(task => (
-            <PhaseTaskCard
-              key={task.id}
-              task={task}
+      {/* --- FOCUS MODE: single large card --- */}
+      {focusMode ? (
+        <div className="space-y-6">
+          {nextTask ? (
+            <FocusCard
+              key={nextTask.id}
+              task={nextTask}
               onComplete={onCompleteTask}
               onUncomplete={onUncompleteTask}
               onBuffActivated={onBuffActivated}
+              animationKey={nextTask.id}
             />
-          ))}
+          ) : phaseTasks.length > 0 ? (
+            /* All complete */
+            <div className="text-center py-12 bg-buff/10 rounded-2xl border border-buff/30">
+              <span className="text-6xl mb-4 block">🎉</span>
+              <h3 className="text-xl font-bold text-buff mb-2">
+                {t('focus.allComplete')}
+              </h3>
+              <p className="text-muted-foreground">
+                {t('focus.greatWork')}
+              </p>
+            </div>
+          ) : null}
         </div>
-      )}
+      ) : (
+        /* --- NORMAL MODE: list view --- */
+        <>
+          {/* Progress Circle */}
+          <div className="flex justify-center py-4">
+            <PhaseProgressCircle
+              phase={phaseConfig}
+              completed={phaseCompleted}
+              total={phaseTotal}
+              earnedCredits={phaseEarnedCredits}
+              totalCredits={phaseTotalCredits}
+            />
+          </div>
 
-      {/* Empty state */}
-      {phaseTasks.length === 0 && !isSchoolPhase && (
-        <div className="text-center py-12">
-          <span className="text-4xl mb-4 block">{phaseConfig.icon}</span>
-          <p className="text-muted-foreground">{t('noTasksForPhase')}</p>
-        </div>
-      )}
+          {/* School-specific content */}
+          {isSchoolPhase && (
+            <div className="space-y-4">
+              <DailySchedule timetable={timetable} fridayEnabled={fridayEnabled} />
+              <SchoolDaySection
+                lessons={lessons}
+                todaySchedule={todaySchedule}
+                onToggleLesson={onToggleLesson}
+                fridayEnabled={fridayEnabled}
+              />
+            </div>
+          )}
 
-      {/* All complete state in focus mode */}
-      {focusMode && !nextTask && phaseTasks.length > 0 && (
-        <div className="text-center py-12 bg-buff/10 rounded-2xl border border-buff/30">
-          <span className="text-6xl mb-4 block">🎉</span>
-          <h3 className="text-xl font-bold text-buff mb-2">
-            {t('focus.allComplete')}
-          </h3>
-          <p className="text-muted-foreground">
-            {t('focus.greatWork')}
-          </p>
-        </div>
+          {/* Tasks for this phase */}
+          {phaseTasks.length > 0 && (
+            <div className="space-y-3">
+              {!isSchoolPhase && (
+                <h3 className="text-sm font-medium text-muted-foreground px-1">
+                  {t('tasks')}
+                </h3>
+              )}
+              {phaseTasks.map(task => (
+                <PhaseTaskCard
+                  key={task.id}
+                  task={task}
+                  onComplete={onCompleteTask}
+                  onUncomplete={onUncompleteTask}
+                  onBuffActivated={onBuffActivated}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {phaseTasks.length === 0 && !isSchoolPhase && (
+            <div className="text-center py-12">
+              <span className="text-4xl mb-4 block">{phaseConfig.icon}</span>
+              <p className="text-muted-foreground">{t('noTasksForPhase')}</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
