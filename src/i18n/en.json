@@ -986,5 +986,14 @@
   "sticker.sendError": "Couldn't send sticker",
   "sticker.pickOne": "Pick a sticker to send:",
   "sticker.fromParent": "Your parent is proud of you!",
-  "sticker.tapToDismiss": "Tap anywhere to continue"
+  "sticker.tapToDismiss": "Tap anywhere to continue",
+  "ticket.loot": "Loot Drop!",
+  "ticket.youGotIt": "You got it! 🎉",
+  "ticket.showToParent": "Show this ticket to your parent to claim your reward!",
+  "ticket.myRewards": "My Rewards",
+  "ticket.showToRedeem": "Show to parent to redeem",
+  "ticket.used": "Used",
+  "ticket.markUsedTitle": "Mark as Used?",
+  "ticket.markUsedDesc": "This will remove the ticket from your rewards.",
+  "ticket.confirmUsed": "Yes, I got it!"
 }

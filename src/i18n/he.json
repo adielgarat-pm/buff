@@ -986,5 +986,14 @@
   "sticker.sendError": "לא הצלחנו לשלוח את המדבקה",
   "sticker.pickOne": "בחר/י מדבקה לשליחה:",
   "sticker.fromParent": "ההורה שלך גאה בך!",
-  "sticker.tapToDismiss": "לחץ/י בכל מקום כדי להמשיך"
+  "sticker.tapToDismiss": "לחץ/י בכל מקום כדי להמשיך",
+  "ticket.loot": "שלל חדש!",
+  "ticket.youGotIt": "זה שלך! 🎉",
+  "ticket.showToParent": "הראה את הכרטיס הזה להורה שלך כדי לקבל את הפרס!",
+  "ticket.myRewards": "הפרסים שלי",
+  "ticket.showToRedeem": "הראה להורה כדי לממש",
+  "ticket.used": "נוצל",
+  "ticket.markUsedTitle": "סמן כנוצל?",
+  "ticket.markUsedDesc": "הכרטיס יוסר מרשימת הפרסים שלך.",
+  "ticket.confirmUsed": "כן, קיבלתי!"
 }
