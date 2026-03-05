@@ -155,61 +155,23 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
           wasJustCompleted && "animate-quest-complete bg-gradient-to-r from-buff/20 via-primary/20 to-buff/20"
         )}
       >
-        {/* Compact single-row layout */}
-        <div className="flex items-center gap-2.5 flex-row-reverse">
-        {/* Main Content */}
+        {/* Simplified single-row: checkbox + title + buff button */}
+        <div className="flex items-center gap-3 flex-row-reverse">
+          {/* Main Content — title only */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className={cn(
-                "text-sm font-semibold transition-all leading-tight text-start truncate",
-                task.completed 
-                  ? "text-muted-foreground line-through" 
-                  : isProtocol
-                    ? "text-protocol-cyan"
-                    : "text-foreground"
-              )}>
-                {translateTitle(task.title, language)}
-              </h3>
-              
-              {/* Credits - Compact */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {isProtocol && !task.completed && (
-                  <span className="text-[10px] text-protocol-purple font-medium">1.5x</span>
-                )}
-                <span className={cn(
-                  "text-sm font-bold",
-                  task.completed ? "text-buff" : isProtocol ? "text-protocol-cyan" : "text-muted-foreground"
-                )}>
-                  +{effectiveCredits}
-                </span>
-              </div>
-            </div>
-            
-            {/* Task Notes - Only show if present */}
-            {task.description && !task.completed && (
-              <p className="text-[11px] text-muted-foreground/80 mt-0.5 leading-tight line-clamp-1 text-start" dir={language === 'he' ? 'rtl' : 'ltr'}>
-                📝 {task.description}
-              </p>
-            )}
-            
-            {/* Metadata row - Compact */}
-            <div className="flex items-center gap-2 mt-1 flex-row-reverse justify-end">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Clock className="w-3 h-3" />
-                <span className="text-xs">{task.time}</span>
-              </div>
-              
-              <div className={cn(
-                "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px]",
-                colorClasses
-              )}>
-                <Icon className="w-3 h-3" />
-                <span className="capitalize font-medium">{categoryLabel}</span>
-              </div>
-            </div>
+            <h3 className={cn(
+              "text-sm font-semibold transition-all leading-tight text-start truncate",
+              task.completed 
+                ? "text-muted-foreground line-through" 
+                : isProtocol
+                  ? "text-protocol-cyan"
+                  : "text-foreground"
+            )}>
+              {translateTitle(task.title, language)}
+            </h3>
           </div>
 
-          {/* Buff Button - Smaller */}
+          {/* Buff Button */}
           {!task.completed && (
             <button
               onClick={handleBuffClick}
@@ -229,7 +191,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, onBuffActivated 
             </button>
           )}
 
-          {/* Checkbox Button - Prominent "Complete" target */}
+          {/* Checkbox */}
           <button
             onClick={handleComplete}
             className={cn(
