@@ -1,6 +1,7 @@
 import { Phase, PHASES, getPhaseConfig } from '@/types/phase';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PhaseNavigationProps {
   activePhase: Phase;
@@ -19,88 +20,94 @@ export function PhaseNavigation({
   schoolQuestEnabled = true,
   isTeen = false,
 }: PhaseNavigationProps) {
-  const { language } = useLanguage();
-
-  // Teen terminology: "missions" → "objectives"
-  const TEEN_LABELS_HE: Record<Phase, string> = {
-    morning: 'בוקר',
-    school: 'לימודים',
-    afternoon: 'אחה״צ',
-    evening: 'ערב',
-  };
-  const TEEN_LABELS_EN: Record<Phase, string> = {
-    morning: 'AM Ops',
-    school: 'School',
-    afternoon: 'PM Ops',
-    evening: 'Night Ops',
-  };
-
-  const handlePhaseChange = (phase: Phase) => {
-    // Haptic feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-    onPhaseChange(phase);
-  };
+  const { language, t, isRTL } = useLanguage();
 
   // Filter out school phase if disabled
   const visiblePhases = PHASES.filter(phase => {
     if (phase.id === 'school' && !schoolQuestEnabled) return false;
     return true;
   });
-  
+
+  const currentIndex = visiblePhases.findIndex(p => p.id === activePhase);
+  const activeConfig = getPhaseConfig(activePhase);
+  const stats = phaseStats[activePhase];
+  const isComplete = stats.total > 0 && stats.completed === stats.total;
+  const isCurrent = activePhase === currentPhase;
+
+  const phaseLabel = language === 'he' ? activeConfig.labelHe : activeConfig.label;
+
+  const goNext = () => {
+    const next = visiblePhases[(currentIndex + 1) % visiblePhases.length];
+    if (navigator.vibrate) navigator.vibrate(10);
+    onPhaseChange(next.id);
+  };
+
+  const goPrev = () => {
+    const prev = visiblePhases[(currentIndex - 1 + visiblePhases.length) % visiblePhases.length];
+    if (navigator.vibrate) navigator.vibrate(10);
+    onPhaseChange(prev.id);
+  };
+
+  const LeftArrow = isRTL ? ChevronRight : ChevronLeft;
+  const RightArrow = isRTL ? ChevronLeft : ChevronRight;
+
   return (
-    <div className="flex gap-1 p-1.5 bg-secondary/50 rounded-2xl backdrop-blur-sm">
-      {visiblePhases.map((phase) => {
-        const isActive = activePhase === phase.id;
-        const isCurrent = currentPhase === phase.id;
-        const stats = phaseStats[phase.id];
-        const isComplete = stats.total > 0 && stats.completed === stats.total;
-        const label = isTeen
-          ? (language === 'he' ? TEEN_LABELS_HE[phase.id] : TEEN_LABELS_EN[phase.id])
-          : (language === 'he' ? phase.shortLabelHe : phase.shortLabel);
-        
-        return (
-          <button
-            key={phase.id}
-            onClick={() => handlePhaseChange(phase.id)}
-            className={cn(
-              "relative flex-1 flex flex-col items-center min-h-[64px] py-2.5 px-1 rounded-xl transition-all duration-200",
-              "touch-feedback active:scale-95",
-              isActive 
-                ? "bg-card shadow-lg" 
-                : "active:bg-secondary/80",
-              isCurrent && !isActive && "ring-1 ring-primary/30"
-            )}
-          >
-            {/* Current phase indicator */}
-            {isCurrent && (
-              <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary animate-pulse" />
-            )}
-            
-            {/* Icon */}
-            <span className="text-xl mb-0.5">{phase.icon}</span>
-            
-            {/* Label */}
-            <span className={cn(
-              "text-[11px] font-semibold transition-colors",
-              isActive ? "text-foreground" : "text-muted-foreground"
-            )}>
-              {label}
-            </span>
-            
-            {/* Stats */}
-            {stats.total > 0 && (
-              <span className={cn(
-                "text-[10px] font-medium mt-0.5",
-                isComplete ? "text-primary" : "text-muted-foreground"
-              )}>
-                {stats.completed}/{stats.total}
+    <div className="flex items-center justify-between gap-2 px-1">
+      {/* Previous stage */}
+      <button
+        onClick={goPrev}
+        className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors touch-target active:scale-90"
+      >
+        <LeftArrow className="w-5 h-5" />
+      </button>
+
+      {/* Current stage indicator */}
+      <div className="flex-1 flex flex-col items-center gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{activeConfig.icon}</span>
+          <div className="flex flex-col items-start">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t('stage.current')}
               </span>
+              {isCurrent && (
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              )}
+            </div>
+            <h2 className="text-base font-bold text-foreground leading-tight">
+              {phaseLabel}
+            </h2>
+          </div>
+        </div>
+
+        {/* Simple progress dots */}
+        {stats.total > 0 && (
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(stats.total, 12) }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all duration-300",
+                  i < stats.completed
+                    ? "bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.5)]"
+                    : "bg-secondary"
+                )}
+              />
+            ))}
+            {isComplete && (
+              <span className="text-xs ms-1.5 text-primary font-semibold">✓</span>
             )}
-          </button>
-        );
-      })}
+          </div>
+        )}
+      </div>
+
+      {/* Next stage */}
+      <button
+        onClick={goNext}
+        className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors touch-target active:scale-90"
+      >
+        <RightArrow className="w-5 h-5" />
+      </button>
     </div>
   );
 }

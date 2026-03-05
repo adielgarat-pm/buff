@@ -1,4 +1,4 @@
-import { CheckSquare, Calendar, Gift, TrendingUp } from 'lucide-react';
+import { Swords, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -12,11 +12,10 @@ interface ChildBottomNavigationProps {
 export function ChildBottomNavigation({ activeTab, onTabChange }: ChildBottomNavigationProps) {
   const { t } = useLanguage();
 
+  // Simplified: only Missions and The Shop
   const NAV_ITEMS = [
-    { id: 'tasks' as const, labelKey: 'nav.tasks', icon: CheckSquare },
-    { id: 'timetable' as const, labelKey: 'nav.timetable', icon: Calendar },
-    { id: 'progress' as const, labelKey: 'nav.progress', icon: TrendingUp },
-    { id: 'store' as const, labelKey: 'nav.store', icon: Gift },
+    { id: 'tasks' as const, labelKey: 'nav.tasks', icon: Swords },
+    { id: 'store' as const, labelKey: 'nav.store', icon: ShoppingBag },
   ];
 
   const handleTabChange = (tab: ChildNavTab) => {
@@ -33,24 +32,23 @@ export function ChildBottomNavigation({ activeTab, onTabChange }: ChildBottomNav
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
-            const isStore = item.id === 'store';
             
             return (
               <button
                 key={item.id}
                 onClick={() => handleTabChange(item.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[56px] py-2 px-3 rounded-2xl",
+                  "flex flex-col items-center justify-center gap-0.5 min-w-[80px] min-h-[56px] py-2 px-4 rounded-2xl",
                   "transition-all duration-200 touch-feedback touch-target",
                   "active:scale-95",
                   isActive 
-                    ? isStore ? "text-accent" : "text-accent" 
+                    ? "text-accent" 
                     : "text-muted-foreground active:text-foreground"
                 )}
               >
                 <div className={cn(
                   "flex items-center justify-center w-12 h-8 rounded-xl transition-all duration-200",
-                  isActive && (isStore ? "bg-accent/20 shadow-reward-glow" : "bg-accent/20 shadow-reward-glow")
+                  isActive && "bg-accent/20 shadow-reward-glow"
                 )}>
                   <Icon className={cn(
                     "w-6 h-6 transition-transform duration-200",
@@ -59,7 +57,7 @@ export function ChildBottomNavigation({ activeTab, onTabChange }: ChildBottomNav
                 </div>
                 <span className={cn(
                   "text-[11px] font-semibold tracking-wide",
-                  isActive && (isStore ? "text-accent" : "text-accent")
+                  isActive && "text-accent"
                 )}>
                   {t(item.labelKey)}
                 </span>
