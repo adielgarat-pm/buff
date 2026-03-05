@@ -16,7 +16,7 @@ export function PhaseProgressCircle({
   earnedCredits,
   totalCredits 
 }: PhaseProgressCircleProps) {
-  const { t } = useLanguage();
+  const percentage = total > 0 ? (completed / total) * 100 : 0;
   const percentage = total > 0 ? (completed / total) * 100 : 0;
   const isComplete = completed === total && total > 0;
 
