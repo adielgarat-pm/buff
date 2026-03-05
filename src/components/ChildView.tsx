@@ -309,15 +309,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         <div className="tab-content">
           {activeTab === 'tasks' && (
             <div className="space-y-6">
-              {/* Phase Navigation */}
-              <PhaseNavigation
-                activePhase={activePhase}
-                currentPhase={currentPhase}
-                onPhaseChange={setActivePhase}
-                phaseStats={phaseStats}
-                schoolQuestEnabled={schoolQuestEnabled}
-                isTeen={isTeen}
-              />
+              {/* Stage Header - Simple text showing current stage */}
+              <StageHeader activePhase={activePhase} />
 
                {/* Pet Display - Pro users who enabled it, above the fold */}
               {showPetDisplay && (
@@ -388,35 +381,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
             </div>
           )}
           
-          {activeTab === 'timetable' && (
-            <div className="space-y-6">
-              {/* Night Mission - Full interactive version in timetable tab */}
-              {bagPrepEnabled && !isCurrentlyWeekend && (
-                <NightMission 
-                  timetable={timetable}
-                  fridayEnabled={fridayEnabled}
-                  credits={bagPrepCredits}
-                  isCompleted={bagPrepCompleted}
-                  onComplete={completeBagPrep}
-                  onUndo={undoBagPrep}
-                />
-              )}
-              
-              <WeeklyTimetable 
-                timetable={timetable} 
-                onUpdateTimetable={updateTimetable} 
-                fridayEnabled={fridayEnabled} 
-              />
-            </div>
-          )}
-
-          {activeTab === 'progress' && (
-            <MyProgress 
-              onClose={() => setActiveTab('tasks')}
-              activeCategories={activeCategories}
-              restTickets={isProUser ? restTickets : undefined}
-            />
-          )}
+          {/* Timetable and Progress tabs removed for cognitive load reduction */}
         </div>
 
         {/* Night Mission Modal - when opened from task card */}
