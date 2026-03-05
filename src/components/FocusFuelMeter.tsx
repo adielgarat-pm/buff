@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Zap, Battery, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FocusFuelMeterProps {
@@ -22,22 +22,16 @@ const SKILL_BADGES = [
 ];
 
 export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = false, buffsActivated = 0, className }: FocusFuelMeterProps) {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const [showCelebration, setShowCelebration] = useState(false);
   const [lastMilestone, setLastMilestone] = useState(0);
   
   const percent = goal > 0 ? Math.min((earned / goal) * 100, 100) : 0;
-  const isHalfway = percent >= 50;
   const isAlmostFull = percent >= 80;
   const isFull = percent >= 100;
   
-  // Day type label
-  const dayTypeLabel = isWeekend 
-    ? (language === 'he' ? '🌴 יום חופש' : '🌴 Off Day')
-    : (language === 'he' ? '📚 יום לימודים' : '📚 School Day');
-  
   // Determine current milestone
-  const currentMilestone = isFull ? 100 : isAlmostFull ? 80 : isHalfway ? 50 : 0;
+  const currentMilestone = isFull ? 100 : isAlmostFull ? 80 : percent >= 50 ? 50 : 0;
   
   // Calculate skill badge level (every 20% = 1 badge, max 5)
   const badgeLevel = Math.min(Math.floor(percent / 20) + 1, 5);
@@ -49,7 +43,6 @@ export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = fa
       setShowCelebration(true);
       setLastMilestone(currentMilestone);
       
-      // Haptic feedback
       if (navigator.vibrate) {
         navigator.vibrate([100, 50, 100]);
       }
