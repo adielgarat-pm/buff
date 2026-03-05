@@ -155,7 +155,7 @@ export function ParentDashboard({
                 onChange={(e) => setLocalGoal(parseInt(e.target.value) || 0)}
                 className="w-24 bg-secondary border-border"
               />
-              <span className="text-sm text-muted-foreground">{t('oldDashboard.credits')}</span>
+              <span className="text-sm text-muted-foreground">{t('common.credits')}</span>
               <Button
                 size="sm"
                 onClick={handleSaveGoal}
@@ -324,7 +324,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
             min={10}
             max={500}
           />
-          <span className="text-xs text-muted-foreground">credits</span>
+          <span className="text-xs text-muted-foreground">{t('common.credits')}</span>
         </div>
       </div>
 
@@ -401,7 +401,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
               className="w-full touch-target"
             >
               <Gift className="w-4 h-4 mr-2" />
-              Edit Rewards Store
+              {t('parentSettings.editRewardsStore')}
             </Button>
 
             {/* Rewards Preview List */}
@@ -423,7 +423,7 @@ function ChildConfigPanel({ childId, childName, fridayEnabled }: { childId: stri
                   >
                     <span className="text-2xl">{reward.icon}</span>
                     <span className="text-sm font-medium text-foreground line-clamp-2">{translateTitle(reward.title, language)}</span>
-                    <span className="text-xs text-primary font-bold">{reward.price} Buff</span>
+                    <span className="text-xs text-primary font-bold">{reward.price} {t('common.credits')}</span>
                     {reward.claimed && (
                       <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">Claimed</span>
                     )}

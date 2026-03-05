@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { DigitalTicketModal } from './DigitalTicketModal';
+import { MyRewardsInventory } from './MyRewardsInventory';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -26,6 +28,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
   const [confirmUnclaimReward, setConfirmUnclaimReward] = useState<StoreReward | null>(null);
+  const [ticketReward, setTicketReward] = useState<{ title: string; icon: string } | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
     if (totalBalance >= reward.price && !reward.claimed) {
@@ -33,13 +36,8 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
       setTimeout(() => {
         onRedeem(reward.id);
         setRedeemingId(null);
-        
-        // Show success toast
-        toast({
-          title: t('store.rewardPurchased'),
-          description: `${reward.icon} ${reward.title} - ${t('store.enjoy')}`,
-          duration: 4000,
-        });
+        // Show digital ticket celebration
+        setTicketReward({ title: translateTitle(reward.title, language), icon: reward.icon });
       }, 500);
     }
   };
@@ -95,6 +93,14 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
               </div>
             </div>
           </div>
+
+          {/* My Rewards Inventory - claimed tickets */}
+          {claimedRewards.length > 0 && (
+            <MyRewardsInventory
+              claimedRewards={claimedRewards}
+              onMarkUsed={(rewardId) => onUnclaim && onUnclaim(rewardId)}
+            />
+          )}
 
           {/* Available Rewards - 2 Column Grid */}
           {availableRewards.length > 0 && (
@@ -169,49 +175,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
             </div>
           )}
 
-          {/* Claimed Rewards - 2 Column Grid */}
-          {claimedRewards.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                {t('store.claimedRewards')}
-              </h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {claimedRewards.map((reward) => {
-                  const isUnclaiming = unclaimingId === reward.id;
-                  return (
-                    <div
-                      key={reward.id}
-                      className="p-4 rounded-2xl bg-success/10 border border-success/30 flex flex-col items-center text-center"
-                    >
-                      <span className="text-3xl opacity-75 mb-2">{reward.icon}</span>
-                      <h3 className="font-medium text-foreground text-sm mb-1">{translateTitle(reward.title, language)}</h3>
-                      <div className="flex items-center gap-1 text-success text-xs mb-2">
-                        <Check className="w-4 h-4" />
-                        <span>{t('store.claimed')}</span>
-                      </div>
-                      {onUnclaim && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setConfirmUnclaimReward(reward)}
-                          disabled={isUnclaiming}
-                          className="w-full h-8 text-xs rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
-                        >
-                          {isUnclaiming ? (
-                            <Sparkles className="w-3 h-3 animate-spin" />
-                          ) : (
-                            t('store.unclaim')
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* Claimed rewards are now shown in MyRewardsInventory above */}
 
           {/* Empty State */}
           {storeRewards.length === 0 && (
@@ -272,6 +236,14 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Digital Ticket Celebration Modal */}
+      <DigitalTicketModal
+        show={!!ticketReward}
+        rewardTitle={ticketReward?.title || ''}
+        rewardIcon={ticketReward?.icon || '🎁'}
+        onDismiss={() => setTicketReward(null)}
+      />
     </div>
   );
 }
