@@ -30,20 +30,12 @@ interface PhaseViewProps {
 
 /* ─── Sub-components ─── */
 
-function StageHeader({ remainingCount, focusMode, onToggleFocus, t }: {
-  remainingCount: number;
+function StageHeader({ focusMode, onToggleFocus }: {
   focusMode: boolean;
   onToggleFocus: () => void;
-  t: (key: string) => string;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Target className="w-4 h-4" />
-        <span className="text-sm">
-          {remainingCount} {t('focus.remaining')}
-        </span>
-      </div>
+    <div className="flex items-center justify-end">
       <FocusModeToggle isEnabled={focusMode} onToggle={onToggleFocus} />
     </div>
   );
@@ -154,12 +146,10 @@ export function PhaseView({
 
   return (
     <div className="space-y-4">
-      {/* Focus toggle + remaining count */}
+      {/* Focus toggle */}
       <StageHeader
-        remainingCount={remainingCount}
         focusMode={focusMode}
         onToggleFocus={() => setFocusMode(!focusMode)}
-        t={t}
       />
 
       {/* Simple progress bar */}

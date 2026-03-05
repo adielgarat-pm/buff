@@ -22,8 +22,8 @@ export function PhaseProgressCircle({
   const isComplete = completed === total && total > 0;
 
   return (
-    <div className="w-full space-y-2">
-      {/* Visual progress bar — replaces raw numbers */}
+    <div className="w-full">
+      {/* Visual progress bar only — no text/numbers */}
       <div className="relative h-3 w-full rounded-full bg-secondary overflow-hidden">
         <div
           className={cn(
@@ -34,18 +34,6 @@ export function PhaseProgressCircle({
           )}
           style={{ width: `${percentage}%` }}
         />
-      </div>
-
-      {/* Minimal label */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground px-0.5">
-        <span>
-          {completed} / {total} {t('focus.remaining').replace('remaining', '').trim() || ''}
-        </span>
-        {isComplete && (
-          <span className="text-primary font-semibold">
-            {t('stage.complete')}
-          </span>
-        )}
       </div>
     </div>
   );
