@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { PhaseConfig } from '@/types/phase';
 
 interface PhaseProgressCircleProps {

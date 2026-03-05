@@ -8,7 +8,7 @@ import { DailySchedule } from './DailySchedule';
 import { FocusModeToggle } from './FocusModeToggle';
 import { Timetable } from '@/types/task';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Target } from 'lucide-react';
+
 
 import { motion, AnimatePresence } from 'framer-motion';
 

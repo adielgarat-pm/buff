@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Zap, Sparkles } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { Sparkles } from 'lucide-react';
 
 interface FocusFuelMeterProps {
   earned: number;
@@ -12,13 +11,6 @@ interface FocusFuelMeterProps {
   className?: string;
 }
 
-const SKILL_BADGES = [
-  { level: 1, name: 'First Spark', nameHe: 'ניצוץ ראשון', icon: '⚡' },
-  { level: 2, name: 'Getting Warmed Up', nameHe: 'מתחממים', icon: '🔥' },
-  { level: 3, name: 'On a Roll', nameHe: 'בזרימה', icon: '🎯' },
-  { level: 4, name: 'Focus Fighter', nameHe: 'לוחם מיקוד', icon: '💪' },
-  { level: 5, name: 'Persistence Pro', nameHe: 'מקצוען התמדה', icon: '🏆' },
-];
 
 export function FocusFuelMeter({ earned, goal, className }: FocusFuelMeterProps) {
   const [showCelebration, setShowCelebration] = useState(false);
