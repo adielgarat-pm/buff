@@ -886,7 +886,7 @@
   "rewardEditor.icon": "אייקון",
   "rewardEditor.price": "מחיר (באפים)",
   "rewardEditor.priceLabel": "מחיר",
-  "rewardEditor.smartSuggestion": "💡 הצעות מבוססות 70% מהיעד היומי ({goal} נקודות)",
+  "rewardEditor.smartSuggestion": "💡 הצעות מבוססות 70% מהיעד היומי ({goal} באפים)",
   "rewardEditor.cancel": "ביטול",
   "rewardEditor.addReward": "הוסף פרס",
   "rewardEditor.noRewards": "אין פרסים עדיין. הוסיפו פרסים גדולים!",
