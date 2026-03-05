@@ -212,48 +212,47 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         )}
       </AnimatePresence>
 
-      {/* Pet Container */}
+      {/* Pet Container with Progress Ring */}
       <div className="relative">
-        {/* Egg crack lines overlay (only during egg stage) */}
-        {petState.evolution_stage === 'egg' && crackStage > 0 && !isResting && (
-          <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
-            {crackStage >= 1 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 0.8, scale: 1 }}
-                className="absolute text-3xl -rotate-12 translate-x-3 -translate-y-1"
-              >
-                ✨
-              </motion.div>
-            )}
-            {crackStage >= 2 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 0.9, scale: 1, rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                className="absolute text-2xl rotate-12 -translate-x-4 translate-y-2"
-              >
-                💫
-              </motion.div>
-            )}
-            {crackStage >= 3 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.3 }}
-                animate={{ opacity: 1, scale: [1, 1.2, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className="absolute text-lg translate-y-4"
-              >
-                🌟
-              </motion.div>
-            )}
-          </div>
-        )}
+        {/* SVG Progress Ring */}
+        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 120 120">
+          {/* Background ring */}
+          <circle
+            cx="60" cy="60" r="54"
+            fill="none"
+            stroke="hsl(var(--secondary))"
+            strokeWidth="6"
+          />
+          {/* Progress ring */}
+          <circle
+            cx="60" cy="60" r="54"
+            fill="none"
+            stroke="hsl(var(--primary))"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={`${2 * Math.PI * 54}`}
+            strokeDashoffset={`${2 * Math.PI * 54 * (1 - (totalToday > 0 ? completedToday / totalToday : 0))}`}
+            className="transition-all duration-700 ease-out"
+          />
+          {/* Glow when complete */}
+          {completedToday === totalToday && totalToday > 0 && (
+            <circle
+              cx="60" cy="60" r="54"
+              fill="none"
+              stroke="hsl(var(--buff))"
+              strokeWidth="6"
+              strokeLinecap="round"
+              className="animate-pulse"
+              opacity="0.6"
+            />
+          )}
+        </svg>
 
         {/* Pet Emoji with breathing/floating animation */}
         <motion.button
           onClick={handleTap}
           disabled={isResting}
-          className="text-7xl focus:outline-none cursor-pointer disabled:cursor-default select-none"
+          className="relative text-7xl focus:outline-none cursor-pointer disabled:cursor-default select-none w-[120px] h-[120px] flex items-center justify-center"
           animate={
             isResting
               ? { y: [0, -3, 0], scale: [0.95, 0.92, 0.95] }
@@ -277,17 +276,6 @@ export function PetDisplay({ childName, childId, justCompletedTask, onTaskComple
         >
           {isResting ? '😴' : showEgg ? '🥚' : renderPetVisual('w-16 h-16')}
         </motion.button>
-
-        {/* Energy indicator dot */}
-        {!isResting && (
-          <motion.div
-            className={`absolute -bottom-1 start-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${
-              isHighEnergy ? 'bg-green-400' : energyLevel >= 30 ? 'bg-yellow-400' : 'bg-muted-foreground/40'
-            }`}
-            animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        )}
       </div>
 
       {/* Egg Crack Progress Message */}
