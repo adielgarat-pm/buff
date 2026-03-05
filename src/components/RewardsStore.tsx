@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { Progress } from './ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { DigitalTicketModal } from './DigitalTicketModal';
+import { MyRewardsInventory } from './MyRewardsInventory';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -26,6 +28,7 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [unclaimingId, setUnclaimingId] = useState<string | null>(null);
   const [confirmUnclaimReward, setConfirmUnclaimReward] = useState<StoreReward | null>(null);
+  const [ticketReward, setTicketReward] = useState<{ title: string; icon: string } | null>(null);
 
   const handleRedeem = (reward: StoreReward) => {
     if (totalBalance >= reward.price && !reward.claimed) {
@@ -33,13 +36,8 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
       setTimeout(() => {
         onRedeem(reward.id);
         setRedeemingId(null);
-        
-        // Show success toast
-        toast({
-          title: t('store.rewardPurchased'),
-          description: `${reward.icon} ${reward.title} - ${t('store.enjoy')}`,
-          duration: 4000,
-        });
+        // Show digital ticket celebration
+        setTicketReward({ title: translateTitle(reward.title, language), icon: reward.icon });
       }, 500);
     }
   };
