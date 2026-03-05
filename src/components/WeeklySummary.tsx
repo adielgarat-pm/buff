@@ -51,7 +51,7 @@ export function WeeklySummary({ data, onClose }: WeeklySummaryProps) {
 
   const chartConfig = {
     credits: {
-      label: 'Credits',
+      label: t('common.credits'),
       color: 'hsl(var(--primary))',
     },
     ...Object.fromEntries(

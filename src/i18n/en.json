@@ -181,6 +181,8 @@
   "progress.level": "Level",
   "progress.maxLevel": "Max Level!",
   "focus.active": "🎯 Focus Mode Active",
+  "focus.modeOn": "Focus Mode ON",
+  "focus.modeOff": "Focus Mode",
   "focus.completeFirst": "Complete this mission first",
   "focus.allComplete": "All Missions Complete!",
   "focus.greatWork": "Great work! Move to the next stage.",

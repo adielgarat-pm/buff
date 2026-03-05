@@ -9,7 +9,7 @@ interface FocusModeToggleProps {
 }
 
 export function FocusModeToggle({ isEnabled, onToggle, className }: FocusModeToggleProps) {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   
   return (
     <button
@@ -28,10 +28,7 @@ export function FocusModeToggle({ isEnabled, onToggle, className }: FocusModeTog
         <Eye className="w-4 h-4" />
       )}
       <span className="text-sm font-medium">
-        {language === 'he' 
-          ? (isEnabled ? 'מצב מיקוד פעיל' : 'מצב מיקוד')
-          : (isEnabled ? 'Focus Mode ON' : 'Focus Mode')
-        }
+        {isEnabled ? t('focus.modeOn') : t('focus.modeOff')}
       </span>
     </button>
   );
