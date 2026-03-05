@@ -94,6 +94,14 @@ export function RewardsStore({ totalBalance, storeRewards, onRedeem, onUnclaim, 
             </div>
           </div>
 
+          {/* My Rewards Inventory - claimed tickets */}
+          {claimedRewards.length > 0 && (
+            <MyRewardsInventory
+              claimedRewards={claimedRewards}
+              onMarkUsed={(rewardId) => onUnclaim && onUnclaim(rewardId)}
+            />
+          )}
+
           {/* Available Rewards - 2 Column Grid */}
           {availableRewards.length > 0 && (
             <div className="space-y-3">
