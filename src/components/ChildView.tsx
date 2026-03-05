@@ -388,35 +388,8 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
             </div>
           )}
           
-          {activeTab === 'timetable' && (
-            <div className="space-y-6">
-              {/* Night Mission - Full interactive version in timetable tab */}
-              {bagPrepEnabled && !isCurrentlyWeekend && (
-                <NightMission 
-                  timetable={timetable}
-                  fridayEnabled={fridayEnabled}
-                  credits={bagPrepCredits}
-                  isCompleted={bagPrepCompleted}
-                  onComplete={completeBagPrep}
-                  onUndo={undoBagPrep}
-                />
-              )}
-              
-              <WeeklyTimetable 
-                timetable={timetable} 
-                onUpdateTimetable={updateTimetable} 
-                fridayEnabled={fridayEnabled} 
-              />
-            </div>
-          )}
-
-          {activeTab === 'progress' && (
-            <MyProgress 
-              onClose={() => setActiveTab('tasks')}
-              activeCategories={activeCategories}
-              restTickets={isProUser ? restTickets : undefined}
-            />
-          )}
+          {/* Timetable & Progress tabs hidden for cognitive load reduction — 
+               accessible via parent view or command center */}
         </div>
 
         {/* Night Mission Modal - when opened from task card */}
