@@ -52,24 +52,11 @@ export function FocusFuelMeter({ earned, goal, totalPossible = 0, isWeekend = fa
   }, [currentMilestone, lastMilestone]);
   
   // Get status text
-  const getStatusText = () => {
-    if (isFull) {
-      return language === 'he' ? '⚡ טעון במלואו! זמן להפסקה?' : '⚡ Fully Charged! Time for a break?';
-    }
-    if (isAlmostFull) {
-      return language === 'he' ? '🔥 כמעט שם! המשך כך!' : '🔥 Almost there! Keep going!';
-    }
-    if (isHalfway) {
-      return language === 'he' ? '💪 חצי דרך! מצוין!' : '💪 Halfway there! Excellent!';
-    }
-    return language === 'he' ? '⏳ רמת מיקוד: נטען...' : '⏳ Focus Level: Charging...';
-  };
-
   // Color based on fill level
   const getMeterColor = () => {
     if (isFull) return 'from-buff via-buff to-primary';
     if (isAlmostFull) return 'from-primary via-buff/80 to-buff/60';
-    if (isHalfway) return 'from-primary/80 via-primary to-buff/40';
+    if (percent >= 50) return 'from-primary/80 via-primary to-buff/40';
     return 'from-primary/60 via-primary/80 to-primary';
   };
 
