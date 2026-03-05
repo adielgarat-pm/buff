@@ -181,6 +181,8 @@
   "progress.level": "רמה",
   "progress.maxLevel": "רמה מקסימלית!",
   "focus.active": "🎯 מצב מיקוד פעיל",
+  "focus.modeOn": "מצב מיקוד פעיל",
+  "focus.modeOff": "מצב מיקוד",
   "focus.completeFirst": "סיים את המשימה הזו לפני שתמשיך הלאה",
   "focus.allComplete": "כל המשימות הושלמו!",
   "focus.greatWork": "עבודה מצוינת! אתה יכול לעבור לשלב הבא.",

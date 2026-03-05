@@ -64,7 +64,7 @@ export function PhaseNavigation({
       {/* Single centered stage label */}
       <div className="flex-1 text-center">
         <h2 className="text-base font-bold text-foreground">
-          {language === 'he' ? 'שלב' : 'Stage'}: {phaseLabel}
+          {t('stage.current')}: {phaseLabel}
           {isCurrent && <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse ms-2 align-middle" />}
         </h2>
       </div>

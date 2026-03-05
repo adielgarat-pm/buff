@@ -2,6 +2,7 @@ import { X, Trophy, TrendingUp, Calendar, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WeeklySummaryData, CATEGORY_LABELS, TaskCategory } from '@/types/task';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   ChartContainer,
   ChartTooltip,
@@ -31,6 +32,7 @@ const CATEGORY_ICONS: Record<TaskCategory, string> = {
 };
 
 export function WeeklySummary({ data, onClose }: WeeklySummaryProps) {
+  const { t } = useLanguage();
   const formatDateRange = () => {
     const start = new Date(data.weekStartDate);
     const end = new Date(data.weekEndDate);
@@ -51,7 +53,7 @@ export function WeeklySummary({ data, onClose }: WeeklySummaryProps) {
 
   const chartConfig = {
     credits: {
-      label: 'Credits',
+      label: t('common.credits'),
       color: 'hsl(var(--primary))',
     },
     ...Object.fromEntries(
