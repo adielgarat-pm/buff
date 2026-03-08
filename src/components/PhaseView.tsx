@@ -43,7 +43,6 @@ export function PhaseView({
   isSchoolDay = true,
 }: PhaseViewProps) {
   const { language, t } = useLanguage();
-  const [focusMode, setFocusMode] = useState(false);
   const phaseConfig = getPhaseConfig(phase);
   
   // Filter tasks by phase using smart logic that considers actual school end time
@@ -63,13 +62,7 @@ export function PhaseView({
     });
   }, [tasks, phase, schoolEndTime, isSchoolDay, schoolQuestEnabled]);
   
-  // Get the next incomplete task for focus mode
-  const nextTask = useMemo(() => {
-    const incompleteTasks = phaseTasks.filter(t => !t.completed);
-    if (incompleteTasks.length === 0) return null;
-    // Sort by time and get the first one
-    return incompleteTasks.sort((a, b) => a.time.localeCompare(b.time))[0];
-  }, [phaseTasks]);
+  
   
   const completedTasks = phaseTasks.filter(t => t.completed);
   const earnedCredits = completedTasks.reduce((sum, t) => sum + t.credits, 0);
