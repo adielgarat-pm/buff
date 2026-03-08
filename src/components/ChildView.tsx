@@ -36,24 +36,8 @@ import { usePackCompletion } from '@/hooks/usePackCompletion';
 import { useChildPet } from '@/hooks/useChildPet';
 import { playSuccessChime } from '@/utils/soundEffects';
 import { Phase, PHASES, getSmartPhaseForTime } from '@/types/phase';
+import { PhaseNavigation } from './PhaseNavigation';
 import { TaskCategory } from '@/types/task';
-
-// Simple stage header showing only current active stage
-function StageHeader({ activePhase }: { activePhase: Phase }) {
-  const { t, language } = useLanguage();
-  const phaseConfig = PHASES.find(p => p.id === activePhase);
-  const label = language === 'he' ? phaseConfig?.shortLabelHe : phaseConfig?.shortLabel;
-  const stageWord = language === 'he' ? 'שלב' : 'Stage';
-  
-  return (
-    <div className="flex items-center justify-center gap-2 py-2">
-      <span className="text-xl">{phaseConfig?.icon}</span>
-      <span className="text-base font-bold text-foreground">
-        {stageWord}: {label}
-      </span>
-    </div>
-  );
-}
 
 interface ChildViewProps {
   isViewingAsChild?: boolean;
@@ -323,8 +307,15 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         <div className="tab-content">
           {activeTab === 'tasks' && (
             <div className="space-y-6">
-              {/* Stage Header - Simple text showing current stage */}
-              <StageHeader activePhase={activePhase} />
+              {/* Stage Navigation - Horizontal selector for all stages */}
+              <PhaseNavigation
+                activePhase={activePhase}
+                currentPhase={currentPhase}
+                onPhaseChange={setActivePhase}
+                phaseStats={phaseStats}
+                schoolQuestEnabled={schoolQuestEnabled}
+                isTeen={isTeen}
+              />
 
                {/* Pet Display - Pro users who enabled it, above the fold */}
               {showPetDisplay && (
