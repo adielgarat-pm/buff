@@ -1,15 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Task, Lesson, PeriodInfo } from '@/types/task';
 import { Phase, getPhaseConfig, getSmartPhaseForTime } from '@/types/phase';
 import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
-import { FocusCard } from './FocusCard';
 import { SchoolDaySection } from './SchoolDaySection';
 import { DailySchedule } from './DailySchedule';
-import { FocusModeToggle } from './FocusModeToggle';
 import { Timetable } from '@/types/task';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Target } from 'lucide-react';
 
 interface PhaseViewProps {
   phase: Phase;
@@ -43,7 +40,6 @@ export function PhaseView({
   isSchoolDay = true,
 }: PhaseViewProps) {
   const { language, t } = useLanguage();
-  const [focusMode, setFocusMode] = useState(false);
   const phaseConfig = getPhaseConfig(phase);
   
   // Filter tasks by phase using smart logic that considers actual school end time
@@ -63,13 +59,7 @@ export function PhaseView({
     });
   }, [tasks, phase, schoolEndTime, isSchoolDay, schoolQuestEnabled]);
   
-  // Get the next incomplete task for focus mode
-  const nextTask = useMemo(() => {
-    const incompleteTasks = phaseTasks.filter(t => !t.completed);
-    if (incompleteTasks.length === 0) return null;
-    // Sort by time and get the first one
-    return incompleteTasks.sort((a, b) => a.time.localeCompare(b.time))[0];
-  }, [phaseTasks]);
+  
   
   const completedTasks = phaseTasks.filter(t => t.completed);
   const earnedCredits = completedTasks.reduce((sum, t) => sum + t.credits, 0);
@@ -99,100 +89,57 @@ export function PhaseView({
 
   return (
     <div className="space-y-6">
-      {/* Focus Mode Toggle */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Target className="w-4 h-4" />
-          <span className="text-sm">
-            {remainingCount} {t('focus.remaining')}
-          </span>
-        </div>
-        <FocusModeToggle 
-          isEnabled={focusMode} 
-          onToggle={() => setFocusMode(!focusMode)} 
+
+      {/* Progress Circle */}
+      <div className="flex justify-center py-4">
+        <PhaseProgressCircle
+          phase={phaseConfig}
+          completed={phaseCompleted}
+          total={phaseTotal}
+          earnedCredits={phaseEarnedCredits}
+          totalCredits={phaseTotalCredits}
         />
       </div>
 
-      {/* --- FOCUS MODE: single large card --- */}
-      {focusMode ? (
-        <div className="space-y-6">
-          {nextTask ? (
-            <FocusCard
-              key={nextTask.id}
-              task={nextTask}
+      {/* School-specific content */}
+      {isSchoolPhase && (
+        <div className="space-y-4">
+          <DailySchedule timetable={timetable} fridayEnabled={fridayEnabled} />
+          <SchoolDaySection
+            lessons={lessons}
+            todaySchedule={todaySchedule}
+            onToggleLesson={onToggleLesson}
+            fridayEnabled={fridayEnabled}
+          />
+        </div>
+      )}
+
+      {/* Tasks for this phase */}
+      {phaseTasks.length > 0 && (
+        <div className="space-y-3">
+          {!isSchoolPhase && (
+            <h3 className="text-sm font-medium text-muted-foreground px-1">
+              {t('tasks')}
+            </h3>
+          )}
+          {phaseTasks.map(task => (
+            <PhaseTaskCard
+              key={task.id}
+              task={task}
               onComplete={onCompleteTask}
               onUncomplete={onUncompleteTask}
               onBuffActivated={onBuffActivated}
-              animationKey={nextTask.id}
             />
-          ) : phaseTasks.length > 0 ? (
-            /* All complete */
-            <div className="text-center py-12 bg-buff/10 rounded-2xl border border-buff/30">
-              <span className="text-6xl mb-4 block">🎉</span>
-              <h3 className="text-xl font-bold text-buff mb-2">
-                {t('focus.allComplete')}
-              </h3>
-              <p className="text-muted-foreground">
-                {t('focus.greatWork')}
-              </p>
-            </div>
-          ) : null}
+          ))}
         </div>
-      ) : (
-        /* --- NORMAL MODE: list view --- */
-        <>
-          {/* Progress Circle */}
-          <div className="flex justify-center py-4">
-            <PhaseProgressCircle
-              phase={phaseConfig}
-              completed={phaseCompleted}
-              total={phaseTotal}
-              earnedCredits={phaseEarnedCredits}
-              totalCredits={phaseTotalCredits}
-            />
-          </div>
+      )}
 
-          {/* School-specific content */}
-          {isSchoolPhase && (
-            <div className="space-y-4">
-              <DailySchedule timetable={timetable} fridayEnabled={fridayEnabled} />
-              <SchoolDaySection
-                lessons={lessons}
-                todaySchedule={todaySchedule}
-                onToggleLesson={onToggleLesson}
-                fridayEnabled={fridayEnabled}
-              />
-            </div>
-          )}
-
-          {/* Tasks for this phase */}
-          {phaseTasks.length > 0 && (
-            <div className="space-y-3">
-              {!isSchoolPhase && (
-                <h3 className="text-sm font-medium text-muted-foreground px-1">
-                  {t('tasks')}
-                </h3>
-              )}
-              {phaseTasks.map(task => (
-                <PhaseTaskCard
-                  key={task.id}
-                  task={task}
-                  onComplete={onCompleteTask}
-                  onUncomplete={onUncompleteTask}
-                  onBuffActivated={onBuffActivated}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Empty state */}
-          {phaseTasks.length === 0 && !isSchoolPhase && (
-            <div className="text-center py-12">
-              <span className="text-4xl mb-4 block">{phaseConfig.icon}</span>
-              <p className="text-muted-foreground">{t('noTasksForPhase')}</p>
-            </div>
-          )}
-        </>
+      {/* Empty state */}
+      {phaseTasks.length === 0 && !isSchoolPhase && (
+        <div className="text-center py-12">
+          <span className="text-4xl mb-4 block">{phaseConfig.icon}</span>
+          <p className="text-muted-foreground">{t('noTasksForPhase')}</p>
+        </div>
       )}
     </div>
   );
