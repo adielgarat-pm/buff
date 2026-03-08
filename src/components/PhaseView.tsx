@@ -1,15 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Task, Lesson, PeriodInfo } from '@/types/task';
 import { Phase, getPhaseConfig, getSmartPhaseForTime } from '@/types/phase';
 import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
-import { FocusCard } from './FocusCard';
 import { SchoolDaySection } from './SchoolDaySection';
 import { DailySchedule } from './DailySchedule';
-import { FocusModeToggle } from './FocusModeToggle';
 import { Timetable } from '@/types/task';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Target } from 'lucide-react';
 
 interface PhaseViewProps {
   phase: Phase;
@@ -92,19 +89,6 @@ export function PhaseView({
 
   return (
     <div className="space-y-6">
-      {/* Focus Mode Toggle */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Target className="w-4 h-4" />
-          <span className="text-sm">
-            {remainingCount} {t('focus.remaining')}
-          </span>
-        </div>
-        <FocusModeToggle 
-          isEnabled={focusMode} 
-          onToggle={() => setFocusMode(!focusMode)} 
-        />
-      </div>
 
       {/* Progress Circle */}
       <div className="flex justify-center py-4">
