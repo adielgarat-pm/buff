@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const GRACE_PERIOD_END = new Date('2026-03-14T23:59:59');
+export const GRACE_PERIOD_END = new Date('2026-05-01T23:59:59');
 
 const SIMULATE_PRO_KEY = 'buff_simulate_pro';
 
