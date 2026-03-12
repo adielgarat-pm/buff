@@ -134,7 +134,7 @@ export function ParentSettings({
 
     <div className="space-y-3 pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between overflow-visible">
         <div className="flex items-center gap-3">
           <img 
             src={buffLogoNoBg} 
