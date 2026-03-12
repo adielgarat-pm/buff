@@ -134,6 +134,7 @@ export function NotificationBell() {
   const { t } = useLanguage();
   const [panelOpen, setPanelOpen] = useState(false);
   const [stickerTargetChildId, setStickerTargetChildId] = useState<string | null>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -141,6 +142,16 @@ export function NotificationBell() {
     useParentNotifications(familyId, isParent);
 
   const { sendSticker, sending } = useSendSticker(familyId, profile?.id);
+
+  const updatePanelPos = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPanelPos({
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
 
   // Close panel on outside click
   useEffect(() => {
@@ -160,6 +171,7 @@ export function NotificationBell() {
   }, [panelOpen]);
 
   const handleOpen = () => {
+    if (!panelOpen) updatePanelPos();
     setPanelOpen((v) => !v);
     if (panelOpen) setStickerTargetChildId(null);
   };
