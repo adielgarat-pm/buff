@@ -162,6 +162,7 @@ const AppRoutes = () => (
 
     {/* About page - public */}
     <Route path="/about" element={<AboutPageWrapper />} />
+    <Route path="/philosophy" element={<PhilosophyPrint />} />
 
     {/* Unified onboarding with embedded auth */}
     <Route path="/onboarding" element={<Onboarding />} />
