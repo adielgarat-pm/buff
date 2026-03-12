@@ -258,8 +258,8 @@ export function NotificationBell() {
                 className="fixed z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden w-[calc(100vw-2rem)] sm:w-80 max-w-sm"
                 style={{
                   top: panelPos.top,
-                  right: Math.max(16, panelPos.right),
-                  left: window.innerWidth < 640 ? 16 : 'auto',
+                  left: panelPos.left,
+                  right: panelPos.mobile ? 16 : 'auto',
                 }}
               >
               {/* Header */}
