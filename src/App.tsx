@@ -20,6 +20,7 @@ import Onboarding from "@/pages/Onboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Unsubscribe from "@/pages/Unsubscribe";
+import PhilosophyPrint from "@/pages/PhilosophyPrint";
 import buffLogo from '@/assets/buff-logo.png';
 import { Loader2 } from "lucide-react";
 
