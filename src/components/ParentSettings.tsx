@@ -150,7 +150,7 @@ export function ParentSettings({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-visible">
           <NotificationBell />
           {selectedChildId && onBackFromChild && (
             <Button variant="ghost" size="sm" onClick={onBackFromChild} className="text-muted-foreground">
