@@ -131,10 +131,12 @@ export function NotificationBell() {
   const { profile } = useAuth();
   const familyId = profile?.family_id;
   const isParent = profile?.role === 'parent';
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [panelOpen, setPanelOpen] = useState(false);
   const [stickerTargetChildId, setStickerTargetChildId] = useState<string | null>(null);
-  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number; mobile: boolean } | null>(
+    null,
+  );
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -144,14 +146,27 @@ export function NotificationBell() {
   const { sendSticker, sending } = useSendSticker(familyId, profile?.id);
 
   const updatePanelPos = useCallback(() => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setPanelPos({
-        top: rect.bottom + 6,
-        right: window.innerWidth - rect.right,
-      });
+    if (!buttonRef.current) return;
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const mobile = viewportWidth < 640;
+
+    if (mobile) {
+      setPanelPos({ top: rect.bottom + 6, left: 16, mobile: true });
+      return;
     }
-  }, []);
+
+    const PANEL_WIDTH = 320;
+    const SCREEN_MARGIN = 16;
+    const targetLeft = isRTL ? rect.right - PANEL_WIDTH : rect.left;
+    const clampedLeft = Math.min(
+      viewportWidth - PANEL_WIDTH - SCREEN_MARGIN,
+      Math.max(SCREEN_MARGIN, targetLeft),
+    );
+
+    setPanelPos({ top: rect.bottom + 6, left: clampedLeft, mobile: false });
+  }, [isRTL]);
 
   // Close panel on outside click
   useEffect(() => {
