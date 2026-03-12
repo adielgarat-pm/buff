@@ -310,6 +310,11 @@ export function ParentView() {
       
       <div className="relative max-w-lg mx-auto px-5 py-6 safe-area-px">
         {renderTabContent()}
+
+        {/* Global Legal Footer - inside scroll area */}
+        <div className="mt-8 pb-4">
+          <GlobalFooter />
+        </div>
       </div>
 
       {/* Bottom Navigation */}
@@ -349,17 +354,9 @@ export function ParentView() {
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">{t('parentView.addChildTitle')}</DialogTitle>
-          {/* key forces a full remount each time the dialog opens, guaranteeing a clean slate */}
           <ParentOnboarding key={onboardingKey} onComplete={handleOnboardingComplete} />
         </DialogContent>
       </Dialog>
-
-      {/* Global Legal Footer */}
-      <div className="fixed bottom-20 inset-x-0 z-10 pointer-events-none">
-        <div className="max-w-lg mx-auto px-5 pointer-events-auto">
-          <GlobalFooter />
-        </div>
-      </div>
 
       {/* Smart PWA Install Prompt */}
       <InstallPrompt showAsModal={true} />
