@@ -355,8 +355,8 @@ export function ParentView() {
       </Dialog>
 
       {/* Global Legal Footer */}
-      <div className="fixed bottom-20 inset-x-0 z-10 pointer-events-none">
-        <div className="max-w-lg mx-auto px-5 pointer-events-auto">
+      <div className="w-full pb-24 pt-4">
+        <div className="max-w-lg mx-auto px-5">
           <GlobalFooter />
         </div>
       </div>
