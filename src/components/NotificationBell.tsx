@@ -227,8 +227,9 @@ export function NotificationBell() {
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                'fixed sm:absolute z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
-                'left-4 right-4 top-16 sm:left-auto sm:right-0 sm:top-11',
+                'fixed z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
+                'left-4 right-4 top-16',
+                'sm:left-auto sm:right-4 sm:top-16',
                 'sm:w-80 max-w-sm',
               )}
             >
