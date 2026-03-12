@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, Check, CheckCheck, X, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -133,6 +134,7 @@ export function NotificationBell() {
   const { t } = useLanguage();
   const [panelOpen, setPanelOpen] = useState(false);
   const [stickerTargetChildId, setStickerTargetChildId] = useState<string | null>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -140,6 +142,16 @@ export function NotificationBell() {
     useParentNotifications(familyId, isParent);
 
   const { sendSticker, sending } = useSendSticker(familyId, profile?.id);
+
+  const updatePanelPos = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPanelPos({
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
 
   // Close panel on outside click
   useEffect(() => {
@@ -159,6 +171,7 @@ export function NotificationBell() {
   }, [panelOpen]);
 
   const handleOpen = () => {
+    if (!panelOpen) updatePanelPos();
     setPanelOpen((v) => !v);
     if (panelOpen) setStickerTargetChildId(null);
   };
@@ -202,37 +215,38 @@ export function NotificationBell() {
         </AnimatePresence>
       </Button>
 
-      {/* Dropdown Panel */}
-      <AnimatePresence>
-        {panelOpen && (
-          <>
-            {/* Mobile backdrop */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="fixed inset-0 z-40 bg-black/20 sm:hidden"
-              onClick={() => {
-                setPanelOpen(false);
-                setStickerTargetChildId(null);
-              }}
-            />
-            <motion.div
-              ref={panelRef}
-              key="panel"
-              initial={{ opacity: 0, y: -8, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className={cn(
-                'fixed z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden',
-                'left-4 right-4 top-16',
-                'sm:left-auto sm:right-4 sm:top-16',
-                'sm:w-80 max-w-sm',
-              )}
-            >
+      {/* Dropdown Panel - rendered via portal to avoid overflow clipping */}
+      {createPortal(
+        <AnimatePresence>
+          {panelOpen && panelPos && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                key="backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="fixed inset-0 z-40 bg-black/20"
+                onClick={() => {
+                  setPanelOpen(false);
+                  setStickerTargetChildId(null);
+                }}
+              />
+              <motion.div
+                ref={panelRef}
+                key="panel"
+                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                transition={{ duration: 0.15 }}
+                className="fixed z-50 bg-card rounded-xl shadow-lg border border-border overflow-hidden w-[calc(100vw-2rem)] sm:w-80 max-w-sm"
+                style={{
+                  top: panelPos.top,
+                  right: Math.max(16, panelPos.right),
+                  left: window.innerWidth < 640 ? 16 : 'auto',
+                }}
+              >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <h3 className="text-sm font-semibold text-foreground">{t('notifications.title')}</h3>
@@ -293,7 +307,9 @@ export function NotificationBell() {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }
