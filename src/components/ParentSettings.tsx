@@ -134,7 +134,7 @@ export function ParentSettings({
 
     <div className="space-y-3 pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between overflow-visible">
         <div className="flex items-center gap-3">
           <img 
             src={buffLogoNoBg} 
@@ -150,7 +150,7 @@ export function ParentSettings({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-visible">
           <NotificationBell />
           {selectedChildId && onBackFromChild && (
             <Button variant="ghost" size="sm" onClick={onBackFromChild} className="text-muted-foreground">
