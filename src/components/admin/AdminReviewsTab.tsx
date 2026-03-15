@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Star, CheckCircle2, XCircle, Loader2, RefreshCw, Save } from 'lucide-react';
+import { Star, CheckCircle2, XCircle, Loader2, RefreshCw, Save, Languages } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
@@ -25,6 +25,7 @@ export function AdminReviewsTab() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [translating, setTranslating] = useState<Record<string, boolean>>({});
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -58,6 +59,24 @@ export function AdminReviewsTab() {
       setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
       toast({ title: 'Updated', description: `Review ${status}` });
     }
+  };
+
+  const aiTranslate = async (reviewId: string) => {
+    setTranslating((prev) => ({ ...prev, [reviewId]: true }));
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-review', {
+        body: { reviewId },
+      });
+      if (error) throw error;
+      if (data?.translation) {
+        setTranslations((prev) => ({ ...prev, [reviewId]: data.translation }));
+        setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, translated_text_en: data.translation } : r)));
+        toast({ title: 'Translated', description: 'AI translation saved' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+    setTranslating((prev) => ({ ...prev, [reviewId]: false }));
   };
 
   const saveTranslation = async (id: string) => {
@@ -162,16 +181,34 @@ export function AdminReviewsTab() {
                     </TableCell>
                     <TableCell className="min-w-[200px]">
                       {review.detected_lang === 'he' ? (
-                        <div className="flex gap-1">
-                          <Input
-                            value={translations[review.id] || ''}
-                            onChange={(e) => setTranslations((prev) => ({ ...prev, [review.id]: e.target.value }))}
-                            placeholder="English translation..."
-                            className="h-8 text-xs"
-                          />
-                          <Button size="sm" variant="ghost" onClick={() => saveTranslation(review.id)} title="Save translation">
-                            <Save className="w-3.5 h-3.5" />
-                          </Button>
+                        <div className="space-y-1">
+                          <div className="flex gap-1">
+                            <Input
+                              value={translations[review.id] || ''}
+                              onChange={(e) => setTranslations((prev) => ({ ...prev, [review.id]: e.target.value }))}
+                              placeholder="English translation..."
+                              className="h-8 text-xs"
+                            />
+                            <Button size="sm" variant="ghost" onClick={() => saveTranslation(review.id)} title="Save translation">
+                              <Save className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                          {!translations[review.id] && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs w-full"
+                              onClick={() => aiTranslate(review.id)}
+                              disabled={translating[review.id]}
+                            >
+                              {translating[review.id] ? (
+                                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              ) : (
+                                <Languages className="w-3 h-3 mr-1" />
+                              )}
+                              {translating[review.id] ? 'Translating...' : 'AI Translate'}
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">N/A (English)</span>
