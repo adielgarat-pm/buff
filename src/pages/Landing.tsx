@@ -451,13 +451,15 @@ export default function Landing() {
               </span>
             </div>
             
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-6 text-sm text-muted-foreground flex-wrap justify-center">
               <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
               <a href="#for-parents" className="hover:text-foreground transition-colors">{t('nav.forParents')}</a>
               <Link to="/about" className="hover:text-foreground transition-colors flex items-center gap-1">
                 <Heart className="w-3 h-3" />
                 {language === 'he' ? 'אודות' : 'About'}
               </Link>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
               <button onClick={goToAuthAsEnglish} className="hover:text-foreground transition-colors">{t('nav.getStarted')}</button>
             </div>
           </div>
