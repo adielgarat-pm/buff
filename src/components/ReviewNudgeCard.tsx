@@ -11,12 +11,14 @@ import { cn } from '@/lib/utils';
 import buffLogo from '@/assets/buff-logo-no-bg.png';
 
 const SUCCESS_TAGS = [
-  { emoji: '🔥', en: 'Motivation', he: 'מוטיבציה', featured: true },
-  { emoji: '🧘', en: 'Fewer Shouts', he: 'פחות צעקות' },
-  { emoji: '☀️', en: 'Morning Independence', he: 'עצמאות בבוקר' },
-  { emoji: '😊', en: 'Smiling Child', he: 'ילדים מחייכים' },
-  { emoji: '☕', en: 'Quiet Coffee Time', he: 'זמן לקפה בבוקר' },
-  { emoji: '🚀', en: 'Zero Friction', he: 'אפס חיכוך' },
+  { emoji: '🔥', en: 'Motivation!', he: 'מוטיבציה!', featured: true },
+  { emoji: '📚', en: 'Focused at School', he: 'מיקוד בביה"ס' },
+  { emoji: '🎯', en: 'School Quest Success', he: 'הצלחה ב-School Quest' },
+  { emoji: '✍️', en: 'Argument-free Learning', he: 'למידה בלי ויכוחים' },
+  { emoji: '✅', en: 'Missions Accomplished', he: 'המשימות הושלמו' },
+  { emoji: '🌙', en: 'Easy Bedtime', he: 'הולכים לישון בקלות' },
+  { emoji: '💤', en: 'Calm Evening Routine', he: 'התארגנות רגועה בערב' },
+  { emoji: '☕', en: 'Parent Quality Time', he: 'זמן איכות להורה' },
 ] as const;
 
 type Step = 'prompt' | 'stars' | 'tags' | 'text' | 'thanks';
