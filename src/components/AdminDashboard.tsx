@@ -164,7 +164,7 @@ export function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-4xl">
             <TabsTrigger value="pulse" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
               App Pulse
