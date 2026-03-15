@@ -3,8 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Star, CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Star, CheckCircle2, XCircle, Loader2, RefreshCw, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
@@ -16,11 +17,14 @@ interface Review {
   status: string;
   created_at: string;
   family_id: string;
+  detected_lang: string;
+  translated_text_en: string | null;
 }
 
 export function AdminReviewsTab() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -28,7 +32,15 @@ export function AdminReviewsTab() {
       .from('reviews')
       .select('*')
       .order('created_at', { ascending: false });
-    if (data) setReviews(data);
+    if (data) {
+      setReviews(data as Review[]);
+      // Pre-fill existing translations
+      const existing: Record<string, string> = {};
+      (data as Review[]).forEach((r) => {
+        if (r.translated_text_en) existing[r.id] = r.translated_text_en;
+      });
+      setTranslations((prev) => ({ ...prev, ...existing }));
+    }
     if (error) console.error('Error fetching reviews:', error);
     setLoading(false);
   };
@@ -48,10 +60,29 @@ export function AdminReviewsTab() {
     }
   };
 
+  const saveTranslation = async (id: string) => {
+    const text = translations[id];
+    if (!text) return;
+    const { error } = await supabase
+      .from('reviews')
+      .update({ translated_text_en: text, updated_at: new Date().toISOString() } as any)
+      .eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, translated_text_en: text } : r)));
+      toast({ title: 'Saved', description: 'Translation saved' });
+    }
+  };
+
   const statusBadge = (status: string) => {
     if (status === 'approved') return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Approved</Badge>;
     if (status === 'rejected') return <Badge variant="destructive">Rejected</Badge>;
     return <Badge variant="secondary">Pending</Badge>;
+  };
+
+  const langBadge = (lang: string) => {
+    return <Badge variant="outline" className="text-xs">{lang === 'he' ? '🇮🇱 HE' : '🇺🇸 EN'}</Badge>;
   };
 
   const avgRating = reviews.length > 0
@@ -104,7 +135,9 @@ export function AdminReviewsTab() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Rating</TableHead>
+                  <TableHead>Lang</TableHead>
                   <TableHead className="max-w-xs">Review</TableHead>
+                  <TableHead>EN Translation</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
@@ -121,8 +154,28 @@ export function AdminReviewsTab() {
                         ))}
                       </div>
                     </TableCell>
+                    <TableCell>{langBadge(review.detected_lang)}</TableCell>
                     <TableCell className="max-w-xs">
-                      <p className="text-sm truncate" title={review.review_text}>{review.review_text}</p>
+                      <p className="text-sm truncate" title={review.review_text} dir={review.detected_lang === 'he' ? 'rtl' : 'ltr'}>
+                        {review.review_text}
+                      </p>
+                    </TableCell>
+                    <TableCell className="min-w-[200px]">
+                      {review.detected_lang === 'he' ? (
+                        <div className="flex gap-1">
+                          <Input
+                            value={translations[review.id] || ''}
+                            onChange={(e) => setTranslations((prev) => ({ ...prev, [review.id]: e.target.value }))}
+                            placeholder="English translation..."
+                            className="h-8 text-xs"
+                          />
+                          <Button size="sm" variant="ghost" onClick={() => saveTranslation(review.id)} title="Save translation">
+                            <Save className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">N/A (English)</span>
+                      )}
                     </TableCell>
                     <TableCell>{statusBadge(review.status)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
