@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe, Heart, MessageCircle } from 'lucide-react';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';

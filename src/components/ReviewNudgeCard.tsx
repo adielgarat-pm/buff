@@ -20,9 +20,9 @@ export function ReviewNudgeCard() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!profile) return;
-    // Show only after 7 days of usage
-    const createdAt = new Date(profile.created_at);
+    if (!user || !profile) return;
+    // Show only after 7 days of usage (use auth user created_at)
+    const createdAt = new Date(user.created_at);
     const daysSince = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSince < 7) return;
 

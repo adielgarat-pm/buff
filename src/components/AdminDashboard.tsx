@@ -185,6 +185,10 @@ export function AdminDashboard() {
               <Users className="w-4 h-4" />
               משפחות
             </TabsTrigger>
+            <TabsTrigger value="reviews" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Reviews
+            </TabsTrigger>
           </TabsList>
 
           {/* App Pulse Tab */}
