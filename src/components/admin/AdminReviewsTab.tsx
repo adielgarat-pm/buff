@@ -24,6 +24,7 @@ interface Review {
 export function AdminReviewsTab() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
 
   const fetchReviews = async () => {
     setLoading(true);
