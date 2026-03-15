@@ -181,16 +181,34 @@ export function AdminReviewsTab() {
                     </TableCell>
                     <TableCell className="min-w-[200px]">
                       {review.detected_lang === 'he' ? (
-                        <div className="flex gap-1">
-                          <Input
-                            value={translations[review.id] || ''}
-                            onChange={(e) => setTranslations((prev) => ({ ...prev, [review.id]: e.target.value }))}
-                            placeholder="English translation..."
-                            className="h-8 text-xs"
-                          />
-                          <Button size="sm" variant="ghost" onClick={() => saveTranslation(review.id)} title="Save translation">
-                            <Save className="w-3.5 h-3.5" />
-                          </Button>
+                        <div className="space-y-1">
+                          <div className="flex gap-1">
+                            <Input
+                              value={translations[review.id] || ''}
+                              onChange={(e) => setTranslations((prev) => ({ ...prev, [review.id]: e.target.value }))}
+                              placeholder="English translation..."
+                              className="h-8 text-xs"
+                            />
+                            <Button size="sm" variant="ghost" onClick={() => saveTranslation(review.id)} title="Save translation">
+                              <Save className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                          {!translations[review.id] && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs w-full"
+                              onClick={() => aiTranslate(review.id)}
+                              disabled={translating[review.id]}
+                            >
+                              {translating[review.id] ? (
+                                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              ) : (
+                                <Languages className="w-3 h-3 mr-1" />
+                              )}
+                              {translating[review.id] ? 'Translating...' : 'AI Translate'}
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">N/A (English)</span>
