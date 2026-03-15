@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import buffLogo from '@/assets/buff-logo-no-bg.png';
 
 const SUCCESS_TAGS = [
+  { emoji: '🔥', en: 'Motivation', he: 'מוטיבציה', featured: true },
   { emoji: '🧘', en: 'Fewer Shouts', he: 'פחות צעקות' },
   { emoji: '☀️', en: 'Morning Independence', he: 'עצמאות בבוקר' },
   { emoji: '😊', en: 'Smiling Child', he: 'ילדים מחייכים' },
@@ -229,7 +230,9 @@ export function ReviewNudgeCard() {
                       'hover:scale-105 active:scale-95',
                       isSelected
                         ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                        : 'bg-background border-border text-foreground hover:border-primary/40'
+                        : 'featured' in tag && tag.featured
+                          ? 'bg-primary/10 border-primary/40 text-primary font-semibold'
+                          : 'bg-background border-border text-foreground hover:border-primary/40'
                     )}
                   >
                     {label}
