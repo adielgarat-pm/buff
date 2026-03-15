@@ -36,14 +36,12 @@ export function ReviewNudgeCard() {
   useEffect(() => {
     if (!user || !profile) return;
 
-    // DEBUG: skip 7-day gate for testing
-    // const createdAt = new Date(user.created_at);
-    // const daysSince = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-    // if (daysSince < 7) return;
+    const createdAt = new Date(user.created_at);
+    const daysSince = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSince < 7) return;
 
-    // DEBUG: skip dismiss check for testing
-    // const dismissed = localStorage.getItem('buff-review-dismissed');
-    // if (dismissed) return;
+    const dismissed = localStorage.getItem('buff-review-dismissed');
+    if (dismissed) return;
 
     supabase
       .from('reviews')
