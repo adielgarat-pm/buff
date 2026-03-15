@@ -52,7 +52,21 @@ export function AdminReviewsTab() {
     }
   };
 
-  const statusBadge = (status: string) => {
+  const saveTranslation = async (id: string) => {
+    const text = translations[id];
+    if (!text) return;
+    const { error } = await supabase
+      .from('reviews')
+      .update({ translated_text_en: text, updated_at: new Date().toISOString() } as any)
+      .eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, translated_text_en: text } : r)));
+      toast({ title: 'Saved', description: 'Translation saved' });
+    }
+  };
+
     if (status === 'approved') return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Approved</Badge>;
     if (status === 'rejected') return <Badge variant="destructive">Rejected</Badge>;
     return <Badge variant="secondary">Pending</Badge>;
