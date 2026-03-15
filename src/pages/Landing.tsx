@@ -441,39 +441,46 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-border bg-card/30">
+      <footer className="py-10 px-5 border-t border-border bg-card/30">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <BuffLogo />
-              <span className="text-sm text-muted-foreground">
-                {t('app.tagline')}
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-6 text-sm text-muted-foreground flex-wrap justify-center">
-              <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
-              <a href="#for-parents" className="hover:text-foreground transition-colors">{t('nav.forParents')}</a>
-              <Link to="/about" className="hover:text-foreground transition-colors flex items-center gap-1">
-                <Heart className="w-3 h-3" />
-                {language === 'he' ? 'אודות' : 'About'}
-              </Link>
-              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                YouTube
-              </a>
-              <button onClick={goToAuthAsEnglish} className="hover:text-foreground transition-colors">{t('nav.getStarted')}</button>
-            </div>
+          {/* Top: Logo + Tagline */}
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <BuffLogo />
+            <span className="text-sm text-muted-foreground text-center">
+              {t('app.tagline')}
+            </span>
+          </div>
+
+          {/* Links Grid - 2 columns on mobile, row on desktop */}
+          <div className="grid grid-cols-2 md:flex md:items-center md:justify-center gap-3 md:gap-6 text-sm text-muted-foreground mb-8">
+            <a href="#features" className="hover:text-foreground transition-colors text-center">{t('nav.features')}</a>
+            <a href="#for-parents" className="hover:text-foreground transition-colors text-center">{t('nav.forParents')}</a>
+            <Link to="/about" className="hover:text-foreground transition-colors flex items-center justify-center gap-1">
+              <Heart className="w-3 h-3" />
+              {language === 'he' ? 'אודות' : 'About'}
+            </Link>
+            <Link to="/privacy" className="hover:text-foreground transition-colors text-center">Privacy</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors text-center">Terms</Link>
+            <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center justify-center gap-1">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              YouTube
+            </a>
+          </div>
+
+          {/* CTA Button */}
+          <div className="flex justify-center mb-8">
+            <button onClick={goToAuthAsEnglish} className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+              {t('nav.getStarted')} →
+            </button>
           </div>
           
-          <div className="mt-8 pt-8 border-t border-border text-center">
+          {/* Bottom */}
+          <div className="pt-6 border-t border-border text-center space-y-2">
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
               <Brain className="w-4 h-4" />
               {t('landing.researchBacked')}
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground">
               © {new Date().getFullYear()} BUFF. All rights reserved.
             </p>
           </div>
