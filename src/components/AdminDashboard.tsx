@@ -7,13 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown, Mail } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown, Mail, Star } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { AppPulseTabV2 } from '@/components/admin/AppPulseTabV2';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
 import { EmailHistoryTab } from '@/components/admin/EmailHistoryTab';
+import { AdminReviewsTab } from '@/components/admin/AdminReviewsTab';
 
 function calculateAge(birthDate: string | null): string {
   if (!birthDate) return 'לא צוין';
@@ -163,7 +164,7 @@ export function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-4xl">
             <TabsTrigger value="pulse" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
               App Pulse
@@ -183,6 +184,10 @@ export function AdminDashboard() {
             <TabsTrigger value="families" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               משפחות
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Reviews
             </TabsTrigger>
           </TabsList>
 
@@ -593,6 +598,11 @@ export function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Reviews Tab */}
+          <TabsContent value="reviews" className="mt-6">
+            <AdminReviewsTab />
           </TabsContent>
         </Tabs>
       </div>

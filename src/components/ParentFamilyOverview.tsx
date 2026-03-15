@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ParentDailyWinCard } from './ParentDailyWinCard';
+import { ReviewNudgeCard } from './ReviewNudgeCard';
 import { DailySummaryCard } from './DailySummaryCard';
 import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift } from 'lucide-react';
 import { Progress } from './ui/progress';
@@ -150,7 +151,8 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
         />
       )}
 
-       
+      {/* Review nudge - shows after 7 days */}
+      <ReviewNudgeCard />
       
        <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
