@@ -170,7 +170,7 @@ export function ReviewNudgeCard() {
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            <div className="flex justify-center gap-2">
+            <div className={cn('flex justify-center gap-2', isHe && 'flex-row-reverse')}>
               {[1, 2, 3, 4, 5].map((s) => (
                 <button
                   key={s}
@@ -190,6 +190,11 @@ export function ReviewNudgeCard() {
                 </button>
               ))}
             </div>
+            {rating > 0 && (
+              <Button size="sm" onClick={() => setStep('tags')} className="mt-1">
+                {isHe ? 'המשך' : 'Continue'}
+              </Button>
+            )}
             <p className="text-xs text-muted-foreground">
               {isHe ? 'לחצו על כוכב כדי להמשיך' : 'Tap a star to continue'}
             </p>
