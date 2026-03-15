@@ -85,18 +85,26 @@ export function ReviewNudgeCard() {
       status: 'pending',
     });
 
-    // Track review_submitted flag
+    // Track review_submitted flag in onboarding_data
     if (!error) {
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('onboarding_data')
+        .eq('id', profile.id)
+        .single();
+
+      const existingData = typeof currentProfile?.onboarding_data === 'object' && currentProfile?.onboarding_data !== null
+        ? currentProfile.onboarding_data
+        : {};
+
       await supabase
         .from('profiles')
         .update({
           onboarding_data: {
-            ...(typeof profile.onboarding_data === 'object' && profile.onboarding_data !== null
-              ? profile.onboarding_data
-              : {}),
+            ...existingData,
             review_submitted: true,
             review_submitted_at: new Date().toISOString(),
-          },
+          } as any,
         })
         .eq('id', profile.id);
     }
