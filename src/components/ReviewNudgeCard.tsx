@@ -49,14 +49,7 @@ export function ReviewNudgeCard() {
       if (daysSinceDismissed < 1) return;
     }
 
-    supabase
-      .from('reviews')
-      .select('id')
-      .eq('user_id', user?.id ?? '')
-      .limit(1)
-      .then(({ data }) => {
-        if (!data || data.length === 0) setVisible(true);
-      });
+    setVisible(true);
   }, [profile, user]);
 
   const handleDismiss = () => {
