@@ -121,7 +121,7 @@ export function ReviewNudgeCard() {
       toast({ title: isHe ? 'שגיאה' : 'Error', description: error.message, variant: 'destructive' });
     } else {
       setStep('thanks');
-      localStorage.setItem('buff-review-dismissed', Date.now().toString());
+      localStorage.setItem('buff-review-submitted', Date.now().toString());
     }
   };
 
