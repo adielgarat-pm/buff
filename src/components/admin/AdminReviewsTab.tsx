@@ -61,6 +61,24 @@ export function AdminReviewsTab() {
     }
   };
 
+  const aiTranslate = async (reviewId: string) => {
+    setTranslating((prev) => ({ ...prev, [reviewId]: true }));
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-review', {
+        body: { reviewId },
+      });
+      if (error) throw error;
+      if (data?.translation) {
+        setTranslations((prev) => ({ ...prev, [reviewId]: data.translation }));
+        setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, translated_text_en: data.translation } : r)));
+        toast({ title: 'Translated', description: 'AI translation saved' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+    setTranslating((prev) => ({ ...prev, [reviewId]: false }));
+  };
+
   const saveTranslation = async (id: string) => {
     const text = translations[id];
     if (!text) return;
