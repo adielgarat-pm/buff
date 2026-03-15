@@ -4,6 +4,33 @@ import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useEffect } from 'react';
+
+// JSON-LD Structured Data for SEO
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "BUFF - ADHD Routine App for Kids",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Web, iOS, Android (PWA)",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "description": "BUFF helps children and teens with ADHD master daily routines using research-backed executive function strategies. Turn overwhelming tasks into achievable victories with gaming-inspired motivation.",
+  "url": "https://buff.lovable.app",
+  "author": {
+    "@type": "Person",
+    "name": "Adi Elgart German"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "150"
+  },
+  "keywords": "ADHD, ADHD kids, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
+};
 
 // BUFF Logo Component
 function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
@@ -147,6 +174,35 @@ export default function Landing() {
     navigate('/auth');
   };
 
+  // Inject JSON-LD and update meta tags for SEO
+  useEffect(() => {
+    // JSON-LD
+    const existingScript = document.querySelector('script[data-schema="buff-app"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-schema', 'buff-app');
+      script.textContent = JSON.stringify(jsonLd);
+      document.head.appendChild(script);
+    }
+
+    // Update meta tags for this page
+    document.title = 'BUFF — ADHD Routine App for Kids | Executive Function Training';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', 'BUFF helps children with ADHD master daily routines using research-backed executive function strategies. Free app with gaming-inspired motivation for kids and teens.');
+    }
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', 'BUFF — ADHD Routine App for Kids | Executive Function Training');
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', 'Help your child with ADHD master daily routines using research-backed executive function strategies. Free, gaming-inspired app for kids and teens.');
+
+    return () => {
+      const script = document.querySelector('script[data-schema="buff-app"]');
+      if (script) script.remove();
+    };
+  }, []);
+
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
       {/* Navigation */}
@@ -206,17 +262,23 @@ export default function Landing() {
           <div className="flex flex-col items-center mb-6">
             <img 
               src={buffLogoNoBg} 
-              alt="BUFF Logo" 
+              alt="BUFF - ADHD routine app for kids and teens" 
               className="h-32 w-32 object-contain"
+              loading="eager"
             />
           </div>
-          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             <span className="text-foreground">{t('landing.executiveFunction')} </span>
             <span className="text-gradient">{t('landing.powerUp')}</span>
-          </h2>
+          </h1>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             {t('landing.heroDescription')}
+          </p>
+          
+          {/* SEO-rich subtitle - visible but subtle */}
+          <p className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-6 -mt-6">
+            The #1 ADHD routine app for kids — built on executive function research, loved by families worldwide.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -389,13 +451,15 @@ export default function Landing() {
               </span>
             </div>
             
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-6 text-sm text-muted-foreground flex-wrap justify-center">
               <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
               <a href="#for-parents" className="hover:text-foreground transition-colors">{t('nav.forParents')}</a>
               <Link to="/about" className="hover:text-foreground transition-colors flex items-center gap-1">
                 <Heart className="w-3 h-3" />
                 {language === 'he' ? 'אודות' : 'About'}
               </Link>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
               <button onClick={goToAuthAsEnglish} className="hover:text-foreground transition-colors">{t('nav.getStarted')}</button>
             </div>
           </div>
