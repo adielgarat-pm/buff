@@ -218,18 +218,27 @@ export function ReviewNudgeCard() {
               </Button>
             </div>
 
-            {/* Rating display */}
-            <div className="flex justify-center gap-0.5 mb-1">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={cn(
-                    'w-4 h-4',
-                    s <= rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/20'
-                  )}
-                />
-              ))}
-            </div>
+            {/* Rating display - clickable to go back */}
+            <button
+              onClick={() => setStep('stars')}
+              className="flex items-center justify-center gap-1 mb-1 group cursor-pointer"
+              title={isHe ? 'שנה דירוג' : 'Change rating'}
+            >
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={cn(
+                      'w-4 h-4',
+                      s <= rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/20'
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                {isHe ? 'שנה' : 'edit'}
+              </span>
+            </button>
 
             {/* Tags grid */}
             <div className={cn('flex flex-wrap gap-2', isHe ? 'justify-end' : 'justify-start')}>
