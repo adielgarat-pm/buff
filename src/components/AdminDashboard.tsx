@@ -599,6 +599,11 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Reviews Tab */}
+          <TabsContent value="reviews" className="mt-6">
+            <AdminReviewsTab />
+          </TabsContent>
         </Tabs>
       </div>
 
