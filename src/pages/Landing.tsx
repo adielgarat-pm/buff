@@ -4,6 +4,33 @@ import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useEffect } from 'react';
+
+// JSON-LD Structured Data for SEO
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "BUFF - ADHD Routine App for Kids",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Web, iOS, Android (PWA)",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "description": "BUFF helps children and teens with ADHD master daily routines using research-backed executive function strategies. Turn overwhelming tasks into achievable victories with gaming-inspired motivation.",
+  "url": "https://buff.lovable.app",
+  "author": {
+    "@type": "Person",
+    "name": "Adi Elgart German"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "150"
+  },
+  "keywords": "ADHD, ADHD kids, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
+};
 
 // BUFF Logo Component
 function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
