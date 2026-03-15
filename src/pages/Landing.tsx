@@ -262,17 +262,23 @@ export default function Landing() {
           <div className="flex flex-col items-center mb-6">
             <img 
               src={buffLogoNoBg} 
-              alt="BUFF Logo" 
+              alt="BUFF - ADHD routine app for kids and teens" 
               className="h-32 w-32 object-contain"
+              loading="eager"
             />
           </div>
-          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             <span className="text-foreground">{t('landing.executiveFunction')} </span>
             <span className="text-gradient">{t('landing.powerUp')}</span>
-          </h2>
+          </h1>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             {t('landing.heroDescription')}
+          </p>
+          
+          {/* SEO-rich subtitle - visible but subtle */}
+          <p className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-6 -mt-6">
+            The #1 ADHD routine app for kids — built on executive function research, loved by families worldwide.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
