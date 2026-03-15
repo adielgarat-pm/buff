@@ -558,34 +558,40 @@ export type Database = {
       reviews: {
         Row: {
           created_at: string
+          detected_lang: string
           display_name: string
           family_id: string
           id: string
           rating: number
           review_text: string
           status: string
+          translated_text_en: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          detected_lang?: string
           display_name?: string
           family_id: string
           id?: string
           rating?: number
           review_text?: string
           status?: string
+          translated_text_en?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          detected_lang?: string
           display_name?: string
           family_id?: string
           id?: string
           rating?: number
           review_text?: string
           status?: string
+          translated_text_en?: string | null
           updated_at?: string
           user_id?: string
         }
