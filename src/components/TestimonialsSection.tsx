@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Languages } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface Review {
   id: string;
   display_name: string;
   rating: number;
   review_text: string;
+  detected_lang: string;
+  translated_text_en: string | null;
   created_at: string;
 }
 
 export function TestimonialsSection() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
   const { language } = useLanguage();
   const isRTL = language === 'he';
 
@@ -20,17 +24,42 @@ export function TestimonialsSection() {
     async function fetchReviews() {
       const { data } = await supabase
         .from('reviews')
-        .select('id, display_name, rating, review_text, created_at')
+        .select('id, display_name, rating, review_text, detected_lang, translated_text_en, created_at')
         .eq('status', 'approved')
         .gte('rating', 4)
         .order('created_at', { ascending: false })
         .limit(6);
-      if (data) setReviews(data);
+      if (data) setReviews(data as Review[]);
     }
     fetchReviews();
   }, []);
 
   if (reviews.length === 0) return null;
+
+  const getDisplayText = (review: Review) => {
+    // Hebrew UI: always show original text (no translation needed)
+    if (isRTL) return review.review_text;
+
+    // English UI: if review is Hebrew and has translation, show translation by default
+    if (review.detected_lang === 'he' && review.translated_text_en) {
+      return showOriginal[review.id] ? review.review_text : review.translated_text_en;
+    }
+
+    return review.review_text;
+  };
+
+  const isTranslated = (review: Review) =>
+    !isRTL &&
+    review.detected_lang === 'he' &&
+    review.translated_text_en &&
+    !showOriginal[review.id];
+
+  const canToggle = (review: Review) =>
+    !isRTL && review.detected_lang === 'he' && review.translated_text_en;
+
+  const toggleOriginal = (id: string) => {
+    setShowOriginal((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <section className="py-20 px-4 bg-card/50">
@@ -53,9 +82,29 @@ export function TestimonialsSection() {
                   <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-sm text-foreground leading-relaxed mb-4">
-                "{review.review_text}"
+              <p
+                className={cn(
+                  'text-sm text-foreground leading-relaxed mb-3',
+                  showOriginal[review.id] && review.detected_lang === 'he' && 'text-right dir-rtl'
+                )}
+                dir={showOriginal[review.id] && review.detected_lang === 'he' ? 'rtl' : undefined}
+              >
+                "{getDisplayText(review)}"
               </p>
+
+              {/* Translation indicator + toggle */}
+              {canToggle(review) && (
+                <button
+                  onClick={() => toggleOriginal(review.id)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mb-3"
+                >
+                  <Languages className="w-3 h-3" />
+                  {isTranslated(review)
+                    ? 'Translated from Hebrew · View Original'
+                    : 'View Translation'}
+                </button>
+              )}
+
               <p className="text-xs text-muted-foreground font-medium">
                 — {review.display_name}
               </p>

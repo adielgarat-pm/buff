@@ -16,6 +16,8 @@ interface Review {
   status: string;
   created_at: string;
   family_id: string;
+  detected_lang: string;
+  translated_text_en: string | null;
 }
 
 export function AdminReviewsTab() {

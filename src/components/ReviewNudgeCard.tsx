@@ -80,6 +80,10 @@ export function ReviewNudgeCard() {
     const tagLabels = selectedTags.join(', ');
     const fullText = [tagLabels, text.trim()].filter(Boolean).join(' — ');
 
+    // Detect language: if any Hebrew character exists, it's Hebrew
+    const hasHebrew = /[\u0590-\u05FF]/.test(fullText);
+    const detectedLang = hasHebrew ? 'he' : 'en';
+
     const { error } = await supabase.from('reviews').insert({
       family_id: profile.family_id!,
       user_id: user.id,
@@ -87,7 +91,8 @@ export function ReviewNudgeCard() {
       rating,
       review_text: fullText,
       status: 'pending',
-    });
+      detected_lang: detectedLang,
+    } as any);
 
     // Track review_submitted flag in onboarding_data
     if (!error) {
