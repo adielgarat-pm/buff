@@ -53,7 +53,6 @@ export function ReviewNudgeCard() {
   }, [profile, user]);
 
   const handleDismiss = () => {
-    localStorage.setItem('buff-review-dismissed', Date.now().toString());
     setVisible(false);
   };
 
