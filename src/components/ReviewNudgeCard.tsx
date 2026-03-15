@@ -43,11 +43,7 @@ export function ReviewNudgeCard() {
     if (daysSince < 7) return;
 
     const submitted = localStorage.getItem('buff-review-submitted');
-    if (submitted) {
-      const submittedAt = parseInt(submitted, 10);
-      const daysSinceSubmitted = (Date.now() - submittedAt) / (1000 * 60 * 60 * 24);
-      if (daysSinceSubmitted < 1) return;
-    }
+    if (submitted) return;
 
     setVisible(true);
   }, [profile, user]);
