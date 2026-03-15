@@ -43,7 +43,11 @@ export function ReviewNudgeCard() {
     if (daysSince < 7) return;
 
     const dismissed = localStorage.getItem('buff-review-dismissed');
-    if (dismissed) return;
+    if (dismissed) {
+      const dismissedAt = parseInt(dismissed, 10);
+      const daysSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
+      if (daysSinceDismissed < 1) return;
+    }
 
     supabase
       .from('reviews')
