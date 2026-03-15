@@ -14,6 +14,7 @@ import { AppPulseTabV2 } from '@/components/admin/AppPulseTabV2';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
 import { EmailHistoryTab } from '@/components/admin/EmailHistoryTab';
+import { AdminReviewsTab } from '@/components/admin/AdminReviewsTab';
 
 function calculateAge(birthDate: string | null): string {
   if (!birthDate) return 'לא צוין';
