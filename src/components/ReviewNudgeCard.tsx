@@ -42,18 +42,17 @@ export function ReviewNudgeCard() {
     const daysSince = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSince < 7) return;
 
-    const dismissed = localStorage.getItem('buff-review-dismissed');
-    if (dismissed) {
-      const dismissedAt = parseInt(dismissed, 10);
-      const daysSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
-      if (daysSinceDismissed < 1) return;
+    const submitted = localStorage.getItem('buff-review-submitted');
+    if (submitted) {
+      const submittedAt = parseInt(submitted, 10);
+      const daysSinceSubmitted = (Date.now() - submittedAt) / (1000 * 60 * 60 * 24);
+      if (daysSinceSubmitted < 1) return;
     }
 
     setVisible(true);
   }, [profile, user]);
 
   const handleDismiss = () => {
-    localStorage.setItem('buff-review-dismissed', Date.now().toString());
     setVisible(false);
   };
 
@@ -122,7 +121,7 @@ export function ReviewNudgeCard() {
       toast({ title: isHe ? 'שגיאה' : 'Error', description: error.message, variant: 'destructive' });
     } else {
       setStep('thanks');
-      localStorage.setItem('buff-review-dismissed', Date.now().toString());
+      localStorage.setItem('buff-review-submitted', Date.now().toString());
     }
   };
 
