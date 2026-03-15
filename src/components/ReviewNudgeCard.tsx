@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import buffLogo from '@/assets/buff-logo-no-bg.png';
 
 const SUCCESS_TAGS = [
+  { emoji: '🔥', en: 'Motivation', he: 'מוטיבציה', featured: true },
   { emoji: '🧘', en: 'Fewer Shouts', he: 'פחות צעקות' },
   { emoji: '☀️', en: 'Morning Independence', he: 'עצמאות בבוקר' },
   { emoji: '😊', en: 'Smiling Child', he: 'ילדים מחייכים' },
