@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import {
@@ -69,7 +70,11 @@ import { NotificationBell } from './NotificationBell';
 function SimulateProToggle() {
   const { language } = useLanguage();
   const { simulatePro, setSimulatePro } = useSubscription();
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
   const isHe = language === 'he';
+
+  if (adminLoading || !isAdmin) return null;
+
   return (
     <div className="pt-6 border-t border-dashed border-muted-foreground/20 mt-4">
       <div className="flex items-center justify-between gap-3">
