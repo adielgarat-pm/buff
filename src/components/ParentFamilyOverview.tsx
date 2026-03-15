@@ -151,7 +151,8 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
         />
       )}
 
-       
+      {/* Review nudge - shows after 7 days */}
+      <ReviewNudgeCard />
       
        <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
