@@ -174,6 +174,35 @@ export default function Landing() {
     navigate('/auth');
   };
 
+  // Inject JSON-LD and update meta tags for SEO
+  useEffect(() => {
+    // JSON-LD
+    const existingScript = document.querySelector('script[data-schema="buff-app"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-schema', 'buff-app');
+      script.textContent = JSON.stringify(jsonLd);
+      document.head.appendChild(script);
+    }
+
+    // Update meta tags for this page
+    document.title = 'BUFF — ADHD Routine App for Kids | Executive Function Training';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', 'BUFF helps children with ADHD master daily routines using research-backed executive function strategies. Free app with gaming-inspired motivation for kids and teens.');
+    }
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', 'BUFF — ADHD Routine App for Kids | Executive Function Training');
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', 'Help your child with ADHD master daily routines using research-backed executive function strategies. Free, gaming-inspired app for kids and teens.');
+
+    return () => {
+      const script = document.querySelector('script[data-schema="buff-app"]');
+      if (script) script.remove();
+    };
+  }, []);
+
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden">
       {/* Navigation */}
