@@ -54,10 +54,6 @@ export function ReviewNudgeCard() {
 
   const handleStarTap = (star: number) => {
     setRating(star);
-    // Auto-advance to tags after brief delay, but only on first rating
-    if (rating === 0) {
-      setTimeout(() => setStep('tags'), 400);
-    }
   };
 
   const toggleTag = (tag: string) => {
