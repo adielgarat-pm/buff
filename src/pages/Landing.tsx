@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "BUFF - ADHD Routine App for Kids",
+  "name": "BUFF - ADHD Routine App for Kids & Teens",
   "applicationCategory": "HealthApplication",
   "operatingSystem": "Web, iOS, Android (PWA)",
   "offers": {
