@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 interface Review {
   id: string;
   display_name: string;
+  display_name_en: string | null;
   rating: number;
   review_text: string;
   detected_lang: string;
