@@ -19,7 +19,7 @@ const jsonLd = {
     "price": "0",
     "priceCurrency": "USD"
   },
-  "description": "BUFF helps children and teens with ADHD master daily routines using research-backed executive function strategies. Turn overwhelming tasks into achievable victories with gaming-inspired motivation.",
+  "description": "BUFF helps kids and teens with ADHD master daily routines using research-backed executive function strategies. Turn overwhelming tasks into achievable victories with coaching-inspired motivation.",
   "url": "https://buff.lovable.app",
   "author": {
     "@type": "Person",
