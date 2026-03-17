@@ -65,7 +65,18 @@ serve(async (req) => {
       }),
     });
 
-    const aiData = await aiResponse.json();
+    const rawText = await aiResponse.text();
+    console.log("AI response status:", aiResponse.status, "body:", rawText.substring(0, 500));
+    
+    let aiData;
+    try {
+      aiData = JSON.parse(rawText);
+    } catch (_e) {
+      return new Response(JSON.stringify({ error: "Invalid AI response", raw: rawText.substring(0, 200) }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const translation = aiData.choices?.[0]?.message?.content?.trim() || "";
 
     if (!translation) {
