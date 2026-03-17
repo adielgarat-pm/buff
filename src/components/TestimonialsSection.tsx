@@ -172,7 +172,7 @@ export function TestimonialsSection() {
     async function fetchReviews() {
       const { data } = await supabase
         .from('reviews')
-        .select('id, display_name, rating, review_text, detected_lang, translated_text_en, created_at')
+        .select('id, display_name, display_name_en, rating, review_text, detected_lang, translated_text_en, created_at')
         .eq('status', 'approved')
         .gte('rating', 4)
         .order('created_at', { ascending: false })
