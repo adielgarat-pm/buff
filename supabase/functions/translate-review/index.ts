@@ -46,7 +46,7 @@ serve(async (req) => {
     }
 
     // Use Lovable AI proxy
-    const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,7 +65,18 @@ serve(async (req) => {
       }),
     });
 
-    const aiData = await aiResponse.json();
+    const rawText = await aiResponse.text();
+    console.log("AI response status:", aiResponse.status, "body:", rawText.substring(0, 500));
+    
+    let aiData;
+    try {
+      aiData = JSON.parse(rawText);
+    } catch (_e) {
+      return new Response(JSON.stringify({ error: "Invalid AI response", raw: rawText.substring(0, 200) }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const translation = aiData.choices?.[0]?.message?.content?.trim() || "";
 
     if (!translation) {
