@@ -560,6 +560,7 @@ export type Database = {
           created_at: string
           detected_lang: string
           display_name: string
+          display_name_en: string | null
           family_id: string
           id: string
           rating: number
@@ -573,6 +574,7 @@ export type Database = {
           created_at?: string
           detected_lang?: string
           display_name?: string
+          display_name_en?: string | null
           family_id: string
           id?: string
           rating?: number
@@ -586,6 +588,7 @@ export type Database = {
           created_at?: string
           detected_lang?: string
           display_name?: string
+          display_name_en?: string | null
           family_id?: string
           id?: string
           rating?: number

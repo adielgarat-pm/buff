@@ -1,0 +1,1 @@
+ALTER TABLE public.reviews ADD COLUMN display_name_en text DEFAULT NULL;
