@@ -14,6 +14,9 @@ interface Review {
   created_at: string;
 }
 
+const heMonths = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const enMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
 export function TestimonialsSection() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
@@ -37,15 +40,23 @@ export function TestimonialsSection() {
   if (reviews.length === 0) return null;
 
   const getDisplayText = (review: Review) => {
-    // Hebrew UI: always show original text (no translation needed)
     if (isRTL) return review.review_text;
-
-    // English UI: if review is Hebrew and has translation, show translation by default
     if (review.detected_lang === 'he' && review.translated_text_en) {
       return showOriginal[review.id] ? review.review_text : review.translated_text_en;
     }
-
     return review.review_text;
+  };
+
+  const getDisplayName = (review: Review) => {
+    // In English UI with Hebrew review that has a translation, we could show a transliterated name
+    // For now just show the original name as-is
+    return review.display_name;
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const month = isRTL ? heMonths[d.getMonth()] : enMonths[d.getMonth()];
+    return `${month} ${d.getFullYear()}`;
   };
 
   const isTranslated = (review: Review) =>
@@ -77,10 +88,13 @@ export function TestimonialsSection() {
               key={review.id}
               className="bg-background rounded-2xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="flex gap-0.5 mb-3">
-                {Array.from({ length: review.rating }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: review.rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground">{formatDate(review.created_at)}</span>
               </div>
               <p
                 className={cn(
@@ -92,7 +106,6 @@ export function TestimonialsSection() {
                 "{getDisplayText(review)}"
               </p>
 
-              {/* Translation indicator + toggle */}
               {canToggle(review) && (
                 <button
                   onClick={() => toggleOriginal(review.id)}
@@ -106,7 +119,7 @@ export function TestimonialsSection() {
               )}
 
               <p className="text-xs text-muted-foreground font-medium">
-                — {review.display_name}
+                — {getDisplayName(review)}
               </p>
             </div>
           ))}
