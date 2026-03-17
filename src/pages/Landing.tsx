@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "BUFF - ADHD Routine App for Kids",
+  "name": "BUFF - ADHD Routine App for Kids & Teens",
   "applicationCategory": "HealthApplication",
   "operatingSystem": "Web, iOS, Android (PWA)",
   "offers": {
@@ -19,7 +19,7 @@ const jsonLd = {
     "price": "0",
     "priceCurrency": "USD"
   },
-  "description": "BUFF helps children and teens with ADHD master daily routines using research-backed executive function strategies. Turn overwhelming tasks into achievable victories with gaming-inspired motivation.",
+  "description": "BUFF helps kids and teens with ADHD master daily routines using research-backed executive function strategies. Turn overwhelming tasks into achievable victories with coaching-inspired motivation.",
   "url": "https://buff.lovable.app",
   "author": {
     "@type": "Person",
@@ -30,7 +30,7 @@ const jsonLd = {
     "ratingValue": "4.8",
     "ratingCount": "150"
   },
-  "keywords": "ADHD, ADHD kids, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
+  "keywords": "ADHD, ADHD kids, ADHD teens, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
 };
 
 function BuffLogo() {
@@ -83,10 +83,10 @@ export default function Landing() {
       document.head.appendChild(script);
     }
 
-    document.title = 'BUFF — ADHD Routine App for Kids | Executive Function Training';
+    document.title = 'BUFF — ADHD Routine App for Kids & Teens | Executive Function Coaching';
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', 'BUFF helps children with ADHD master daily routines using research-backed executive function strategies. Free app with gaming-inspired motivation for kids and teens.');
+      metaDesc.setAttribute('content', 'BUFF helps kids and teens with ADHD master daily routines using research-backed executive function strategies. Free coaching-inspired app for the whole family.');
     }
 
     return () => {
@@ -161,7 +161,7 @@ export default function Landing() {
 
           {/* SEO-rich subtitle */}
           <p className="text-sm text-muted-foreground/50 max-w-md mx-auto mb-8 -mt-4">
-            The #1 ADHD routine app for kids — built on executive function research, loved by families worldwide.
+            An ADHD routine app for kids &amp; teens — built on executive function research.
           </p>
 
           {/* Single CTA */}
