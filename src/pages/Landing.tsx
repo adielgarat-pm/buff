@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Zap, Brain, Users, BarChart3, ChevronRight, Sparkles, Shield, Target, Globe, Heart, MessageCircle } from 'lucide-react';
+import { ChevronRight, Mountain, BarChart3, Handshake, Heart, MessageCircle, Brain } from 'lucide-react';
 import { TestimonialsSection } from '@/components/TestimonialsSection';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
@@ -33,133 +33,33 @@ const jsonLd = {
   "keywords": "ADHD, ADHD kids, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
 };
 
-// BUFF Logo Component
-function BuffLogo({ size = 'default' }: { size?: 'default' | 'large' }) {
-  const logoSize = size === 'large' ? 'h-20 w-20' : 'h-10 w-10';
-  
-  const containerSize = size === 'large' ? 'w-20 h-20' : 'w-10 h-10';
-  const imgSize = size === 'large' ? 'h-16 w-16' : 'h-8 w-8';
-  
+function BuffLogo() {
   return (
     <div className="flex items-center gap-2">
-      <div className={`${containerSize} rounded-xl bg-[#DCFCE7] flex items-center justify-center`}>
-        <img 
-          src={buffLogo} 
-          alt="BUFF Logo" 
-          className={`${imgSize} object-contain`}
-        />
+      <div className="w-10 h-10 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
+        <img src={buffLogo} alt="BUFF Logo" className="h-8 w-8 object-contain" />
       </div>
     </div>
   );
 }
 
-// Feature Card Component
-function FeatureCard({ 
-  icon: Icon, 
-  title, 
-  description,
-  gradient 
-}: { 
+// Benefit card component
+function BenefitCard({ icon: Icon, title, description }: {
   icon: React.ElementType;
   title: string;
   description: string;
-  gradient: string;
 }) {
   return (
-    <div className="relative group">
-      {/* Glowing border effect */}
-      <div className={`absolute -inset-0.5 ${gradient} rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500`} />
-      
-      <div className="relative bg-card rounded-2xl p-6 border border-border h-full">
-        <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center mb-4">
-          <Icon className="w-6 h-6 text-primary" />
-        </div>
-        <h3 className="font-display text-xl font-bold text-foreground mb-2 tracking-wide">
-          {title}
-        </h3>
-        <p className="text-muted-foreground leading-relaxed">
-          {description}
-        </p>
+    <div className="bg-card rounded-2xl p-8 border border-border hover:shadow-lg transition-shadow duration-300">
+      <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center mb-5">
+        <Icon className="w-7 h-7 text-primary" />
       </div>
-    </div>
-  );
-}
-
-// Mobile Mockup Component
-function MobileMockup() {
-  return (
-    <div className="relative mx-auto w-[280px] h-[560px]">
-      {/* Phone frame */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-800 to-gray-900 rounded-[3rem] shadow-2xl border-4 border-gray-700">
-        {/* Notch */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl" />
-        
-        {/* Screen content */}
-        <div className="absolute inset-4 top-8 bg-background rounded-[2rem] overflow-hidden">
-          {/* App header */}
-          <div className="p-4 border-b border-border">
-            <BuffLogo size="default" />
-            <p className="text-xs text-muted-foreground mt-1">Monday, Jan 24</p>
-          </div>
-          
-          {/* XP Bar */}
-          <div className="p-4">
-            <div className="bg-card rounded-2xl p-4 border border-border">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-display font-bold">Daily XP</span>
-                <span className="text-buff font-bold">65/100</span>
-              </div>
-              <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full w-[65%] bg-gradient-to-r from-buff/80 to-buff rounded-full" />
-              </div>
-            </div>
-          </div>
-          
-          {/* Task Cards */}
-          <div className="px-4 space-y-3">
-            <div className="bg-card rounded-2xl p-4 border border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                <Brain className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Morning Routine</p>
-                <p className="text-xs text-muted-foreground">8:00 AM</p>
-              </div>
-              {/* Buff button */}
-              <div className="w-8 h-8 rounded-xl bg-buff/20 flex items-center justify-center animate-buff-pulse">
-                <Zap className="w-4 h-4 text-buff fill-buff" />
-              </div>
-            </div>
-            
-            <div className="bg-card rounded-2xl p-4 border border-buff/30 flex items-center gap-3 buff-active-glow">
-              <div className="w-10 h-10 rounded-xl bg-buff/20 flex items-center justify-center">
-                <Target className="w-5 h-5 text-buff" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Start Homework</p>
-                <p className="text-xs text-muted-foreground">4:00 PM</p>
-              </div>
-              <div className="w-8 h-8 rounded-xl bg-buff flex items-center justify-center">
-                <Zap className="w-4 h-4 text-buff-foreground fill-current" />
-              </div>
-            </div>
-            
-            <div className="bg-buff/10 rounded-2xl p-3 border border-buff/20 mt-2">
-              <p className="text-xs font-display text-buff flex items-center gap-1">
-                <Zap className="w-3 h-3 fill-current" />
-                Buff Activated!
-              </p>
-              <p className="text-xs text-foreground/80 mt-1">
-                Break it down: Focus on just the first 5 minutes.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Floating glow effects */}
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/30 rounded-full blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-buff/30 rounded-full blur-3xl" />
+      <h3 className="font-display text-lg font-bold text-foreground mb-3 tracking-wide">
+        {title}
+      </h3>
+      <p className="text-muted-foreground leading-relaxed text-sm">
+        {description}
+      </p>
     </div>
   );
 }
@@ -168,16 +68,12 @@ export default function Landing() {
   const { language, setLanguage, t, isRTL } = useLanguage();
   const navigate = useNavigate();
 
-  // When coming from English landing page, ensure language is set to English
-  const goToAuthAsEnglish = () => {
-    setLanguage('en');
-    localStorage.setItem('buff-language', 'en');
+  const goToAuth = () => {
     navigate('/auth');
   };
 
   // Inject JSON-LD and update meta tags for SEO
   useEffect(() => {
-    // JSON-LD
     const existingScript = document.querySelector('script[data-schema="buff-app"]');
     if (!existingScript) {
       const script = document.createElement('script');
@@ -187,16 +83,11 @@ export default function Landing() {
       document.head.appendChild(script);
     }
 
-    // Update meta tags for this page
     document.title = 'BUFF — ADHD Routine App for Kids | Executive Function Training';
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', 'BUFF helps children with ADHD master daily routines using research-backed executive function strategies. Free app with gaming-inspired motivation for kids and teens.');
     }
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', 'BUFF — ADHD Routine App for Kids | Executive Function Training');
-    const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', 'Help your child with ADHD master daily routines using research-backed executive function strategies. Free, gaming-inspired app for kids and teens.');
 
     return () => {
       const script = document.querySelector('script[data-schema="buff-app"]');
@@ -205,40 +96,31 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] bg-background overflow-x-hidden">
-      {/* Navigation */}
+    <div className="min-h-[100dvh] bg-background overflow-x-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* ── Navigation ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <BuffLogo />
-            
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('nav.features')}
-              </a>
-              <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('nav.howItWorks')}
-              </a>
-              <a href="#for-parents" className="text-muted-foreground hover:text-foreground transition-colors">
-                {t('nav.forParents')}
-              </a>
-            </div>
-            
+
             <div className="flex items-center gap-3">
-              {/* Language Toggle */}
+              {/* Language Toggle - prominent text button */}
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="sm"
                 onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
-                className="rounded-2xl"
+                className="rounded-full px-4 text-sm font-medium"
               >
-                <Globe className="w-4 h-4" />
+                {t('landing.langToggle')}
               </Button>
-              
-              <Button variant="ghost" className="rounded-2xl" onClick={goToAuthAsEnglish}>
+
+              <Button variant="ghost" className="rounded-full" onClick={goToAuth}>
                 {t('nav.login')}
               </Button>
-              <Button className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 cta-buff-button" onClick={goToAuthAsEnglish}>
+              <Button
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={goToAuth}
+              >
                 {t('nav.getStarted')}
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
               </Button>
@@ -247,241 +129,140 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden">
-        {/* Background effects */}
+      {/* ── Hero Section ── */}
+      <section className="pt-28 pb-20 px-4 relative overflow-hidden">
+        {/* Subtle wave background */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-buff/10 rounded-full blur-3xl" />
-        
-        <div className="max-w-6xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-medium">{t('landing.basedOnCogFun')}</span>
-          </div>
-          
-          <div className="flex flex-col items-center mb-6">
-            <img 
-              src={buffLogoNoBg} 
-              alt="BUFF - ADHD routine app for kids and teens" 
-              className="h-32 w-32 object-contain"
+        <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/8 rounded-full blur-3xl" />
+
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          {/* Logo mark */}
+          <div className="flex justify-center mb-8">
+            <img
+              src={buffLogoNoBg}
+              alt="BUFF - ADHD routine app for kids and teens"
+              className="h-24 w-24 object-contain"
               loading="eager"
             />
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-            <span className="text-foreground">{t('landing.executiveFunction')} </span>
-            <span className="text-gradient">{t('landing.powerUp')}</span>
+
+          {/* Primary headline — emotionally resonant */}
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4">
+            <span className="text-foreground">{t('landing.heroHeadline')}</span>
+            <br />
+            <span className="text-primary">{t('landing.heroHeadline2')}</span>
           </h1>
-          
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            {t('landing.heroDescription')}
+
+          {/* Sub-headline */}
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+            {t('landing.heroSub')}
           </p>
-          
-          {/* SEO-rich subtitle - visible but subtle */}
-          <p className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-6 -mt-6">
+
+          {/* SEO-rich subtitle */}
+          <p className="text-sm text-muted-foreground/50 max-w-md mx-auto mb-8 -mt-4">
             The #1 ADHD routine app for kids — built on executive function research, loved by families worldwide.
           </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              size="lg"
-              className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-8 py-6 cta-buff-button animate-cta-glow"
-              onClick={goToAuthAsEnglish}
-            >
-              <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
-              {t('landing.tryFree')}
-            </Button>
-            <a href="#features">
-              <Button size="lg" variant="outline" className="rounded-2xl text-lg px-8 py-6">
-                {t('landing.seeHow')}
-              </Button>
-            </a>
-          </div>
-        </div>
-      </section>
 
-      {/* Features Grid */}
-      <section id="features" className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-4">
-              {t('landing.unlockBuffs')}
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              {t('landing.unlockDescription')}
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={Zap}
-              title={t('landing.activateBuffs')}
-              description={t('landing.activateDescription')}
-              gradient="bg-gradient-to-r from-buff to-success"
-            />
-            <FeatureCard
-              icon={Users}
-              title={t('landing.familySync')}
-              description={t('landing.familySyncDescription')}
-              gradient="bg-gradient-to-r from-primary to-accent"
-            />
-            <FeatureCard
-              icon={BarChart3}
-              title={t('landing.smartInsights')}
-              description={t('landing.smartInsightsDescription')}
-              gradient="bg-gradient-to-r from-primary to-primary"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Mobile Preview Section */}
-      <section id="how-it-works" className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-        
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-6">
-                {t('landing.powerUpsFor')}
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                {t('landing.powerUpsDescription')}
-              </p>
-              
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-buff/20 flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-5 h-5 text-buff" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">{t('landing.environmentBuffs')}</h4>
-                    <p className="text-sm text-muted-foreground">{t('landing.environmentDescription')}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <Target className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">{t('landing.focusBuffs')}</h4>
-                    <p className="text-sm text-muted-foreground">{t('landing.focusDescription')}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <Brain className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">{t('landing.energyBuffs')}</h4>
-                    <p className="text-sm text-muted-foreground">{t('landing.energyDescription')}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-center">
-              <MobileMockup />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* For Parents Section */}
-      <section id="for-parents" className="py-20 px-4 bg-card/50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-6">
-            {t('landing.forParentsTitle')}
-          </h2>
-          <p className="text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-            {t('landing.forParentsDescription')}
-          </p>
-          
-          <div className={`grid sm:grid-cols-3 gap-6 ${isRTL ? 'text-right' : 'text-left'}`}>
-            <div className="bg-background rounded-2xl p-6 border border-border">
-              <div className="text-3xl mb-4">📊</div>
-              <h4 className="font-semibold mb-2">{t('landing.patternRecognition')}</h4>
-              <p className="text-sm text-muted-foreground">{t('landing.patternDescription')}</p>
-            </div>
-            <div className="bg-background rounded-2xl p-6 border border-border">
-              <div className="text-3xl mb-4">💡</div>
-              <h4 className="font-semibold mb-2">{t('landing.coachingTips')}</h4>
-              <p className="text-sm text-muted-foreground">{t('landing.coachingDescription')}</p>
-            </div>
-            <div className="bg-background rounded-2xl p-6 border border-border">
-              <div className="text-3xl mb-4">🤝</div>
-              <h4 className="font-semibold mb-2">{t('landing.collaborativeGoals')}</h4>
-              <p className="text-sm text-muted-foreground">{t('landing.collaborativeDescription')}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <TestimonialsSection />
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-buff/10 to-primary/10" />
-        
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-6">
-            {t('landing.readyToPowerUp')}
-          </h2>
-          <p className="text-muted-foreground mb-10 leading-relaxed">
-            {t('landing.joinFamilies')}
-          </p>
+          {/* Single CTA */}
           <Button
             size="lg"
-            className="rounded-2xl bg-buff text-buff-foreground hover:bg-buff/90 text-lg px-10 py-6 cta-buff-button animate-cta-glow"
-            onClick={goToAuthAsEnglish}
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all"
+            onClick={goToAuth}
           >
-            <Zap className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} fill-current`} />
-            {t('landing.startFreeTrial')}
+            {t('landing.startFree')}
+            <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ── Benefits Section ── */}
+      <section id="features" className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-4">
+              {t('landing.benefitsTitle')}
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <BenefitCard
+              icon={Mountain}
+              title={t('landing.benefit1Title')}
+              description={t('landing.benefit1Desc')}
+            />
+            <BenefitCard
+              icon={BarChart3}
+              title={t('landing.benefit2Title')}
+              description={t('landing.benefit2Desc')}
+            />
+            <BenefitCard
+              icon={Handshake}
+              title={t('landing.benefit3Title')}
+              description={t('landing.benefit3Desc')}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials Section (from DB) ── */}
+      <TestimonialsSection />
+
+      {/* ── CTA Section ── */}
+      <section className="py-20 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5" />
+
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-4">
+            {t('landing.ctaTitle')}
+          </h2>
+          <p className="text-muted-foreground mb-10 leading-relaxed max-w-lg mx-auto">
+            {t('landing.ctaSubtitle')}
+          </p>
+          <Button
+            size="lg"
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all"
+            onClick={goToAuth}
+          >
+            {t('landing.ctaButton')}
+            <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
+          </Button>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
       <footer className="py-10 px-5 border-t border-border bg-card/30">
-        <div className="max-w-6xl mx-auto">
-          {/* Top: Logo + Tagline */}
+        <div className="max-w-5xl mx-auto">
+          {/* Logo + tagline */}
           <div className="flex flex-col items-center gap-2 mb-8">
             <BuffLogo />
-            <span className="text-sm text-muted-foreground text-center">
-              {t('app.tagline')}
+            <span className="text-sm text-muted-foreground italic">
+              {t('landing.foundedBy')}
             </span>
           </div>
 
-          {/* Links Grid - 2 columns on mobile, row on desktop */}
-          <div className="grid grid-cols-2 md:flex md:items-center md:justify-center gap-3 md:gap-6 text-sm text-muted-foreground mb-8">
-            <a href="#features" className="hover:text-foreground transition-colors text-center">{t('nav.features')}</a>
-            <a href="#for-parents" className="hover:text-foreground transition-colors text-center">{t('nav.forParents')}</a>
-            <Link to="/about" className="hover:text-foreground transition-colors flex items-center justify-center gap-1">
+          {/* Links */}
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-muted-foreground mb-8">
+            <Link to="/about" className="hover:text-foreground transition-colors flex items-center gap-1">
               <Heart className="w-3 h-3" />
               {language === 'he' ? 'אודות' : 'About'}
             </Link>
-            <Link to="/privacy" className="hover:text-foreground transition-colors text-center">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors text-center">Terms</Link>
-            <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center justify-center gap-1">
+            <Link to="/privacy" className="hover:text-foreground transition-colors">
+              {language === 'he' ? 'פרטיות' : 'Privacy'}
+            </Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">
+              {language === 'he' ? 'תנאי שימוש' : 'Terms'}
+            </Link>
+            <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center gap-1">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
               YouTube
             </a>
-            <a href={language === 'he' ? 'https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5' : 'https://chat.whatsapp.com/KM1b9UmQO0cBGgCVI54W7R'} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center justify-center gap-1">
+            <a href={language === 'he' ? 'https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5' : 'https://chat.whatsapp.com/KM1b9UmQO0cBGgCVI54W7R'} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center gap-1">
               <MessageCircle className="w-4 h-4" />
               {language === 'he' ? 'קהילה' : 'Community'}
             </a>
           </div>
 
-          {/* CTA Button */}
-          <div className="flex justify-center mb-8">
-            <button onClick={goToAuthAsEnglish} className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-              {t('nav.getStarted')} →
-            </button>
-          </div>
-          
           {/* Bottom */}
           <div className="pt-6 border-t border-border text-center space-y-2">
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
