@@ -30,7 +30,7 @@ const jsonLd = {
     "ratingValue": "4.8",
     "ratingCount": "150"
   },
-  "keywords": "ADHD, ADHD kids, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
+  "keywords": "ADHD, ADHD kids, ADHD teens, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
 };
 
 function BuffLogo() {
