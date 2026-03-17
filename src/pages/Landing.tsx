@@ -161,7 +161,7 @@ export default function Landing() {
 
           {/* SEO-rich subtitle */}
           <p className="text-sm text-muted-foreground/50 max-w-md mx-auto mb-8 -mt-4">
-            The #1 ADHD routine app for kids — built on executive function research, loved by families worldwide.
+            An ADHD routine app for kids &amp; teens — built on executive function research.
           </p>
 
           {/* Single CTA */}
