@@ -90,7 +90,7 @@ function ReviewCard({ review, isRTL, language }: { review: Review; isRTL: boolea
       </div>
 
       <p className="text-xs font-semibold text-foreground mb-2.5">
-        {review.display_name}
+        {!isRTL && review.display_name_en ? review.display_name_en : review.display_name}
       </p>
 
       {/* Body content */}
