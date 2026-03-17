@@ -83,10 +83,10 @@ export default function Landing() {
       document.head.appendChild(script);
     }
 
-    document.title = 'BUFF — ADHD Routine App for Kids | Executive Function Training';
+    document.title = 'BUFF — ADHD Routine App for Kids & Teens | Executive Function Coaching';
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', 'BUFF helps children with ADHD master daily routines using research-backed executive function strategies. Free app with gaming-inspired motivation for kids and teens.');
+      metaDesc.setAttribute('content', 'BUFF helps kids and teens with ADHD master daily routines using research-backed executive function strategies. Free coaching-inspired app for the whole family.');
     }
 
     return () => {
