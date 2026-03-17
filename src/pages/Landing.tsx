@@ -97,32 +97,34 @@ export default function Landing() {
 
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* ── Navigation ── */}
+      {/* ── Sticky Navigation ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <BuffLogo />
 
-            <div className="flex items-center gap-3">
-              {/* Language Toggle - prominent text button */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Language Toggle - compact on mobile */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
-                className="rounded-full px-4 text-sm font-medium"
+                className="rounded-full px-3 sm:px-4 text-xs sm:text-sm font-medium h-8 sm:h-9"
               >
                 {t('landing.langToggle')}
               </Button>
 
-              <Button variant="ghost" className="rounded-full" onClick={goToAuth}>
+              {/* Login - hidden on mobile to reduce clutter */}
+              <Button variant="ghost" className="rounded-full hidden sm:inline-flex" onClick={goToAuth}>
                 {t('nav.login')}
               </Button>
               <Button
-                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                size="sm"
+                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4"
                 onClick={goToAuth}
               >
                 {t('nav.getStarted')}
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
+                <ChevronRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'mr-0.5 rotate-180' : 'ml-0.5'}`} />
               </Button>
             </div>
           </div>
@@ -130,7 +132,7 @@ export default function Landing() {
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="pt-28 pb-20 px-4 relative overflow-hidden">
+      <section className="pt-24 sm:pt-28 pb-14 sm:pb-20 px-5 sm:px-4 relative overflow-hidden">
         {/* Subtle wave background */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
@@ -138,36 +140,36 @@ export default function Landing() {
 
         <div className="max-w-3xl mx-auto text-center relative z-10">
           {/* Logo mark */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6 sm:mb-8">
             <img
               src={buffLogoNoBg}
               alt="BUFF - ADHD routine app for kids and teens"
-              className="h-24 w-24 object-contain"
+              className="h-18 w-18 sm:h-24 sm:w-24 object-contain"
               loading="eager"
             />
           </div>
 
-          {/* Primary headline — emotionally resonant */}
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4">
+          {/* Primary headline — scaled down on mobile */}
+          <h1 className="font-display text-[1.6rem] leading-[1.25] sm:text-4xl md:text-5xl font-bold sm:leading-tight mb-4 sm:mb-5 px-1">
             <span className="text-foreground">{t('landing.heroHeadline')}</span>
             <br />
             <span className="text-primary">{t('landing.heroHeadline2')}</span>
           </h1>
 
-          {/* Sub-headline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+          {/* Sub-headline — balanced wrapping */}
+          <p className="text-base sm:text-xl text-muted-foreground max-w-md sm:max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed [text-wrap:balance]">
             {t('landing.heroSub')}
           </p>
 
           {/* SEO-rich subtitle */}
-          <p className="text-sm text-muted-foreground/50 max-w-md mx-auto mb-8 -mt-4">
+          <p className="text-xs sm:text-sm text-muted-foreground/50 max-w-sm sm:max-w-md mx-auto mb-8 sm:mb-8 -mt-2 sm:-mt-4 [text-wrap:balance]">
             An ADHD routine app for kids &amp; teens — built on executive function research.
           </p>
 
-          {/* Single CTA */}
+          {/* CTA — full width on mobile */}
           <Button
             size="lg"
-            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all"
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all"
             onClick={goToAuth}
           >
             {t('landing.startFree')}
@@ -177,15 +179,15 @@ export default function Landing() {
       </section>
 
       {/* ── Benefits Section ── */}
-      <section id="features" className="py-20 px-4">
+      <section id="features" className="py-14 sm:py-20 px-5 sm:px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-4">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide mb-4">
               {t('landing.benefitsTitle')}
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
             <BenefitCard
               icon={Mountain}
               title={t('landing.benefit1Title')}
@@ -209,19 +211,19 @@ export default function Landing() {
       <TestimonialsSection />
 
       {/* ── CTA Section ── */}
-      <section className="py-20 px-4 relative overflow-hidden">
+      <section className="py-14 sm:py-20 px-5 sm:px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5" />
 
         <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-wide mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide mb-4">
             {t('landing.ctaTitle')}
           </h2>
-          <p className="text-muted-foreground mb-10 leading-relaxed max-w-lg mx-auto">
+          <p className="text-muted-foreground mb-8 sm:mb-10 leading-relaxed max-w-lg mx-auto [text-wrap:balance]">
             {t('landing.ctaSubtitle')}
           </p>
           <Button
             size="lg"
-            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all"
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all"
             onClick={goToAuth}
           >
             {t('landing.ctaButton')}
