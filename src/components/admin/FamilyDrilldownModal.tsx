@@ -73,11 +73,26 @@ interface ChildProfile {
   credit_balance: number;
 }
 
+interface ChildTracking {
+  child_id: string;
+  child_name: string;
+  total_completed_7d: number;
+  total_potential_7d: number;
+  completion_rate_7d: number;
+  total_completed_all: number;
+  first_completion: string | null;
+  last_completion: string | null;
+  daily_breakdown: { date: string; completed: number; potential: number }[];
+  category_breakdown: { category: string; completed: number }[];
+  streak_days: number;
+}
+
 interface FamilyData {
   tasks: TaskData[];
   rewards: RewardData[];
   timetables: TimetableData[];
   children: ChildProfile[];
+  tracking: ChildTracking[];
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
