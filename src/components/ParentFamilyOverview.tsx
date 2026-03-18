@@ -51,6 +51,40 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const { isProUser } = useSubscription();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
   const [grantingCardFor, setGrantingCardFor] = useState<string | null>(null);
+  const [childrenWithoutPWA, setChildrenWithoutPWA] = useState<Set<string>>(new Set());
+
+  // Check PWA install status for children with separate devices
+  useEffect(() => {
+    async function checkPWAStatus() {
+      // Get children with their own device (user_id IS NOT NULL)
+      const separateDeviceChildren = children.filter(c => c.userId);
+      if (separateDeviceChildren.length === 0) return;
+
+      const userIds = separateDeviceChildren.map(c => c.userId);
+      
+      const { data: pwaEvents } = await supabase
+        .from('pwa_events')
+        .select('user_id, event_type')
+        .in('user_id', userIds)
+        .in('event_type', ['install', 'dismiss_permanent']);
+
+      const installedUserIds = new Set(
+        (pwaEvents || []).filter(e => e.event_type === 'install').map(e => e.user_id)
+      );
+
+      const notInstalled = new Set<string>();
+      for (const child of separateDeviceChildren) {
+        if (!installedUserIds.has(child.userId)) {
+          notInstalled.add(child.id);
+        }
+      }
+      setChildrenWithoutPWA(notInstalled);
+    }
+
+    if (!membersLoading && children.length > 0) {
+      checkPWAStatus();
+    }
+  }, [children, membersLoading]);
 
   // Listen for rest-card-depleted events from child view
   useEffect(() => {
