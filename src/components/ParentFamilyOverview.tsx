@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { ParentDailyWinCard } from './ParentDailyWinCard';
 import { ReviewNudgeCard } from './ReviewNudgeCard';
 import { DailySummaryCard } from './DailySummaryCard';
-import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift } from 'lucide-react';
+import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift, Smartphone } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -51,6 +51,40 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const { isProUser } = useSubscription();
   const [showPhilosophy, setShowPhilosophy] = useState(false);
   const [grantingCardFor, setGrantingCardFor] = useState<string | null>(null);
+  const [childrenWithoutPWA, setChildrenWithoutPWA] = useState<Set<string>>(new Set());
+
+  // Check PWA install status for children with separate devices
+  useEffect(() => {
+    async function checkPWAStatus() {
+      // Get children with their own device (user_id IS NOT NULL)
+      const separateDeviceChildren = children.filter(c => c.userId);
+      if (separateDeviceChildren.length === 0) return;
+
+      const userIds = separateDeviceChildren.map(c => c.userId);
+      
+      const { data: pwaEvents } = await supabase
+        .from('pwa_events')
+        .select('user_id, event_type')
+        .in('user_id', userIds)
+        .in('event_type', ['install', 'dismiss_permanent']);
+
+      const installedUserIds = new Set(
+        (pwaEvents || []).filter(e => e.event_type === 'install').map(e => e.user_id)
+      );
+
+      const notInstalled = new Set<string>();
+      for (const child of separateDeviceChildren) {
+        if (!installedUserIds.has(child.userId)) {
+          notInstalled.add(child.id);
+        }
+      }
+      setChildrenWithoutPWA(notInstalled);
+    }
+
+    if (!membersLoading && children.length > 0) {
+      checkPWAStatus();
+    }
+  }, [children, membersLoading]);
 
   // Listen for rest-card-depleted events from child view
   useEffect(() => {
@@ -265,6 +299,16 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                            </>
                          )}
                        </Button>
+                     </div>
+                   )}
+
+                   {/* PWA Install Nudge - shows when child has separate device but hasn't installed */}
+                   {childrenWithoutPWA.has(child.id) && (
+                     <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 border border-accent/20">
+                       <Smartphone className="w-4 h-4 text-accent shrink-0" />
+                       <span className="text-xs text-muted-foreground leading-snug">
+                         {t('overview.installNudge').replace('{name}', child.displayName)}
+                       </span>
                      </div>
                    )}
 
