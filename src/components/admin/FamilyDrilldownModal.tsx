@@ -264,6 +264,132 @@ export function FamilyDrilldownModal({ isOpen, onClose, familyId, familyName }: 
             </TabsList>
 
             <ScrollArea className="flex-1 mt-4">
+              {/* Tracking Tab */}
+              <TabsContent value="tracking" className="m-0">
+                {data.tracking.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>אין נתוני מעקב</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {data.tracking.map(child => {
+                      const rateColor = child.completion_rate_7d >= 70 ? 'text-green-600' : child.completion_rate_7d >= 40 ? 'text-yellow-600' : 'text-red-500';
+                      const CATEGORY_EMOJI: Record<string, string> = {
+                        'self-care': '💆',
+                        learning: '📚',
+                        organization: '🗂️',
+                        responsibility: '🏠',
+                        movement: '🏃',
+                      };
+                      return (
+                        <Card key={child.child_id}>
+                          <CardHeader className="py-3">
+                            <CardTitle className="text-sm font-medium flex items-center justify-between">
+                              <span className="flex items-center gap-2">
+                                <Baby className="w-4 h-4 text-primary" />
+                                {child.child_name}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                {child.streak_days > 0 && (
+                                  <Badge variant="outline" className="gap-1 text-orange-500 border-orange-300">
+                                    <Flame className="w-3 h-3" />
+                                    {child.streak_days} ימים רצופים
+                                  </Badge>
+                                )}
+                                <span className={`text-lg font-bold ${rateColor}`}>
+                                  {child.completion_rate_7d}%
+                                </span>
+                              </div>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="py-2 space-y-4">
+                            {/* Summary stats */}
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-2xl font-bold text-primary">{child.total_completed_7d}</p>
+                                <p className="text-xs text-muted-foreground">הושלמו (7 ימים)</p>
+                              </div>
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-2xl font-bold">{child.total_potential_7d}</p>
+                                <p className="text-xs text-muted-foreground">פוטנציאל (7 ימים)</p>
+                              </div>
+                              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                                <p className="text-2xl font-bold text-muted-foreground">{child.total_completed_all}</p>
+                                <p className="text-xs text-muted-foreground">סה"כ מאז ההתחלה</p>
+                              </div>
+                            </div>
+
+                            {/* Completion rate bar */}
+                            <div>
+                              <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                <span>אחוז השלמה (7 ימים)</span>
+                                <span className={rateColor}>{child.completion_rate_7d}%</span>
+                              </div>
+                              <Progress value={child.completion_rate_7d} className="h-2" />
+                            </div>
+
+                            {/* Daily breakdown - mini bar chart */}
+                            {child.daily_breakdown.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                  <TrendingUp className="w-3 h-3" />
+                                  פירוט יומי
+                                </p>
+                                <div className="flex items-end gap-1 h-16">
+                                  {child.daily_breakdown.map((day, i) => {
+                                    const pct = day.potential > 0 ? (day.completed / day.potential) * 100 : 0;
+                                    const dayDate = new Date(day.date + 'T00:00:00');
+                                    const dayLabel = dayDate.toLocaleDateString('he-IL', { weekday: 'short' });
+                                    return (
+                                      <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                                        <div className="w-full bg-muted rounded-t relative" style={{ height: '48px' }}>
+                                          <div
+                                            className="absolute bottom-0 w-full rounded-t bg-primary/70"
+                                            style={{ height: `${Math.max(pct, 4)}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">{dayLabel}</span>
+                                        <span className="text-[10px] font-medium">{day.completed}/{day.potential}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Category breakdown */}
+                            {child.category_breakdown.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">חלוקה לפי קטגוריה</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {child.category_breakdown.map((cat, i) => (
+                                    <Badge key={i} variant="secondary" className="gap-1">
+                                      {CATEGORY_EMOJI[cat.category] || '📋'} {cat.category}
+                                      <span className="font-bold">{cat.completed}</span>
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* First/last activity */}
+                            {child.first_completion && (
+                              <div className="flex gap-4 text-xs text-muted-foreground pt-1 border-t">
+                                <span>פעילות ראשונה: {format(new Date(child.first_completion), 'dd/MM/yyyy', { locale: he })}</span>
+                                {child.last_completion && (
+                                  <span>פעילות אחרונה: {format(new Date(child.last_completion), 'dd/MM/yyyy', { locale: he })}</span>
+                                )}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+
               {/* Tasks Tab */}
               <TabsContent value="tasks" className="m-0">
                 {data.tasks.length === 0 ? (
