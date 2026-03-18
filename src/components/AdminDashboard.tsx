@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown, Mail, Star } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown, Mail, Star, Search } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
+import { FamilyDrilldownModal } from '@/components/admin/FamilyDrilldownModal';
 import { he } from 'date-fns/locale';
 import { AppPulseTabV2 } from '@/components/admin/AppPulseTabV2';
 import { InstallPrompt } from '@/components/InstallPrompt';
