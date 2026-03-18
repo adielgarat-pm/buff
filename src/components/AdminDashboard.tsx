@@ -556,8 +556,9 @@ export function AdminDashboard() {
                         <TableHead className="text-right">קוד</TableHead>
                         <TableHead className="text-right">הורים</TableHead>
                         <TableHead className="text-right">ילדים</TableHead>
-                        <TableHead className="text-right">פרטי ילדים</TableHead>
-                        <TableHead className="text-right">תאריך הרשמה</TableHead>
+                         <TableHead className="text-right">פרטי ילדים</TableHead>
+                         <TableHead className="text-right">תאריך הרשמה</TableHead>
+                         <TableHead className="text-right w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
