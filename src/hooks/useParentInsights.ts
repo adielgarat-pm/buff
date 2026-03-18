@@ -334,6 +334,33 @@ export function useParentInsights(childId: string | null) {
         }
       }
 
+      // Check if child hasn't installed PWA (separate device only)
+      const { data: childProfile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', childId)
+        .single();
+
+      if (childProfile?.user_id) {
+        const { data: installEvents } = await supabase
+          .from('pwa_events')
+          .select('event_type')
+          .eq('user_id', childProfile.user_id)
+          .eq('event_type', 'install')
+          .limit(1);
+
+        if (!installEvents || installEvents.length === 0) {
+          const template = INSIGHT_TEMPLATES['not-installed'];
+          if (template) {
+            // Prepend so it shows first
+            generatedInsights.unshift({
+              ...template,
+              id: 'insight-not-installed',
+            });
+          }
+        }
+      }
+
       // If everything is going well, add positive insight
       const overallRate = taskInsights.length > 0
         ? taskInsights.reduce((sum, t) => sum + t.completionRate, 0) / taskInsights.length
@@ -347,8 +374,8 @@ export function useParentInsights(childId: string | null) {
         });
       }
 
-      // Limit to 4 most relevant insights
-      setInsights(generatedInsights.slice(0, 4));
+      // Limit to 5 most relevant insights
+      setInsights(generatedInsights.slice(0, 5));
     } catch (error) {
       console.error('Error analyzing insights:', error);
     } finally {
