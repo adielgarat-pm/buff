@@ -20,7 +20,10 @@ import {
   BarChart3,
   TrendingUp,
   Flame,
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 
 interface FamilyDrilldownModalProps {
   isOpen: boolean;
