@@ -239,8 +239,12 @@ export function FamilyDrilldownModal({ isOpen, onClose, familyId, familyName }: 
             <Skeleton className="h-40 w-full" />
           </div>
         ) : data ? (
-          <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="tracking" className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="tracking" className="gap-1">
+                <BarChart3 className="w-4 h-4" />
+                מעקב
+              </TabsTrigger>
               <TabsTrigger value="tasks" className="gap-1">
                 <ListTodo className="w-4 h-4" />
                 משימות ({data.tasks.length})
