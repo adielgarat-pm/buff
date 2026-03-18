@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { ParentDailyWinCard } from './ParentDailyWinCard';
 import { ReviewNudgeCard } from './ReviewNudgeCard';
 import { DailySummaryCard } from './DailySummaryCard';
-import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift } from 'lucide-react';
+import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift, Smartphone } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
