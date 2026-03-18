@@ -487,6 +487,8 @@
   "overview.bonusAwarded": "Successful day bonus awarded ✓",
   "overview.greatDay": "🌟 Great Day! (+20)",
   "overview.viewAsChild": "View as Child",
+  "overview.installNudge": "📲 {name} hasn't installed the app yet. Ask them to install it so they can easily track their missions!",
+  "overview.installNudgeShort": "Not installed yet",
   "parentView.loading": "Loading...",
   "parentView.child": "child",
   "parentView.addChildTitle": "Add New Child",

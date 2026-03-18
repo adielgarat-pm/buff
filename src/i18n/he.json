@@ -487,6 +487,8 @@
   "overview.bonusAwarded": "בונוס יום מוצלח ניתן ✓",
   "overview.greatDay": "🌟 יום מוצלח במיוחד! (+20)",
   "overview.viewAsChild": "צפה כילד",
+  "overview.installNudge": "📲 {name} עדיין לא התקין/ה את האפליקציה. בקש/י ממנו/ה להתקין כדי שיהיה לו/ה יותר קל לעקוב אחרי המשימות!",
+  "overview.installNudgeShort": "עדיין לא מותקן",
   "parentView.loading": "טוען...",
   "parentView.child": "ילד",
   "parentView.addChildTitle": "הוספת ילד חדש",
