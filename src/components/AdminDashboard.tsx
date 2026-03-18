@@ -622,6 +622,14 @@ export function AdminDashboard() {
 
       {/* Debug Install Prompt - renders when debug mode is active */}
       {debugIOSPrompt && <InstallPrompt onClose={() => setDebugIOSPrompt(false)} />}
+
+      {/* Family Drilldown Modal */}
+      <FamilyDrilldownModal
+        isOpen={drilldownModal.isOpen}
+        onClose={() => setDrilldownModal({ isOpen: false, familyId: '', familyName: '' })}
+        familyId={drilldownModal.familyId}
+        familyName={drilldownModal.familyName}
+      />
     </div>
   );
 }
