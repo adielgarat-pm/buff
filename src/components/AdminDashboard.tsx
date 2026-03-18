@@ -589,10 +589,20 @@ export function AdminDashboard() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Calendar className="w-3 h-3" />
-                              {format(new Date(family.family_created_at), 'dd/MM/yyyy', { locale: he })}
-                            </div>
+                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                               <Calendar className="w-3 h-3" />
+                               {format(new Date(family.family_created_at), 'dd/MM/yyyy', { locale: he })}
+                             </div>
+                           </TableCell>
+                           <TableCell>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-7 w-7 p-0"
+                               onClick={() => setDrilldownModal({ isOpen: true, familyId: family.family_id, familyName: family.family_name })}
+                             >
+                               <Search className="w-4 h-4" />
+                             </Button>
                           </TableCell>
                         </TableRow>
                       ))}
