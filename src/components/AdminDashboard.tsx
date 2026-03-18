@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown, Mail, Star } from 'lucide-react';
+import { Loader2, RefreshCw, Users, Baby, Calendar, Shield, AlertTriangle, Activity, Smartphone, Bug, Download, TrendingUp, Eye, XCircle, CheckCircle2, Trash2, Crown, Mail, Star, Search } from 'lucide-react';
 import { format, differenceInYears, parseISO } from 'date-fns';
+import { FamilyDrilldownModal } from '@/components/admin/FamilyDrilldownModal';
 import { he } from 'date-fns/locale';
 import { AppPulseTabV2 } from '@/components/admin/AppPulseTabV2';
 import { InstallPrompt } from '@/components/InstallPrompt';
@@ -33,6 +34,7 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('pulse');
   const [debugIOSPrompt, setDebugIOSPrompt] = useState(false);
   const [pwaReport, setPwaReport] = useState<ReturnType<typeof getAnalyticsReport>>(null);
+  const [drilldownModal, setDrilldownModal] = useState<{ isOpen: boolean; familyId: string; familyName: string }>({ isOpen: false, familyId: '', familyName: '' });
 
   // Load PWA analytics report on mount and when tab changes
   useEffect(() => {
@@ -554,8 +556,9 @@ export function AdminDashboard() {
                         <TableHead className="text-right">קוד</TableHead>
                         <TableHead className="text-right">הורים</TableHead>
                         <TableHead className="text-right">ילדים</TableHead>
-                        <TableHead className="text-right">פרטי ילדים</TableHead>
-                        <TableHead className="text-right">תאריך הרשמה</TableHead>
+                         <TableHead className="text-right">פרטי ילדים</TableHead>
+                         <TableHead className="text-right">תאריך הרשמה</TableHead>
+                         <TableHead className="text-right w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -586,10 +589,20 @@ export function AdminDashboard() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Calendar className="w-3 h-3" />
-                              {format(new Date(family.family_created_at), 'dd/MM/yyyy', { locale: he })}
-                            </div>
+                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                               <Calendar className="w-3 h-3" />
+                               {format(new Date(family.family_created_at), 'dd/MM/yyyy', { locale: he })}
+                             </div>
+                           </TableCell>
+                           <TableCell>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-7 w-7 p-0"
+                               onClick={() => setDrilldownModal({ isOpen: true, familyId: family.family_id, familyName: family.family_name })}
+                             >
+                               <Search className="w-4 h-4" />
+                             </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -609,6 +622,14 @@ export function AdminDashboard() {
 
       {/* Debug Install Prompt - renders when debug mode is active */}
       {debugIOSPrompt && <InstallPrompt onClose={() => setDebugIOSPrompt(false)} />}
+
+      {/* Family Drilldown Modal */}
+      <FamilyDrilldownModal
+        isOpen={drilldownModal.isOpen}
+        onClose={() => setDrilldownModal({ isOpen: false, familyId: '', familyName: '' })}
+        familyId={drilldownModal.familyId}
+        familyName={drilldownModal.familyName}
+      />
     </div>
   );
 }
