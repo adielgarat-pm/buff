@@ -34,6 +34,7 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('pulse');
   const [debugIOSPrompt, setDebugIOSPrompt] = useState(false);
   const [pwaReport, setPwaReport] = useState<ReturnType<typeof getAnalyticsReport>>(null);
+  const [drilldownModal, setDrilldownModal] = useState<{ isOpen: boolean; familyId: string; familyName: string }>({ isOpen: false, familyId: '', familyName: '' });
 
   // Load PWA analytics report on mount and when tab changes
   useEffect(() => {
