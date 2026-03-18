@@ -163,7 +163,9 @@ export function FamilyDrilldownModal({ isOpen, onClose, familyId, familyName }: 
           child_name: t.assigned_to ? childMap.get(t.assigned_to) || 'לא משויך' : 'כללי',
         }));
 
-        setData({ tasks, rewards, timetables, children });
+        const tracking = (jsonResult.tracking || []) as ChildTracking[];
+
+        setData({ tasks, rewards, timetables, children, tracking });
       }
     } catch (error) {
       console.error('Error fetching family data:', error);
