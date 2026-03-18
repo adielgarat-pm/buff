@@ -302,6 +302,16 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                      </div>
                    )}
 
+                   {/* PWA Install Nudge - shows when child has separate device but hasn't installed */}
+                   {childrenWithoutPWA.has(child.id) && (
+                     <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 border border-accent/20">
+                       <Smartphone className="w-4 h-4 text-accent shrink-0" />
+                       <span className="text-xs text-muted-foreground leading-snug">
+                         {t('overview.installNudge').replace('{name}', child.displayName)}
+                       </span>
+                     </div>
+                   )}
+
                   {hasNoTasks ? (
                     <FirstTaskNudgeCard 
                       childName={child.displayName}
