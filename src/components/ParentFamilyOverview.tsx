@@ -304,11 +304,28 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
 
                    {/* PWA Install Nudge - shows when child has separate device but hasn't installed */}
                    {childrenWithoutPWA.has(child.id) && (
-                     <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 border border-accent/20">
+                     <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-accent/10 border border-accent/20">
                        <Smartphone className="w-4 h-4 text-accent shrink-0" />
-                       <span className="text-xs text-muted-foreground leading-snug">
+                       <span className="text-xs text-muted-foreground leading-snug flex-1">
                          {t('overview.installNudge').replace('{name}', child.displayName)}
                        </span>
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         className="h-7 text-xs shrink-0 border-accent/30 text-accent hover:bg-accent/10"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           const url = `${window.location.origin}/install-guide`;
+                           if (navigator.share) {
+                             navigator.share({ title: 'BUFF', text: t('overview.installShareText'), url });
+                           } else {
+                             navigator.clipboard.writeText(url);
+                             toast.success(t('overview.installLinkCopied'));
+                           }
+                         }}
+                       >
+                         {t('overview.sendInstallLink')}
+                       </Button>
                      </div>
                    )}
 
