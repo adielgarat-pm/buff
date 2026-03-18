@@ -173,6 +173,17 @@ const INSIGHT_TEMPLATES: Record<string, Omit<InsightCard, 'id' | 'completionRate
     strategyType: 'task-based',
     icon: '📝',
   },
+  'not-installed': {
+    type: 'general',
+    severity: 'attention',
+    title: 'App not installed yet',
+    titleHe: 'האפליקציה עדיין לא מותקנת',
+    description: 'The insights here may be incomplete because the app hasn\'t been installed yet. Sit together to set up missions and rewards — and ask to install for easy daily access.',
+    descriptionHe: 'התובנות כאן עשויות להיות חלקיות כי האפליקציה עדיין לא הותקנה. שבו יחד להגדיר משימות ופרסים — ובקשו להתקין כדי שיהיה קל לחזור אליה כל יום.',
+    suggestion: 'Make sure there\'s a reward they really, really want. When the motivation is personal, the habit sticks. Install the app together so it\'s always one tap away.',
+    suggestionHe: 'וודאו שיש בפרסים משהו שבאמת באמת רוצים. כשהמוטיבציה אישית, ההרגל נדבק. התקינו את האפליקציה יחד כדי שתמיד תהיה במרחק לחיצה.',
+    icon: '📲',
+  },
 };
 
 export function useParentInsights(childId: string | null) {
