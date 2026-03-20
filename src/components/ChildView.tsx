@@ -54,12 +54,12 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   const [showNightMission, setShowNightMission] = useState(false);
   const [showCommandCenter, setShowCommandCenter] = useState(false);
 
-  // Daily Vibe Check
-  const vibeCheck = useVibeCheck(effectiveChildId);
-
   // Sticker celebration for child
   const effectiveChildId = viewingChildId || profile?.id;
   const { pendingSticker, dismissSticker } = useChildStickers(effectiveChildId, familyId);
+
+  // Daily Vibe Check
+  const vibeCheck = useVibeCheck(effectiveChildId);
 
   // Child preferences (theme, pet toggle, age mode)
   const isOwnDevice = profile?.role === 'child' && profile?.user_id !== null;
