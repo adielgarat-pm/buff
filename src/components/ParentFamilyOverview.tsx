@@ -53,8 +53,26 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const [showPhilosophy, setShowPhilosophy] = useState(false);
   const [grantingCardFor, setGrantingCardFor] = useState<string | null>(null);
   const [childrenWithoutPWA, setChildrenWithoutPWA] = useState<Set<string>>(new Set());
+  const [childVibes, setChildVibes] = useState<Record<string, number>>({});
 
-  // Check PWA install status for children with separate devices
+  // Fetch today's vibe for all children
+  useEffect(() => {
+    if (children.length === 0) return;
+    const today = new Date().toISOString().split('T')[0];
+    const fetchVibes = async () => {
+      const { data } = await supabase
+        .from('child_vibes' as any)
+        .select('child_id, vibe_level')
+        .in('child_id', children.map(c => c.id))
+        .eq('date', today);
+      if (data) {
+        const vibes: Record<string, number> = {};
+        (data as any[]).forEach(v => { vibes[v.child_id] = v.vibe_level; });
+        setChildVibes(vibes);
+      }
+    };
+    fetchVibes();
+  }, [children]);
   useEffect(() => {
     async function checkPWAStatus() {
       // Get children with their own device (user_id IS NOT NULL)
