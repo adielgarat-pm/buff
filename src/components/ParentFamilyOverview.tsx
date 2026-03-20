@@ -277,7 +277,10 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                          {child.avatar || '🚀'}
                        </div>
                        <div>
+                       <div className="flex items-center gap-2">
                          <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
+                         <VibeIndicator vibeLevel={childVibes[child.id] || null} size="sm" />
+                       </div>
                          {progress && (
                            <p className="text-sm text-muted-foreground">
                              💰 {progress.totalBalance.toLocaleString()} {t('overview.creditsAccumulated')}
