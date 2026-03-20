@@ -1018,5 +1018,20 @@
   "ticket.used": "Used",
   "ticket.markUsedTitle": "Mark as Used?",
   "ticket.markUsedDesc": "This will remove the ticket from your rewards.",
-  "ticket.confirmUsed": "Yes, I got it!"
+  "ticket.confirmUsed": "Yes, I got it!",
+  "vibe.kidTitle": "How is my heart today?",
+  "vibe.teenTitle": "Current Energy Level",
+  "vibe.goodMorning": "Good morning, {name}!",
+  "vibe.lowPowerTitle": "That's okay. You have options:",
+  "vibe.lowPowerMode": "Low Power Mode",
+  "vibe.lowPowerDesc": "Only must-do missions today",
+  "vibe.instantBuff": "Instant Buff",
+  "vibe.instantBuffDesc": "Use a small reward right now",
+  "vibe.parentSOS": "Parent SOS",
+  "vibe.parentSOSDesc": "Send a notification to parent",
+  "vibe.sosSent": "Sent to parent",
+  "vibe.skipFine": "I'm fine, skip",
+  "vibe.sosNotificationTitle": "SOS from {name}",
+  "vibe.sosNotificationDesc": "{name} is having a tough day and needs support",
+  "notification.parentSOS": "🆘 {name} needs support today"
 }
