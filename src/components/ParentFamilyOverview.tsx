@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ParentDailyWinCard } from './ParentDailyWinCard';
+import { VibeIndicator } from './VibeIndicator';
 import { ReviewNudgeCard } from './ReviewNudgeCard';
 import { DailySummaryCard } from './DailySummaryCard';
 import { Users, Zap, ChevronRight, Eye, Sparkles, Loader2, Check, Clock, Info, ShieldAlert, Gift, Smartphone } from 'lucide-react';
@@ -52,8 +53,26 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
   const [showPhilosophy, setShowPhilosophy] = useState(false);
   const [grantingCardFor, setGrantingCardFor] = useState<string | null>(null);
   const [childrenWithoutPWA, setChildrenWithoutPWA] = useState<Set<string>>(new Set());
+  const [childVibes, setChildVibes] = useState<Record<string, number>>({});
 
-  // Check PWA install status for children with separate devices
+  // Fetch today's vibe for all children
+  useEffect(() => {
+    if (children.length === 0) return;
+    const today = new Date().toISOString().split('T')[0];
+    const fetchVibes = async () => {
+      const { data } = await supabase
+        .from('child_vibes' as any)
+        .select('child_id, vibe_level')
+        .in('child_id', children.map(c => c.id))
+        .eq('date', today);
+      if (data) {
+        const vibes: Record<string, number> = {};
+        (data as any[]).forEach(v => { vibes[v.child_id] = v.vibe_level; });
+        setChildVibes(vibes);
+      }
+    };
+    fetchVibes();
+  }, [children]);
   useEffect(() => {
     async function checkPWAStatus() {
       // Get children with their own device (user_id IS NOT NULL)
@@ -258,7 +277,10 @@ export function ParentFamilyOverview({ onSelectChild, onViewAsChild, onStartOnbo
                          {child.avatar || '🚀'}
                        </div>
                        <div>
+                       <div className="flex items-center gap-2">
                          <h3 className="font-bold text-lg text-foreground">{child.displayName}</h3>
+                         <VibeIndicator vibeLevel={childVibes[child.id] || null} size="sm" />
+                       </div>
                          {progress && (
                            <p className="text-sm text-muted-foreground">
                              💰 {progress.totalBalance.toLocaleString()} {t('overview.creditsAccumulated')}

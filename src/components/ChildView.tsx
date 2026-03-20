@@ -28,9 +28,11 @@ import { DragonMigrationModal } from './DragonMigrationModal';
 import { ChildSidebar } from './ChildSidebar';
 import { RewardMilestoneToast } from './RewardMilestoneToast';
 import { StickerCelebration } from './StickerCelebration';
+import { DailyVibeCheck } from './DailyVibeCheck';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useChildStickers } from '@/hooks/useChildStickers';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useVibeCheck } from '@/hooks/useVibeCheck';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePackCompletion } from '@/hooks/usePackCompletion';
 import { useChildPet } from '@/hooks/useChildPet';
@@ -55,6 +57,9 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
   // Sticker celebration for child
   const effectiveChildId = viewingChildId || profile?.id;
   const { pendingSticker, dismissSticker } = useChildStickers(effectiveChildId, familyId);
+
+  // Daily Vibe Check
+  const vibeCheck = useVibeCheck(effectiveChildId);
 
   // Child preferences (theme, pet toggle, age mode)
   const isOwnDevice = profile?.role === 'child' && profile?.user_id !== null;
@@ -479,6 +484,18 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         stickerType={pendingSticker?.sticker_type || 'star'}
         message={pendingSticker?.message}
         onDismiss={dismissSticker}
+      />
+
+      {/* Daily Vibe Check - first launch of day */}
+      <DailyVibeCheck
+        show={vibeCheck.needsCheck && !isViewingAsChild}
+        isTeen={isTeen}
+        childName={childDisplayName || profile?.display_name}
+        onSubmit={(level, enableLowPower) => {
+          vibeCheck.submitVibe(level, enableLowPower);
+        }}
+        onSendSOS={() => vibeCheck.sendParentSOS()}
+        onDismiss={() => vibeCheck.dismissCheck()}
       />
     </div>
   );

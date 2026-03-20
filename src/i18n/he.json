@@ -1018,5 +1018,20 @@
   "ticket.used": "נוצל",
   "ticket.markUsedTitle": "סמן כנוצל?",
   "ticket.markUsedDesc": "הכרטיס יוסר מרשימת הפרסים שלך.",
-  "ticket.confirmUsed": "כן, קיבלתי!"
+  "ticket.confirmUsed": "כן, קיבלתי!",
+  "vibe.kidTitle": "איך הלב שלי היום?",
+  "vibe.teenTitle": "מה רמת האנרגיה?",
+  "vibe.goodMorning": "בוקר טוב, {name}!",
+  "vibe.lowPowerTitle": "הכל בסדר. יש אפשרויות:",
+  "vibe.lowPowerMode": "מצב חיסכון",
+  "vibe.lowPowerDesc": "רק משימות חובה היום",
+  "vibe.instantBuff": "באף מיידי",
+  "vibe.instantBuffDesc": "להשתמש בפרס קטן עכשיו",
+  "vibe.parentSOS": "SOS להורה",
+  "vibe.parentSOSDesc": "שליחת התראה להורה",
+  "vibe.sosSent": "נשלח להורה",
+  "vibe.skipFine": "לא צריך, בסדר",
+  "vibe.sosNotificationTitle": "SOS מ-{name}",
+  "vibe.sosNotificationDesc": "{name} עובר/ת יום קשה וצריך/ה תמיכה",
+  "notification.parentSOS": "🆘 {name} צריך/ה תמיכה היום"
 }
