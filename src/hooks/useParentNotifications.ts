@@ -7,7 +7,7 @@ export interface ParentNotification {
   id: string;
   family_id: string;
   parent_id: string;
-  type: 'reward_redeemed' | 'task_completed' | 'quest_milestone';
+  type: 'reward_redeemed' | 'task_completed' | 'quest_milestone' | 'parent_sos';
   child_id: string | null;
   child_name: string;
   entity_id: string | null;

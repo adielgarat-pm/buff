@@ -1004,6 +1004,7 @@
   "notification.milestone.title": "Milestone Reached! 🌟",
   "notification.milestone.body": "{childName} just completed {count} quests total! Amazing persistence!",
   "notification.milestone.short": "Reached {count} quests!",
+  "notification.sos.body": "Sent an SOS — looks like they need some support. Sit together, ask what's going on, and offer help 💙",
   "sticker.send": "Send Sticker",
   "sticker.sent": "Sticker sent!",
   "sticker.sendError": "Couldn't send sticker",

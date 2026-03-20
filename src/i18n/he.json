@@ -1004,6 +1004,7 @@
   "notification.milestone.title": "אבן דרך! 🌟",
   "notification.milestone.body": "כל הכבוד על ההתמדה! {childName} השלים/ה {count} משימות בסך הכל!",
   "notification.milestone.short": "הגיע ל-{count} משימות!",
+  "notification.sos.body": "שלח SOS — נראה שצריך קצת תמיכה. שבו יחד, שאלו מה קורה, והציעו עזרה 💙",
   "sticker.send": "שליחת מדבקה",
   "sticker.sent": "המדבקה נשלחה!",
   "sticker.sendError": "לא הצלחנו לשלוח את המדבקה",

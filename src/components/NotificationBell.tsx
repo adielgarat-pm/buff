@@ -69,6 +69,8 @@ function NotificationItem({
       ? '🏆'
       : notification.type === 'quest_milestone'
       ? '🌟'
+      : notification.type === 'parent_sos'
+      ? '🆘'
       : '⚡';
   const timeLabel = format(new Date(notification.created_at), 'HH:mm');
 
@@ -80,6 +82,8 @@ function NotificationItem({
           .trim()
       : notification.type === 'quest_milestone'
       ? t('notification.milestone.short').replace('{count}', notification.entity_name)
+      : notification.type === 'parent_sos'
+      ? t('notification.sos.body')
       : t('notification.taskCompleted.body')
           .replace('{childName}', '')
           .replace('{taskName}', notification.entity_name)
