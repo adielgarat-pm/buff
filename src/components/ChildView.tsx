@@ -28,6 +28,7 @@ import { DragonMigrationModal } from './DragonMigrationModal';
 import { ChildSidebar } from './ChildSidebar';
 import { RewardMilestoneToast } from './RewardMilestoneToast';
 import { StickerCelebration } from './StickerCelebration';
+import { DailyVibeCheck } from './DailyVibeCheck';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useChildStickers } from '@/hooks/useChildStickers';
 import { useLanguage } from '@/contexts/LanguageContext';
