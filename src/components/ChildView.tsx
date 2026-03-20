@@ -485,6 +485,18 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
         message={pendingSticker?.message}
         onDismiss={dismissSticker}
       />
+
+      {/* Daily Vibe Check - first launch of day */}
+      <DailyVibeCheck
+        show={vibeCheck.needsCheck && !isViewingAsChild}
+        isTeen={isTeen}
+        childName={childDisplayName || profile?.display_name}
+        onSubmit={(level, enableLowPower) => {
+          vibeCheck.submitVibe(level, enableLowPower);
+        }}
+        onSendSOS={() => vibeCheck.sendParentSOS()}
+        onDismiss={() => vibeCheck.dismissCheck()}
+      />
     </div>
   );
 }
