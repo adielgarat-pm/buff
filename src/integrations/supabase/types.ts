@@ -52,6 +52,57 @@ export type Database = {
           },
         ]
       }
+      child_vibes: {
+        Row: {
+          child_id: string
+          created_at: string
+          date: string
+          family_id: string
+          id: string
+          low_power_mode: boolean
+          parent_sos_sent: boolean
+          vibe_level: number
+          vibe_type: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          date: string
+          family_id: string
+          id?: string
+          low_power_mode?: boolean
+          parent_sos_sent?: boolean
+          vibe_level: number
+          vibe_type?: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          date?: string
+          family_id?: string
+          id?: string
+          low_power_mode?: boolean
+          parent_sos_sent?: boolean
+          vibe_level?: number
+          vibe_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_vibes_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_vibes_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_vault: {
         Row: {
           child_id: string | null
