@@ -488,7 +488,7 @@ export function ChildView({ isViewingAsChild, viewingChildId }: ChildViewProps) 
 
       {/* Daily Vibe Check - first launch of day */}
       <DailyVibeCheck
-        show={vibeCheck.needsCheck && !isViewingAsChild}
+        show={vibeCheck.needsCheck}
         isTeen={isTeen}
         childName={childDisplayName || profile?.display_name}
         onSubmit={(level, enableLowPower) => {
