@@ -31,6 +31,7 @@ import { StickerCelebration } from './StickerCelebration';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useChildStickers } from '@/hooks/useChildStickers';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useVibeCheck } from '@/hooks/useVibeCheck';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePackCompletion } from '@/hooks/usePackCompletion';
 import { useChildPet } from '@/hooks/useChildPet';
