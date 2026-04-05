@@ -196,6 +196,51 @@ export function AdminUsersTab() {
           </Card>
         </div>
 
+        {/* Export Button */}
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={exportMarketingCSV} className="gap-2">
+            <Download className="w-4 h-4" />
+            Export Subscribers CSV ({parentProfiles.filter(p => p.marketing_consent && p.email).length})
+          </Button>
+        </div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                <span className="text-3xl font-bold">{parentProfiles.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pro Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                <span className="text-3xl font-bold">
+                  {parentProfiles.filter(p => p.is_pro || p.is_lifetime_access).length}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime / Beta</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                <span className="text-3xl font-bold">
+                  {parentProfiles.filter(p => p.is_lifetime_access).length}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Users Table */}
         <Card>
           <CardHeader>
