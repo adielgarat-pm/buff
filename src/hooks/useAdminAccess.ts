@@ -99,6 +99,7 @@ export function useAdminAccess() {
           parent_count: item.parent_count as number,
           child_count: item.child_count as number,
           children_info: (item.children_info as ChildInfo[]) || [],
+          parents_info: (item.parents_info as ParentInfo[]) || [],
         }));
         setFamilies(mappedData);
       }
