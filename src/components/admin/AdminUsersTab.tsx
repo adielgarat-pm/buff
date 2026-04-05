@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Crown, Sparkles, Users } from 'lucide-react';
+import { Loader2, Crown, Sparkles, Users, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
@@ -29,10 +29,12 @@ interface AdminProfile {
   is_pro: boolean;
   is_lifetime_access: boolean;
   is_activated: boolean;
+  marketing_consent: boolean;
   onboarding_step: number;
   created_at: string;
   family_name: string | null;
   family_code: string | null;
+  preferred_language: string | null;
   email: string | null;
 }
 
@@ -189,9 +191,11 @@ export function AdminUsersTab() {
                   <TableRow>
                      <TableHead>Name</TableHead>
                      <TableHead>Email</TableHead>
+                     <TableHead>שפה</TableHead>
                      <TableHead>Family</TableHead>
                      <TableHead>Onboarding</TableHead>
                      <TableHead>Joined</TableHead>
+                     <TableHead className="text-center">📩</TableHead>
                      <TableHead className="text-center">Pro</TableHead>
                      <TableHead className="text-center">Lifetime</TableHead>
                   </TableRow>
@@ -223,6 +227,11 @@ export function AdminUsersTab() {
                           {profile.email || '—'}
                         </TableCell>
                         <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {profile.preferred_language === 'he' ? '🇮🇱' : '🇬🇧'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           {profile.family_code ? (
                             <Badge variant="outline" className="font-mono text-xs">
                               {profile.family_code}
@@ -241,6 +250,11 @@ export function AdminUsersTab() {
                          </TableCell>
                          <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(profile.created_at), 'dd/MM/yyyy')}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {profile.marketing_consent && (
+                            <Mail className="w-4 h-4 text-success mx-auto" />
+                          )}
                         </TableCell>
                         <TableCell className="text-center">
                           <Switch
