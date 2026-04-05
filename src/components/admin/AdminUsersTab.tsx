@@ -29,10 +29,12 @@ interface AdminProfile {
   is_pro: boolean;
   is_lifetime_access: boolean;
   is_activated: boolean;
+  marketing_consent: boolean;
   onboarding_step: number;
   created_at: string;
   family_name: string | null;
   family_code: string | null;
+  preferred_language: string | null;
   email: string | null;
 }
 
