@@ -252,6 +252,11 @@ export function AdminUsersTab() {
                           {format(new Date(profile.created_at), 'dd/MM/yyyy')}
                         </TableCell>
                         <TableCell className="text-center">
+                          {profile.marketing_consent && (
+                            <Mail className="w-4 h-4 text-success mx-auto" />
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
                           <Switch
                             checked={profile.is_pro}
                             disabled={isUpdating}
