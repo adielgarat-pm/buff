@@ -9,7 +9,14 @@ interface ChildInfo {
   created_at: string;
 }
 
-interface FamilyOverview {
+interface ParentInfo {
+  display_name: string;
+  email: string | null;
+  preferred_language: string;
+  marketing_consent: boolean;
+}
+
+export interface FamilyOverview {
   family_id: string;
   family_name: string;
   family_code: string;
@@ -17,6 +24,7 @@ interface FamilyOverview {
   parent_count: number;
   child_count: number;
   children_info: ChildInfo[];
+  parents_info: ParentInfo[];
 }
 
 interface OrphanedUser {
