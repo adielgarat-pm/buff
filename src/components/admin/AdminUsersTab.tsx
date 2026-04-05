@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Crown, Sparkles, Users, Mail } from 'lucide-react';
+import { Loader2, Crown, Sparkles, Users, Mail, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
