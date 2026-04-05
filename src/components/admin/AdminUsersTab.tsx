@@ -191,9 +191,11 @@ export function AdminUsersTab() {
                   <TableRow>
                      <TableHead>Name</TableHead>
                      <TableHead>Email</TableHead>
+                     <TableHead>שפה</TableHead>
                      <TableHead>Family</TableHead>
                      <TableHead>Onboarding</TableHead>
                      <TableHead>Joined</TableHead>
+                     <TableHead className="text-center">📩</TableHead>
                      <TableHead className="text-center">Pro</TableHead>
                      <TableHead className="text-center">Lifetime</TableHead>
                   </TableRow>
