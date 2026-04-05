@@ -227,6 +227,11 @@ export function AdminUsersTab() {
                           {profile.email || '—'}
                         </TableCell>
                         <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {profile.preferred_language === 'he' ? '🇮🇱' : '🇬🇧'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           {profile.family_code ? (
                             <Badge variant="outline" className="font-mono text-xs">
                               {profile.family_code}
