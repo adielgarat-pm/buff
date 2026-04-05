@@ -631,6 +631,11 @@ export function AppPulseTabV2({ isAdmin }: AppPulseTabV2Props) {
                       </div>
                     </TableCell>
                     <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {family.preferred_language === 'he' ? '🇮🇱 עברית' : '🇬🇧 EN'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       {family.children && family.children.length > 0 ? (
                         <div className="space-y-2">
                           {family.children.map((child) => (
