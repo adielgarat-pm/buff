@@ -486,6 +486,29 @@ export function AdminDashboard() {
               </Card>
             </div>
 
+            {/* Export Families CSV */}
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => {
+                if (families.length === 0) return;
+                const header = 'Family Name,Code,Parents,Children,Children Names,Joined';
+                const rows = families.map(f => {
+                  const childrenNames = f.children_info.map((c: any) => c.display_name).join('; ');
+                  return `"${f.family_name}","${f.family_code}",${f.parent_count},${f.child_count},"${childrenNames}","${format(new Date(f.family_created_at), 'dd/MM/yyyy')}"`;
+                });
+                const csv = [header, ...rows].join('\n');
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `families-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}>
+                <Download className="w-4 h-4" />
+                Export Families CSV ({families.length})
+              </Button>
+            </div>
+
             {/* Orphaned Users Warning */}
             {orphanedUsers.length > 0 && (
               <Card className="border-warning/50 bg-warning/5">
