@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Crown, Sparkles, Users, Mail } from 'lucide-react';
+import { Loader2, Crown, Sparkles, Users, Mail, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
@@ -122,6 +123,27 @@ export function AdminUsersTab() {
 
   const parentProfiles = profiles.filter(p => p.role === 'parent');
 
+  const exportMarketingCSV = () => {
+    const marketingProfiles = parentProfiles.filter(p => p.marketing_consent && p.email);
+    if (marketingProfiles.length === 0) {
+      toast({ title: 'No users with marketing consent found', variant: 'destructive' });
+      return;
+    }
+    const header = 'Name,Email,Language,Joined';
+    const rows = marketingProfiles.map(p =>
+      `"${p.display_name}","${p.email}","${p.preferred_language === 'he' ? 'Hebrew' : 'English'}","${format(new Date(p.created_at), 'dd/MM/yyyy')}"`
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `marketing-subscribers-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: `Exported ${marketingProfiles.length} subscribers` });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -174,6 +196,13 @@ export function AdminUsersTab() {
           </Card>
         </div>
 
+        {/* Export Button */}
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={exportMarketingCSV} className="gap-2">
+            <Download className="w-4 h-4" />
+            Export Subscribers CSV ({parentProfiles.filter(p => p.marketing_consent && p.email).length})
+          </Button>
+        </div>
         {/* Users Table */}
         <Card>
           <CardHeader>
