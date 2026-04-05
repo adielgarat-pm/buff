@@ -490,10 +490,13 @@ export function AdminDashboard() {
             <div className="flex justify-end">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => {
                 if (families.length === 0) return;
-                const header = 'Family Name,Code,Parents,Children,Children Names,Joined';
+                const header = 'Family Name,Code,Parents,Children,Children Names,Language,Email (Marketing),Joined';
                 const rows = families.map(f => {
                   const childrenNames = f.children_info.map((c: any) => c.display_name).join('; ');
-                  return `"${f.family_name}","${f.family_code}",${f.parent_count},${f.child_count},"${childrenNames}","${format(new Date(f.family_created_at), 'dd/MM/yyyy')}"`;
+                  const consentParents = f.parents_info?.filter((p: any) => p.marketing_consent && p.email) || [];
+                  const emails = consentParents.map((p: any) => p.email).join('; ');
+                  const langs = [...new Set((f.parents_info || []).map((p: any) => p.preferred_language === 'he' ? 'Hebrew' : 'English'))].join('; ');
+                  return `"${f.family_name}","${f.family_code}",${f.parent_count},${f.child_count},"${childrenNames}","${langs}","${emails}","${format(new Date(f.family_created_at), 'dd/MM/yyyy')}"`;
                 });
                 const csv = [header, ...rows].join('\n');
                 const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });

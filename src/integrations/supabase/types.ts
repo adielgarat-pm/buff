@@ -925,6 +925,7 @@ export type Database = {
           family_id: string
           family_name: string
           parent_count: number
+          parents_info: Json
         }[]
       }
       get_admin_family_drilldown: {

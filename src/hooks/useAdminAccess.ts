@@ -9,7 +9,14 @@ interface ChildInfo {
   created_at: string;
 }
 
-interface FamilyOverview {
+interface ParentInfo {
+  display_name: string;
+  email: string | null;
+  preferred_language: string;
+  marketing_consent: boolean;
+}
+
+export interface FamilyOverview {
   family_id: string;
   family_name: string;
   family_code: string;
@@ -17,6 +24,7 @@ interface FamilyOverview {
   parent_count: number;
   child_count: number;
   children_info: ChildInfo[];
+  parents_info: ParentInfo[];
 }
 
 interface OrphanedUser {
@@ -91,6 +99,7 @@ export function useAdminAccess() {
           parent_count: item.parent_count as number,
           child_count: item.child_count as number,
           children_info: (item.children_info as ChildInfo[]) || [],
+          parents_info: (item.parents_info as ParentInfo[]) || [],
         }));
         setFamilies(mappedData);
       }
