@@ -594,6 +594,7 @@ export function AppPulseTabV2({ isAdmin }: AppPulseTabV2Props) {
                 <TableRow>
                   <TableHead className="text-right">משפחה</TableHead>
                   <TableHead className="text-right">מייל</TableHead>
+                  <TableHead className="text-right">שפה</TableHead>
                   <TableHead className="text-right">ילדים ואחוזי השלמה</TableHead>
                   <TableHead className="text-right">סה״כ השלמות</TableHead>
                   <TableHead className="text-right">פרסים אחרונים</TableHead>
@@ -628,6 +629,11 @@ export function AppPulseTabV2({ isAdmin }: AppPulseTabV2Props) {
                         )}
                         {family.parent_email || '-'}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {family.preferred_language === 'he' ? '🇮🇱 עברית' : '🇬🇧 EN'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {family.children && family.children.length > 0 ? (

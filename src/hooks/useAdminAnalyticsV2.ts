@@ -71,6 +71,7 @@ interface StarFamily {
   family_id: string;
   family_name: string;
   family_code: string;
+  preferred_language: string;
   parent_email: string | null;
   parent_marketing_consent: boolean | null;
   children: ChildStats[];
