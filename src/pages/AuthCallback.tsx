@@ -101,6 +101,23 @@ export default function AuthCallback() {
 
   const handleCallback = async (retryCount = 0) => {
     trackRegistrationStep('google_auth_callback');
+
+    // Bridge: If URL hash contains OAuth tokens, redirect to native app
+    try {
+      const hash = window.location.hash.substring(1);
+      const hashParams = new URLSearchParams(hash);
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+
+      if (accessToken && refreshToken) {
+        console.log('[Bridge] Detected OAuth tokens in URL hash, redirecting to native app...');
+        window.location.href = `buff://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&type=${type || 'signup'}`;
+        return; // Stop further processing — native app takes over
+      }
+    } catch (bridgeErr) {
+      console.warn('[Bridge] Error checking for native redirect, continuing with web flow:', bridgeErr);
+    }
     
     // Start rescue timer
     rescueTimerRef.current = setTimeout(() => {
