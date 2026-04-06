@@ -112,7 +112,20 @@ export default function AuthCallback() {
 
       if (accessToken && refreshToken) {
         console.log('[Bridge] Detected OAuth tokens in URL hash, redirecting to native app...');
-        window.location.href = `buff://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&type=${type || 'signup'}`;
+        const tokenFragment = `access_token=${accessToken}&refresh_token=${refreshToken}&type=${type || 'signup'}`;
+        
+        // Try Android Intent URL first (works reliably on Android)
+        const intentUrl = `intent://auth/callback#${tokenFragment}#Intent;scheme=buff;package=com.buff.mobile;end`;
+        window.location.href = intentUrl;
+        
+        // Fallback: after a short delay, show a manual button if still on this page
+        setTimeout(() => {
+          const fallbackContainer = document.getElementById('native-bridge-fallback');
+          if (fallbackContainer) {
+            fallbackContainer.style.display = 'flex';
+          }
+        }, 2000);
+        
         return; // Stop further processing — native app takes over
       }
     } catch (bridgeErr) {
