@@ -112,7 +112,20 @@ export default function AuthCallback() {
 
       if (accessToken && refreshToken) {
         console.log('[Bridge] Detected OAuth tokens in URL hash, redirecting to native app...');
-        window.location.href = `buff://auth/callback#access_token=${accessToken}&refresh_token=${refreshToken}&type=${type || 'signup'}`;
+        const tokenFragment = `access_token=${accessToken}&refresh_token=${refreshToken}&type=${type || 'signup'}`;
+        
+        // Try Android Intent URL first (works reliably on Android)
+        const intentUrl = `intent://auth/callback#${tokenFragment}#Intent;scheme=buff;package=com.buff.mobile;end`;
+        window.location.href = intentUrl;
+        
+        // Fallback: after a short delay, show a manual button if still on this page
+        setTimeout(() => {
+          const fallbackContainer = document.getElementById('native-bridge-fallback');
+          if (fallbackContainer) {
+            fallbackContainer.style.display = 'flex';
+          }
+        }, 2000);
+        
         return; // Stop further processing — native app takes over
       }
     } catch (bridgeErr) {
@@ -893,6 +906,19 @@ export default function AuthCallback() {
               : (isEnglish ? 'Setting up your account...' : 'יוצר את החשבון...')}
           </p>
           
+          {/* Native app bridge fallback - hidden by default, shown after 2s if redirect didn't work */}
+          <div id="native-bridge-fallback" className="mt-6 pt-4 border-t border-border flex-col items-center gap-3" style={{ display: 'none' }}>
+            <p className="text-sm text-muted-foreground">
+              {isEnglish ? 'Redirect didn\'t work? Tap below to open the app.' : 'ההפניה לא עבדה? לחצי למטה לפתיחת האפליקציה.'}
+            </p>
+            <a
+              href={`buff://auth/callback#${window.location.hash.substring(1)}`}
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              {isEnglish ? 'Open BUFF App' : 'פתח את אפליקציית BUFF'}
+            </a>
+          </div>
+
           {/* Rescue Button - appears after 5 seconds */}
           {showRescueButton && (
             <div className="mt-6 pt-4 border-t border-border">
