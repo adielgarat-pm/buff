@@ -21,7 +21,9 @@ export type Database = {
           family_id: string
           friday_enabled: boolean
           id: string
+          last_child_activity: string | null
           lesson_reminders_enabled: boolean
+          pause_mode_active: boolean | null
           updated_at: string
         }
         Insert: {
@@ -30,7 +32,9 @@ export type Database = {
           family_id: string
           friday_enabled?: boolean
           id?: string
+          last_child_activity?: string | null
           lesson_reminders_enabled?: boolean
+          pause_mode_active?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -39,7 +43,9 @@ export type Database = {
           family_id?: string
           friday_enabled?: boolean
           id?: string
+          last_child_activity?: string | null
           lesson_reminders_enabled?: boolean
+          pause_mode_active?: boolean | null
           updated_at?: string
         }
         Relationships: [
@@ -154,6 +160,8 @@ export type Database = {
           date: string
           family_id: string
           id: string
+          revoked_at: string | null
+          revoked_by_parent_id: string | null
           task_id: string
         }
         Insert: {
@@ -164,6 +172,8 @@ export type Database = {
           date: string
           family_id: string
           id?: string
+          revoked_at?: string | null
+          revoked_by_parent_id?: string | null
           task_id: string
         }
         Update: {
@@ -174,6 +184,8 @@ export type Database = {
           date?: string
           family_id?: string
           id?: string
+          revoked_at?: string | null
+          revoked_by_parent_id?: string | null
           task_id?: string
         }
         Relationships: [
@@ -433,6 +445,7 @@ export type Database = {
           daily_win_reward: number
           display_name: string
           family_id: string | null
+          fcm_token: string | null
           id: string
           is_activated: boolean
           is_lifetime_access: boolean
@@ -461,6 +474,7 @@ export type Database = {
           daily_win_reward?: number
           display_name: string
           family_id?: string | null
+          fcm_token?: string | null
           id?: string
           is_activated?: boolean
           is_lifetime_access?: boolean
@@ -489,6 +503,7 @@ export type Database = {
           daily_win_reward?: number
           display_name?: string
           family_id?: string | null
+          fcm_token?: string | null
           id?: string
           is_activated?: boolean
           is_lifetime_access?: boolean
@@ -724,6 +739,7 @@ export type Database = {
           family_id: string
           id: string
           price: number
+          proposed_by_child: boolean | null
           reward_category: string
           title: string
         }
@@ -736,6 +752,7 @@ export type Database = {
           family_id: string
           id?: string
           price: number
+          proposed_by_child?: boolean | null
           reward_category?: string
           title: string
         }
@@ -748,6 +765,7 @@ export type Database = {
           family_id?: string
           id?: string
           price?: number
+          proposed_by_child?: boolean | null
           reward_category?: string
           title?: string
         }
@@ -779,6 +797,7 @@ export type Database = {
           icon: string | null
           id: string
           is_system_generated: boolean
+          proposed_by_child: boolean | null
           schedule_days: number[]
           strategy_id: string | null
           time: string
@@ -794,6 +813,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_system_generated?: boolean
+          proposed_by_child?: boolean | null
           schedule_days?: number[]
           strategy_id?: string | null
           time: string
@@ -809,6 +829,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_system_generated?: boolean
+          proposed_by_child?: boolean | null
           schedule_days?: number[]
           strategy_id?: string | null
           time?: string
