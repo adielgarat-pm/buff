@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -187,6 +188,35 @@ export default function Auth() {
                     className="h-9"
                   />
                 </div>
+
+                {/* Forgot Password */}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-xs p-0 h-auto text-muted-foreground hover:text-primary"
+                    onClick={async () => {
+                      if (!loginEmail) {
+                        toast.error(t('auth.fillAllFields'));
+                        return;
+                      }
+                      setLoading(true);
+                      const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+                        redirectTo: `${window.location.origin}/reset-password`,
+                      });
+                      setLoading(false);
+                      if (error) {
+                        toast.error(error.message);
+                      } else {
+                        toast.success(t('auth.resetPasswordSent'));
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    {t('auth.forgotPassword')}
+                  </Button>
+                </div>
+
                 <Button type="submit" className="w-full rounded-2xl h-10" disabled={loading}>
                   {loading ? (
                     <>
