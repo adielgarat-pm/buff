@@ -917,6 +917,7 @@ export type Database = {
       public_reviews: {
         Row: {
           created_at: string | null
+          detected_lang: string | null
           display_name: string | null
           display_name_en: string | null
           id: string | null
@@ -927,6 +928,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          detected_lang?: string | null
           display_name?: string | null
           display_name_en?: string | null
           id?: string | null
@@ -937,6 +939,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          detected_lang?: string | null
           display_name?: string | null
           display_name_en?: string | null
           id?: string | null
