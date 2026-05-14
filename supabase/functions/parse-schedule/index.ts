@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -515,9 +516,49 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, excelData, fileType, extractedText } = await req.json();
+    // ── Auth check ──
+    const authHeader = req.headers.get("Authorization") || "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: authErr } = await userClient.auth.getUser();
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json();
+    const { imageBase64, excelData, fileType, extractedText } = body;
+
+    // ── Input validation ──
+    const MAX_IMAGE_SIZE = 10_000_000; // ~10MB base64
+    const MAX_EXCEL_ROWS = 100;
+    const MAX_FIELD_LENGTH = 500;
+
+    if (imageBase64 && typeof imageBase64 === "string" && imageBase64.length > MAX_IMAGE_SIZE) {
+      return new Response(JSON.stringify({ error: "Image too large (max ~7MB)" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (excelData && Array.isArray(excelData) && excelData.length > MAX_EXCEL_ROWS) {
+      return new Response(JSON.stringify({ error: `Too many rows (max ${MAX_EXCEL_ROWS})` }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (extractedText && typeof extractedText === "string" && extractedText.length > 50_000) {
+      return new Response(JSON.stringify({ error: "Text too long (max 50K chars)" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
