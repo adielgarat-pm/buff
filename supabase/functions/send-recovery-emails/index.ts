@@ -387,6 +387,31 @@ Deno.serve(async (req) => {
 
   // ── Test mode: always allowed regardless of CRON_ENABLED ──
   if (body.test_email && body.template_key) {
+    // Verify admin before allowing test sends
+    const authHeader = req.headers.get("Authorization") || "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: authErr } = await userClient.auth.getUser();
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin",
+    });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const testEmail = body.test_email as string;
     const templateKey = body.template_key as TemplateKey;
     const lang = (body.language as "en" | "he") || "en";
