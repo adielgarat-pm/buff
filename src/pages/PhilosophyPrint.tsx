@@ -128,6 +128,88 @@ export default function PhilosophyPrint() {
         </button>
       </div>
 
+      {/* ===== HERO (web only — hidden on print): Our Three Principles ===== */}
+      <div className="no-print bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-b border-indigo-100">
+        <div className="max-w-3xl mx-auto px-6 sm:px-8 py-16">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 leading-tight">
+              Our Three Principles
+            </h1>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-600 mb-6" dir="rtl">
+              שלושת העקרונות שלנו
+            </h2>
+            <p className="text-base text-gray-600 max-w-xl mx-auto leading-relaxed">
+              Most ADHD apps hide their philosophy. Here's ours, in plain English.
+            </p>
+            <p className="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed mt-2" dir="rtl">
+              רוב אפליקציות ה-ADHD מסתירות את הפילוסופיה שלהן. זוהי שלנו, בשפה ברורה.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Pillar 1 — Intrinsic Motivation */}
+            <div className="rounded-2xl bg-white border border-indigo-100 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold shrink-0">1</div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Inner motivation that lasts</h3>
+                  <h3 className="text-lg font-semibold text-gray-500 mb-3" dir="rtl">מוטיבציה פנימית שמחזיקה לאורך זמן</h3>
+                  <p className="text-base text-gray-700 leading-relaxed mb-2">
+                    The kind of motivation that doesn't fade when the novelty does. Built around what your child genuinely wants in their actual life — not around what an app dangles in front of them.
+                  </p>
+                  <p className="text-sm text-gray-500 leading-relaxed" dir="rtl">
+                    המוטיבציה שלא נעלמת כשההתרגשות נגמרת. בנויה סביב מה שהילד באמת רוצה בחיים שלו — לא סביב מה שהאפליקציה מנופפת מולו.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pillar 2 — Positive Coaching */}
+            <div className="rounded-2xl bg-white border border-emerald-100 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold shrink-0">2</div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">A home where mistakes teach, not cost</h3>
+                  <h3 className="text-lg font-semibold text-gray-500 mb-3" dir="rtl">בית שבו שגיאות מלמדות, לא גובות מחיר</h3>
+                  <p className="text-base text-gray-700 leading-relaxed mb-2">
+                    Shame is the silent destroyer of motivation in ADHD. We built BUFF without penalty mechanics, without broken-streak shaming, without sad characters demanding more. Coaching, never policing.
+                  </p>
+                  <p className="text-sm text-gray-500 leading-relaxed" dir="rtl">
+                    בושה היא ההורסת השקטה של מוטיבציה ב-ADHD. בנינו את BUFF בלי עונשים, בלי רצפים שבורים, בלי דמויות עצובות שדורשות עוד. אימון, לעולם לא שיטור.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pillar 3 — Independence-Building (the differentiator — gets stronger visual treatment) */}
+            <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold shrink-0">3</div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Built to be outgrown — until they don't need us</h3>
+                  <h3 className="text-lg font-semibold text-gray-600 mb-3" dir="rtl">בנויה כדי שיוכלו לעזוב אותה — עד שכבר לא יזדקקו לנו</h3>
+                  <p className="text-base text-gray-700 leading-relaxed mb-2">
+                    Most apps want you forever. We don't. The success metric for BUFF is a kid who eventually doesn't need it — who has internalized the routines, the self-coaching, the autonomy. We measure success in independence, not engagement.
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed" dir="rtl">
+                    רוב האפליקציות רוצות אותך לתמיד. אנחנו לא. ההצלחה של BUFF היא ילד שבסוף כבר לא צריך אותה — שהפנים את השגרה, את האימון העצמי, את העצמאות. אנחנו מודדים הצלחה בעצמאות, לא במעורבות.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Below: how these three principles show up in BUFF — six mechanics, four practices, and the language that ties it all together.
+            </p>
+            <p className="mt-2 text-xs text-gray-500 leading-relaxed" dir="rtl">
+              למטה: איך שלושת העקרונות האלה מתבטאים ב-BUFF — שישה מנגנונים, ארבעה עקרונות, והשפה שמחברת ביניהם.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-[800px] mx-auto bg-white text-gray-900" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
 
         {/* ===== PAGE 1: Cover ===== */}
