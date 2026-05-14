@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import buffLogo from '@/assets/buff-logo-no-bg.png';
 
 const sections = [
@@ -96,6 +97,8 @@ const principles = [
 ];
 
 export default function PhilosophyPrint() {
+  const { language, setLanguage } = useLanguage();
+
   useEffect(() => {
     document.title = 'BUFF Philosophy — Professional Guide';
   }, []);
@@ -110,10 +113,23 @@ export default function PhilosophyPrint() {
           .avoid-break { page-break-inside: avoid; }
           @page { margin: 1.5cm; size: A4; }
         }
+        @media screen {
+          /* Bilingual display: show only active language on screen.
+             Print mode preserves both languages (the original PDF design). */
+          html[lang="en"] [dir="rtl"] { display: none !important; }
+          html[lang="he"] :has(+ [dir="rtl"]) { display: none !important; }
+        }
       `}</style>
 
-      {/* Print button */}
+      {/* Top control bar — language toggle, print, back */}
       <div className="no-print fixed top-4 right-4 z-50 flex gap-2">
+        <button
+          onClick={() => setLanguage(language === 'en' ? 'he' : 'en')}
+          className="px-4 py-3 bg-muted text-muted-foreground font-medium rounded-xl shadow hover:bg-muted/80 transition-all"
+          aria-label={language === 'en' ? 'עבור לעברית' : 'Switch to English'}
+        >
+          🌐 {language === 'en' ? 'עברית' : 'English'}
+        </button>
         <button
           onClick={() => window.print()}
           className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:opacity-90 transition-all"
