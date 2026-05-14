@@ -125,7 +125,12 @@ export default function PhilosophyPrint() {
         }
       `}</style>
 
-      {/* Top control bar — language toggle, print, back */}
+      {/* Top control bar — language toggle + back.
+          Print button intentionally removed from public view: the full clinical
+          guide (6 mechanics, 4 practices, glossary, strategies) is internal IP
+          and should not be one-click downloadable by visitors. Adi can still
+          print the full document via Ctrl+P (Cmd+P on Mac) — the @media print
+          CSS rules render the full document untouched. */}
       <div className="no-print fixed top-4 right-4 z-50 flex gap-2">
         <button
           onClick={() => setLanguage(language === 'en' ? 'he' : 'en')}
@@ -133,12 +138,6 @@ export default function PhilosophyPrint() {
           aria-label={language === 'en' ? 'עבור לעברית' : 'Switch to English'}
         >
           🌐 {language === 'en' ? 'עברית' : 'English'}
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:opacity-90 transition-all"
-        >
-          📄 Save as PDF / Print
         </button>
         <button
           onClick={() => window.history.back()}
@@ -219,14 +218,6 @@ export default function PhilosophyPrint() {
             </div>
           </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-sm text-gray-500 leading-relaxed">
-              Want the full clinical guide? Click <strong>"📄 Save as PDF / Print"</strong> above for the complete 6 mechanics, 4 practices, glossary, and strategy library.
-            </p>
-            <p className="mt-2 text-xs text-gray-500 leading-relaxed" dir="rtl">
-              רוצה את המדריך המקצועי המלא? לחצי על <strong>"📄 שמור כ-PDF / הדפס"</strong> למעלה לקבלת 6 המנגנונים, 4 העקרונות, מילון המונחים, וספריית האסטרטגיות.
-            </p>
-          </div>
         </div>
       </div>
 
