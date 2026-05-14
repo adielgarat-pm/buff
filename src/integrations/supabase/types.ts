@@ -914,7 +914,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_reviews: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          display_name_en: string | null
+          id: string | null
+          rating: number | null
+          review_text: string | null
+          status: string | null
+          translated_text_en: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          display_name_en?: string | null
+          id?: string | null
+          rating?: number | null
+          review_text?: string | null
+          status?: string | null
+          translated_text_en?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          display_name_en?: string | null
+          id?: string | null
+          rating?: number | null
+          review_text?: string | null
+          status?: string | null
+          translated_text_en?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_set_pro_status: {
