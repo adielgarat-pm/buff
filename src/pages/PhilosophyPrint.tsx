@@ -258,7 +258,7 @@ export default function PhilosophyPrint() {
           </div>
 
           <p className="mt-auto text-xs text-gray-400">
-            buff.lovable.app · Founded by Adi Elgart German
+            buffadhd.com · Founded by Adi Elgart German
           </p>
         </div>
 
