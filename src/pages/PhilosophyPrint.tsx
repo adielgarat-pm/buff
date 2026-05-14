@@ -459,7 +459,7 @@ export default function PhilosophyPrint() {
               "היו המאמן, לא הבוס"
             </p>
             <p className="text-xs text-gray-500">
-              buff.lovable.app · Founded by Adi Elgart German · 💜 Built with love, for parents and children
+              buffadhd.com · Founded by Adi Elgart German · 💜 Built with love, for parents and children
             </p>
             <p className="text-xs text-gray-400 mt-2">
               Important: BUFF is an enrichment tool, not a substitute for professional medical or therapeutic advice.
