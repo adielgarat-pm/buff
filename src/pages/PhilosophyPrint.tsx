@@ -118,6 +118,10 @@ export default function PhilosophyPrint() {
              Print mode preserves both languages (the original PDF design). */
           html[lang="en"] [dir="rtl"] { display: none !important; }
           html[lang="he"] :has(+ [dir="rtl"]) { display: none !important; }
+          /* Web view: hide the comprehensive print pages (cover, mechanics,
+             principles, glossary, strategies). They appear only on print/PDF.
+             Web visitors see only the 3-Principles hero. */
+          .print-page { display: none !important; }
         }
       `}</style>
 
@@ -217,10 +221,10 @@ export default function PhilosophyPrint() {
 
           <div className="mt-12 text-center">
             <p className="text-sm text-gray-500 leading-relaxed">
-              Below: how these three principles show up in BUFF — six mechanics, four practices, and the language that ties it all together.
+              Want the full clinical guide? Click <strong>"📄 Save as PDF / Print"</strong> above for the complete 6 mechanics, 4 practices, glossary, and strategy library.
             </p>
             <p className="mt-2 text-xs text-gray-500 leading-relaxed" dir="rtl">
-              למטה: איך שלושת העקרונות האלה מתבטאים ב-BUFF — שישה מנגנונים, ארבעה עקרונות, והשפה שמחברת ביניהם.
+              רוצה את המדריך המקצועי המלא? לחצי על <strong>"📄 שמור כ-PDF / הדפס"</strong> למעלה לקבלת 6 המנגנונים, 4 העקרונות, מילון המונחים, וספריית האסטרטגיות.
             </p>
           </div>
         </div>
