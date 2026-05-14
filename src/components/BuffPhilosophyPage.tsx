@@ -78,8 +78,8 @@ export function BuffPhilosophyPage({ onBack, isModal, onClose, onNavigateToSetti
 
   const handleShare = () => {
     const shareText = language === 'he'
-      ? `🎮 *${t('philosophy.title')}*\n🔗 https://buff.lovable.app`
-      : `🎮 *${t('philosophy.title')}*\n🔗 https://buff.lovable.app`;
+      ? `🎮 *${t('philosophy.title')}*\n🔗 https://buffadhd.com`
+      : `🎮 *${t('philosophy.title')}*\n🔗 https://buffadhd.com`;
     window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
   };
 
