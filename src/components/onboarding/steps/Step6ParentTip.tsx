@@ -197,9 +197,9 @@ export function Step6ParentTip({ childName, onComplete, onBack, isLoading }: Ste
         </button>
 
         <div className="p-4 rounded-xl bg-card border border-border">
-          <p className="text-sm text-foreground leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: t('onboarding.step6.callToAction').replace('{name}', childName) }}
-          />
+          <p className="text-sm text-foreground leading-relaxed">
+            {t('onboarding.step6.callToAction').replace('{name}', childName)}
+          </p>
         </div>
         </div>
 
