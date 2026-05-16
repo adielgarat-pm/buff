@@ -122,6 +122,21 @@ export default function PhilosophyPrint() {
              principles, glossary, strategies). They appear only on print/PDF.
              Web visitors see only the 3-Principles hero. */
           .print-page { display: none !important; }
+          /* Force philosophy hero to follow html lang, not body's stuck CSS
+             direction. Fixes the bug where body direction:rtl bleeds into
+             the hero even when user has selected EN. */
+          html[lang="en"] .philosophy-hero,
+          html[lang="en"] .philosophy-hero * { direction: ltr; }
+          html[lang="he"] .philosophy-hero,
+          html[lang="he"] .philosophy-hero * { direction: rtl; }
+          /* Use logical text alignment so EN reads left-aligned and HE reads
+             right-aligned automatically. Override stuck text-align inheritance. */
+          .philosophy-hero p,
+          .philosophy-hero h1,
+          .philosophy-hero h2,
+          .philosophy-hero h3 { text-align: start !important; }
+          .philosophy-hero .text-center,
+          .philosophy-hero .text-center * { text-align: center !important; }
         }
       `}</style>
 
@@ -148,8 +163,11 @@ export default function PhilosophyPrint() {
       </div>
 
       {/* ===== HERO (web only — hidden on print): Our Three Principles ===== */}
-      <div className="no-print bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-b border-indigo-100">
+      <div className="no-print philosophy-hero bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-b border-indigo-100">
         <div className="max-w-3xl mx-auto px-6 sm:px-8 py-16">
+          <div className="flex justify-center mb-8">
+            <img src={buffLogo} alt="BUFF" className="w-16 h-16" />
+          </div>
           <div className="text-center mb-10">
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 leading-tight">
               Our Three Principles
@@ -216,6 +234,16 @@ export default function PhilosophyPrint() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Footer — founder attribution */}
+          <div className="mt-10 text-center">
+            <p className="text-xs text-gray-500">
+              Made by Adi · Founder, BUFF
+            </p>
+            <p className="text-xs text-gray-500 mt-1" dir="rtl">
+              נעשה על ידי עדי · מייסדת, BUFF
+            </p>
           </div>
 
         </div>
