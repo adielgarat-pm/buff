@@ -19,6 +19,8 @@ import { EnOnboardingFlow } from "@/components/onboarding/en";
 import Onboarding from "@/pages/Onboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Pricing from "@/pages/Pricing";
+import Refund from "@/pages/Refund";
 import Unsubscribe from "@/pages/Unsubscribe";
 import PhilosophyPrint from "@/pages/PhilosophyPrint";
 import ResetPassword from "@/pages/ResetPassword";
@@ -159,6 +161,8 @@ const AppRoutes = () => (
     {/* Legal pages */}
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
+    <Route path="/pricing" element={<Pricing />} />
+    <Route path="/refund" element={<Refund />} />
     <Route path="/unsubscribe" element={<Unsubscribe />} />
 
     {/* About page - public */}
