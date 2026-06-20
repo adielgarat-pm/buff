@@ -445,7 +445,6 @@ export type Database = {
           daily_win_reward: number
           display_name: string
           family_id: string | null
-          fcm_token: string | null
           id: string
           is_activated: boolean
           is_lifetime_access: boolean
@@ -474,7 +473,6 @@ export type Database = {
           daily_win_reward?: number
           display_name: string
           family_id?: string | null
-          fcm_token?: string | null
           id?: string
           is_activated?: boolean
           is_lifetime_access?: boolean
@@ -503,7 +501,6 @@ export type Database = {
           daily_win_reward?: number
           display_name?: string
           family_id?: string | null
-          fcm_token?: string | null
           id?: string
           is_activated?: boolean
           is_lifetime_access?: boolean
